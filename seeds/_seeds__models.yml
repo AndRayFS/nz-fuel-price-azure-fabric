@@ -1,0 +1,27 @@
+version: 2
+
+seeds:
+  - name: periods
+    columns:
+      - name: period_id
+        tests:
+          - unique
+          - not_null
+      - name: start_date
+        tests:
+          - not_null
+      - name: period_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['crisis', 'calm']
+
+  - name: variable_mapping
+    columns:
+      - name: canonical_name
+        tests:
+          - unique
+          - not_null
+      - name: variable_name
+        tests:
+          - not_null
