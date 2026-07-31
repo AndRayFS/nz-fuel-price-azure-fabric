@@ -1,0 +1,13 @@
+variable_name,unit_filter,canonical_name,is_fuel_specific,track_revisions
+Dubai crude price,USD/bbl,dubai_crude_usd,false,true
+Dubai crude price,NZD/bbl,dubai_crude_nzd,false,true
+Exchange rate,,exchange_rate,false,true
+Importer cost,,importer_cost,true,true
+ETS,,ets,true,true
+GST,,gst,true,true
+Taxes,,taxes,true,true
+Price excluding tax,,price_excl_tax,true,true
+Board price,,board_price,true,true
+Adjusted retail price,,adjusted_retail_price,true,true
+Importer margin,,importer_margin,true,true
+Importer margin trend,,importer_margin_trend,true,false

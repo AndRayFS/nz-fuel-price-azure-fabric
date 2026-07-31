@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: silver_general
+    columns:
+      - name: Date
+        tests:
+          - unique
+          - not_null
+      - name: Week
+        tests:
+          - not_null
+      - name: dubai_crude_usd
+        tests:
+          - not_null
+      - name: exchange_rate
+        tests:
+          - not_null
+
+  - name: silver_fuel
+    columns:
+      - name: Fuel
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Regular Petrol', 'Premium Petrol 95R', 'Diesel']
+      - name: Week
+        tests:
+          - not_null
+      - name: board_price
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - Week
+            - Fuel

@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: bronze_lakehouse
+    schema: mbie
+    tables:
+      - name: weekly_prices

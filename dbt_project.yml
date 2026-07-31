@@ -1,0 +1,32 @@
+name: nz_fuel_price_project
+version: 1.0.0
+profile: nz_fuel_price_project
+model-paths:
+- models
+analysis-paths:
+- analyses
+test-paths:
+- tests
+seed-paths:
+- seeds
+macro-paths:
+- macros
+snapshot-paths:
+- snapshots
+clean-targets:
+- target
+- dbt_packages
+models:
+  nz_fuel_price_project:
+    +materialized: table
+    silver:
+      +materialized: table
+      +docs:
+        node_color: '#0d9488'
+    gold:
+      +docs:
+        node_color: '#6b21a8'
+seeds:
+  nz_fuel_price_project:
+    +docs:
+      node_color: '#b45309'

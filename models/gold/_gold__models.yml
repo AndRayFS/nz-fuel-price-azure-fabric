@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: lag_correlation
+    columns:
+      - name: period_id
+        tests:
+          - not_null
+      - name: factor
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['dubai_crude_usd', 'exchange_rate']
+      - name: fuel
+        tests:
+          - not_null
+      - name: lag_weeks
+        tests:
+          - not_null
+      - name: r
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: -1
+                max_value: 1
+
+  - name: lag_resolved
+    columns:
+      - name: period_id
+        tests:
+          - not_null
+      - name: resolved_lag
+        tests:
+          - not_null
+      - name: resolved_r
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: -1
+                max_value: 1
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - period_id
+            - factor
+            - fuel

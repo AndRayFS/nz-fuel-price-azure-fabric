@@ -1,0 +1,7 @@
+period_id,period_name,start_date,end_date,period_type
+01_covid_2020,2020 COVID crash,2020-03-06,2020-06-05,crisis
+02_calm_own_refinery,Calm period (own-refinery era),2020-06-05,2022-02-18,calm
+03_ukraine_2022,2022 Russia/Ukraine war,2022-02-24,2022-08-31,crisis
+04_tariff_2025,2025 US-China tariff shock,2025-04-02,2025-06-30,crisis
+05_calm_import_era,Calm period (import era),2025-07-10,2026-02-27,calm
+06_iranus_2026,2026 Iran/US conflict,2026-02-28,,crisis
