@@ -10,9 +10,11 @@
 
 {% set factors = [
     {'name': 'dubai_crude_usd', 'relation': ref('silver_general'), 'date_col': 'Date', 'value_col': 'dubai_crude_usd'},
+    {'name': 'dubai_crude_nzd', 'relation': ref('silver_general'), 'date_col': 'Date', 'value_col': 'dubai_crude_nzd'},
     {'name': 'exchange_rate',   'relation': ref('silver_general'), 'date_col': 'Date', 'value_col': 'exchange_rate'}
 ] %}
 
+{% set targets = ['board_price', 'adjusted_retail_price'] %}
 {% set fuels = ['Regular Petrol', 'Premium Petrol 95R', 'Diesel'] %}
 
 {% set n_periods = periods['period_id'] | length %}
@@ -23,17 +25,22 @@
   {% set p_end = periods["end_date"][p] if periods["end_date"][p] else modules.datetime.date.today() %}
   {% set period_weeks = (p_end - p_start).days // 7 %}
   {% set period_max_lag = [10, (period_weeks // 3)] | min %}
+
   {% for factor in factors %}
-    {% for fuel in fuels %}
-      {% set target_relation %}
-        (select Date, board_price from {{ ref('silver_fuel') }} where Fuel = '{{ fuel }}')
-      {% endset %}
-      {% set block %}
+    {% for target in targets %}
+      {% for fuel in fuels %}
+        {% set target_relation %}
+          (select Date, {{ target }} as target_value from {{ ref('silver_fuel') }}
+           where Fuel = '{{ fuel }}'
+             and Date between '{{ p_start }}' and {% if periods["end_date"][p] %}'{{ p_end }}'{% else %}cast(getdate() as date){% endif %})
+        {% endset %}
+        {% set block %}
 select
     '{{ periods["period_id"][p] }}' as period_id,
     '{{ periods["period_name"][p] }}' as period_name,
     '{{ periods["period_type"][p] }}' as period_type,
     '{{ factor.name }}' as factor,
+    '{{ target }}' as target,
     '{{ fuel }}' as fuel,
     lag_weeks, n, r
 from (
@@ -43,14 +50,15 @@ from (
         factor_value_col=factor.value_col,
         target_relation=target_relation,
         target_date_col='Date',
-        target_value_col='board_price',
+        target_value_col='target_value',
         period_start=periods["start_date"][p],
         period_end=periods["end_date"][p],
         max_lag=period_max_lag
     ) }}
 ) sub
-      {% endset %}
-      {% do blocks.append(block) %}
+        {% endset %}
+        {% do blocks.append(block) %}
+      {% endfor %}
     {% endfor %}
   {% endfor %}
 {% endfor %}

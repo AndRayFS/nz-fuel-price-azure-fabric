@@ -11,7 +11,13 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ['dubai_crude_usd', 'exchange_rate']
+                values: ['dubai_crude_usd', 'dubai_crude_nzd', 'exchange_rate']
+      - name: target
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['board_price', 'adjusted_retail_price']
       - name: fuel
         tests:
           - not_null
@@ -44,4 +50,5 @@ models:
           combination_of_columns:
             - period_id
             - factor
+            - target
             - fuel
