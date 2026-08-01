@@ -46,10 +46,10 @@ weekly pipeline run.
 
 The tradeoff: `TRY_CAST` fails silently, turning bad data into `NULL` instead
 of raising an error. That's closed by explicit `not_null` tests on every
-value column that feeds the gold layer (`dubai_crude_usd`, `exchange_rate`,
-`board_price`). If a source ever ships something non-numeric, the *test*
-fails loudly — not the pipeline, and not a silently blank chart three weeks
-later.
+value column that feeds the gold layer (`dubai_crude_usd`, `dubai_crude_nzd`,
+`exchange_rate`, `board_price`, `adjusted_retail_price`). If a source ever
+ships something non-numeric, the *test* fails loudly — not the pipeline, and
+not a silently blank chart three weeks later.
 
 ## Lag correlation — matching the original R methodology, not a shortcut
 
@@ -93,6 +93,55 @@ but the resolved (lag=0) correlation is strongly negative (~-0.8) — which
 matches the expected direction (a weaker NZD should mean a higher landed
 cost, once you're not comparing the wrong lag). The guard didn't just clean
 up noise, it recovered the theoretically-expected sign.
+
+## Factor and target are both dimensions, not fixed choices
+
+`lag_correlation` tests three factors (`dubai_crude_usd`, `dubai_crude_nzd`,
+`exchange_rate`) against two targets (`board_price`, `adjusted_retail_price`),
+not one hardcoded pair. The reasoning for each dimension:
+
+- **`dubai_crude_nzd`** already embeds the exchange rate (it's USD price ÷
+  NZD/USD rate). Testing it alongside `dubai_crude_usd` +
+  `exchange_rate` separately isn't redundant — NZD is the single number that
+  reproduces the original R analysis exactly (see below), while USD +
+  exchange rate tested separately is the only way to *attribute* an effect
+  to oil price versus currency movement rather than just observe their
+  combined impact.
+- **`board_price`** (the retailer's posted price) decomposes cleanly via
+  MBIE's own identity (`Board price = Importer cost + Taxes + GST + ETS +
+  Importer margin`), making it the cleaner variable for understanding the
+  cost pass-through *mechanism*. **`adjusted_retail_price`** (what people
+  actually pay, net of loyalty/discount schemes) is the more honest variable
+  for "what does this mean for someone filling up," at the cost of adding
+  retailer-side noise unrelated to cost pass-through. Neither is strictly
+  correct — they answer different questions, so both are computed.
+
+## Bug: target wasn't bounded by the period, factor was
+
+`lag_correlation` originally filtered the *factor* series to the period's
+date range before joining, but not the *target* series — the target
+subquery only filtered on `Fuel`. At lag 0 this made no difference (the join
+naturally stays inside the period). At larger lags, shifting a factor date
+forward could land past the period's end date, silently joining against
+target rows from the *next* period.
+
+This wasn't caught by any test — `n` per lag stayed exactly right (34 for
+every lag in the affected period), because the leak doesn't create or drop
+rows, it just joins the wrong ones. It only surfaced by validating gold
+output against the original R script's printed correlation tables: one
+period (`05_calm_import_era`, which sits immediately before the ongoing
+2026 crisis) had a correlation profile with the opposite sign and shape from
+R's. R bounds both series to the period before computing anything, so it
+can't leak across a boundary by construction; the SQL version had to be
+fixed to bound the target subquery by the same `period_start`/`period_end`
+as the factor.
+
+**Lesson:** re-deriving a validated R script's logic in SQL needs the same
+validation step it started with — line up final numbers against the
+original before trusting the port, not just checking the SQL runs without
+error. A silent join leak that keeps row counts exactly right is invisible
+to schema tests; it's only caught by checking output values against a
+trusted reference.
 
 ## Snapshot: what's tracked, what isn't, and why
 
