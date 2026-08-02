@@ -59,6 +59,31 @@ Board price = Importer cost + Taxes + GST + ETS + Importer margin
 confirmed against both the data dictionary and the actual CSV. Don't assume
 it exists; it would have to be derived, if needed at all.
 
+## Board price vs Adjusted retail price — the adjustment factor is quarterly, not weekly
+
+`Adjusted retail price = Board price − adjustment factor`. Per MBIE's own
+methodology document, the factor is computed **once per quarter** — by
+comparing MBIE's quarterly average price against Stats NZ's CPI fuel price
+for that same quarter — and then applied unchanged to every week within
+that quarter.
+
+**Confirmed empirically (2 Aug 2026):** for the ongoing 2026 Iran/US
+conflict period, the gap between `board_price` and `adjusted_retail_price`
+on bronze is a constant **2.898360974938** c/L across every week observed so
+far (Regular Petrol, Mar–Jul 2026), matching to 12 decimal places. This
+isn't a pipeline artifact — it's the quarterly factor genuinely not having
+been recalculated yet for this Provisional period.
+
+**Why this matters for lag correlation:** Pearson's r is invariant to an
+additive constant — `r(X, Y) = r(X, Y + c)`. Since the two target columns
+differ only by a constant within any given quarter, `lag_correlation` and
+`lag_resolved` produce **mathematically identical** results for
+`board_price` vs `adjusted_retail_price` whenever a period's data hasn't
+crossed a quarter boundary with a factor update yet. This is expected to
+resolve itself once the current quarter's CPI comes out and the factor is
+recalculated — at which point the two targets should start diverging for
+this period the way they already do for the closed historical ones.
+
 ## Status field — Provisional / Final
 
 Revisions are tied to the **quarterly** Stats NZ CPI release, not to a fixed
