@@ -30,3 +30,6 @@ seeds:
   nz_fuel_price_project:
     +docs:
       node_color: '#b45309'
+
+vars:
+  volatility_window_weeks: 6
