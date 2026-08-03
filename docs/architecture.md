@@ -182,3 +182,60 @@ hand-maintained and therefore never stale), tests that fail before a
 dashboard quietly goes wrong, and `ref()`-based environment independence.
 None of that pays for itself on day one with a single source — it pays off
 the day a second one shows up.
+
+## "Is a crisis still happening?" — why this became a continuous indicator, not a yes/no flag
+
+Report 1 (the "should I fill up now" dashboard) needs to know whether the
+historical crisis-lag pattern still applies *today*. The 6 periods in
+`seeds/periods.csv` were labeled by eye — start dates are reliable (each one
+is pinned to a specific news event: invasion, tariffs, etc.), but end dates
+were a judgment call based on looking at the oil price chart. That's fine
+for retrospective analysis, but it can't be automated for a live, daily
+report — there's no future data to eyeball yet.
+
+**First idea — a volatility threshold, checked**, not assumed. Computed
+rolling `STDEV` of `dubai_crude_nzd` week-over-week % change over a moving
+window, compared against a calm-period baseline (`stdev` over the full
+`02_calm_own_refinery` and `05_calm_import_era` periods: 0.0302 and 0.0268
+respectively — so a real baseline of roughly 0.027–0.030, not a guessed
+number).
+
+**Tested against all 3 closed crisis periods (COVID, Ukraine, tariff
+shock)** before trusting it. Two things fell out of that:
+- Short windows (4 weeks) react fast to the *start* of a shock but are
+  noisy — they can dip back near calm-baseline for a week or two in the
+  *middle* of an ongoing crisis (seen clearly in the Ukraine period,
+  mid-May 2022), which would cause Report 1 to falsely signal "crisis over."
+- Long windows (8–10 weeks) are stable but structurally *lag* the real end
+  of a crisis by nearly the window's own length, because they keep
+  "remembering" old high-volatility weeks long after the raw weekly changes
+  have actually calmed down.
+
+**Tried a binary rule instead** — "3 consecutive weeks with `|pct_change| <
+0.03`" — tested against the same 3 periods. It didn't fire reliably: it
+never fired at all within ~6 weeks of the labeled end of COVID, and fired
+2.5 weeks late for Ukraine and *almost 2 months* late for the tariff shock.
+Looking at the raw weekly changes around each labeled end date explains why:
+volatility doesn't switch off, it decays with occasional relapses — a rule
+requiring a clean run of calm weeks will always find a later, stricter
+"end" than what a human sees as a declining trend.
+
+**Decision: no binary trigger.** Report 1 shows a continuous measure
+(`% above calm baseline`) plus a trend direction (easing / intensifying),
+rather than pretending there's a precise date on which a crisis regime
+switches off. This is consistent with the rest of the project's stance on
+honest uncertainty (edge-guard, the forecast confidence tiers) — a fabricated
+yes/no answer here would be less honest than the data supports, not more
+useful.
+
+**Known limitation, deliberately out of scope for now:** this whole problem
+— objectively dating regime start/end from a time series — is a real,
+established field (Markov regime-switching models, going back to Hamilton
+1989; the simpler Bry-Boschan peak/trough algorithm used by NBER for
+recession dating). A Markov-switching model has even been applied
+specifically to currency crisis prediction (Abiad, IMF 2007), which matters
+here since exchange-rate "crisis periods" won't line up with oil-price ones
+if that factor is ever analyzed with the same rigor. Worth revisiting with
+a proper model in R/Python rather than hand-rolled SQL heuristics if this
+project's forecasting ambitions grow — the rolling-volatility approach above
+is a pragmatic bridge, not a claim to have solved regime detection.
