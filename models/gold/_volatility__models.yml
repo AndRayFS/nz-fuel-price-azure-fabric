@@ -13,6 +13,15 @@ models:
               arguments:
                 min_value: 0
                 max_value: 1
+
+  - name: volatility_config
+    columns:
+      - name: window_weeks
+        tests:
+          - not_null
+      - name: window_days
+        tests:
+          - not_null
       - name: calm_baseline
         tests:
           - not_null
