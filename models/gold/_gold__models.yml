@@ -45,6 +45,15 @@ models:
               arguments:
                 min_value: -1
                 max_value: 1
+      - name: resolved_slope
+        tests:
+          - not_null
+      - name: lag_confidence_gap
+        tests:
+          - not_null
+      - name: peak_prominence
+        tests:
+          - not_null
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
