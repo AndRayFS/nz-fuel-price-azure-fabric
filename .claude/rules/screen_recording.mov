@@ -1,0 +1,31 @@
+# Working style (established over prior sessions)
+
+- Verify empirically before asserting, especially for dbt-fabric adapter
+  quirks and Power BI DAX filter-context behavior — several "should work"
+  assumptions turned out wrong this way (see architecture.md's DAX
+  filter-context section for the general lesson).
+- When writing multi-line SQL/DAX/config via heredoc, verify the file
+  landed correctly (`grep`/`cat`) before running — heredocs have silently
+  truncated content mid-session before, and the resulting errors are
+  confusing if you don't check the source first.
+- One change at a time, verify, then the next — not several stacked
+  speculative fixes at once.
+- Keep methodology honest — this project deliberately favors withholding
+  a number over showing a falsely-confident one (see `architecture.md`'s
+  confidence-tier and "isolated contribution" framing). Don't reintroduce
+  point-forecast language ("predict," "will be") when reporting on
+  `Report1` measures — the dashboard was deliberately rebuilt away from
+  that framing.
+- Copyright/citation rules from chat also apply here when summarizing
+  external research (e.g. the rockets-and-feathers literature in the
+  roadmap section) — paraphrase, don't quote at length.
+
+## Tooling split — this isn't the only place work happens
+
+- **Claude Code (here):** dbt models, macros, seeds, SQL, git, tests —
+  anything that's a file + terminal command.
+- **claude.ai chat (separate):** Power BI Desktop (Windows VM GUI — DAX
+  can be drafted here as text, but applying/screenshotting it happens
+  there), Azure Portal / Fabric web UI clicks (IAM roles, Logic App
+  designer, tenant settings), methodology discussions, LinkedIn post
+  drafting. Don't assume you can drive those directly.
