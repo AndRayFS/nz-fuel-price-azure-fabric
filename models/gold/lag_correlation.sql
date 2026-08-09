@@ -42,7 +42,7 @@ select
     '{{ factor.name }}' as factor,
     '{{ target }}' as target,
     '{{ fuel }}' as fuel,
-    lag_weeks, n, r
+    lag_weeks, n, r, slope
 from (
     {{ lag_correlation_series(
         factor_relation=factor.relation,

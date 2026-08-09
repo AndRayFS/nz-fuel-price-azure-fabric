@@ -27,6 +27,7 @@ history occasionally (not daily) to confirm it's still firing correctly.
 | See compiled SQL before running (check Jinja substituted correctly) | `dbt compile --select <model>` |
 | View compiled file | `cat target/compiled/nz_fuel_price_project/models/<path>/<model>.sql` |
 | Run one model | `dbt run --select <model>` |
+| **Weekly data refresh (IMPORTANT)** | Always use `--full-refresh` — plain `dbt run` has been observed to not reliably pick up new bronze rows for these models. `dbt run --select silver_general silver_fuel lag_correlation lag_resolved factor_volatility --full-refresh` |
 | Run one model, force full rebuild (needed after changing materialization or column structure) | `dbt run --select <model> --full-refresh` |
 | Run + tests together | `dbt build --select <model>` |
 | Preview output without leaving terminal | `dbt show --select <model> --limit 10` |
