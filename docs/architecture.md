@@ -397,3 +397,98 @@ directions from the same underlying data. A smoothed comparison (e.g.
 average of the last 2 weeks vs. the 2 weeks before that, the same fix
 already applied to `Volatility Trend`) would likely be more robust than
 comparing two single points, but hasn't been implemented or tested.
+
+## Diesel's lag isn't stable within a period — and margin looks like why
+
+An expanding-window query (recompute `resolved_lag` per fuel as of *every*
+week in `06_iranus_2026`, using only data up to that week — same idea as
+the cutoff backtests, but run for every week instead of a handful) showed
+something the single-cutoff backtests didn't: **both petrol grades hold
+lag=2 from the point they have enough data (n≥6) all the way to the most
+recent week — no exceptions.** Diesel holds lag=3 for 14 straight weeks
+(10 Apr–26 Jun), then **shifts to lag=2 for exactly three weeks (3–17
+Jul)**, then reverts to lag=3. This is at n=16–18, not the small-sample
+noise zone — a real, reproducible shift specific to diesel.
+
+Diesel's `Importer margin` over the same window: spikes to ~103 on 24 Apr
+(from ~28 the week before), stays elevated (77–98) through late June, then
+declines sharply and steadily through the same 3-Jul–17-Jul window that
+the lag shift covers (60 → 47 → 23), before reversing back up by 31 Jul.
+The lag instability lines up with the *fast-decline phase* of the margin
+move, not with the margin simply being unusually high or low — a plateau
+doesn't seem to confuse the lag search, a rapid change does, presumably
+because it's an independent source of week-to-week price movement
+competing with crude's signal.
+
+This matches a named, established literature: **asymmetric cost
+pass-through** ("rockets and feathers," Bacon 1991 onward) — retailers
+raise prices quickly when costs rise but cut them slowly when costs fall,
+which shows up as exactly this kind of margin bulge-and-slow-release
+pattern. A very recent (2026) paper found the asymmetry is *stronger
+during crisis periods* specifically — directly relevant, since this project
+only ever measures lag/r during crisis periods by construction. Diesel
+specifically has been found to show distinct (refining-stage) asymmetry
+from petrol in at least one prior study, which is external validation that
+today's diesel-vs-petrol difference isn't a fluke of this one dataset.
+
+## Roadmap — where this goes next, in priority order
+
+1. **Margin/asymmetry analysis (highest priority).** Uses data already in
+   hand — MBIE publishes `Importer margin` directly, no new source needed.
+   `Taxes`/`GST` are policy-set, not market-reactive, and shouldn't be
+   folded into a symmetric correlation the way `exchange_rate` was; `ETS`
+   could reasonably join the existing symmetric `factors` list, but
+   `Importer margin` needs its own asymmetric (up-move vs down-move)
+   analysis, not the existing correlation macro. A practical, cheap
+   near-term win: turn the expanding-window lag-stability query above into
+   a permanent signal (e.g. "lag unchanged over the last N weeks") and feed
+   it into `Forecast Confidence` alongside `resolved_r` — this is a more
+   specific, better-grounded version of the "downgrade when
+   `resolved_lag >= 3`" idea noted earlier, now with a real mechanism
+   behind it rather than just an empirical pattern in backtest errors.
+2. **EIA Brent (daily crude benchmark) as a new source.** Solves two
+   documented problems at once, which is why it's next rather than a
+   generic "add more sources" item: (a) enables the smoothed
+   `crude_change` comparison described above — at weekly granularity,
+   smoothing only cuts noise by ~30–40% (√N scaling, N=2–3) and risks
+   blurring the signal itself since the smoothing window competes with a
+   lag that's often only 1–3 weeks; at daily granularity (N≈14 for a
+   2-week window) the same smoothing gets ~73% noise reduction without
+   that conflict; (b) gives a real, independent read on intra-week crude
+   volatility, which MBIE's weekly data structurally cannot show. Note
+   Brent ≠ Dubai — a proxy, not a replacement for the existing regression,
+   which stays anchored to Dubai crude.
+3. **Distributed lag model (ADL).** The deeper, correct fix for the
+   assumption baked into `resolved_lag`/`resolved_slope`: that the whole
+   effect of a crude move lands at one lag, and that lag/slope are
+   constant across an entire period. Both are simplifications — the diesel
+   finding above is direct evidence the second one doesn't always hold.
+   A proper distributed-lag model spreads the effect across several lags
+   with different weights instead of picking one "best" lag. Bigger
+   undertaking than the rest of this list — a new model, not a patch.
+4. **Stats NZ** as a candidate secondary source — mainly useful as an
+   independent cross-check of MBIE's own quarterly adjustment-factor
+   methodology (see the constant-gap finding in `mbie_notes.md`), not
+   prioritized ahead of the margin work above.
+
+**Long-term goal:** an additive forecast — current price + crude's
+estimated contribution + margin's estimated contribution + known/announced
+tax changes (looked up, not modeled, since these are deterministic) +
+eventually currency — plus turning the current qualitative Strong/
+Moderate/Weak tiers into real probability/confidence intervals. The
+backtest error spread already on record (0.4–7.3%, varying with lag
+length) is a practical starting point for that — not rigorous statistics,
+but real, empirically observed error, which beats inventing a number.
+
+**Stack question, explicitly undecided:** whether to keep building on
+Azure/Fabric or move new work (starting with the margin analysis above) to
+a GCP-based stack (BigQuery/DuckDB + Looker Studio) was raised and
+deliberately left open rather than decided — Fabric's requirement that
+capacity stay running for anyone to view a published Power BI report (see
+the Power BI section of this doc / the Part 5 post) is a real point in
+GCP's favor, but abandoning Azure mid-series would also abandon the
+project's original stated goal (comparing the GCP-familiar author's
+experience against Microsoft's stack) and a fair amount of working,
+verified infrastructure. Current lean: keep the oil-price work on Fabric
+as already built; if a new stack gets tried, do it on the *next* new
+direction (margin analysis) rather than migrating what already works.
