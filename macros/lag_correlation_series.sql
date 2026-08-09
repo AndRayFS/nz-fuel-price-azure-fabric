@@ -10,7 +10,12 @@ select
         when (n*sum_x2 - sum_x*sum_x) <= 0 or (n*sum_y2 - sum_y*sum_y) <= 0 then null
         else (n*sum_xy - sum_x*sum_y)
              / sqrt((n*sum_x2 - sum_x*sum_x) * (n*sum_y2 - sum_y*sum_y))
-    end as r
+    end as r,
+    case
+        when n < 3 then null
+        when (n*sum_x2 - sum_x*sum_x) <= 0 then null
+        else (n*sum_xy - sum_x*sum_y) / (n*sum_x2 - sum_x*sum_x)
+    end as slope
 from (
     select
         lag_weeks,

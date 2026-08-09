@@ -19,4 +19,8 @@ select
     {% endfor %}
 from {{ source('bronze', 'weekly_prices') }}
 where Fuel = 'NA'
+{% set cutoff = var('simulate_cutoff_date', none) %}
+{% if cutoff %}
+and Date <= '{{ cutoff }}'
+{% endif %}
 group by Week, Date
