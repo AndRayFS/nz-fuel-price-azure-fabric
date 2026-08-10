@@ -6,3 +6,4 @@ logs/
 .DS_Store
 *.gif
 *.mov
+.claude/settings.local.json
