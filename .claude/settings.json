@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dbt --version)",
+      "Bash(dbt debug:*)",
+      "Bash(dbt ls:*)",
+      "Bash(dbt list:*)",
+      "Bash(dbt parse:*)",
+      "Bash(dbt compile:*)",
+      "Bash(dbt show:*)",
+      "Bash(dbt test:*)",
+      "Bash(dbt docs generate:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git rev-list:*)",
+      "Bash(git blame:*)"
+    ]
+  }
+}
