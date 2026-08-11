@@ -1,7 +1,7 @@
 # LinkedIn series — index and house style
 
-Derived from reading all five published posts (10 Aug 2026). Links live in
-`README.md`.
+Derived from reading all six published posts (Parts 1–5 read 10 Aug 2026,
+Part 6 on 11 Aug). Links live in `README.md`.
 
 | Part | Topic | Ends by promising |
 |---|---|---|
@@ -9,11 +9,33 @@ Derived from reading all five published posts (10 Aug 2026). Links live in
 | 2 | Architecture: bronze/silver/gold, metadata pivot, why dbt | "register Azure, stand up Fabric" |
 | 3 | Azure/Fabric registration, F2, budget alerts, first pipeline | "bring dbt into the picture" |
 | 4 | dbt on Fabric, macros, lineage, the lag bug found vs R | "build the Power BI reports" |
-| 5 | Report 1 live, confidence framing, 9am–11pm window | **"a look at what all this actually cost in Microsoft Fabric"** |
-| 6 | Costs — material in `cost_notes.md` | |
+| 5 | Report 1 live, confidence framing, 9am–11pm window | "a look at what all this actually cost in Microsoft Fabric" |
+| 6 | Costs: 98.5%/1.5% split, USD/NZD error, pause savings | **"back to the data: new sources, and extending the methodology"** |
 
 Each post opens by referring back to the previous one and closes by naming
-the next. Part 6 is already promised as the cost post.
+the next.
+
+## Published corrections
+
+Kept here so the record of what the posts claim stays accurate — the post
+bodies were deliberately **not** edited, since the series is
+learning-in-public and the reversal is the story.
+
+- **11 Aug 2026, Parts 5 and 6 — the always-on claim.** Part 5 said "a
+  paused Fabric capacity makes even a published report unreachable"; Part 6
+  sharpened it to "Not stale. Gone." and framed a binary of 24/7 at
+  ~NZ$531/month versus opening hours. That holds only for a
+  capacity-backed workspace, not for Power BI. Correction comments were
+  published on both posts the same day: Report 1 now serves from My
+  Workspace via Publish to web, renders with data while the F2 is paused,
+  and costs nothing to serve. The comments also state plainly what is still
+  unknown — whether this survives the Power BI Pro trial ending ~26 Sep
+  2026 on a Free licence. Both carry the new `app.powerbi.com` link; the
+  dead `app.fabric.microsoft.com` embed code was left live on purpose,
+  since the comment explains it. Full detail in `cost_notes.md` and
+  `architecture.md`.
+
+The reversal itself is queued as Part 7 material.
 
 ## House style
 

@@ -243,8 +243,15 @@ the tenant, so the trial looks like it is tracked inside Power BI rather
 than Entra. Microsoft's docs point both ways. Check the link the day after
 the trial ends.
 
+**Corrected in public, 11 Aug 2026.** Correction comments were published on
+both Part 5 and Part 6 the same day, stating the verified result and the
+open licence question, and carrying the new `app.powerbi.com` link. Post
+bodies were left unedited on purpose. The dead
+`app.fabric.microsoft.com` embed code was also left live deliberately —
+the comment explains it. See `linkedin_series.md` for the wording and the
+running record of corrections.
+
 **Part 7 angle.** The strongest version is the reversal: blamed the
 platform, published the complaint, then found the constraint was
 self-inflicted configuration — plus the licensing detail that the capacity
-was never buying what it appeared to buy. Correction comments drafted for
-both posts; the author is publishing them by hand.
+was never buying what it appeared to buy.
