@@ -1,0 +1,126 @@
+<style>
+  :root{
+    --surface-1:#fcfcfb;
+    --plane:#f9f9f7;
+    --ink:#0b0b0b;
+    --ink-2:#52514e;
+    --muted:#898781;
+    --hair:rgba(11,11,11,0.10);
+    --s1:#2a78d6;   /* capacity switched on */
+    --s2:#eb6834;   /* actual work */
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1200px;height:800px}
+  body{
+    background:var(--plane);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  .card{
+    position:absolute;inset:24px;
+    background:var(--surface-1);
+    border:1px solid var(--hair);
+    border-radius:14px;
+    padding:64px 72px;
+    display:flex;flex-direction:column;
+  }
+  .kicker{
+    font-size:15px;font-weight:600;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--muted);
+  }
+  .hero{
+    margin-top:26px;
+    font-size:132px;line-height:.96;font-weight:640;
+    letter-spacing:-.035em;
+  }
+  .sub{
+    margin-top:22px;font-size:25px;line-height:1.45;
+    color:var(--ink-2);max-width:920px;
+  }
+
+  .plot{margin-top:auto}
+
+  .bar{
+    position:relative;
+    display:flex;height:24px;width:100%;
+    gap:2px;                      /* 2px surface gap between fills */
+  }
+  .seg-1{
+    flex:0 0 auto;width:calc(98.54% - 2px);
+    background:var(--s1);
+    border-radius:0 0 0 0;        /* square at the baseline (left) */
+  }
+  .seg-2{
+    flex:1 1 auto;
+    background:var(--s2);
+    border-radius:0 4px 4px 0;    /* 4px rounded data-end */
+  }
+
+  /* leader line from the sliver down to its label */
+  .leader{
+    position:absolute;right:8px;top:24px;
+    width:1px;height:56px;background:var(--hair);
+  }
+
+  .labels{
+    margin-top:58px;display:flex;justify-content:space-between;align-items:flex-start;
+  }
+  .lab{display:flex;gap:12px;align-items:flex-start}
+  .lab.right{text-align:right;flex-direction:row-reverse}
+  .dot{width:11px;height:11px;border-radius:50%;margin-top:7px;flex:0 0 auto}
+  .d1{background:var(--s1)}
+  .d2{background:var(--s2)}
+  .lab .v{font-size:30px;font-weight:620;letter-spacing:-.02em}
+  .lab .k{font-size:20px;color:var(--ink-2);margin-top:4px}
+  .lab .n{font-size:17px;color:var(--muted);margin-top:3px}
+
+  .foot{
+    margin-top:52px;padding-top:26px;border-top:1px solid var(--hair);
+    font-size:29px;font-weight:560;letter-spacing:-.01em;
+  }
+  .foot span{color:var(--ink-2);font-weight:400}
+</style>
+
+<div class="card">
+  <div class="kicker">NZ Fuel Price Project · Part 6</div>
+
+  <div class="hero">NZ$58.79</div>
+
+  <div class="sub">
+    Thirteen days on Azure and Microsoft Fabric — bronze to gold, dbt,
+    and a published Power&nbsp;BI report.
+  </div>
+
+  <div class="plot">
+    <div class="bar">
+      <div class="seg-1"></div>
+      <div class="seg-2"></div>
+      <div class="leader"></div>
+    </div>
+
+    <div class="labels">
+      <div class="lab">
+        <div class="dot d1"></div>
+        <div>
+          <div class="v">NZ$57.93</div>
+          <div class="k">Capacity switched on</div>
+          <div class="n">Nothing had to be running for this to accrue.</div>
+        </div>
+      </div>
+
+      <div class="lab right">
+        <div class="dot d2"></div>
+        <div>
+          <div class="v">NZ$0.86</div>
+          <div class="k">All the actual work</div>
+          <div class="n">Every query, dbt run and report view, combined.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      98.5% of the bill bought no work at all. <span>You pay for the capacity being awake.</span>
+    </div>
+  </div>
+</div>
