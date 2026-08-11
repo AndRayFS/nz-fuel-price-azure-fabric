@@ -483,12 +483,43 @@ but real, empirically observed error, which beats inventing a number.
 **Stack question, explicitly undecided:** whether to keep building on
 Azure/Fabric or move new work (starting with the margin analysis above) to
 a GCP-based stack (BigQuery/DuckDB + Looker Studio) was raised and
-deliberately left open rather than decided — Fabric's requirement that
-capacity stay running for anyone to view a published Power BI report (see
-the Power BI section of this doc / the Part 5 post) is a real point in
-GCP's favor, but abandoning Azure mid-series would also abandon the
-project's original stated goal (comparing the GCP-familiar author's
-experience against Microsoft's stack) and a fair amount of working,
-verified infrastructure. Current lean: keep the oil-price work on Fabric
-as already built; if a new stack gets tried, do it on the *next* new
-direction (margin analysis) rather than migrating what already works.
+deliberately left open rather than decided. Abandoning Azure mid-series
+would also abandon the project's original stated goal (comparing the
+GCP-familiar author's experience against Microsoft's stack) and a fair
+amount of working, verified infrastructure. Current lean: keep the
+oil-price work on Fabric as already built; if a new stack gets tried, do
+it on the *next* new direction (margin analysis) rather than migrating
+what already works.
+
+**The always-on argument that used to sit here was wrong — corrected 11
+Aug 2026.** This section previously claimed that Fabric *requires* capacity
+to stay running for anyone to view a published Power BI report, and scored
+that as a real point in GCP's favour. That is true only for a workspace
+backed by an F capacity, which is how this project happened to be set up —
+it is not a property of Power BI. Verified empirically:
+
+- Report 1's semantic model and report were republished to **My Workspace**
+  (shared capacity, not the F2) and shared via **Publish to web**.
+- With `nzfuelcapacity` in state `Paused` for 70 minutes — well past the
+  one-hour publish-to-web cache — the report rendered with data.
+- Cost to serve it: zero. F2 is now only needed for the weekly `dbt run`.
+- New public URL is on `app.powerbi.com`, not `app.fabric.microsoft.com`;
+  the old Fabric-workspace embed code is dead and should be deleted from
+  Settings → Manage embed codes.
+
+Two related facts worth keeping: **F2 never bought viewer-licensing
+relief** — free viewers on capacity-backed workspaces start at F64 — and
+publish-to-web requires **import** mode (DirectQuery and live connections
+are unsupported), model and report in the **same** workspace, and no
+report-level DAX measures.
+
+**Still open:** the account is 46 days from the end of a Power BI Pro trial
+(ends ~26 Sep 2026). Whether publish-to-web from My Workspace survives on a
+Free licence is unresolved — Microsoft's docs point both ways (the
+publish-to-web page lists My Workspace as needing only "a Microsoft Power
+BI license", while the licence-comparison page says Free users cannot use
+sharing features). Graph reports the assigned licence as
+`POWER_BI_STANDARD` / `BI_AZURE_P0` with no Pro SKU in the tenant, so the
+trial appears to be tracked inside Power BI rather than in Entra. Check the
+public link the day after the trial ends; fall back to Pro (~NZ$24/mo) or
+PDF if it breaks.

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "fabric-dw": {
+      "type": "stdio",
+      "command": "/Users/Ray/.local/bin/fabric-dw-mcp",
+      "args": [],
+      "env": {
+        "FABRIC_MCP_READONLY": "1"
+      }
+    }
+  }
+}
