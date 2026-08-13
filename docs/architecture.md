@@ -412,7 +412,7 @@ average of the last 2 weeks vs. the 2 weeks before that, the same fix
 already applied to `Volatility Trend`) would likely be more robust than
 comparing two single points, but hasn't been implemented or tested.
 
-## Diesel's "lag shift" was a flat peak, not a regime change — corrected 11 Aug 2026
+## Diesel's "lag shift" was a flat peak, not a regime change — corrected 13 Aug 2026
 
 **This section previously reported that diesel holds lag=3 for 14 weeks,
 shifts to lag=2 for exactly three weeks (3–17 Jul), then reverts, and that
@@ -426,17 +426,23 @@ never asked **by how much** the winning lag won. That gap is the whole
 question, because `lag_resolved` already exposes exactly this quantity for
 the full period (`lag_confidence_gap`) and it is tiny for diesel:
 
+All figures in this section are from the 13 Aug 2026 refresh (MBIE data
+through 2026-08-07), `dubai_crude_nzd` × `board_price`. The same numbers
+hold for `adjusted_retail_price`: within a quarter the two targets differ
+by a constant, and `r` is invariant to that — see `mbie_notes.md`.
+
 | period | fuel | best lag | best r | 2nd lag | 2nd r | gap |
 |---|---|---|---|---|---|---|
-| 06_iranus_2026 | Diesel | 3 | 0.8966 | 2 | 0.8951 | **0.0015** |
-| 06_iranus_2026 | Regular Petrol | 2 | 0.9260 | 3 | 0.8534 | 0.0726 |
-| 06_iranus_2026 | Premium 95R | 2 | 0.9240 | 3 | 0.8534 | 0.0705 |
+| 06_iranus_2026 | Diesel | 3 | 0.9000 | 2 | 0.8947 | **0.0053** |
+| 06_iranus_2026 | Regular Petrol | 2 | 0.9226 | 3 | 0.8599 | 0.0627 |
+| 06_iranus_2026 | Premium 95R | 2 | 0.9207 | 3 | 0.8599 | 0.0608 |
 | 02_calm_own_refinery | Regular Petrol | 3 | 0.9600 | 4 | 0.9597 | 0.0003 |
 
-**"Diesel's lag is 3, petrol's is 2" rests on a fourth-decimal
-difference.** Petrol's own lag=2 is 45× better separated. Any statement
-that treats diesel's 3 as a fact about diesel, rather than as a coin flip
-between two near-identical fits, is overclaiming.
+**"Diesel's lag is 3, petrol's is 2" rests on a third-decimal
+difference.** Petrol's own lag=2 is separated an order of magnitude better
+(0.0627 against 0.0053, ~12×). Any statement that treats diesel's 3 as a
+fact about diesel, rather than as a coin flip between two near-identical
+fits, is overclaiming.
 
 Re-running the expanding window with `r` at every lag retained, diesel in
 `06_iranus_2026` (`dubai_crude_nzd` × `board_price`, cutoffs with n≥6):
@@ -458,6 +464,7 @@ Re-running the expanding window with `r` at every lag retained, diesel in
 | 2026-07-17 | 18 | 6 | **2** | 0.8793 | 0.8788 | −0.0005 |
 | 2026-07-24 | 18 | 6 | 3 | 0.8901 | 0.8917 | +0.0016 |
 | 2026-07-31 | 19 | 7 | 3 | 0.8951 | 0.8966 | +0.0015 |
+| 2026-08-07 | 20 | 7 | 3 | 0.8947 | 0.9000 | +0.0053 |
 
 **There is no three-week shift.** Lag 3's advantage decays monotonically —
 0.216, 0.204, 0.160, 0.155, 0.146, 0.093, 0.070, 0.038 — and from 3 Jul
@@ -508,8 +515,8 @@ winning lag changes from one cutoff to the next (n≥6, `dubai_crude_nzd` ×
 | 03_ukraine_2022 | Diesel | 21 | 3 | 3 |
 | 04_tariff_2025 | all three | 7 | 2 | 3 |
 | 05_calm_import_era | Diesel | 28 | 9 | **10** |
-| 06_iranus_2026 | Diesel | 15 | 2 | 3 |
-| 06_iranus_2026 | Regular / Premium | 15 | 1 | **0** |
+| 06_iranus_2026 | Diesel | 16 | 2 | 3 |
+| 06_iranus_2026 | Regular / Premium | 16 | 1 | **0** |
 
 During a shock the crude signal dominates, the peak is sharp and the
 winning lag sits still. During calm the search is fitting noise: 27–28
@@ -527,7 +534,7 @@ wandered through.
 ## Crude lands on `Importer cost` at lag 0 — and what that does and doesn't prove
 
 Same lag search, same factor (`dubai_crude_nzd`), target swapped from
-`board_price` to `importer_cost`, all periods and fuels (11 Aug 2026):
+`board_price` to `importer_cost`, all periods and fuels (13 Aug 2026):
 
 | period | fuel | lag → board | r board | lag → cost | r cost | gap cost |
 |---|---|---|---|---|---|---|
@@ -537,8 +544,8 @@ Same lag search, same factor (`dubai_crude_nzd`), target swapped from
 | 03_ukraine_2022 | Regular Petrol | 0 | 0.7603 | 0 | 0.8787 | 0.1874 |
 | 04_tariff_2025 | Regular Petrol | 2 | 0.8374 | 0 | 0.8903 | 0.7033 |
 | 05_calm_import_era | Regular Petrol | 10 | 0.5164 | 5 | 0.5906 | 0.0020 |
-| 06_iranus_2026 | Diesel | 3 | 0.8966 | 1 | 0.7854 | 0.0066 |
-| 06_iranus_2026 | Regular Petrol | 2 | 0.9260 | 0 | 0.8791 | 0.0758 |
+| 06_iranus_2026 | Diesel | 3 | 0.9000 | 1 | 0.7876 | 0.0070 |
+| 06_iranus_2026 | Regular Petrol | 2 | 0.9226 | 0 | 0.8844 | 0.0780 |
 
 **`Importer cost` peaks at lag 0 in 15 of 18 rows, with a far sharper peak
 than `board_price` ever shows** (gap 0.19–0.70 in crisis periods, against
@@ -567,7 +574,7 @@ severing a direct crude link. It is a range-restriction artifact:
 |---|---|---|---|---|
 | 02_calm_own_refinery | 90 | 90% | 24.3% | 25.9% |
 | 05_calm_import_era | 34 | 18% | 4.5% | 4.2% |
-| 06_iranus_2026 | 22 | 90% | 23.7% | 12.6% |
+| 06_iranus_2026 | 23 | 91% | 23.8% | 12.6% |
 
 Crude's spread is five times narrower in the import era, and correlation
 falls mechanically when the signal shrinks toward the noise. The CV ratio
@@ -578,7 +585,7 @@ than parked.
 
 **One anomaly that survives, and it is a data-quality signal.**
 `06_iranus_2026` is the only period where `importer_cost` fits crude
-*worse* than retail `board_price` does (diesel 0.785 vs 0.897), and the
+*worse* than retail `board_price` does (diesel 0.788 vs 0.900), and the
 only period where cost varied far less than crude (CV ratio 0.53, against
 0.77–1.94 everywhere else) — the series looks damped. That period is also
 the one MBIE stopped publishing live and reconstructed retroactively
@@ -590,7 +597,7 @@ not be treated as equivalent in quality to the rest of the history.
 
 1. **Margin/asymmetry analysis (still first, but harder than it looked).**
    Uses data already in hand — MBIE publishes `Importer margin` directly,
-   no new source needed. **Re-scoped 11 Aug 2026:** the difficulty is not
+   no new source needed. **Re-scoped 13 Aug 2026:** the difficulty is not
    writing an asymmetric regression, it is proving that whatever turns up
    is retailer behaviour rather than an artifact of MBIE's cost model.
    `Importer margin` is a residual — `Adjusted retail − Taxes and levies −
@@ -606,7 +613,7 @@ not be treated as equivalent in quality to the rest of the history.
    could reasonably join the existing symmetric `factors` list, but
    `Importer margin` needs its own asymmetric (up-move vs down-move)
    analysis, not the existing correlation macro. A practical, cheap
-   near-term win, revised 11 Aug 2026: turn the expanding-window query into
+   near-term win, revised 13 Aug 2026: turn the expanding-window query into
    a permanent model, but make the **gap** (winning lag's `r` minus the
    runner-up's, per cutoff) the primary signal into `Forecast Confidence`,
    not "lag unchanged over the last N weeks". Run-length over `argmax` is
@@ -629,7 +636,7 @@ not be treated as equivalent in quality to the rest of the history.
    Brent ≠ Dubai — a proxy, not a replacement for the existing regression,
    which stays anchored to Dubai crude.
 
-   **Revised 11 Aug 2026 — a refined-product quote beats another crude
+   **Revised 13 Aug 2026 — a refined-product quote beats another crude
    benchmark.** MBIE builds `Importer cost` from Singapore product spot
    prices (Argus: Gasoline 95 RON for petrol, Gasoil 50ppm for diesel),
    not from crude. Dubai crude is therefore one step upstream of what
