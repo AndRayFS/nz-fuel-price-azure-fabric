@@ -59,6 +59,79 @@ Board price = Importer cost + Taxes + GST + ETS + Importer margin
 confirmed against both the data dictionary and the actual CSV. Don't assume
 it exists; it would have to be derived, if needed at all.
 
+## How `Importer cost` is actually built — and why that matters
+
+Read from the primary source on 11 Aug 2026: MBIE's *Weekly fuel monitoring
+methodology*, https://www.mbie.govt.nz/dmsdocument/30707-weekly-fuel-price-monitoring-methodology
+(PDF; the HTML pages do not contain this detail). The formula:
+
+```
+Importer cost = Cost to purchase fuel + Cost to ship fuel + Wharfage
+```
+
+- **The base price is a Singapore refined-product spot quote, not crude.**
+  "All prices are calculated using Singapore product spot prices," supplied
+  weekly by Argus Media. Petrol → Gasoline 95 RON unleaded; diesel →
+  Gasoil 50ppm (high pour).
+- **Shipping** is the Worldscale flat rate (Envisory, quarterly) × the
+  Singapore–Asia-Pacific route rate (Argus, weekly), plus a freight
+  adjustment for the NZ leg, plus insurance and loss factors.
+- **FX** is RBNZ's rate, converting USD/bbl to NZc/L.
+- **Wharfage** is added last.
+
+**There is no purchase date, no voyage time, and no averaging window
+anywhere in the calculation.** It is this week's Singapore spot at this
+week's exchange rate. That makes `Importer cost` a **replacement-cost
+estimate** — what importing would cost right now — not what anyone paid for
+the fuel currently in the tanks. Two consequences:
+
+1. Physical procurement lag is **invisible in this dataset**, not absent
+   from the world. Any claim that the crude→pump lag is a pricing decision
+   rather than shipping time cannot be made from this file — see the
+   correction in `architecture.md`.
+2. Dubai crude is one step upstream of what actually drives the series.
+   The right factor, if one is ever added, is the Argus Singapore product
+   quote (Gasoline 95 RON, Gasoil 50ppm), not another crude benchmark.
+
+**Weekly vs quarterly inputs.** Only two inputs move weekly — the Singapore
+spot price and the exchange rate (route rate also weekly). The quality
+premium, octane adjustment, Worldscale flat rate, freight adjustment,
+insurance rate, loss rate, bbl/t conversion and wharfage are all
+**quarterly**. So week-to-week movement in `Importer cost` is essentially
+spot × FX, which is why it correlates with crude at lag 0 with a sharp
+peak.
+
+For correlation and slope work this matters less than it first appears: a
+stale quarterly constant shifts the whole series by an offset, and an
+additive offset changes neither `r` nor the slope. It matters for anything
+read as a *level*.
+
+## Trustworthiness is not uniform across columns
+
+Ranked by distance from direct observation. This distinction was implicit
+until 11 Aug 2026 and the project had been treating all columns as equally
+observational.
+
+| Column | Kind | Notes |
+|---|---|---|
+| `Board price` | Observation | Actual pump prices, Datamine, daily since 2022. The most solid series in the file. |
+| `Dubai crude`, `exchange rate` | Market quotes | External, verifiable. |
+| `Adjusted retail price` | Observation + quarterly correction | Carries the quarterly adjustment factor (see below). |
+| `Importer cost` | **Model** | Weekly movement is real (spot × FX); level depends on quarterly constants. |
+| `Importer margin` | **Residual of a residual** | `Adjusted retail − Taxes and levies − Importer cost`. Every error in the cost model lands here with the sign flipped. |
+| `Importer margin trend` | LOESS-smoothed | Presentation only. Already excluded from revision tracking. |
+
+**The project's headline result — the lag between crude and pump price —
+uses only rows from the top two tiers, so it is unaffected by any of this.**
+What is affected is the margin work: `Importer margin` is the weakest
+column in the file *and* the one the roadmap wants to analyse. Any finding
+there needs an explicit check that it is not an artifact of MBIE's cost
+model before it can be read as retailer behaviour.
+
+MBIE is not overselling any of this — the series exists for market
+transparency ("does the margin look reasonable?"), not as a research
+dataset. The mismatch is on the consuming end.
+
 ## Board price vs Adjusted retail price — the adjustment factor is quarterly, not weekly
 
 `Adjusted retail price = Board price − adjustment factor`. Per MBIE's own
