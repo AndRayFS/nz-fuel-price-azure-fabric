@@ -608,22 +608,77 @@ window — a *constant* ceiling, so the cap artifact documented above cannot
 occur here). Best lag, its `r`, and its gap over the runner-up recorded per
 window; 1138 windows per fuel.
 
-**Finding 1 — ties are the norm across the entire history, not a diesel
-quirk.** Windows where the winning lag beats the runner-up by at least
-0.05: **14–20%**. In four windows out of five the "best lag" is a coin
-flip of the sort that produced the retracted diesel finding. Average gap
-per year sits between 0.01 and 0.07 for all 22 years. The periods-based
-view hid this: pick four windows, get four confident-looking numbers.
+**Finding 1, as first written, was wrong — the window width was doing the
+work.** The original claim was "ties are the norm: only 14–20% of windows
+have a gap ≥ 0.05." That number is entirely a consequence of picking 26
+weeks, which was chosen because `26 // 3 = 8` gives a constant lag ceiling
+— a reason to fix the width, not a reason for that width. Re-run at three
+widths (share of windows with gap ≥ 0.05):
 
-**This promotes the distributed-lag model (roadmap item 3) from a
-refinement to the actual fix.** When two lags fit equally well 80% of the
-time, spreading the effect across lags with weights is not a nicety — it is
-the only honest representation.
+| width | Diesel | Regular Petrol |
+|---|---|---|
+| 13 weeks | 46.8% | 44.4% |
+| 26 weeks | 17.7% | 16.2% |
+| 52 weeks | 9.1% | 5.5% |
 
-**Finding 2 — the typical lag over the full history is 1 week, not 2–3.**
-Lag 1 is the modal winner in most years. The 2–3 week figures this project
-reports are a property of crisis windows specifically, not a constant of
-the New Zealand market, and shouldn't be stated as one.
+At a width comparable to an actual crisis (13 weeks), roughly 70% of
+windows have a single sharp peak. The 26-week sweep was mostly measuring
+mixtures of regimes: only **two** windows of 26 weeks fit entirely inside
+any crisis period, and none of 52 weeks, because crises here run 13–27
+weeks. **Window width is a parameter of the analysis and has to be
+reported as one.**
+
+**Finding 2, "the typical lag over the history is 1 week", is withdrawn.**
+Most windows are dominated by non-crisis weeks where, as established
+above, the search is fitting noise. The modal lag of a wandering argmax is
+not a market property.
+
+**Finding 1', which does survive and is the useful one — the lag profile
+is a smooth unimodal hill.** The runner-up lag is the winner's immediate
+neighbour in 92–100% of windows, at every width, for both fuels. Extending
+to the third and fourth places:
+
+| width | fuel | top-2 adjacent | top-3 contiguous | top-4 contiguous | mean distance 1→3 | 1→4 |
+|---|---|---|---|---|---|---|
+| 13 | Diesel | 93.4% | 86.8% | 83.9% | **1.00** | **2.00** |
+| 26 | Diesel | 97.1% | 91.1% | 88.1% | **1.00** | **2.00** |
+| 52 | Diesel | 99.6% | 98.7% | 98.3% | **1.00** | **2.00** |
+| 26 | Regular Petrol | 96.0% | 92.3% | 89.8% | **1.00** | **2.00** |
+
+Mean distance from the winner to the third-ranked lag is exactly 1.00 and
+to the fourth exactly 2.00 — the signature of a symmetric hill, where the
+ranking must be peak, one neighbour, the other neighbour, then peak ± 2.
+Against chance: with nine candidate lags, three randomly chosen would be
+contiguous 8% of the time; observed 91%.
+
+**So a small gap does not mean "the method failed to decide" — it means
+the hill is broad.** The gap alone was the wrong summary statistic. Window
+width controls the hill's steepness (the drop from first to third place is
+0.20 at 13 weeks, 0.04 at 52), not its shape.
+
+**This is the real argument for the distributed-lag model (roadmap item
+3):** the data's shape is what a distributed lag assumes. And it suggests a
+cheap intermediate step — fit a parabola through the top three points and
+take its vertex, giving a continuous lag estimate (e.g. "2.4 weeks")
+instead of forcing an integer choice between two neighbours.
+
+**Finding 3 — a genuinely flat profile exists, is rare, and is always a
+trend artifact.** Windows where `r` varies by less than 0.05 across *all*
+lags: 0.9–3.4%. Every single one of them is a *high* plateau — the share
+that is both flat and weak (`r_max` < 0.5) is exactly zero in all six
+width×fuel cells. A flat profile never looks like "no relationship"; it
+looks like "excellent relationship at every lag", which is the most
+convincing possible way to be wrong. The cause is unambiguous:
+
+| | crude's correlation with time, within window |
+|---|---|
+| flat-profile windows | **0.91–0.97** |
+| peaked windows | 0.52–0.59 |
+
+A series moving in a near-perfect straight line correlates equally well
+with itself at any shift. This is exactly `02_calm_own_refinery` — r=0.96
+with a gap of 0.0003 — and explains why that period's lag looks more
+authoritative than any crisis period's while meaning less.
 
 **Finding 3 — a real shift at the 2022 boundary, which cannot be attributed
 to the refinery.** Splitting windows into those falling entirely before
@@ -652,6 +707,156 @@ independent observations (26-week windows stepped weekly means roughly 35
 independent windows pre-2022 and 8 post, not 911 and 203), and the target
 is bounded by the window, so `n` shrinks as the lag grows — the same
 convention as `lag_correlation`, kept for comparability.
+
+## Refreshing the published report — the service could never do it until 13 Aug 2026
+
+Report 1 lives in **My Workspace** as an **import** model (confirmed via
+`INFO.VIEW.TABLES()`: every table reports `StorageMode = Import`), so its
+data is a snapshot held inside the model. It does not follow the warehouse
+— a bronze reload plus `dbt run` leaves the report showing last week's
+numbers until the model itself is refreshed.
+
+Until 13 Aug 2026 the service had **never** refreshed it: refresh history
+was empty and scheduled refresh was disabled. The data got there by
+publishing from Power BI Desktop, which loads rows locally and uploads them
+together with the model — the service never needs a connection to the
+source for that, which is exactly why the missing connection went unnoticed
+for so long.
+
+**`Refresh now` failed with `Premium_ASWL_Error`:**
+
+```
+this semantic model uses a default data connection without explicit
+connection credentials. Please replace the default data connection ...
+with an explicit cloud or gateway data connection.
+```
+
+The model reached the warehouse through a *default* connection. Two things
+make this awkward to diagnose:
+
+- The **Data source credentials** section in the model's Settings is greyed
+  out, which reads as a permissions problem. It isn't — the binding lives
+  in **Gateway and cloud connections**, a different section on the same
+  page. Ownership was never the issue (`configuredBy` matched the
+  signed-in account, `isOnPremGatewayRequired: false`).
+- `GET /datasets/{id}/datasources` returns no `datasourceId` and no
+  `gatewayId` when the connection is default. That is the fastest way to
+  tell the two states apart — a properly bound model returns both.
+
+**Fix:** create a ShareableCloud connection (type `SQL`, auth `OAuth2`,
+privacy `Organizational`) against the warehouse endpoint, then map it to
+the model under Gateway and cloud connections. After that `Refresh now`
+completed in about five seconds and the model picked up the new week.
+
+### Two models named `nz_fuel` — the trap that cost the most time
+
+There were **two** semantic models and two reports carrying the same name:
+one pair in My Workspace, one pair in the `nz-fuel-price-project`
+workspace. Both reports were published to web — the old Fabric-workspace
+embed code described as "dead and should be deleted" earlier in this
+document had in fact never been deleted, so two public links existed,
+backed by two different models.
+
+What that cost on 13 Aug: the cloud connection was bound to the wrong
+model, and a successful refresh updated a report nobody was looking at
+while the public link stayed a week stale. The names are identical in the
+UI; the only reliable discriminator is the URL — **`groups/me` means My
+Workspace**, anything else is the project workspace. `GET /myorg/reports`
+versus `GET /myorg/groups/{id}/reports` separates them unambiguously and is
+worth preferring over clicking.
+
+**Cleaned up 13 Aug 2026:** the report and the semantic model in the
+`nz-fuel-price-project` workspace were both deleted, leaving exactly one
+publish-to-web artifact (verified via
+`/admin/widelySharedArtifacts/publishedToWeb`, which now returns a single
+entry). A pbix backup of the deleted report was exported first, to
+`~/nz-fuel-price-project/nz_fuel_projectws_backup_20260813.pbix` — outside
+the repo.
+
+### Weekly sequence from here
+
+`resume capacity → run ingest_mbie_weekly → dbt snapshot → dbt run
+--full-refresh → dbt test → refresh the semantic model`.
+
+The model refresh reads the warehouse, so it needs the capacity **up**.
+Viewing the report afterwards does not, since import mode serves from the
+model — which is the whole point of the My Workspace arrangement described
+above. Scheduled refresh is now technically possible, but it would have to
+fire inside the window when the capacity happens to be running (it
+auto-pauses at 23:00 NZT and is resumed by hand), so it is left disabled
+rather than half-working.
+
+## Levels vs changes — the project has always correlated levels, and it matters
+
+`lag_correlation_series` feeds raw `dubai_crude_nzd` and `board_price` into
+the sums. That is a correlation of **levels**, inherited from the original
+R script. Since crude's within-window correlation with time averages
+0.57–0.66 across the whole history (see above), every level-based estimate
+carries some of that shared drift. Re-running the sweep on **week-over-week
+changes** of both series — same macro arithmetic, differenced inputs:
+
+| basis | width | fuel | mean peak r | **mean gap to runner-up** | modal lag |
+|---|---|---|---|---|---|
+| levels | 26 | Diesel | **0.831** | 0.0313 | 1 |
+| changes | 26 | Diesel | 0.599 | **0.1490** | 1 |
+| levels | 26 | Regular Petrol | **0.828** | 0.0293 | 1 |
+| changes | 26 | Regular Petrol | 0.591 | **0.1421** | 1 |
+
+**The lag is not a trend artifact.** On changes the peak is ~5× better
+separated while `r` drops by about 0.23 — the expected signature of a real
+timing relationship. Had the lag been an artifact of shared drift,
+differencing would have left nothing; instead 80% of windows still peak
+above 0.5. Two consequences: the project's published `r` values are
+optimistic by roughly 0.2, and the lag itself is better identified on
+changes than on levels.
+
+**In the current crisis the two bases disagree, and the disagreement is
+informative:**
+
+| fuel | basis | lag 0 | 1 | 2 | 3 | 4 | 5 | 6 | best | slope |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Diesel | levels | 0.423 | 0.723 | 0.895 | **0.900** | 0.766 | 0.561 | 0.446 | 3 (tied with 2) | 0.976 |
+| Diesel | changes | 0.334 | 0.589 | 0.668 | **0.794** | 0.574 | −0.113 | −0.570 | **3** | 0.547 |
+| Regular Petrol | levels | 0.441 | 0.787 | **0.923** | 0.860 | 0.714 | 0.522 | 0.437 | 2 | 0.398 |
+| Regular Petrol | changes | 0.520 | **0.738** | 0.654 | 0.673 | 0.373 | −0.345 | −0.694 | **1** | 0.324 |
+
+Diesel's lag 3, a coin flip on levels (0.005 over lag 2), wins by 0.126 on
+changes. Petrol shortens from 2 to 1. So the fuels differ by more than the
+levels view showed — **3 weeks against 1**, not 3 against 2. The retraction
+above still stands as written (on levels it *is* a tie); the changes basis
+is what breaks the tie.
+
+**The pass-through weights are not additive, and finding that out killed a
+shortcut.** The plan was to read distributed-lag weights straight off the
+per-lag change slopes and check them against the levels slope. They do not
+add up — diesel's lags 0–4 sum to 2.224 against a levels slope of 0.976;
+petrol 1.073 against 0.398:
+
+| fuel | lag 0 | 1 | 2 | 3 | 4 | 5 | 6 | sum 0–4 | levels slope |
+|---|---|---|---|---|---|---|---|---|---|
+| Diesel | 0.291 | 0.515 | 0.545 | **0.547** | 0.326 | −0.057 | −0.233 | 2.224 | 0.976 |
+| Regular Petrol | 0.227 | **0.324** | 0.257 | 0.190 | 0.075 | −0.065 | −0.118 | 1.073 | 0.398 |
+
+Each of those is a *separate univariate* regression, and weekly crude
+changes are autocorrelated — a move persists for several weeks — so each
+lag's slope claims the same market move. Summing them counts it repeatedly.
+Real weights require one **joint** regression of the price change on crude
+changes at all lags simultaneously, which the current sums-based macro
+(`ΣX, ΣY, ΣXY, ΣX², ΣY²` — enough for exactly one regressor) cannot
+express. This is the concrete reason ADL is a new model rather than a macro
+edit, and it likely belongs in Python rather than T-SQL.
+
+**What the shapes still say, comparably, without being summed:** diesel's
+profile is a plateau (0.29 / 0.52 / 0.55 / 0.55 / 0.33 — spread over three
+to four weeks), petrol's is a spike at lag 1 (0.23 / 0.34 / 0.26 / 0.19 /
+0.07). A forecast that applies one lag's slope therefore captures most of
+petrol's response and only part of diesel's — which predicts under-shooting
+on diesel and accuracy on petrol, matching what the backtests showed.
+
+**Defect in the backtest record:** the table above logs error *magnitudes*
+(4.6%, 7.3%, 0.4–0.9%) and "direction correct", but not whether the
+forecast came in over or under. That sign is the most diagnostic part and
+should be recorded on the next run.
 
 ## Roadmap — where this goes next, in priority order
 
@@ -708,12 +913,18 @@ convention as `lag_correlation`, kept for comparability.
    only daily granularity. Whether an equivalent series is free or
    affordable (Argus is commercial) is the open question — check before
    committing to this item.
-3. **Distributed lag model (ADL) — promoted 13 Aug 2026.** On the rolling
-   window over all 22 years, the winning lag beats the runner-up by 0.05 or
-   more in only 14–20% of windows. A method that picks one lag is
-   therefore reporting a coin flip four times out of five, which makes this
-   the highest-value structural change on the list rather than a later
-   refinement. The deeper, correct fix for the
+3. **Distributed lag model (ADL) — promoted 13 Aug 2026.** Not because
+   the search is undecided (that framing was withdrawn — see above), but
+   because the profile is a smooth hill over adjacent lags at every window
+   width: the effect genuinely arrives spread across neighbouring weeks,
+   which is what a distributed lag represents and a single-lag model
+   cannot. Requires a joint regression on several lagged crude changes at
+   once; per-lag univariate slopes are not additive because crude's own
+   weekly changes are autocorrelated. The sums-based macro cannot express
+   it, so this likely means Python rather than T-SQL — a tooling decision
+   to make deliberately. Cheap intermediate step first: parabolic
+   interpolation of the peak from the top three points, giving a
+   fractional lag instead of an integer. The deeper, correct fix for the
    assumption baked into `resolved_lag`/`resolved_slope`: that the whole
    effect of a crude move lands at one lag, and that lag/slope are
    constant across an entire period. The diesel work above no longer
@@ -724,7 +935,27 @@ convention as `lag_correlation`, kept for comparability.
    A proper distributed-lag model spreads the effect across several lags
    with different weights instead of picking one "best" lag. Bigger
    undertaking than the rest of this list — a new model, not a patch.
-4. **Stats NZ** as a candidate secondary source — mainly useful as an
+4. **Add `basis` (levels / changes) as a third dimension of
+   `lag_correlation`, alongside factor and target.** Same reasoning as
+   "Factor and target are both dimensions" above: compute both and know how
+   they differ, rather than picking one. Levels stay because the project
+   reproduces the R script; changes are the better-identified basis for the
+   lag and the correct one for a slope that will be applied to a change.
+   **Check first, before anything else here:** Report 1's forecast
+   multiplies a crude *change* by `resolved_slope`, which is fitted on
+   levels. Whether that is a real error in a published measure is a
+   one-query question and should be answered before more analysis is piled
+   on top.
+5. **Customs / Stats NZ overseas merchandise trade** — monthly petroleum
+   import value *and* quantity from Customs entries, which divide out to
+   the price actually paid at the border. That is the one thing MBIE's
+   replacement-cost series structurally cannot provide, and therefore the
+   only visible route to separating shipping time from pricing behaviour.
+   Check first whether import values are recorded before or after freight;
+   MBIE's `Importer cost` includes it, so a mismatch would make the
+   comparison meaningless. MBIE's own monthly oil statistics (supply,
+   imports, stock change) are a second source for the same question.
+6. **Stats NZ** as a candidate secondary source — mainly useful as an
    independent cross-check of MBIE's own quarterly adjustment-factor
    methodology (see the constant-gap finding in `mbie_notes.md`), not
    prioritized ahead of the margin work above.
@@ -763,7 +994,9 @@ it is not a property of Power BI. Verified empirically:
 - Cost to serve it: zero. F2 is now only needed for the weekly `dbt run`.
 - New public URL is on `app.powerbi.com`, not `app.fabric.microsoft.com`;
   the old Fabric-workspace embed code is dead and should be deleted from
-  Settings → Manage embed codes.
+  Settings → Manage embed codes. **It wasn't** — that deletion was left
+  undone until 13 Aug 2026, and the live second public link it left behind
+  caused real confusion; see "Two models named `nz_fuel`" below.
 
 Two related facts worth keeping: **F2 never bought viewer-licensing
 relief** — free viewers on capacity-backed workspaces start at F64 — and
