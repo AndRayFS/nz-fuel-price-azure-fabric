@@ -5,7 +5,7 @@
 -- `importer_cost`. Reports both best lags side by side with each one's
 -- margin of victory over the runner-up.
 --
--- Result (11 Aug 2026): importer_cost peaks at lag 0 in 15 of 18
+-- Result (13 Aug 2026): importer_cost peaks at lag 0 in 15 of 18
 -- period/fuel combinations with a much sharper peak than board_price. That
 -- is a property of MBIE's construction, not of the market — importer_cost
 -- is this week's Singapore product spot at this week's exchange rate, with

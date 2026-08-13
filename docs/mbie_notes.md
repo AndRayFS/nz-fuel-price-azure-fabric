@@ -61,7 +61,7 @@ it exists; it would have to be derived, if needed at all.
 
 ## How `Importer cost` is actually built — and why that matters
 
-Read from the primary source on 11 Aug 2026: MBIE's *Weekly fuel monitoring
+Read from the primary source on 13 Aug 2026: MBIE's *Weekly fuel monitoring
 methodology*, https://www.mbie.govt.nz/dmsdocument/30707-weekly-fuel-price-monitoring-methodology
 (PDF; the HTML pages do not contain this detail). The formula:
 
@@ -109,7 +109,7 @@ read as a *level*.
 ## Trustworthiness is not uniform across columns
 
 Ranked by distance from direct observation. This distinction was implicit
-until 11 Aug 2026 and the project had been treating all columns as equally
+until 13 Aug 2026 and the project had been treating all columns as equally
 observational.
 
 | Column | Kind | Notes |
