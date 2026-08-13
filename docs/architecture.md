@@ -593,6 +593,66 @@ the one MBIE stopped publishing live and reconstructed retroactively
 means `importer_cost` and `importer_margin` for the current crisis should
 not be treated as equivalent in quality to the rest of the history.
 
+## Rolling window over all 22 years — the single-best-lag method is weakly identified
+
+Everything above works inside hand-picked periods from `periods.csv`. That
+seed encodes a hypothesis (these weeks are a crisis, those are calm), and
+after two findings collapsed under scrutiny it was worth checking the
+method itself without it. Data coverage turned out to be complete: **1164
+weeks, 23 Apr 2004 to 7 Aug 2026, no nulls** in crude, exchange rate,
+`board_price` or `importer_cost`.
+
+Design: a fixed 26-week window, stepped one week at a time, lags 0–8
+(which is the project's own `weeks // 3` rule evaluated once for a 26-week
+window — a *constant* ceiling, so the cap artifact documented above cannot
+occur here). Best lag, its `r`, and its gap over the runner-up recorded per
+window; 1138 windows per fuel.
+
+**Finding 1 — ties are the norm across the entire history, not a diesel
+quirk.** Windows where the winning lag beats the runner-up by at least
+0.05: **14–20%**. In four windows out of five the "best lag" is a coin
+flip of the sort that produced the retracted diesel finding. Average gap
+per year sits between 0.01 and 0.07 for all 22 years. The periods-based
+view hid this: pick four windows, get four confident-looking numbers.
+
+**This promotes the distributed-lag model (roadmap item 3) from a
+refinement to the actual fix.** When two lags fit equally well 80% of the
+time, spreading the effect across lags with weights is not a nicety — it is
+the only honest representation.
+
+**Finding 2 — the typical lag over the full history is 1 week, not 2–3.**
+Lag 1 is the modal winner in most years. The 2–3 week figures this project
+reports are a property of crisis windows specifically, not a constant of
+the New Zealand market, and shouldn't be stated as one.
+
+**Finding 3 — a real shift at the 2022 boundary, which cannot be attributed
+to the refinery.** Splitting windows into those falling entirely before
+31 Mar 2022 (when Marsden Point stopped refining) and entirely after:
+
+| | windows | lag 0 | lag 1 | lag 2 | lag 3 | 4+ | mean lag | mean lag, decisive windows only |
+|---|---|---|---|---|---|---|---|---|
+| Diesel, pre | 911 | 165 | **525** | 94 | 51 | 76 | 1.38 | 1.11 |
+| Diesel, post | 203 | 17 | 34 | **134** | 2 | 16 | **2.09** | **3.28** |
+| Regular Petrol, pre | 911 | 184 | **496** | 119 | 49 | 63 | 1.34 | 1.49 |
+| Regular Petrol, post | 203 | 26 | **86** | 71 | 6 | 14 | 1.67 | 1.72 |
+
+Diesel's modal lag moves from 1 (58% of windows) to 2 (66%); petrol's does
+not move at all. Tempting, and wrong to attribute: **MBIE switched its
+retail price source from Envisory to Datamine on 1 Jan 2022**, 13 weeks
+earlier, and that switch left two measurable fingerprints in the price
+series — weeks with an unchanged price stop entirely after 24 Dec 2021,
+and diesel's value precision changes while petrol's does not
+(`mbie_notes.md`). The confound is *asymmetric by fuel in the same
+direction as the effect*, which is the worst possible case. A 26-week
+window cannot separate two events 13 weeks apart, so this design cannot
+attribute the shift either way.
+
+Two caveats on the arithmetic above: overlapping windows are not
+independent observations (26-week windows stepped weekly means roughly 35
+independent windows pre-2022 and 8 post, not 911 and 203), and the target
+is bounded by the window, so `n` shrinks as the lag grows — the same
+convention as `lag_correlation`, kept for comparability.
+
 ## Roadmap — where this goes next, in priority order
 
 1. **Margin/asymmetry analysis (still first, but harder than it looked).**
@@ -648,7 +708,12 @@ not be treated as equivalent in quality to the rest of the history.
    only daily granularity. Whether an equivalent series is free or
    affordable (Argus is commercial) is the open question — check before
    committing to this item.
-3. **Distributed lag model (ADL).** The deeper, correct fix for the
+3. **Distributed lag model (ADL) — promoted 13 Aug 2026.** On the rolling
+   window over all 22 years, the winning lag beats the runner-up by 0.05 or
+   more in only 14–20% of windows. A method that picks one lag is
+   therefore reporting a coin flip four times out of five, which makes this
+   the highest-value structural change on the list rather than a later
+   refinement. The deeper, correct fix for the
    assumption baked into `resolved_lag`/`resolved_slope`: that the whole
    effect of a crude move lands at one lag, and that lag/slope are
    constant across an entire period. The diesel work above no longer
