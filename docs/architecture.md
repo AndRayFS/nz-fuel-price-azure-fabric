@@ -384,7 +384,21 @@ currently grades purely on `resolved_r`. Given the above, a fuel with a
 long resolved_lag deserves a lower confidence tier than its raw `r` alone
 would suggest — e.g. downgrade one tier when `resolved_lag >= 3`,
 independent of how strong the correlation looks. Worth doing before
-treating Report 1's forecast as production-ready.
+treating Report 1's forecast as production-ready. **Superseded 11 Aug
+2026** — grade on the lag's margin of victory instead; see the diesel
+correction below and roadmap item 1.
+
+**Test 4 reads differently after that correction.** Its cutoff
+(2026-07-03) is one of the weeks where diesel's lag 2 and lag 3 fit the
+data equally well (r = 0.8334 vs 0.8294, a gap of 0.004). So "diesel's
+error dropped to 0.9% exactly when its lag dropped to 2" is not a lag
+length effect cleanly isolated — it is two statistically indistinguishable
+models producing forecasts that differ by several percent. That is a
+sharper warning about point forecasts than the original reading, and an
+argument for reporting a range across the top competing lags rather than
+committing to the argmax. The lag-length pattern across tests 1–2, 4 and 6
+still holds as an observation; the diesel-specific causal gloss on it does
+not.
 
 **Also worth noting as a real limitation, not just a caveat:** the
 point-to-point comparison (`crude_now − crude_lag_weeks_ago`) is sensitive
@@ -398,54 +412,210 @@ average of the last 2 weeks vs. the 2 weeks before that, the same fix
 already applied to `Volatility Trend`) would likely be more robust than
 comparing two single points, but hasn't been implemented or tested.
 
-## Diesel's lag isn't stable within a period — and margin looks like why
+## Diesel's "lag shift" was a flat peak, not a regime change — corrected 11 Aug 2026
 
-An expanding-window query (recompute `resolved_lag` per fuel as of *every*
-week in `06_iranus_2026`, using only data up to that week — same idea as
-the cutoff backtests, but run for every week instead of a handful) showed
-something the single-cutoff backtests didn't: **both petrol grades hold
-lag=2 from the point they have enough data (n≥6) all the way to the most
-recent week — no exceptions.** Diesel holds lag=3 for 14 straight weeks
-(10 Apr–26 Jun), then **shifts to lag=2 for exactly three weeks (3–17
-Jul)**, then reverts to lag=3. This is at n=16–18, not the small-sample
-noise zone — a real, reproducible shift specific to diesel.
+**This section previously reported that diesel holds lag=3 for 14 weeks,
+shifts to lag=2 for exactly three weeks (3–17 Jul), then reverts, and that
+the shift lines up with a fast decline in `Importer margin`. Re-measured
+with the margin of victory recorded alongside the winning lag, that reading
+does not survive.** The corrected version is below; the margin hypothesis
+is not disproven, but it was never tested against the right quantity.
 
-Diesel's `Importer margin` over the same window: spikes to ~103 on 24 Apr
-(from ~28 the week before), stays elevated (77–98) through late June, then
-declines sharply and steadily through the same 3-Jul–17-Jul window that
-the lag shift covers (60 → 47 → 23), before reversing back up by 31 Jul.
-The lag instability lines up with the *fast-decline phase* of the margin
-move, not with the margin simply being unusually high or low — a plateau
-doesn't seem to confuse the lag search, a rapid change does, presumably
-because it's an independent source of week-to-week price movement
-competing with crude's signal.
+The original expanding-window query recorded only `argmax(r)` per week. It
+never asked **by how much** the winning lag won. That gap is the whole
+question, because `lag_resolved` already exposes exactly this quantity for
+the full period (`lag_confidence_gap`) and it is tiny for diesel:
 
-This matches a named, established literature: **asymmetric cost
-pass-through** ("rockets and feathers," Bacon 1991 onward) — retailers
-raise prices quickly when costs rise but cut them slowly when costs fall,
-which shows up as exactly this kind of margin bulge-and-slow-release
-pattern. A very recent (2026) paper found the asymmetry is *stronger
-during crisis periods* specifically — directly relevant, since this project
-only ever measures lag/r during crisis periods by construction. Diesel
-specifically has been found to show distinct (refining-stage) asymmetry
-from petrol in at least one prior study, which is external validation that
-today's diesel-vs-petrol difference isn't a fluke of this one dataset.
+| period | fuel | best lag | best r | 2nd lag | 2nd r | gap |
+|---|---|---|---|---|---|---|
+| 06_iranus_2026 | Diesel | 3 | 0.8966 | 2 | 0.8951 | **0.0015** |
+| 06_iranus_2026 | Regular Petrol | 2 | 0.9260 | 3 | 0.8534 | 0.0726 |
+| 06_iranus_2026 | Premium 95R | 2 | 0.9240 | 3 | 0.8534 | 0.0705 |
+| 02_calm_own_refinery | Regular Petrol | 3 | 0.9600 | 4 | 0.9597 | 0.0003 |
+
+**"Diesel's lag is 3, petrol's is 2" rests on a fourth-decimal
+difference.** Petrol's own lag=2 is 45× better separated. Any statement
+that treats diesel's 3 as a fact about diesel, rather than as a coin flip
+between two near-identical fits, is overclaiming.
+
+Re-running the expanding window with `r` at every lag retained, diesel in
+`06_iranus_2026` (`dubai_crude_nzd` × `board_price`, cutoffs with n≥6):
+
+| cutoff | n | max lag allowed | best | r@2 | r@3 | r@3 − r@2 |
+|---|---|---|---|---|---|---|
+| 2026-04-24 | 6 | 2 | 2 | 0.7288 | — | lag 3 not testable |
+| 2026-05-01 | 7 | 2 | 2 | 0.7323 | — | lag 3 not testable |
+| 2026-05-08 | 7 | 3 | 3 | 0.7461 | 0.9619 | +0.2158 |
+| 2026-05-15 | 8 | 3 | 3 | 0.7523 | 0.9561 | +0.2038 |
+| 2026-05-22 | 9 | 3 | 3 | 0.7681 | 0.9283 | +0.1602 |
+| 2026-05-29 | 10 | 4 | 3 | 0.7769 | 0.9320 | +0.1551 |
+| 2026-06-05 | 11 | 4 | 3 | 0.7766 | 0.9222 | +0.1457 |
+| 2026-06-12 | 12 | 4 | 3 | 0.7926 | 0.8855 | +0.0929 |
+| 2026-06-19 | 13 | 5 | 3 | 0.7989 | 0.8692 | +0.0703 |
+| 2026-06-26 | 14 | 5 | 3 | 0.8013 | 0.8392 | +0.0379 |
+| 2026-07-03 | 16 | 5 | **2** | 0.8334 | 0.8294 | −0.0039 |
+| 2026-07-10 | 17 | 6 | **2** | 0.8599 | 0.8566 | −0.0034 |
+| 2026-07-17 | 18 | 6 | **2** | 0.8793 | 0.8788 | −0.0005 |
+| 2026-07-24 | 18 | 6 | 3 | 0.8901 | 0.8917 | +0.0016 |
+| 2026-07-31 | 19 | 7 | 3 | 0.8951 | 0.8966 | +0.0015 |
+
+**There is no three-week shift.** Lag 3's advantage decays monotonically —
+0.216, 0.204, 0.160, 0.155, 0.146, 0.093, 0.070, 0.038 — and from 3 Jul
+onward the two lags are tied to the third or fourth decimal. The "shift to
+2 and back" is the argmax flipping on a tie. Reading a regime change into
+it was reading structure into rounding noise.
+
+**The first apparent transition is a different artifact: the max-lag cap.**
+Under the dynamic cap (`min(10, weeks // 3)`, see above), lag 3 is not in
+the search space at all until 8 May, so the 2→3 "transition" that week is
+the ceiling lifting, not the data changing. This also explains the
+discrepancy with the original write-up, which reported lag=3 holding from
+10 Apr: that query must have used a fixed max lag for every cutoff. Both
+choices are defensible — recomputing the cap per cutoff is honest about
+what was knowable at the time, a fixed cap makes the weeks comparable —
+but they must not be mixed, and the earlier finding mixed them. **Under
+either rule the conclusion collapses:** with a fixed cap the cap artifact
+disappears and only the two tied July flips remain.
+
+**What is real, and is the actual finding here:** the convergence itself.
+`r` at lag 2 rises monotonically with sample size (0.729 → 0.895) while
+`r` at lag 3 falls monotonically (0.962 → 0.897). That is an eight-week
+systematic drift, not week-to-week noise. Whatever explanation gets
+attached to diesel — margin, asymmetric pass-through, anything else —
+has to explain a smooth convergence over two months, not a three-week
+excursion. **The margin correlation reported previously was matched
+against a window that does not exist**; it has not been tested against
+the drift and should be treated as untested rather than supported.
+
+The asymmetric-pass-through literature ("rockets and feathers," Bacon 1991
+onward; a 2026 paper finding the asymmetry stronger during crises; prior
+work finding diesel's refining-stage asymmetry distinct from petrol's)
+remains a plausible frame and is why the margin work stays top of the
+roadmap. It is background reading, not evidence for anything measured here
+yet.
+
+## Lag stability separates crisis from calm — an unplanned finding
+
+The same expanding-window run across *all* periods, counting how often the
+winning lag changes from one cutoff to the next (n≥6, `dubai_crude_nzd` ×
+`board_price`):
+
+| period | fuel | cutoffs | distinct lags | transitions |
+|---|---|---|---|---|
+| 01_covid_2020 | all three | 9 | 1 | **0** |
+| 02_calm_own_refinery | Diesel | 85 | 10 | **27** |
+| 02_calm_own_refinery | Regular Petrol | 84 | 7 | **28** |
+| 03_ukraine_2022 | Diesel | 21 | 3 | 3 |
+| 04_tariff_2025 | all three | 7 | 2 | 3 |
+| 05_calm_import_era | Diesel | 28 | 9 | **10** |
+| 06_iranus_2026 | Diesel | 15 | 2 | 3 |
+| 06_iranus_2026 | Regular / Premium | 15 | 1 | **0** |
+
+During a shock the crude signal dominates, the peak is sharp and the
+winning lag sits still. During calm the search is fitting noise: 27–28
+changes over 85 weeks, up to 10 different "best" lags. This is a genuinely
+independent read on `periods.csv` — the seed's crisis/calm labels were set
+from news events, and an unrelated property of the data agrees with them.
+
+Two consequences. First, a stability signal is worth building (roadmap
+item 1) — but keyed on the gap, not on argmax changes, since for diesel
+argmax measures a coin flip. Second, `resolved_lag` for calm periods should
+carry a health warning wherever it is displayed; `02_calm_own_refinery`'s
+lag=3 at r=0.96 looks authoritative and is one of 10 values the search
+wandered through.
+
+## Crude lands on `Importer cost` at lag 0 — and what that does and doesn't prove
+
+Same lag search, same factor (`dubai_crude_nzd`), target swapped from
+`board_price` to `importer_cost`, all periods and fuels (11 Aug 2026):
+
+| period | fuel | lag → board | r board | lag → cost | r cost | gap cost |
+|---|---|---|---|---|---|---|
+| 01_covid_2020 | Regular Petrol | 0 | 0.8016 | 0 | 0.9108 | 0.3089 |
+| 02_calm_own_refinery | Regular Petrol | 3 | 0.9600 | 0 | 0.9937 | 0.0027 |
+| 02_calm_own_refinery | Diesel | 4 | 0.9624 | 0 | 0.9920 | 0.0084 |
+| 03_ukraine_2022 | Regular Petrol | 0 | 0.7603 | 0 | 0.8787 | 0.1874 |
+| 04_tariff_2025 | Regular Petrol | 2 | 0.8374 | 0 | 0.8903 | 0.7033 |
+| 05_calm_import_era | Regular Petrol | 10 | 0.5164 | 5 | 0.5906 | 0.0020 |
+| 06_iranus_2026 | Diesel | 3 | 0.8966 | 1 | 0.7854 | 0.0066 |
+| 06_iranus_2026 | Regular Petrol | 2 | 0.9260 | 0 | 0.8791 | 0.0758 |
+
+**`Importer cost` peaks at lag 0 in 15 of 18 rows, with a far sharper peak
+than `board_price` ever shows** (gap 0.19–0.70 in crisis periods, against
+0.003–0.07 for board price). Reading the methodology afterwards explains
+why exactly: the series is this week's Singapore product spot at this
+week's RBNZ exchange rate, with no purchase date and no voyage time
+anywhere in it — see "How `Importer cost` is actually built" in
+`mbie_notes.md`. The lag-0 result is the arithmetic of a replacement-cost
+construction, not a fact about how fast the market moves.
+
+**What this does not license.** The tempting conclusion — "cost reacts
+instantly, therefore the 2–3 weeks before pump prices move is a retailer
+pricing decision, not shipping time" — was drafted and then withdrawn.
+Real cargoes still take weeks to arrive; MBIE's series simply does not
+record when any of them were bought. So the crude→`board_price` lag is a
+delay against a *notional current* cost and **cannot be decomposed into
+physical procurement versus pricing behaviour with this dataset**. That
+decomposition needs a source MBIE does not publish.
+
+**A refinery-era effect was hypothesised and then ruled out.** `Importer
+cost` tracks crude at r=0.99 in `02_calm_own_refinery` but only 0.45–0.59
+in `05_calm_import_era`, which looked like the 2022 refinery closure
+severing a direct crude link. It is a range-restriction artifact:
+
+| period | weeks | crude range (% of mean) | crude CV | cost CV |
+|---|---|---|---|---|
+| 02_calm_own_refinery | 90 | 90% | 24.3% | 25.9% |
+| 05_calm_import_era | 34 | 18% | 4.5% | 4.2% |
+| 06_iranus_2026 | 22 | 90% | 23.7% | 12.6% |
+
+Crude's spread is five times narrower in the import era, and correlation
+falls mechanically when the signal shrinks toward the noise. The CV ratio
+between cost and crude is preserved across both eras (24.3 vs 25.9, then
+4.5 vs 4.2) — the relationship did not weaken, the variation did. No
+structural break is demonstrated, and the hypothesis is dropped rather
+than parked.
+
+**One anomaly that survives, and it is a data-quality signal.**
+`06_iranus_2026` is the only period where `importer_cost` fits crude
+*worse* than retail `board_price` does (diesel 0.785 vs 0.897), and the
+only period where cost varied far less than crude (CV ratio 0.53, against
+0.77–1.94 everywhere else) — the series looks damped. That period is also
+the one MBIE stopped publishing live and reconstructed retroactively
+(18 Mar – 1 Jul 2026, `mbie_notes.md`). Suggestive, not conclusive, but it
+means `importer_cost` and `importer_margin` for the current crisis should
+not be treated as equivalent in quality to the rest of the history.
 
 ## Roadmap — where this goes next, in priority order
 
-1. **Margin/asymmetry analysis (highest priority).** Uses data already in
-   hand — MBIE publishes `Importer margin` directly, no new source needed.
+1. **Margin/asymmetry analysis (still first, but harder than it looked).**
+   Uses data already in hand — MBIE publishes `Importer margin` directly,
+   no new source needed. **Re-scoped 11 Aug 2026:** the difficulty is not
+   writing an asymmetric regression, it is proving that whatever turns up
+   is retailer behaviour rather than an artifact of MBIE's cost model.
+   `Importer margin` is a residual — `Adjusted retail − Taxes and levies −
+   Importer cost` — so every error in the modelled cost lands in it with
+   the sign flipped, including quarterly-stale freight, wharfage and
+   quality-premium constants (`mbie_notes.md`). Two specific traps:
+   correlating margin against anything derived from `board_price` is
+   partly tautological, since margin is an accounting component of it; and
+   the current crisis's margin values are retroactively reconstructed.
+   Plan the falsification step before the analysis, not after.
    `Taxes`/`GST` are policy-set, not market-reactive, and shouldn't be
    folded into a symmetric correlation the way `exchange_rate` was; `ETS`
    could reasonably join the existing symmetric `factors` list, but
    `Importer margin` needs its own asymmetric (up-move vs down-move)
    analysis, not the existing correlation macro. A practical, cheap
-   near-term win: turn the expanding-window lag-stability query above into
-   a permanent signal (e.g. "lag unchanged over the last N weeks") and feed
-   it into `Forecast Confidence` alongside `resolved_r` — this is a more
-   specific, better-grounded version of the "downgrade when
-   `resolved_lag >= 3`" idea noted earlier, now with a real mechanism
-   behind it rather than just an empirical pattern in backtest errors.
+   near-term win, revised 11 Aug 2026: turn the expanding-window query into
+   a permanent model, but make the **gap** (winning lag's `r` minus the
+   runner-up's, per cutoff) the primary signal into `Forecast Confidence`,
+   not "lag unchanged over the last N weeks". Run-length over `argmax` is
+   the wrong statistic — for diesel it counts coin flips on a tie, and it
+   also fires spuriously whenever the dynamic max-lag cap lifts. The model
+   must therefore record `max_lag_allowed` per cutoff and mark
+   cap-induced transitions as artifacts. This still supersedes the cruder
+   "downgrade when `resolved_lag >= 3`" idea, but on a measured basis
+   rather than a mechanism that turned out not to be there.
 2. **EIA Brent (daily crude benchmark) as a new source.** Solves two
    documented problems at once, which is why it's next rather than a
    generic "add more sources" item: (a) enables the smoothed
@@ -458,11 +628,27 @@ today's diesel-vs-petrol difference isn't a fluke of this one dataset.
    volatility, which MBIE's weekly data structurally cannot show. Note
    Brent ≠ Dubai — a proxy, not a replacement for the existing regression,
    which stays anchored to Dubai crude.
+
+   **Revised 11 Aug 2026 — a refined-product quote beats another crude
+   benchmark.** MBIE builds `Importer cost` from Singapore product spot
+   prices (Argus: Gasoline 95 RON for petrol, Gasoil 50ppm for diesel),
+   not from crude. Dubai crude is therefore one step upstream of what
+   actually drives New Zealand's landed cost, with refining margin and its
+   own lag in between — and it explains why diesel behaves differently
+   from petrol without needing a retailer-behaviour story at all: it
+   tracks a different product with a different demand cycle. A Singapore
+   product quote is the better new factor; Brent's remaining advantage is
+   only daily granularity. Whether an equivalent series is free or
+   affordable (Argus is commercial) is the open question — check before
+   committing to this item.
 3. **Distributed lag model (ADL).** The deeper, correct fix for the
    assumption baked into `resolved_lag`/`resolved_slope`: that the whole
    effect of a crude move lands at one lag, and that lag/slope are
-   constant across an entire period. Both are simplifications — the diesel
-   finding above is direct evidence the second one doesn't always hold.
+   constant across an entire period. The diesel work above no longer
+   supports the claim that the lag *shifts* mid-period, but it strengthens
+   the case for a distributed lag from the other direction: when lags 2 and
+   3 fit equally well, the honest reading is that the effect is spread
+   across both, which is precisely what a single-lag model cannot express.
    A proper distributed-lag model spreads the effect across several lags
    with different weights instead of picking one "best" lag. Bigger
    undertaking than the rest of this list — a new model, not a patch.
