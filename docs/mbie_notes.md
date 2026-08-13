@@ -201,6 +201,25 @@ week-to-week correction, not a data quality problem.
 
 ## Known structural changes
 
+- **1 Jan 2022 — the retail price source changed, and it is visible in the
+  data.** Per the methodology document's data-source table, retail fuel
+  prices come from **Envisory up to 31 Dec 2021** and from **Datamine from
+  1 Jan 2022**. This was not recorded here until 13 Aug 2026, and it turned
+  out to be load-bearing — see the rolling-window analysis in
+  `architecture.md`. Two fingerprints, both sharp at the boundary:
+  - **Repeated weekly values stop dead.** Weeks where `Board price` is
+    unchanged from the previous week were routine — 5 to 23 per year per
+    fuel through 2021 — and the last one is **24 Dec 2021**, for both
+    petrol and diesel. From the first week of 2022 to the present, across
+    ~230 weeks, there is not a single one.
+  - **Diesel's precision changes.** Before 2022, 15–31 of ~52 diesel values
+    a year were finer than 0.1 c/L; from 2022, all 52 are. Petrol had
+    already been at full precision since 2019, so **the series change is
+    larger for diesel than for petrol**.
+  - **Why this matters:** it lands 13 weeks before Marsden Point stopped
+    refining (31 Mar 2022), so any before/after comparison across that
+    boundary is confounded — and confounded *asymmetrically by fuel*,
+    which is exactly the shape of the effect it would be mistaken for.
 - **7 May 2025** — MBIE switched to the current long/narrow format. The old
   (wide) series was discontinued 6 Aug 2025.
 - **January 2026** — population weightings used in the national average were
