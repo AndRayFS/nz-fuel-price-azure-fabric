@@ -858,8 +858,160 @@ on diesel and accuracy on petrol, matching what the backtests showed.
 forecast came in over or under. That sign is the most diagnostic part and
 should be recorded on the next run.
 
+## The forecast measure multiplies a change by a slope fitted on levels
+
+Report 1's forecast is `current_price + resolved_slope × (crude_now −
+crude_lag_weeks_ago)`. The multiplicand is a **change**; `resolved_slope`
+comes from a regression on **levels**. Fitting the same relationship the
+way the formula actually uses it — crude change over the past k weeks
+against the price change over the next k weeks, k = each fuel's own
+resolved lag, `06_iranus_2026`:
+
+| fuel | k | n | slope fitted on k-week changes | r | `resolved_slope` (levels) | ratio |
+|---|---|---|---|---|---|---|
+| Diesel | 3 | 17 | 0.583 | 0.801 | 0.9755 | **1.67×** |
+| Regular Petrol | 2 | 19 | 0.233 | 0.839 | 0.3984 | **1.71×** |
+| Premium 95R | 2 | 19 | 0.235 | 0.833 | 0.4019 | **1.71×** |
+
+The published coefficient is inflated by about 70%, consistently across all
+three fuels — a property of the levels fit, not of any one fuel.
+
+**Replaying the formula week by week over the current crisis** (17 diesel
+forecasts, 19 per petrol grade) reproduces the documented backtest errors —
+mean absolute error 6.7% of price for diesel and 1.9–2.0% for the petrols,
+against 4.6–7.3% and 1.7–1.9% in the table above — so the simulation is
+measuring the same thing the backtests did. It also settles the direction:
+prices were mostly falling, and the formula **under-predicts the size of
+the fall**, by 2.23 c/L on average for diesel and ~1.1 for the petrols.
+
+An inflated slope that under-predicts looks contradictory until you notice
+the formula has no intercept: it assumes price does not move when crude
+does not. Price drifted downward on its own through this period, and the
+oversized slope was partly standing in for that drift. Comparing three
+variants on identical weeks:
+
+| fuel | current formula | fitted slope, no intercept | fitted slope + intercept |
+|---|---|---|---|
+| Diesel | MAE 20.91 | 16.08 | **12.85** (intercept −7.91) |
+| Regular Petrol | 6.40 | 4.79 | **4.44** (intercept −1.72) |
+
+So correcting the slope alone **improves** the forecast by 23–25%; adding
+an intercept gets to −39% for diesel. Two cautions before anyone acts on
+that second column: the intercept is fitted in-sample, and it encodes
+"the drift continues", which is exactly the assumption that breaks at a
+turning point. The slope correction carries no such baggage.
+
+**Defect in the backtest record:** the table above logs error *magnitude*
+and "direction correct" but not whether the forecast came in over or under.
+That sign is the most diagnostic part of a backtest and had to be
+recovered by re-simulation. Record it next time.
+
+## Pass-through, decomposed — and three versions of an asymmetry finding that did not survive
+
+The question this section was opened to answer is what the pump price is
+made of and when that changes, not how to fix the forecast.
+
+**Three candidate findings died on the way, all to the same class of
+check.** Recording them because each looked solid at the point it was
+written:
+
+1. *"The asymmetry reversed sign after the refinery closed"* — pre-2020
+   prices responded ~2× more strongly to crude falls, the import era ~2×
+   more strongly to rises. Killed by matching on move size: the import era's
+   average weekly crude move is 5.75 against 2.96 pre-2020, and restricting
+   both eras to moves of 2–8 removes the reversal entirely.
+2. *"Falls pass through more than rises"* (and its mirror) — the **sign of
+   the asymmetry depended entirely on whether an estimated drift was
+   subtracted**, because the drift is positive and subtracting it
+   necessarily strengthens falls and weakens rises. A result that flips on
+   an analyst's choice is not a result.
+3. *"Small crude moves barely pass through"* — an artifact of fitting
+   slopes inside narrow ranges when the crude series is rounded to whole
+   dollars (`mbie_notes.md`). Ratios of means, which are robust to that
+   rounding, show no such gradient.
+
+The fix for (2) was to stop estimating the drift and remove its known
+cause instead: the target becomes `board_price − taxes − gst − ets`, which
+strips the policy-driven component and, unlike `price_excluding_tax`, does
+not import the quarterly re-basing steps. On that target the early-era
+asymmetry nearly vanishes (diesel 0.76 down vs 0.84 up, raw).
+
+**What survives, measured at four horizons so that nothing rests on one
+window.** Response is c/L per NZD/bbl of crude move, cumulative over the
+horizon:
+
+| fuel | era | horizon | cost response ↓/↑ | margin response ↓/↑ | price response ↓/↑ |
+|---|---|---|---|---|---|
+| Diesel | import | 2w | 0.554 / 0.762 | 0.141 / 0.127 | 0.692 / 0.886 |
+| Diesel | import | 3w | 0.752 / 1.013 | 0.222 / 0.264 | 0.978 / 1.278 |
+| Diesel | import | 4w | 0.929 / 1.100 | 0.267 / 0.440 | 1.204 / 1.542 |
+| Diesel | import | 6w | 1.031 / 1.037 | 0.442 / 0.621 | 1.490 / 1.653 |
+| Regular | import | 3w | 0.466 / 0.481 | 0.260 / 0.336 | 0.723 / 0.806 |
+| Regular | import | 6w | 0.555 / 0.437 | 0.472 / 0.587 | 1.034 / 1.007 |
+| Diesel | pre-2020 | 3w | 0.434 / 0.347 | 0.167 / 0.259 | 0.759 / 0.841 |
+| Regular | pre-2020 | 3w | 0.478 / 0.375 | 0.216 / 0.280 | 0.861 / 0.905 |
+
+**1. Diesel's landed cost is 1.5–2.4× more crude-sensitive than petrol's,
+at every horizon — but only in the import era.** Pre-2020 the two fuels are
+nearly identical (0.39 vs 0.37). The divergence appears after the country
+switched from refining crude to importing finished product, and it sits on
+the **cost** side, before any retailer decision. This is the best available
+explanation for why diesel has behaved differently throughout this project,
+and it needs no behavioural story: gasoil and gasoline are different
+products with different crack spreads.
+
+**2. Importer margin moves *with* crude in all 32 cells measured, and the
+effect grows with horizon** — diesel upward: 0.127, 0.264, 0.440, 0.621 at
+2, 3, 4 and 6 weeks. Margin is not a buffer absorbing crude swings; it is
+an amplifier, and the amplification accumulates the longer a move persists.
+Roughly a third of the price response beyond landed cost is margin.
+*Caveat:* `Importer margin` is the residual of MBIE's cost model, so this
+is a measured property of the series, not proof of importer behaviour.
+
+**3. Diesel's remaining up/down asymmetry is inherited from the cost side,
+not created at the pump.** Cost responds more to rises than falls at short
+horizons (0.762 vs 0.554 at two weeks) and converges by six (1.037 vs
+1.031); the price asymmetry narrows in step. Whatever "rockets and
+feathers" exists here originates upstream — in the Singapore product market
+or in MBIE's cost construction — not in retailer pricing.
+
+**Two measurement caveats attached to the numbers above.** Overlapping
+horizons mean roughly a third of the nominal observations are independent
+(n≈100 per cell in the import era). And in the pre-2020 era the
+board-derived target carries about 0.25 of adjustment-factor co-movement
+with crude, so those price responses are overstated by that much; in the
+import era the residual is zero.
+
+## Checks that have repeatedly changed the answer
+
+Three questions, each of which has overturned at least one finding in this
+project. Run them before writing anything down, not after:
+
+1. **Is the spread comparable?** Correlation collapses when a series barely
+   moves, and grows when it swings — this killed the refinery-era
+   hypothesis and inflated the era comparison in the asymmetry work. Compare
+   slopes rather than `r` across groups, and check the factor's coefficient
+   of variation in each.
+2. **What is the drift, and is it doing the work?** If a result changes sign
+   depending on whether a trend is subtracted, the trend is the finding.
+   Prefer removing a known, named component (taxes) over estimating a
+   generic one.
+3. **How precise is the input?** Crude is rounded to whole dollars; the
+   retail source changed in 2022; some weeks in 2026 were reconstructed
+   retroactively. Measurement error in an explanatory variable biases slopes
+   toward zero, worst where the signal is smallest.
+
 ## Roadmap — where this goes next, in priority order
 
+0. **Locate the asymmetry, now that it has been measured (new, 14 Aug
+   2026).** The margin work below has a concrete starting point instead of
+   a general intention: margin amplifies crude moves in both directions,
+   growing with horizon, and diesel's apparent rockets-and-feathers is
+   inherited from the cost side. The open question is no longer "is there
+   asymmetry" but "at which step of the chain does it arise" — Singapore
+   product prices, MBIE's cost construction, or the pump. The first two are
+   distinguishable only with an external product-price series (see item 2),
+   which raises that item's value.
 1. **Margin/asymmetry analysis (still first, but harder than it looked).**
    Uses data already in hand — MBIE publishes `Importer margin` directly,
    no new source needed. **Re-scoped 13 Aug 2026:** the difficulty is not

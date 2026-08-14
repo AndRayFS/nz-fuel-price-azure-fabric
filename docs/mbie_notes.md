@@ -50,14 +50,73 @@ see `docs/architecture.md`.
 - `Importer margin`
 - `Importer margin trend` (LOESS-smoothed)
 
-**Decomposition identity** (useful for gold-layer sanity checks):
+**Decomposition identity — it is defined on `Adjusted retail price`, not on
+`Board price`.** This file previously stated it with `Board price` on the
+left, which is wrong; corrected 14 Aug 2026 after checking numerically.
+MBIE's methodology document defines it the other way round
+(`Importer margin = Adjusted Retail Price − Taxes and Levies − Importer
+cost`), and the data agrees:
+
 ```
-Board price = Importer cost + Taxes + GST + ETS + Importer margin
+Adjusted retail price = Importer cost + Taxes + GST + ETS + Importer margin
+Price excluding tax   = Importer cost + Importer margin      (ETS is NOT in it)
+Adjusted retail price = Price excluding tax + Taxes + GST + ETS
 ```
+
+| identity, mean absolute error over 1164 weeks | Regular | Diesel | Premium 95R |
+|---|---|---|---|
+| on `Adjusted retail price` | 0.66 | 0.64 | **0.00** |
+| on `Board price` | 6.99 | 6.47 | 4.82 |
+
+Premium 95R closes to **exactly zero on every week**. Regular and diesel
+close on most weeks but carry a residual — mean 0.66 c/L, max 11–14 —
+which is unexplained and worth locating before the decomposition is relied
+on for those two fuels.
+
+**Which target to use for what.** The two differ by the quarterly
+adjustment factor, and that has a sharp practical consequence for anything
+computed on week-over-week *changes*: the factor is re-based in **169 of
+1163 weeks**, average step 0.90 c/L and largest 10.69, against a typical
+weekly price move of 2.02 c/L. Those steps are re-basing artifacts, and in
+a differenced series they are indistinguishable from real price movement.
+
+- **`Adjusted retail price`** — for decomposition (the identity only holds
+  here) and for "what people actually pay".
+- **`Board price`** — for measuring timing and response on changes: it
+  carries no re-basing steps.
+- To strip taxes *without* importing the steps, build the target as
+  `Board price − Taxes − GST − ETS` rather than using `Price excluding
+  tax`, which inherits them from the adjusted series. Removing GST also
+  removes a 15% multiplicative inflation of every response measured on the
+  gross price.
 
 **Note:** there is no separate "retail margin" variable in this dataset —
 confirmed against both the data dictionary and the actual CSV. Don't assume
 it exists; it would have to be derived, if needed at all.
+
+## Both crude price columns are rounded to whole dollars
+
+Found 14 Aug 2026, after a size-bucketed analysis produced impossible gaps.
+`dubai_crude_nzd` and `dubai_crude_usd` contain **zero non-integer values
+across all 1164 weeks** (NZD range 29–267, USD 18–156). `exchange_rate`,
+`board_price` and `importer_cost` all carry full precision, so this is
+specific to the crude series.
+
+Consequences, which matter most for anything computed on changes:
+
+- Weekly crude changes take only integer values. 149 weeks show a change of
+  exactly zero and 277 show exactly ±1.
+- Rounding error is ±0.5 in the level, so in a week-over-week difference it
+  has a standard deviation of about 0.41. Against a typical weekly move of
+  1–3 dollars that is 15–40% noise; against the 29–267 range of the levels
+  it is negligible.
+- Measurement error in an explanatory variable biases a regression slope
+  **toward zero**, and worst where the true signal is smallest. Any finding
+  of the form "small crude moves pass through less" must be checked against
+  this before being read as behaviour — a ratio of means is far more robust
+  here than a slope fitted inside a narrow range.
+- This also explains why level-based results always looked cleaner than
+  change-based ones.
 
 ## How `Importer cost` is actually built — and why that matters
 
