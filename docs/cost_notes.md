@@ -11,7 +11,9 @@ az rest --method post \
 
 (`az consumption usage list` is not usable — it deserialises `pretaxCost`
 as the string `"None"`. `az costmanagement` needs an extension that isn't
-installed. The API throttles with HTTP 429; retry with backoff.)
+installed. The API throttles with HTTP 429; wait **at least 45 s** between
+attempts — 20 s intervals failed six times running on 14 Aug 2026. See
+`.claude/rules/working-style.md` for the rate-limit headers involved.)
 
 ## Headline numbers
 
@@ -136,7 +138,8 @@ the capacity is only needed for the weekly `dbt run`.
 
 Trial credit was NZ$354 (Part 3). NZ$58.79 spent implies ~NZ$295 left, but
 the credit balance was **not** read from the API — treat as arithmetic, not
-a measurement.
+a measurement. (Superseded by the 14 Aug section below, where the balance
+was read from the portal.)
 
 ## Reconciliation with the author's running notes
 
@@ -255,3 +258,98 @@ running record of corrections.
 platform, published the complaint, then found the constraint was
 self-inflicted configuration — plus the licensing detail that the capacity
 was never buying what it appeared to buy.
+
+## Credit balance, and why the CLI cannot read it (14 Aug 2026)
+
+Routine check of how the trial credit is draining. Full-period pull,
+28 Jul – 13 Aug 2026 (17 billed days), grouped by service:
+
+| | NZD |
+|---|---|
+| **Total** | **71.63** |
+| — Microsoft Fabric | 71.63 (≈100%) |
+| — Logic Apps | 0.00003 |
+
+The two pause/resume Logic Apps cost fractions of a cent over the whole
+project. They can be dropped from any cost discussion entirely.
+
+Daily, converted to capacity hours at the measured rate of **NZ$0.729/hour**
+(0.36447 NZD per CU-hour × 2 CU — see "Savings from pausing" above; do
+*not* re-derive this by treating a NZ$10.19 day as 24 h, it is 14 h):
+
+```
+28.07  0.02   0.0 h    06.08   4.31   5.9 h
+29.07  1.34   1.8 h    07.08  10.20  14.0 h  ← scheduled 09:00–23:00
+30.07  1.01   1.4 h    08.08  10.19  14.0 h  ← scheduled 09:00–23:00
+31.07  2.74   3.8 h    09.08  10.19  14.0 h  ← scheduled 09:00–23:00
+01.08  3.07   4.2 h    10.08   8.01  11.0 h
+02.08  2.05   2.8 h    11.08   1.02   1.4 h  ← suspend test, 14:09 NZT
+03.08  2.70   3.7 h    12.08   0.00   0.0 h
+04.08  5.45   7.5 h    13.08   2.36   3.2 h
+05.08  6.98   9.6 h
+```
+
+The ceiling across the whole period is 14.0 h, never 24 — the auto-resume
+Logic App opened the capacity at 09:00 and auto-pause closed it at 23:00,
+exactly as the 10 Aug pull already established. Nothing here shows a
+missed pause.
+
+What 7–9 August do show is the cost of that schedule running at full
+stretch: NZ$30.58, **43% of the entire bill in three days**, for a window
+that was mostly idle. That is what disabling auto-resume on 11 Aug was
+meant to stop, and the post-11-August profile (1.02 / 0 / 2.36) shows it
+working — the capacity now only comes up when something actually needs it.
+
+12 August at NZ$0.00 is independent confirmation of the My Workspace
+finding above: the report served all day, capacity off, nothing billed.
+
+For reference, 24/7 at this rate would be NZ$17.50/day. The project has
+never billed a day like that.
+
+**Credit balance is not reachable from `az`.** Verified, not assumed:
+
+- `az billing account list` → `[]`, and the raw
+  `Microsoft.Billing/billingAccounts` endpoint returns an empty list on
+  both `2020-05-01` and `2024-04-01`.
+- `Microsoft.Consumption/balances` → 404. That endpoint is
+  Enterprise Agreement only.
+- The signed-in user already holds `Contributor` + `Cost Management Reader`
+  on the subscription, which is as far as RBAC goes for cost.
+
+The cause is the account type, not a missing role: this is a
+`FreeTrial_2014-09-01` subscription on a **Microsoft Online Services
+Program** billing account, where billing access is not RBAC-assignable and
+belongs solely to the Account Administrator — the identity that signed up,
+here a personal Microsoft account rather than the org user `az` runs as.
+There is no role to grant. Read the balance in the portal instead:
+**Subscriptions → Overview**, or **Cost Management + Billing → Credits**.
+
+Read from the portal on 14 Aug: **NZ$274.98 remaining, expiring
+27 Aug 2026.** Against the NZ$354 starting credit that implies NZ$79.02
+spent, while Cost Management reports NZ$71.63 through 13 Aug. The NZ$7.39
+gap is consistent with 14 August usage — the capacity was `Active` when
+checked, and Cost Management runs about a day behind (see the latency
+section above) — but that is inference, not a measurement.
+
+**What happens at the trial's end.** Confirmed against Microsoft's docs,
+not assumed:
+
+- Remaining credit carries into a pay-as-you-go upgrade but **keeps the
+  original expiry**. The 30-day window runs from sign-up (~28 Jul);
+  upgrading early does not extend it. Whatever is unused on 27 Aug is lost
+  and cannot be reissued.
+- The 12-months-free service list survives the upgrade, but **Fabric is
+  not on it**. From 28 Aug, F2 bills real money at the rate above.
+- Upgrading **removes the spending limit**, which is currently the hard
+  backstop — the subscription would simply switch off if credit ran out.
+  Afterwards the only guards are the 23:00 NZT auto-pause and whatever
+  budget alert is configured.
+
+Practical consequence: at ~NZ$2.40/day of current burn, roughly NZ$245 of
+the balance will lapse unused. Until 27 Aug, F2 compute is free at the
+margin, so anything heavy worth doing — full-history `--full-refresh`
+runs, lag experiments, gold rebuilds — is cheapest before that date.
+
+Sources for the upgrade rules:
+[Upgrade your Azure account](https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/upgrade-azure-subscription),
+[Avoid charges with your Azure free account](https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/avoid-charges-free-account).
