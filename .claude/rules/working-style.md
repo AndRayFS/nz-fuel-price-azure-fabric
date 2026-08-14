@@ -24,7 +24,14 @@ For Azure facts, prefer the `az` CLI over portal clicking — the Cost
 Management REST API (`az rest`, `Microsoft.CostManagement/query`) returns
 usable data, whereas `az consumption usage list` deserialises costs as the
 string `"None"` and `az costmanagement` needs an extension that isn't
-installed. That API throttles with HTTP 429 — retry with a short backoff.
+installed. That API throttles with HTTP 429 — **wait at least 45 s between
+attempts**. Not "a short backoff": the 429 body says only "Please retry",
+but the response headers carry
+`x-ms-ratelimit-microsoft.costmanagement-clienttype-retry-after: 32` and
+`...-clienttype-requests: DefaultQuota:0`. Retrying at 20 s intervals
+failed six times in a row on 14 Aug 2026; 45 s succeeded on the second
+attempt. `az rest` hides those headers — use `curl -D` with a token from
+`az account get-access-token` when you need to see why it is refusing.
 
 Critical working rules (verify before asserting, heredoc checks, one
 change at a time, no point-forecast language) live in the root
