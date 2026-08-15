@@ -1408,10 +1408,40 @@ high-volatility weeks in nominally two episodes, but `2022_ukraine` runs
 practice: one crisis, still in progress.** Widening to 2010+ buys 109 weeks
 across six episodes, of which four are downward or small.
 
-**So the failure to identify crisis pass-through is not a methods problem.**
-It is n = 1 for the phenomenon of interest, and no estimator repairs that.
-Longer lag windows, better standard errors and regime interactions all
-describe the same single episode more elaborately.
+**Corrected 15 Aug 2026 — "n = 1" was too strong, and the sharper version
+is more useful.** The first draft of this section said crisis pass-through
+cannot be estimated at all. That is wrong: the high-volatility regime at
+2010+ draws on 109 weeks across six episodes, not one. Removing 2026
+entirely leaves 82 high weeks from five episodes, and on those the estimate
+behaves:
+
+| K | diesel, high regime incl. 2026 | excl. 2026 |
+|---|---|---|
+| 3 | 0.835 | 1.070 |
+| 6 | 0.909 | 0.942 |
+| 9 | 1.159 | 0.985 |
+| 12 | **1.268** | 0.870 |
+| spread K=3…12 | **0.433** | **0.200** |
+
+Without 2026 there is no monotone climb at all — the estimate wanders
+without direction between 0.87 and 1.07, which is where the *normal*
+weeks sit. Petrol behaves the same way (spread 0.203 → 0.145).
+
+Three statements replace the original one:
+
+1. **High volatility on its own does not change pass-through.** Five
+   episodes, 82 weeks, complete and stable, indistinguishable from calm
+   weeks. Crisis pass-through *is* estimable.
+2. **2026 differs from the other crises, not merely from calm.** It alone
+   produces the monotone climb to 1.27; drop it and the pattern goes.
+3. **n = 1 applies to episodes of this magnitude, not to crises.** The five
+   others are downward (COVID, the 2016 glut) or small (weekly sd 5.4–9.0%
+   against 13.2%). There is still nothing to compare 2026 against — but
+   that is a much narrower claim than the one first made here.
+
+The remaining caveat cuts the other way and should be kept: those five
+episodes are themselves modest, so "other crises look normal" says little
+about what a *large upward* shock does. That gap is exactly 2026.
 
 Three consequences that should govern how this project speaks:
 
