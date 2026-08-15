@@ -982,6 +982,66 @@ board-derived target carries about 0.25 of adjustment-factor co-movement
 with crude, so those price responses are overstated by that much; in the
 import era the residual is zero.
 
+## What a litre is actually made of, in cents
+
+Accounting only — no fitting. Uses `adjusted_retail_price`, which is where
+MBIE's identity closes (`mbie_notes.md`). Week of 7 Aug 2026:
+
+| component | Regular Petrol | share | Diesel | share |
+|---|---|---|---|---|
+| Importer cost | 126.3 | 41.9% | 172.2 | **63.6%** |
+| Importer margin | 45.7 | 15.1% | 47.6 | 17.6% |
+| Taxes and levies | 77.3 | 25.6% | **0.9** | **0.3%** |
+| ETS | 13.1 | 4.3% | 14.7 | 5.4% |
+| GST | 39.3 | 13.0% | 35.3 | 13.0% |
+| **Total** | **301.7** | | **270.8** | |
+
+**Diesel carries almost no fuel tax** — 0.9 c/L against petrol's 77.3,
+because diesel vehicles pay Road User Charges separately. Two-thirds of a
+diesel litre is the commodity, against 42% for petrol, whose price is 43%
+tax and therefore structurally damped. This is a cleaner explanation for
+"diesel behaves differently" than anything behavioural, and it compounds
+with the cost-side finding above.
+
+## The margin round-trip through the 2026 crisis
+
+| | 6 Mar 2026 (period start) | 20 Mar (crude peak) | 7 Aug (latest) |
+|---|---|---|---|
+| Crude, NZD/bbl | 146 | **267** | **131** |
+| Diesel importer cost | 158.8 | 234.5 | 172.2 |
+| Diesel importer margin | **−2.2** | 2.7 | **47.6** |
+| — percentile over 22 years | **0.1** | 0.3 | **91.7** |
+| Petrol importer margin | 15.3 | 7.7 | **45.7** |
+| — percentile over 22 years | 24.8 | **1.1** | **97.7** |
+| Diesel pump price | 195.0 | 286.4 | 270.8 |
+
+**Crude is now below where the crisis started (131 against 146) while
+diesel sells 76 c/L higher and margins sit at the 92nd–98th percentile of
+22 years.** Margins were crushed to near-record lows on the way up — the
+0.1st percentile means only one week in a thousand was lower — and more
+than recovered on the way down. That is rockets-and-feathers stated in
+cents, from the published decomposition, with no regression involved.
+
+**This reconciles the two apparently contradictory results above.** Over
+2–6 week horizons margin moves *with* crude; across the phases of this
+crisis it moved *against* it. Both are true: a cost jump compresses margin
+immediately, and the recovery — which overshoots — arrives later. A short
+window measures the recovery, a phase measures the net.
+
+**An anomaly worth its own line:** between 6 Mar and 7 Aug crude fell 10%
+while diesel's landed cost *rose* 8% (158.8 → 172.2). Both are in NZD, so
+this is not currency. The crude-to-product spread moved, which is one more
+reason Dubai crude is a poor stand-in for what the importer actually pays
+— and an argument for the Singapore product series in roadmap item 2.
+
+**A public prediction that came true, worth recording as evidence the
+method has some forward content.** Part 1 (published ~24 Jul 2026) stated
+that crude had risen on 17 July with no pump movement yet, and that "if the
+two-week pattern still holds, we should begin seeing that change around the
+end of July". Board prices: 243.0 on 17 Jul, then **+9.4 on 24 Jul and
++13.4 on 31 Jul** for diesel (+1.5 and +6.6 for regular petrol). The turn
+landed exactly in the predicted week.
+
 ## Checks that have repeatedly changed the answer
 
 Three questions, each of which has overturned at least one finding in this
@@ -1040,7 +1100,15 @@ project. Run them before writing anything down, not after:
    cap-induced transitions as artifacts. This still supersedes the cruder
    "downgrade when `resolved_lag >= 3`" idea, but on a measured basis
    rather than a mechanism that turned out not to be there.
-2. **EIA Brent (daily crude benchmark) as a new source.** Solves two
+2. **A daily benchmark — third reason added 14 Aug 2026: we do not know
+   what MBIE's weekly crude number *is*.** The methodology says only that
+   Argus supplies it weekly; whether it is a weekly average or a single-day
+   snapshot is unstated, and it matters. If it is a snapshot, ordinary
+   intra-week movement enters the series as noise in the explanatory
+   variable — on top of the whole-dollar rounding already documented — and
+   biases every slope toward zero. A free daily series settles it by
+   comparison, and also yields an honest weekly average and an intra-week
+   range. **EIA Brent (daily crude benchmark) as a new source.** Solves two
    documented problems at once, which is why it's next rather than a
    generic "add more sources" item: (a) enables the smoothed
    `crude_change` comparison described above — at weekly granularity,
