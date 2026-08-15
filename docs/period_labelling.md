@@ -28,7 +28,7 @@ against the old `crisis` flag returns p = 0.905.
 
 | what changed | old | new |
 |---|---|---|
-| axes | 1 (`period_type`) | 8 independent columns |
+| axes | 1 (`period_type`) | 7 (across 11 columns) |
 | weeks with a value | 200 of 1,164 | 1,164 of 1,164 |
 | crude-shock weeks identified | 77 | 135 |
 | …of which the old seed never labelled | — | 82 |
@@ -128,9 +128,10 @@ p75 0.041, p90 0.055, p95 0.078, p99 0.156.
 | `2022_ukraine` | 2022-02-18 → 2022-04-22 | 10 | 0.083 | +0.08 … +0.37 | partly |
 | `2026_iran_us` | 2026-02-06 → 2026-08-07 | 27 | 0.185 | −0.43 … +0.91 | partly |
 
-The 2008–09 crisis, the 2014–16 glut and the 2016 OPEC cuts — 79 weeks, the
-three largest crude events of the sample's first eighteen years — were
-entirely absent from the old labelling.
+Six episodes — 79 weeks — were entirely absent from the old labelling, and
+71 of those weeks are the three largest crude events of the sample's first
+eighteen years: the 2008–09 crisis, the 2014–16 glut, and the 2016 OPEC
+cuts.
 
 ### Why there is no episode-level `direction` column
 
@@ -159,9 +160,10 @@ steps — 2005-04-08 (+5.10), 2007-07-06 (+1.50), 2008-07-04 (+2.10),
 2009-10 (+0.90, +2.10), 2012-08 (+1.43, +0.57), 2013-07-05 (+3.00),
 2014-07 (+2.57, +0.43), 2018-10-05 (+3.00), 2019-07-05 (+3.80),
 2020-07 (+2.51, +1.00), among others. They are smaller than the 2022 cut but
-they are not small: nine of them exceed 2 c/L, against a typical weekly move
-of 2.02 c/L in the price itself. A tax dummy that covers only 2022–2024
-leaves 22 real steps sitting inside "ordinary" weeks.
+they are not small: eight of the 24 steps outside the brief's table exceed
+2 c/L, against a typical weekly move of 2.02 c/L in the price itself. A tax
+dummy that covers only 2022–2024 leaves 24 real steps sitting inside
+"ordinary" weeks.
 
 Diesel has just 2 steps in 22 years — the 2018 Auckland regional fuel tax and
 its 2024 removal — confirming that diesel and petrol are not comparable on
@@ -174,7 +176,9 @@ both fuels move by exactly +0.482390 on 2018-06-29 and +2.894339 on
 average across two weeks.
 
 `tax_step_window` covers the step week and the one after, because the steps
-demonstrably smear across two weeks. 34 steps produce 62 flagged weeks.
+demonstrably smear across two weeks. 34 steps produce 57 flagged rows — 50
+petrol weeks and 7 diesel — fewer than 68 because steps in consecutive weeks
+share a window.
 
 ---
 
@@ -334,8 +338,9 @@ errors. Sample 2010+ so the identity break is out.
 | Petrol | `crude_vol_regime` | 109 | +0.042 | 0.554 | 0.298 | 1.44 → 1.23 wk |
 | Petrol | old `crisis` | 77 | −0.092 | 0.122 | 0.237 | 1.27 → 1.38 wk |
 
-On the import era alone (2022-04+), the same comparison: diesel p = 0.0002
-with the new flag against 0.025 with the old; petrol 0.19 against 0.073.
+On the import era alone (2022-04+), the same comparison: diesel joint
+p = 0.00002 with the new flag against 0.025 with the old; petrol 0.19
+against 0.073.
 
 Read carefully:
 

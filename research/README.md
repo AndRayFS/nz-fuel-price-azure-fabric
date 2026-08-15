@@ -34,4 +34,11 @@ python research/export_panel.py    # only when the warehouse has new weeks
 - **`period_id` is null for 964 of 1,164 weeks.** `periods.csv` marks named
   episodes only; unlabelled weeks are not "unknown", they are ordinary
   weeks. Decide explicitly how they are treated before any crisis/calm
-  comparison.
+  comparison. **Superseded by `seeds/period_flags.csv`** — proposed, not yet
+  merged — which gives all 1,164 weeks a value on seven independent axes
+  instead of one crisis/calm label. Rationale, tests and what was discarded:
+  `docs/period_labelling.md`. Regenerate with:
+
+  ```bash
+  python research/build_period_flags.py   # derived; hand edits get overwritten
+  ```
