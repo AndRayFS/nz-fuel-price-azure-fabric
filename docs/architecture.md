@@ -1071,6 +1071,87 @@ end of July". Board prices: 243.0 on 17 Jul, then **+9.4 on 24 Jul and
 +13.4 on 31 Jul** for diesel (+1.5 and +6.6 for regular petrol). The turn
 landed exactly in the predicted week.
 
+## The distributed-lag model, first results — 15 Aug 2026
+
+`research/adl_baseline.py`. Target is the commercial part of the price
+(`adjusted_retail − taxes − gst − ets`), factor is `Δimporter_cost`, sample
+is the import era (228 weeks from Apr 2022), errors are Newey–West with
+bandwidth K+2. Lag length K chosen by BIC, with the rule fixed before
+looking at output. Both differenced series are stationary (ADF p < 0.0001).
+
+**The headline, and it is robust.** For petrol, total pass-through is
+complete and no more: 0.92–1.03 at every K from 3 to 12, with the 95%
+interval covering 1.0 throughout. A 1 c/L rise in landed cost arrives in
+full at the pump — 1.15 c/L with GST — and none of it is permanently
+retained as margin. That is a real answer to the question the project
+exists to ask, and it did not need a single-best-lag estimate to get there.
+
+**Shape.** The peak is at lag 1 for both fuels, and **69–85% of the total
+arrives within three weeks**. Petrol's centre of mass is 1.24–1.93 weeks,
+diesel's 1.19–3.03.
+
+**The joint fit confirms the double-counting diagnosis numerically.**
+Diesel's separate per-lag regressions summed to 2.22 against a levels slope
+of 0.98 (`analyses/lag_levels_vs_changes.sql`). Fitted jointly, the same
+lags sum to 0.9–1.2. Roughly half of the old number was neighbouring lags
+claiming the same market move.
+
+**Diesel's total is not identified, and this must be reported with any
+number taken from it.** It climbs monotonically with the lag length —
+0.833, 0.879, 0.894, 1.045, 1.117, 1.213 at K = 3, 4, 6, 8, 9, 12 — so
+"diesel passes through more than 100%" is available to anyone willing to
+choose K = 9 or above, and "less than 100%" to anyone choosing K ≤ 6. BIC
+picks 9. Petrol shows no such drift, which is why its result stands.
+
+The same K-dependence undermines a long-standing project belief: **"diesel
+is slower than petrol" is not robust either.** At a common K of 3, 4 or 5
+*petrol* has the later centre of mass (1.45–1.59 vs 1.19–1.43); the
+ordering only flips at K ≥ 6. Compare centres of mass only at a common K,
+and state the K.
+
+**What the creep is not: seasonality.** Diesel's margin is about twice as
+seasonal as petrol's (month deviations from the annual mean span 6.07 c/L
+against 3.17, trough in March, peak in May). Adding month dummies to the
+model moves the totals by at most 0.03 and leaves the climb across K
+intact. Hypothesis tested and dead; the standard errors do tighten
+slightly, so the dummies are worth keeping as noise control. The remaining
+candidate is the missing error-correction term.
+
+**`importer_cost` is decisively the better factor for petrol** — R² 0.845
+against crude's 0.678 on the identical specification. For diesel the gap is
+small (0.840 vs 0.794), which is consistent with diesel's landed cost being
+more crude-sensitive to begin with.
+
+### Petrol and diesel are not two instances of the same thing
+
+Prompted by the question of whether their different behaviour has a
+different customer base behind it — diesel goes to trucking, farming and
+fishing, petrol to private cars.
+
+- **Discounting differs, and collapsed.** `board_price − adjusted_retail`
+  ran ~2 c/L for both fuels in 2010, peaked at 14.8–18.3 (petrol,
+  2017–2020) and 15.6–16.4 (diesel, 2017–2019), and has fallen to 2.89 and
+  0.99 by 2026. Petrol's discount is the deeper one in most years, which
+  fits consumer loyalty schemes. **Caveat that blocks attribution:** the
+  collapse coincides with MBIE's retail-source change on 1 Jan 2022, so the
+  end of the discount era and a measurement artifact cannot be separated
+  here.
+- **Diesel's price is stickier than its cost.** In the import era diesel's
+  board price is unchanged (|Δ| < 0.5 c/L) in 22.8% of weeks against
+  petrol's 20.2%, while diesel's *cost* is unchanged in only 10.5% against
+  petrol's 13.2%. A noisier input and a quieter output.
+- **The seasonality probably points upstream, not at NZ customers.**
+  Diesel's margin troughs in March and peaks in May. That is the signature
+  of northern-hemisphere winter gasoil demand raising the Singapore quote —
+  which `importer_cost` tracks immediately while the pump price lags — not
+  of the New Zealand agricultural cycle.
+- **The contract/bulk channel is invisible here, so the hypothesis cannot
+  be closed.** MBIE monitors service-station prices. Tanker deliveries to
+  farms, marine bunkering and site fuel are a separate commercial channel
+  and are not evidently in this series, yet plausibly account for much of
+  national diesel volume. Nothing in this dataset can confirm or refute a
+  contract-pricing explanation.
+
 ## Checks that have repeatedly changed the answer
 
 Five questions, each of which has overturned at least one finding in this
