@@ -268,6 +268,90 @@ stale quarterly constant shifts the whole series by an offset, and an
 additive offset changes neither `r` nor the slope. It matters for anything
 read as a *level*.
 
+## `Importer margin` is not the importer's margin — read the name as a warning
+
+Established 15 Aug 2026, working back from the identity. The arithmetic is
+exact (0.00 c/L residual):
+
+```
+Importer margin = Adjusted retail price − Taxes and levies − GST − ETS − Importer cost
+```
+
+Two things about that line decide how the whole margin analysis should be
+read.
+
+**It is struck against the discounted price, not the board price.** The
+identity does not close on `Board price` — the pylon-sign number — which
+misses by 4.8–7.0 c/L. It closes on `Adjusted retail price`, what consumers
+actually paid after loyalty cards and fuel dockets. So retail discounting
+is *not* inside the margin; it has already been removed.
+
+**`Importer cost` stops at the wharf.** It is purchase + shipping +
+wharfage (above). Nothing downstream is modelled: terminal storage,
+domestic coastal shipping and road distribution, station operating costs,
+card acquiring fees, and the retailer's own margin. All of it lands in the
+residual. **`Importer margin` is therefore a gross margin for the entire
+domestic chain, from wharf to nozzle — not an importer's profit.** Any
+sentence of the form "importers made X" is unsupported by this column.
+
+Three further things fall into the same residual:
+
+1. **Procurement timing.** `Importer cost` is a replacement-cost estimate
+   at this week's Mon–Fri average spot. Whatever was actually paid, and
+   whenever it was bought, the model substitutes the week's average — so
+   the gap between real purchase price and modelled cost lands in margin,
+   with the sign flipped. Buying well shows up as margin, not as lower
+   cost. Scale of the effect, from daily Brent: within a rising week there
+   is a day cheaper than the previous week's average 25–38% of the time,
+   worth ~0.7–1.3 c/L in calm periods and ~3.5 c/L in the 2026 crisis
+   (against margins of ~45 c/L, so second-order — but least so exactly
+   when the crisis conclusions are being drawn). Two reasons not to
+   over-read it: cargo pricing conventionally averages quotes over a
+   window around the bill of lading rather than taking one day's print,
+   and cargoes are bought weeks ahead, so the relevant week is not the
+   stamped one.
+2. **Every error in the cost model**, sign-flipped — it is a residual of a
+   residual.
+3. **Stale quarterly constants** — Worldscale flat rate, freight
+   adjustment, insurance, loss factors and wharfage all update quarterly
+   while the series is weekly.
+
+### The level drifts hard; the changes do not
+
+Annual mean `Importer margin`, c/L:
+
+| year | petrol | diesel | | year | petrol | diesel |
+|---|---|---|---|---|---|---|
+| 2004 | 13.5 | 18.2 | | 2016 | 28.2 | 33.3 |
+| 2008 | 10.7 | 12.6 | | 2020 | 30.9 | 39.7 |
+| 2012 | 20.5 | 23.6 | | 2023 | 35.7 | 45.1 |
+| 2014 | 25.4 | 30.8 | | 2026 | 40.6 | 50.6 |
+
+Roughly a tripling over 22 years. That is what the residual construction
+predicts: the unmodelled downstream costs it absorbs — trucking, terminal,
+station operation — rise with general inflation, and none of it is
+deflated. **So the level is not comparable across eras, while
+week-over-week changes are**, because those downstream costs are near
+constant at weekly resolution. Most of this project's margin work is on
+changes and is unaffected.
+
+**Rule for percentiles, learned by getting it wrong.** A full-history
+percentile of a margin *level* mostly measures the drift. The failure is
+asymmetric:
+
+- For a **collapse**, the full-history yardstick is *conservative* — the
+  drift means a low 2026 value must beat the genuinely low 2004–2008 era
+  to rank extreme. March 2026's diesel (−12.4) and petrol (−0.3) minima
+  have **zero** weeks below them in 22 years. Safe to quote.
+- For a **normal-looking level**, it is misleading. Diesel's pre-crisis
+  42.4 reads as the 84th percentile of 22 years but the **33rd** of the
+  last three; petrol's 37.6 as the 90th versus the **48th**. An earlier
+  version of `linkedin_series.md` drew the wrong conclusion from exactly
+  this, and has been corrected.
+
+Default to an era-local window (three years) unless the drift demonstrably
+works against the claim.
+
 ## Trustworthiness is not uniform across columns
 
 Ranked by distance from direct observation. This distinction was implicit
