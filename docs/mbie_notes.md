@@ -270,12 +270,27 @@ read as a *level*.
 
 ## `Importer margin` is not the importer's margin — read the name as a warning
 
-Established 15 Aug 2026, working back from the identity. The arithmetic is
-exact (0.00 c/L residual):
+Established 15 Aug 2026, working back from the identity:
 
 ```
 Importer margin = Adjusted retail price − Taxes and levies − GST − ETS − Importer cost
 ```
+
+**It holds exactly from 2010 onwards, and not before.** Checked on all
+1,164 weeks × 2 fuels: from 2010 the residual is 0.000 c/L in every single
+row, both fuels, every era. Across 2004–2009 it does not reconcile — the
+median is still 0, but the 95th percentile of |residual| is 4.4–4.6 c/L and
+the worst rows reach 13.8 (diesel, 16 May 2008). Roughly 295 of the 1,164
+weeks are affected, all of them before 2010.
+
+That is a structural break in its own right, on top of the 1 Jan 2022
+retail-source change already documented below, and it is another
+independent reason not to treat the 2000s as commensurable with the present
+(the era question raised 14 Aug). Any decomposition that subtracts
+`Importer cost` from a retail price is quietly unreliable before 2010,
+because the published components do not add up to the published total. Use
+2010+ for anything that relies on the identity; the import era (Apr 2022+)
+is safer still.
 
 Two things about that line decide how the whole margin analysis should be
 read.
