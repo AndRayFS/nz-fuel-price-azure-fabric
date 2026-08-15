@@ -1122,6 +1122,41 @@ against crude's 0.678 on the identical specification. For diesel the gap is
 small (0.840 vs 0.794), which is consistent with diesel's landed cost being
 more crude-sensitive to begin with.
 
+### Error correction: real, measurable, and not the explanation for diesel
+
+`research/adl_ecm.py`, 15 Aug 2026. The term is the margin's distance from
+its own trailing mean, lagged one week — trailing, because margin levels
+have tripled since 2004 and a fixed centre would measure that drift.
+
+**It exists.** The coefficient is negative and significant for both fuels
+at every window tried (52, 78, 104 weeks): petrol −0.084 to −0.109 (HAC t
+−2.74 to −2.94), diesel −0.096 to −0.122 (t up to −4.30). **Roughly 8–12%
+of a margin gap closes per week; half of it within about six weeks.** When
+margin sits below its normal level, the pump price rises by more than the
+cost change alone accounts for — which is what was watched happening after
+March 2026, and is now a number rather than an anecdote.
+
+**The pre-registered prediction failed.** Diesel's total was predicted to
+stop creeping with lag length once error correction was stated explicitly.
+The spread from K=3 to K=12 was 0.380 before and is 0.373 after. Second
+hypothesis dead, after seasonality. Diesel's creep remains unexplained.
+
+**Do not read the ECM's lag weights as pass-through.** Adding the term
+drops the sum from 0.92–1.03 to 0.80–0.91 for petrol, and the temptation
+is to conclude pass-through is really 85%. That would be wrong for a
+structural reason: equilibrium in this specification is `margin = normal`,
+i.e. `net − cost = const`, which *is* unit pass-through. **The
+specification imposes what the baseline freely estimates.** So the ECM's
+lag sum is only the fast component — about 85% arriving through direct cost
+response, the remaining ~15% seeping in through margin recovery over the
+following weeks — and the test of completeness remains the baseline, which
+does not impose it and returned ~1.0 for petrol.
+
+Testing long-run pass-through *properly* needs a free coefficient on cost
+inside the equilibrium relation (`net − θ·cost − c`), estimated rather than
+fixed at θ = 1. That is a cointegration test and is the natural refinement
+if the question is ever pressed.
+
 ### Petrol and diesel are not two instances of the same thing
 
 Prompted by the question of whether their different behaviour has a
