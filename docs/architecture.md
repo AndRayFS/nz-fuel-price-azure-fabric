@@ -1280,6 +1280,70 @@ fishing, petrol to private cars.
   national diesel volume. Nothing in this dataset can confirm or refute a
   contract-pricing explanation.
 
+## Walk-forward test — the first number in this project that is a forecast
+
+`research/backtest.py`, 15 Aug 2026. Every method refit at every cutoff on
+data up to that week only, 2010+, 703 forecast weeks per fuel. Target is
+the **pump price**, so the model carries its own conversion
+(`×1.15` for GST, ETS assumed unchanged) and is charged for its errors.
+Threshold fixed before running: beat "the price won't move" on MAE at two
+weeks, outside crisis weeks.
+
+MAE in c/L on the pump price, non-crisis weeks:
+
+| | naive | full-pass rule | Report 1-style | ADL | ADL+ECM |
+|---|---|---|---|---|---|
+| petrol, 1 wk | 1.934 | 2.090 | 2.443 | 1.453 | **1.420** |
+| petrol, 2 wk | 3.519 | 3.473 | 3.552 | 2.796 | **2.743** |
+| petrol, 3 wk | 4.832 | 4.991 | 4.610 | 4.069 | **3.970** |
+| diesel, 1 wk | 1.893 | 2.165 | 2.624 | 1.421 | **1.372** |
+| diesel, 2 wk | 3.440 | 3.529 | 3.436 | 2.669 | **2.650** |
+| diesel, 3 wk | 4.739 | 4.933 | 4.439 | 3.917 | **3.842** |
+
+**Passed: 20–27% better than naive**, consistently across both fuels, all
+three horizons and both regimes, beating naive in 59–65% of individual
+weeks. In crisis weeks the relative gain holds (~20%) on absolute errors
+two to three times larger. Accuracy decays with horizon as the structure
+requires — the h-week forecast may only use lags k ≥ h — which is also the
+check that no future data is leaking.
+
+**Report 1's formula is worse than doing nothing at one and two weeks.**
+2.443 against naive's 1.934 for petrol at h=1, 26% worse; level-pegging at
+h=2; ahead only at h=3. It beats naive in 39% of weeks — worse than a coin.
+The reconstruction is generous to it, too: it refits the lag and slope on a
+trailing 26-week window, whereas the deployed measure takes them from the
+*current period*, and periods are drawn with hindsight. **A
+period-conditioned measure cannot be backtested honestly at all**, which is
+itself a finding about its design.
+
+**The simple rule adds nothing** — "the last h weeks of cost change arrive
+over the next h" wins 44–50% of weeks, a coin toss. So the value is not in
+knowing that pass-through is complete; it is in the *distribution across
+weeks*. That is what the joint fit buys, and it is the justification for
+the whole ADL apparatus.
+
+**ECM helps slightly and consistently**, 1–3 percentage points at every
+cell — the margin's distance from normal carries real forecast information,
+which is the practical face of the error-correction result above.
+
+Honest about magnitude: at two weeks the error falls from 3.5 to 2.8 c/L.
+A typical two-week pump move is ~3.5 c/L and the model accounts for about a
+fifth of it. This is a real edge, not precision forecasting, and should
+never be presented as the latter.
+
+Three caveats that travel with these numbers:
+
+- **Revisions cannot be undone.** The panel is the current vintage, so
+  "data available at t" already contains MBIE's later corrections. Every
+  method benefits equally, so the ranking should hold; absolute errors are
+  flattered by an unknown amount.
+- **K = 6 was fixed using the full sample** rather than reselected weekly —
+  a mild look-ahead, kept for stability and noted rather than hidden.
+- **The regime split is ex post only.** `crude_vol_9w` is a *centred*
+  window (verified: correlation 0.9925 against a centred recomputation,
+  0.72 against a trailing one), so it sees four weeks ahead. It splits the
+  results; it never enters a forecast.
+
 ## Checks that have repeatedly changed the answer
 
 Five questions, each of which has overturned at least one finding in this
