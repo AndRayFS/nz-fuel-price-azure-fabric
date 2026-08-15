@@ -503,10 +503,41 @@ yet.
 
 ## Lag stability separates crisis from calm — WITHDRAWN 15 Aug 2026
 
-> **This finding does not survive a measured regime definition.** It was
-> computed against the hand-drawn `periods.csv`, which labelled
-> `04_tariff_2025` a crisis when crude actually *fell* 9.8% across it and no
-> week clears any volatility threshold. Recomputed on 2010+ against
+> **Correction, 15 Aug 2026, to the withdrawal itself.** The first version
+> of this note said the finding fell because `periods.csv` "mislabelled"
+> `04_tariff_2025` as a crisis — crude fell 9.8% across it and no week
+> clears the volatility threshold. That reasoning was adopted from the
+> labelling thread without checking the evidence the label originally
+> rested on, and it does not hold. On the project's *own* criterion —
+> within-period lag correlation, the original method — 2025 looks more
+> crisis-like than 2026, not less:
+>
+> | period | weeks | best lag | r | gap to 2nd |
+> |---|---|---|---|---|
+> | 04_tariff_2025, petrol | 13 | 2 | 0.914 | 0.053 |
+> | 04_tariff_2025, diesel | 13 | 2 | 0.921 | 0.081 |
+> | 06_iranus_2026, petrol | 23 | 2 | 0.883 | 0.058 |
+> | 06_iranus_2026, diesel | 23 | 2 | 0.894 | 0.004 |
+> | 05_calm_import_era, petrol | 34 | 10 | 0.414 | 0.035 |
+> | 05_calm_import_era, diesel | 34 | 10 | 0.431 | 0.081 |
+>
+> Same lag, higher r, and for diesel a gap twenty times larger. The calm
+> period is unmistakably different — r ≈ 0.42 at lag 10, which is the cap,
+> the signature of no relationship at all.
+>
+> **Volatility and lag-identifiability are two different criteria and they
+> disagree here.** Neither is entitled to overrule the other by fiat. What
+> follows is that 2025 is not "mislabelled"; it is a period where the two
+> definitions of "crisis" part company, which is more interesting than
+> either verdict and connects directly to the open question of whether the
+> regime axis should be *magnitude* rather than *volatility*.
+>
+> **The finding is still withdrawn, for a better reason.** All of these
+> numbers are weak: 13 weeks against 23 and 34, correlation on *levels*
+> (which carry trend), max-lag caps that differ by period (4 vs 10, so
+> "best lag" is not comparable across rows), and gaps of 0.004–0.081
+> throughout. The measure cannot carry the weight of a crisis/calm
+> distinction in either direction. Recomputed on 2010+ against
 > `crude_vol_regime` (26-week window, lags 0–8, board price on crude
 > levels, i.e. the original method):
 >
@@ -1229,13 +1260,19 @@ is the obvious candidate and fits badly — in high weeks Δcost autocorrelates
 at 0.17 and 0.26 at lags 1–2, and near zero or negative at lags 3–7, which
 is exactly where the climb happens.
 
-**Consequence for sampling.** There is no second crisis in the import era
-to test against: `04_tariff_2025` was mislabelled, and crude actually fell
-9.8% across it, with no week clearing the volatility threshold at any
-setting. Dropping it moves the spread from 0.383 to 0.387 — it has no
-leverage because it contains no shock. Estimating the crisis regime
-therefore means going back to 2010+, where the `data_regime` axis absorbs
-the 2022 measurement break as a dummy.
+**Consequence for sampling.** There is no second *volatility* crisis in the
+import era: crude fell 9.8% across `04_tariff_2025`, no week clears the
+threshold at any setting, and dropping it moves the spread from 0.383 to
+0.387 — no leverage, because there is no shock in it. Estimating the
+high-volatility regime therefore means going back to 2010+, where the
+`data_regime` axis absorbs the 2022 measurement break as a dummy.
+
+**But do not call 2025 mislabelled.** On the project's original criterion —
+within-period lag correlation — it behaves like a crisis and unlike the
+adjacent calm period (see the withdrawal note above). The two definitions
+genuinely disagree there. Which means the n=1 statement below is precisely
+scoped: **one episode of extreme crude volatility**, not one episode in
+which the lag is identifiable.
 
 **This also puts an older finding in doubt.** "Lag stability separates
 crisis from calm" was computed against the hand-drawn `periods.csv`, which
