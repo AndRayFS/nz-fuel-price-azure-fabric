@@ -1344,6 +1344,66 @@ fishing, petrol to private cars.
   national diesel volume. Nothing in this dataset can confirm or refute a
   contract-pricing explanation.
 
+## "Crisis" means four different things in this project. Say which.
+
+Written 15 Aug 2026 after the word was used in three senses in one
+conversation, twice by this document. The four are not interchangeable and
+only one of them mentions fuel at all.
+
+1. **A news event.** `seeds/periods.csv`: invasion, tariffs, conflict.
+   Start dates pinned to the news, end dates judged from the price chart.
+   No quantitative content, and — checked — not reproducible from a
+   volatility rule: at the labelled ends of COVID, Ukraine and the tariff
+   period, 6-week trailing volatility still stands at 6×, 2× and 2× the
+   calm baseline. Six of eleven boundary dates are not even Fridays, so
+   they cannot have come from the weekly series at all.
+2. **Crude volatility** (`crude_vol_regime`). The sd of weekly *percentage*
+   changes in `dubai_crude_nzd` over a 9-week **centred** window, against a
+   calm baseline of ≈0.029. Verified not to be a currency artifact: weekly
+   changes in the NZD and USD series correlate at 0.956, and FX's own sd is
+   1.22% against crude's 4.78%. Centred, so it sees four weeks ahead and
+   **cannot be used in a forecast** — only to split results after the fact.
+3. **Lag identifiability.** Whether the crude→pump correlation resolves to
+   a clear peak within a period. The only definition that involves fuel —
+   but it describes whether *our estimate* behaves, not whether anything
+   happened to drivers.
+4. **Magnitude.** Cumulative move over a window, regardless of how jagged.
+   Not implemented, and the three above miss it: Nov 2021 – May 2022 took
+   crude 114 → 170 NZD/bbl, +49%, and is almost entirely `normal` because
+   it climbed smoothly (weekly sd 5.3%).
+
+**Express thresholds in percent, never in cents.** A 2004 dollar and a 2026
+dollar are different, and crude averaged 91 NZD/bbl then against 136 now,
+so the same 4.5% weekly move is 1.3 c/L of landed cost in 2004 and 3.7
+today. The regime measure is already scale-free; only its illustrations
+have gone wrong.
+
+**But percent alone is not enough, because volatility itself has drifted.**
+Weekly sd of crude by era: 3.87% (2004–09), 3.20% (2010–15), 5.30%
+(2016–21), 5.70% (2022–26). A fixed 4.5% threshold therefore selects more
+recent weeks simply because the market has grown jumpier. The baseline
+should be trailing, not absolute — the same lesson as margin percentiles,
+where a full-history yardstick measured inflation in downstream costs
+rather than behaviour.
+
+**Volatility attenuates down the chain, and a pump-side definition would
+pick different weeks.** Comparing high to normal weeks, 2010+:
+
+| | calm | high | amplification |
+|---|---|---|---|
+| crude | 3.14% | 10.69% | 3.41× |
+| importer cost (diesel) | 2.90% | 9.40% | 3.25× |
+| **pump price (diesel)** | 1.66% | 4.87% | **2.94×** |
+| importer cost (petrol) | 3.06% | 7.96% | 2.60× |
+| **pump price (petrol)** | 1.23% | 2.64% | **2.16×** |
+
+Defining the regime on pump-price volatility instead would agree on only
+**48% of high weeks for petrol and 59% for diesel**. So roughly half of
+what this project calls a crisis is a week in which nothing unusual
+happened at the pump. That is defensible — measuring pass-through needs
+variation in the *input* — but it means no crisis claim here is
+automatically a claim about what consumers experienced.
+
 ## n = 1. Every crisis claim in this project rests on one episode
 
 Established 15 Aug 2026 from `seeds/period_flags.csv`, and it reframes
