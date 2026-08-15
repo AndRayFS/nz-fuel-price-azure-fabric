@@ -501,6 +501,33 @@ remains a plausible frame and is why the margin work stays top of the
 roadmap. It is background reading, not evidence for anything measured here
 yet.
 
+## Lag stability separates crisis from calm — WITHDRAWN 15 Aug 2026
+
+> **This finding does not survive a measured regime definition.** It was
+> computed against the hand-drawn `periods.csv`, which labelled
+> `04_tariff_2025` a crisis when crude actually *fell* 9.8% across it and no
+> week clears any volatility threshold. Recomputed on 2010+ against
+> `crude_vol_regime` (26-week window, lags 0–8, board price on crude
+> levels, i.e. the original method):
+>
+> | fuel | regime | n | weeks the best lag changed | median gap to 2nd |
+> |---|---|---|---|---|
+> | petrol | normal | 724 | 14.5% | 0.0212 |
+> | petrol | **high** | 109 | **17.4%** | **0.0168** |
+> | diesel | normal | 724 | 12.7% | 0.0229 |
+> | diesel | **high** | 109 | **18.3%** | **0.0113** |
+>
+> The *calm* half of the original observation reproduces — the winning lag
+> does wander in quiet periods, about 12–15% of weeks. What does not
+> reproduce is the contrast. High-volatility weeks are **less** stable and
+> **less** decisive, for both fuels: the lag changes more often and the
+> winner's margin over the runner-up is 20–50% smaller. The claimed
+> separation was an artifact of the mislabelled windows.
+>
+> This is consistent with everything found on 15 Aug: the crisis is where
+> the pass-through estimate destabilises too. The text below is kept for
+> the record and should not be quoted.
+
 ## Lag stability separates crisis from calm — an unplanned finding
 
 The same expanding-window run across *all* periods, counting how often the
