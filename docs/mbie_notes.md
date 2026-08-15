@@ -94,6 +94,109 @@ a differenced series they are indistinguishable from real price movement.
 confirmed against both the data dictionary and the actual CSV. Don't assume
 it exists; it would have to be derived, if needed at all.
 
+## Every weekly column is a weekly average — including crude, despite the wording
+
+From MBIE's *Data dictionary*
+(https://www.mbie.govt.nz/dmsdocument/139-weekely-fuel-price-monitoring-data-dictionary-pdf),
+read 14 Aug 2026. `Date` is "the date corresponding to the **Friday** of the
+week for which this observation applies" — every row in the file is a
+Friday, and the observation is attributed to the whole ISO week.
+
+What each column is, in MBIE's own words:
+
+| column | definition | averaged? |
+|---|---|---|
+| `Board price` | "The national **average** advertised price for a given fuel **for the week**" | **yes, stated** |
+| `Adjusted retail price` | "The national average price paid by consumers for a given fuel **for the week**" | **yes, stated** |
+| `Exchange rate` | "The **weekly average** exchange rate" | **yes, stated** |
+| `Dubai crude price` | "The Dubai Fateh **spot** crude price" | **not stated** |
+| `Importer cost` | "The calculated cost of purchasing the fuel and importing it to New Zealand" | **not stated** |
+
+Where a series is averaged over the week, MBIE says so explicitly; for
+crude and importer cost it says nothing, and the word "spot" pointed the
+other way. The natural reading was therefore that the project had been
+regressing a weekly-*average* target on a point-in-time *spot* factor for
+its entire life. **That reading is wrong, and it was settled by measurement
+rather than by reading the wording harder.**
+
+### How it was settled — daily Brent as a ruler
+
+`seeds/brent_daily.csv` (FRED `DCOILBRENTEU`, daily, free, no key; 5,650
+rows from 2004-04-23, exactly MBIE's start) was loaded purely as a
+diagnostic instrument. Brent is a **different grade** from MBIE's Dubai
+Fateh, so their *levels* are not comparable — but the grade spread moves
+slowly, so on **week-over-week changes** it drops out. Four candidate
+constructions were correlated against MBIE's own weekly change, on an
+identical sample so the r's are directly comparable:
+
+| candidate for what MBIE publishes | r, all years | r, pre-2022 | r, import era |
+|---|---|---|---|
+| **Mon–Fri mean of the stamped week** | **0.890** | **0.928** | **0.850** |
+| Friday spot of the stamped week | 0.677 | 0.684 | 0.673 |
+| Friday spot of the prior week | 0.447 | 0.518 | 0.351 |
+| Mon–Fri mean of the prior week | 0.229 | 0.261 | 0.184 |
+
+Not close. A grid search over window end-offset (−5…+2 days) and span
+(0…9 days) then pinned the window exactly: the maximum sits at **offset 0,
+span 4** — Monday through Friday of the week the row is stamped with.
+Wider spans scoring identically are the same set of trading days with
+weekends added, which contain no quotes.
+
+The residual 0.11–0.15 is Brent-vs-Dubai grade divergence plus MBIE's
+whole-dollar rounding (below), not evidence of a different window.
+
+**So the factor and the target are on the same footing after all.** Both
+are Monday–Friday averages of the stamped week. Consequences, revised:
+
+1. **The half-week timing offset does not exist.** Both series are centred
+   on Wednesday, so a target and factor sharing a `Date` are genuinely
+   contemporaneous. The project's "one week" is one week; there is no
+   hidden extra day to subtract. The earlier version of this section
+   claimed otherwise — it was inference from wording, and it was wrong.
+2. **The averaging is itself a low-pass filter, applied before we ever see
+   the data.** Any sub-weekly dynamic — an intra-week spike that reverses
+   by Friday — is destroyed at source. No amount of modelling recovers it
+   from the weekly file; only daily data can.
+3. **"Spot" in the dictionary describes the *price type*, not the sampling
+   frequency** — a spot quote as opposed to a futures or contract price.
+   It says nothing about how many of them are averaged. Worth remembering
+   the next time a single word in the dictionary looks decisive.
+
+### How much the weekly file hides
+
+The same daily series answers a question the weekly file cannot: how large
+is the intra-week movement that averaging removes. Per MBIE week, the
+Mon–Fri high-minus-low range of Brent, against the change in the weekly
+average from the previous week:
+
+| era | n | avg intra-week range | as % of level | avg week-over-week move | range ÷ move | weeks where range > move |
+|---|---|---|---|---|---|---|
+| pre-2020 | 825 | $2.92 | 4.3% | $2.08 | 1.40 | 69% |
+| transition 2020–22 | 108 | $3.33 | 6.6% | $2.59 | 1.28 | 71% |
+| import era, calm | 205 | $3.62 | 4.4% | $2.45 | 1.48 | 74% |
+| 2026 crisis | 23 | $10.95 | 10.9% | $7.67 | 1.43 | 65% |
+
+**In roughly seven weeks out of ten, crude moves more *within* the week
+than the week's average moves *between* weeks.** The ratio is remarkably
+stable at 1.3–1.5 across four eras that differ by 3× in absolute
+volatility — the crisis scales both numbers up together rather than
+changing their relationship.
+
+This does not invalidate anything measured so far: both sides of every
+correlation are averaged the same way, so the comparison is internally
+consistent. What it bounds is *resolution*. Questions of the form "did the
+pump price respond within days" are unanswerable from this file in
+principle, not merely unanswered — the answer was averaged away before
+publication. That is the strongest argument yet for the daily-benchmark
+roadmap item.
+
+*Documentation quirk worth knowing:* the dictionary defines `Importer
+margin` as "the **discounted diesel price** less direct taxes and levies,
+GST, ETS, and the importer cost" — "diesel" is plainly left over from
+copy-paste in a general definition. The rest of it confirms numerically
+what is recorded above: margin is struck against the retail price, not the
+board price.
+
 ## Both crude price columns are rounded to whole dollars
 
 Found 14 Aug 2026, after a size-bucketed analysis produced impossible gaps.

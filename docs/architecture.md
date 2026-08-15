@@ -1073,7 +1073,7 @@ landed exactly in the predicted week.
 
 ## Checks that have repeatedly changed the answer
 
-Three questions, each of which has overturned at least one finding in this
+Five questions, each of which has overturned at least one finding in this
 project. Run them before writing anything down, not after:
 
 1. **Is the spread comparable?** Correlation collapses when a series barely
@@ -1097,6 +1097,16 @@ project. Run them before writing anything down, not after:
    period" must be measured from the last observation **before** the period
    starts. Getting this wrong turned a 6% margin contribution into a
    claimed two-thirds.
+5. **Is that claim about the data measured, or read off the wording?**
+   MBIE's dictionary calls the crude column a "**spot**" price and marks
+   three other columns as weekly averages. The obvious inference — that
+   crude is a point-in-time quote — is wrong: against daily Brent, the
+   Mon–Fri mean of the stamped week scores r = 0.89 against 0.68 for the
+   Friday quote, and a grid search pins the window at exactly Mon–Fri.
+   "Spot" names the *price type*, not the sampling frequency. A
+   documentation word is a hypothesis, not a measurement, and here one
+   external series settled in a single query what re-reading the PDF could
+   not (`docs/mbie_notes.md`).
 
 ## Roadmap — where this goes next, in priority order
 
@@ -1137,15 +1147,21 @@ project. Run them before writing anything down, not after:
    cap-induced transitions as artifacts. This still supersedes the cruder
    "downgrade when `resolved_lag >= 3`" idea, but on a measured basis
    rather than a mechanism that turned out not to be there.
-2. **A daily benchmark — third reason added 14 Aug 2026: we do not know
-   what MBIE's weekly crude number *is*.** The methodology says only that
-   Argus supplies it weekly; whether it is a weekly average or a single-day
-   snapshot is unstated, and it matters. If it is a snapshot, ordinary
-   intra-week movement enters the series as noise in the explanatory
-   variable — on top of the whole-dollar rounding already documented — and
-   biases every slope toward zero. A free daily series settles it by
-   comparison, and also yields an honest weekly average and an intra-week
-   range. **EIA Brent (daily crude benchmark) as a new source.** Solves two
+2. **A daily benchmark — partially DONE 15 Aug 2026; the third reason is
+   now closed.** The open question was what MBIE's weekly crude number
+   *is*: a weekly average or a single-day snapshot. `seeds/brent_daily.csv`
+   (FRED `DCOILBRENTEU`, 5,650 rows from 2004-04-23, free, no API key)
+   settled it — **it is the Monday–Friday mean of the stamped week**, r =
+   0.89 against 0.68 for the Friday quote, with the window pinned by grid
+   search. So the feared snapshot-noise bias does not exist, and factor and
+   target sit on the same footing. The same load also delivered the
+   intra-week range: crude moves more *within* the week than the weekly
+   average moves *between* weeks in ~70% of weeks, in every era. Both
+   results and their method are in `docs/mbie_notes.md`. **What remains
+   open** is (a) the smoothing use below, which needs the daily series
+   joined into a model rather than queried ad hoc, and (b) the refresh
+   path — the seed is a static hand-downloaded snapshot, not a pipeline.
+   **EIA Brent (daily crude benchmark) as a new source.** Solves two
    documented problems at once, which is why it's next rather than a
    generic "add more sources" item: (a) enables the smoothed
    `crude_change` comparison described above — at weekly granularity,

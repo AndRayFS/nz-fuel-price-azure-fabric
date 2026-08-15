@@ -16,6 +16,28 @@ seeds:
               arguments:
                 values: ['crisis', 'calm']
 
+  # Daily Brent spot (FRED DCOILBRENTEU), trimmed to MBIE's start date.
+  # Purpose is diagnostic, not a new fact source: MBIE publishes ONE crude
+  # number per week and does not say whether it is Friday's quote or the
+  # week's average (docs/mbie_notes.md). A daily series is the only way to
+  # tell. Brent is a different grade from MBIE's Dubai, so levels are not
+  # comparable — only week-over-week co-movement is.
+  #
+  # Static snapshot: refreshing it means re-downloading the CSV by hand.
+  - name: brent_daily
+    config:
+      column_types:
+        date: date
+        brent_usd_bbl: decimal(10,2)
+    columns:
+      - name: date
+        tests:
+          - unique
+          - not_null
+      - name: brent_usd_bbl
+        tests:
+          - not_null
+
   - name: variable_mapping
     columns:
       - name: canonical_name
