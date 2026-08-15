@@ -1096,6 +1096,10 @@ of 0.98 (`analyses/lag_levels_vs_changes.sql`). Fitted jointly, the same
 lags sum to 0.9–1.2. Roughly half of the old number was neighbouring lags
 claiming the same market move.
 
+**Superseded 15 Aug 2026 — see "Scoped correctly" below. The instability
+is not diesel's, it is the high-volatility weeks'.** The paragraph is kept
+because the reasoning that follows it is still how the problem was found.
+
 **Diesel's total is not identified, and this must be reported with any
 number taken from it.** It climbs monotonically with the lag length —
 0.833, 0.879, 0.894, 1.045, 1.117, 1.213 at K = 3, 4, 6, 8, 9, 12 — so
@@ -1154,6 +1158,62 @@ candidate is the missing error-correction term.
 against crude's 0.678 on the identical specification. For diesel the gap is
 small (0.840 vs 0.794), which is consistent with diesel's landed cost being
 more crude-sensitive to begin with.
+
+### Scoped correctly: it is the volatile weeks that are unidentified, not diesel
+
+The parallel labelling thread (`docs/period_labelling.md` §7,
+`seeds/period_flags.csv`) replaced the hand-drawn crisis/calm periods with
+a measured `crude_vol_regime`, and that reframes the result. **Replicated
+here independently, with separate code, before being adopted:**
+
+| diesel, spread of total across K=3…12 | normal weeks | high-volatility weeks |
+|---|---|---|
+| import era (27 high weeks) | 0.123 | 0.450 |
+| 2010+ (109 high weeks) | 0.122 | 0.474 |
+
+Two samples of very different size, near-identical shape. Normal weeks
+settle by K≈5 and stay at 0.87–1.03; high weeks track them to K=6 and then
+climb away, reaching ~1.35 at K=12. The peer's own figures (0.143/0.524 and
+0.148/0.431) differ in the third digit and agree completely in shape.
+
+**The honest statement is therefore narrower and stronger than "diesel is
+not identified":** non-crisis pass-through is stable and complete for both
+fuels; the *crisis* sum is the part that is not identified. The headline
+result survives, scoped.
+
+Three artifact explanations were ruled out by the labelling thread, and
+each is one this thread would otherwise have had to run:
+
+- **Not a generic block effect.** Dropping each of the 189 contiguous
+  27-week blocks in turn, the 2026 window ranks 2nd of 189 by resulting
+  spread; the top five are the same window ±2 weeks. Removing only its
+  first half *raises* the spread to 0.680 — worse than either keeping or
+  dropping the episode whole.
+- **Not leverage.** High weeks carry 5× the factor variance (sd Δcost 14.9
+  vs 3.0), but weighting by inverse local crude variance gives 0.380
+  against OLS's 0.390.
+- **Not degrees of freedom.** At K=12 the import era offers 27 high weeks
+  for 13 coefficients; on 2010+ there are 109 (8.4 per parameter) and the
+  climb is essentially unchanged.
+
+**Still open:** whether the high-regime climb is a genuinely longer
+response or an artifact of something not yet named. Factor autocorrelation
+is the obvious candidate and fits badly — in high weeks Δcost autocorrelates
+at 0.17 and 0.26 at lags 1–2, and near zero or negative at lags 3–7, which
+is exactly where the climb happens.
+
+**Consequence for sampling.** There is no second crisis in the import era
+to test against: `04_tariff_2025` was mislabelled, and crude actually fell
+9.8% across it, with no week clearing the volatility threshold at any
+setting. Dropping it moves the spread from 0.383 to 0.387 — it has no
+leverage because it contains no shock. Estimating the crisis regime
+therefore means going back to 2010+, where the `data_regime` axis absorbs
+the 2022 measurement break as a dummy.
+
+**This also puts an older finding in doubt.** "Lag stability separates
+crisis from calm" was computed against the hand-drawn `periods.csv`, which
+labelled 2025 a crisis when it was not. That finding needs recomputing
+against `crude_vol_regime` before it is quoted again.
 
 ### Error correction: real, measurable, and not the explanation for diesel
 
