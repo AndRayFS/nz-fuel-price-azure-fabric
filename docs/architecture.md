@@ -1280,6 +1280,49 @@ fishing, petrol to private cars.
   national diesel volume. Nothing in this dataset can confirm or refute a
   contract-pricing explanation.
 
+## Rockets and feathers, fourth attempt: still not there
+
+`research/adl_asymmetry.py`, 15 Aug 2026. Rises and falls estimated in the
+**same** regression — `pos = max(Δcost,0)`, `neg = min(Δcost,0)`, separate
+weights at every lag — so they share a sample, a target and an error term,
+and the difference between them gets a standard error rather than an
+eyeball. That is what the three earlier attempts lacked: two died to range
+restriction between separately-drawn up and down samples, one to
+measurement error in a rounded factor. 2010+, K=6, ECM term included,
+`data_regime` dummy, 861 weeks (≈445 up, ≈416 down).
+
+| | rises | falls | difference | block-bootstrap 95% CI | p |
+|---|---|---|---|---|---|
+| petrol, total | 0.791 | 0.739 | +0.052 | [−0.19, +0.33] | 0.61 |
+| diesel, total | 0.713 | 0.423 | +0.291 | [−0.11, +0.53] | 0.20 |
+| petrol, centre of mass | 0.76 wk | 1.27 wk | −0.51 | [−1.36, +0.95] | 0.48 |
+| diesel, centre of mass | 0.90 wk | 0.24 wk | +0.66 | [−1.29, +4.97] | 0.49 |
+
+**No asymmetry detected, on either measure, for either fuel.** Stated as
+pre-registered: *not detected*, not *disproven*.
+
+Two methodological points worth keeping:
+
+- **The HAC Wald test and the block bootstrap disagree, and the bootstrap
+  wins.** Diesel's total difference is p = 0.062 by HAC — the sort of
+  number that gets written up as "marginal evidence of rockets and
+  feathers" — and p = 0.204 under a 12-week block bootstrap. The bootstrap
+  respects the serial dependence more completely. Where they disagree in
+  this project, prefer the bootstrap.
+- **Centre of mass is a ratio and inherits the denominator's noise.**
+  Diesel's fall-side total is 0.423 ± 0.192, a 45% relative error, so its
+  0.24-week centre of mass is not an estimate of anything. The individual
+  lag contrasts do reach significance (diesel lag 0 favours falls, t −3.05;
+  lags 1 and 2 favour rises, t +2.87 and +2.36) — but a pattern that
+  cancels to nothing in the total is a shape difference at best.
+
+**Power, stated honestly.** The intervals are about ±0.26 for petrol and
+±0.32 for diesel, so an asymmetry large enough to matter for a consumer —
+say a quarter of a cost rise being retained that a fall is not — would have
+been visible. Anything smaller would not. Four attempts with progressively
+better methods have now failed to find rockets and feathers in this data;
+that is evidence of absence at that magnitude, and silence below it.
+
 ## Walk-forward test — the first number in this project that is a forecast
 
 `research/backtest.py`, 15 Aug 2026. Every method refit at every cutoff on
