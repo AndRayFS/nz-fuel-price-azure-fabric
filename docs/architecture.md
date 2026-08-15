@@ -1307,6 +1307,54 @@ fishing, petrol to private cars.
   national diesel volume. Nothing in this dataset can confirm or refute a
   contract-pricing explanation.
 
+## n = 1. Every crisis claim in this project rests on one episode
+
+Established 15 Aug 2026 from `seeds/period_flags.csv`, and it reframes
+everything above that carries the word "crisis". The measured volatility
+regime finds nine episodes in 22 years. Crude in NZD, start to end, with
+the within-episode range as (max−min)/min:
+
+| episode | crude NZD/bbl | net | range | direction |
+|---|---|---|---|---|
+| 2004_run_up | 47 → 49 | +4.3% | 9% | up |
+| 2008_gfc_crash | 160 → 98 | −38.8% | 63% | down |
+| 2009_rebound | 71 → 86 | +21.1% | 34% | up |
+| 2015_glut_onset | 73 → 77 | +5.5% | 38% | up |
+| 2016_glut_trough | 69 → 61 | −11.6% | 87% | down |
+| 2016_opec_cuts | 60 → 67 | +11.7% | 21% | up |
+| 2020_covid_crash | 85 → 63 | −25.9% | **203%** | down |
+| 2022_ukraine | 138 → 155 | +12.3% | 25% | up |
+| **2026_iran_us** | 110 → 131 | **+19.1%** | **143%** | **up** |
+
+**There has never been another large upward shock in the usable record.**
+The only episode of comparable violence is the 2020 COVID crash, which runs
+the other way and belongs to a global demand collapse with lockdowns — not
+a supply shock at all. The next largest, the 2016 glut trough, is also
+downward. The Ukraine shock, the obvious mental comparator, has a range of
+25% against 2026's 143%: nearly six times smaller.
+
+By era it is starker still. The import era (Apr 2022+) contains 31
+high-volatility weeks in nominally two episodes, but `2022_ukraine` runs
+18 Feb – 22 Apr 2022 and only its four-week tail falls inside. **In
+practice: one crisis, still in progress.** Widening to 2010+ buys 109 weeks
+across six episodes, of which four are downward or small.
+
+**So the failure to identify crisis pass-through is not a methods problem.**
+It is n = 1 for the phenomenon of interest, and no estimator repairs that.
+Longer lag windows, better standard errors and regime interactions all
+describe the same single episode more elaborately.
+
+Three consequences that should govern how this project speaks:
+
+1. **Any sentence of the form "in a crisis, prices…" is a sentence about
+   February–August 2026.** Say so.
+2. **The comparison set for 2026 is mostly downward shocks.** Using them to
+   calibrate expectations for an upward one assumes the symmetry that
+   `research/adl_asymmetry.py` could neither find nor rule out.
+3. **This retroactively justifies the doubt** raised on 14 Aug about
+   whether past crises behaved the same way. They may or may not have; the
+   data cannot say, because there is no past crisis of this kind to check.
+
 ## Rockets and feathers, fourth attempt: still not there
 
 `research/adl_asymmetry.py`, 15 Aug 2026. Rises and falls estimated in the
