@@ -67,10 +67,16 @@ anyone's actual costs moved — the fuel in the tanks was bought earlier. The
 absorption is real but smaller than the number implies. Say "the published
 margin collapsed" and offer the mechanism as an interpretation.
 
-**Incomplete rather than wrong.** The post caught the compression phase
-only. The release phase is the stronger half: crude is now *below* its
-pre-crisis level while diesel sells 76 c/L higher and margins sit at the
-92nd–98th percentile. That is the story for a follow-up.
+**Incomplete rather than wrong — but not in the way first written here.**
+The post caught the compression phase only. The follow-up story is *not*
+"margins ended far above where they started": measured from the correct
+pre-crisis week (27 Feb, not the first week inside the period), diesel's
+margin went 42.4 → 47.6 and contributed 6% of the 83.5 c/L price rise,
+against 78% from landed cost. Margin was already at the 84th percentile
+before the crisis. The real follow-up is that **crude rose 10% while
+diesel's landed cost rose 61%** — the crude-to-product spread did the work,
+and a crude-only model cannot see it. Rockets and feathers is the dip
+itself, not the destination.
 
 **Confounded, and not knowably either way.** The structural explanation —
 that the lag lengthened because Marsden Point closed in March 2022 — cannot

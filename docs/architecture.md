@@ -1003,36 +1003,65 @@ tax and therefore structurally damped. This is a cleaner explanation for
 "diesel behaves differently" than anything behavioural, and it compounds
 with the cost-side finding above.
 
-## The margin round-trip through the 2026 crisis
+## What actually drove pump prices through the 2026 crisis — it is not margin
 
-| | 6 Mar 2026 (period start) | 20 Mar (crude peak) | 7 Aug (latest) |
+**Corrected 14 Aug 2026, and the correction reverses the conclusion.** The
+first version of this section used 6 Mar 2026 as the pre-crisis baseline
+because it is the first observation *inside* `06_iranus_2026`. It is not a
+baseline: by 6 Mar crude had already run 119 → 146 and diesel's modelled
+cost had jumped 52 c/L in that one week. The correct baseline is the last
+observation **before** the period, 27 Feb.
+
+| diesel | 27 Feb (pre-crisis) | 20 Mar (crude peak) | 7 Aug (latest) | net |
+|---|---|---|---|---|
+| Crude, NZD/bbl | **119** | 267 | **131** | **+10%** |
+| Importer cost | 106.7 | 234.5 | 172.2 | **+65.5** |
+| Importer margin | **42.4** (84th pct) | 2.7 (0.3rd) | 47.6 (92nd) | **+5.2** |
+| Taxes + GST + ETS | 38.2 | 49.1 | 51.0 | +12.8 |
+| Board price | 188.2 | 287.3 | 271.7 | **+83.5** |
+
+**Crude is not below its pre-crisis level; it is 10% above it.** And the
+83.5 c/L rise in diesel decomposes as **cost +65.5 (78% of it), margin +5.2
+(6%), taxes and GST +12.8 (15%)**. Petrol's 48.8 c/L rise: cost +32.7
+(67%), margin +8.1 (17%), taxes +8.0 (16%).
+
+The withdrawn version claimed margin supplied roughly two-thirds of the
+increase. That was entirely an artifact of starting the clock a week into
+the shock, when margin had already been crushed to −2.2: measuring the
+recovery from an artificial trough and calling it the crisis.
+
+**Margin was already high before the crisis** — 84th percentile for diesel,
+91st for petrol — was crushed to the 0.3rd and 1.1st at the cost peak, and
+has returned to the 92nd and 98th. So: a deep dip and a recovery to
+slightly above where it started, not a rise from nothing. The compression
+episode is real and remains the most striking single fact; the net
+contribution to today's price is small.
+
+**The real driver is the spread between crude and refined product.** Cost
+per unit of crude:
+
+| | 27 Feb 2026 | 7 Aug 2026 | change |
 |---|---|---|---|
-| Crude, NZD/bbl | 146 | **267** | **131** |
-| Diesel importer cost | 158.8 | 234.5 | 172.2 |
-| Diesel importer margin | **−2.2** | 2.7 | **47.6** |
-| — percentile over 22 years | **0.1** | 0.3 | **91.7** |
-| Petrol importer margin | 15.3 | 7.7 | **45.7** |
-| — percentile over 22 years | 24.8 | **1.1** | **97.7** |
-| Diesel pump price | 195.0 | 286.4 | 270.8 |
+| Diesel | 0.897 | **1.314** | **+46%** |
+| Regular Petrol | 0.787 | 0.964 | +23% |
 
-**Crude is now below where the crisis started (131 against 146) while
-diesel sells 76 c/L higher and margins sit at the 92nd–98th percentile of
-22 years.** Margins were crushed to near-record lows on the way up — the
-0.1st percentile means only one week in a thousand was lower — and more
-than recovered on the way down. That is rockets-and-feathers stated in
-cents, from the published decomposition, with no regression involved.
+Crude rose 10% while diesel's landed cost rose 61%, both in NZD, so this is
+not currency. Whatever sits between crude and a delivered litre — refining
+margin, freight, insurance — widened enormously, and for a Middle East
+crisis that is what one would expect. None of it is visible in this
+dataset: freight enters MBIE's cost model as a quarterly constant, and the
+product price is not published at all. **A model with crude as its only
+factor cannot see the thing that moved the price.** This is now the
+strongest argument for the Singapore product series in roadmap item 2.
 
-**This reconciles the two apparently contradictory results above.** Over
-2–6 week horizons margin moves *with* crude; across the phases of this
-crisis it moved *against* it. Both are true: a cost jump compresses margin
-immediately, and the recovery — which overshoots — arrives later. A short
-window measures the recovery, a phase measures the net.
+**This also reconciles the two horizon results above.** Over 2–6 week
+horizons margin moves *with* crude; across the phases of this crisis it
+moved *against* it, deeply. Both hold: a cost jump compresses margin
+immediately and the recovery arrives later.
 
-**An anomaly worth its own line:** between 6 Mar and 7 Aug crude fell 10%
-while diesel's landed cost *rose* 8% (158.8 → 172.2). Both are in NZD, so
-this is not currency. The crude-to-product spread moved, which is one more
-reason Dubai crude is a poor stand-in for what the importer actually pays
-— and an argument for the Singapore product series in roadmap item 2.
+*Caveat:* the April extremes (diesel cost 290.9 against crude 170 on 17
+Apr, a ratio of 1.71) fall inside the 18 Mar – 1 Jul window that MBIE
+reconstructed retroactively.
 
 **A public prediction that came true, worth recording as evidence the
 method has some forward content.** Part 1 (published ~24 Jul 2026) stated
@@ -1060,6 +1089,14 @@ project. Run them before writing anything down, not after:
    retail source changed in 2022; some weeks in 2026 were reconstructed
    retroactively. Measurement error in an explanatory variable biases slopes
    toward zero, worst where the signal is smallest.
+4. **Is the baseline actually before the thing being measured?** The dates
+   in `periods.csv` are *event* dates, so the first observation inside a
+   period already contains part of the shock — for `06_iranus_2026` the
+   first in-period week is a week in which crude had already moved 27
+   NZD/bbl and modelled cost 52 c/L. Any "change since the start of the
+   period" must be measured from the last observation **before** the period
+   starts. Getting this wrong turned a 6% margin contribution into a
+   claimed two-thirds.
 
 ## Roadmap — where this goes next, in priority order
 
