@@ -1084,7 +1084,11 @@ project. Run them before writing anything down, not after:
 2. **What is the drift, and is it doing the work?** If a result changes sign
    depending on whether a trend is subtracted, the trend is the finding.
    Prefer removing a known, named component (taxes) over estimating a
-   generic one.
+   generic one. **A percentile is a yardstick and inherits the drift:**
+   `Importer margin` has tripled since 2004, so ranking a level against the
+   full history measures inflation in unmodelled downstream costs. The
+   error is asymmetric — conservative for a collapse, misleading for a
+   normal level (`docs/mbie_notes.md`).
 3. **How precise is the input?** Crude is rounded to whole dollars; the
    retail source changed in 2022; some weeks in 2026 were reconstructed
    retroactively. Measurement error in an explanatory variable biases slopes

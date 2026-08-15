@@ -43,11 +43,20 @@ Part 1 was written from the R analysis, before the Fabric rebuild found any
 of the data issues since documented. Re-checked here so the next post
 corrects rather than repeats. Post text re-read from LinkedIn on 14 Aug.
 
-**Holds, and was understated.** "During the sharpest week of the current
-crisis, petrol and diesel margins briefly fell to zero—or even negative."
-Diesel's margin was −2.2 c/L at the period start and 2.7 at the crude peak:
-the **0.1st and 0.3rd percentiles of 22 years**. Petrol's 7.7 at the peak
-is the 1.1st. "Briefly fell to zero" undersells a near-record.
+**Holds, and was understated — by more than first checked.** "During the
+sharpest week of the current crisis, petrol and diesel margins briefly fell
+to zero—or even negative." The first pass here quoted −2.2 c/L for diesel,
+which was the *first observation inside the period* (6 Mar), not the
+trough. The actual minimum is **13 Mar: diesel −12.4, petrol −0.3 c/L —
+neither has ever been lower in 22 years, zero weeks below, in either the
+full history or the last three years**. At the crude peak (20 Mar) diesel's
+2.7 has been undercut in 3 weeks ever, petrol's 7.7 in 13. "Briefly fell to
+zero" undersells an outright record.
+
+The margin trend (below) works *against* this finding rather than
+manufacturing it: margins have roughly tripled since 2004, so a 2026 value
+that lands under the 2004–2008 floor is a stronger result than the
+percentile suggests, not a weaker one.
 
 **Holds.** "Diesel margins later rebounded to roughly twice their usual
 level" — 93.7 on 19 Jun, against a two-year mean of 47.2. And "the much
@@ -72,8 +81,13 @@ The post caught the compression phase only. The follow-up story is *not*
 "margins ended far above where they started": measured from the correct
 pre-crisis week (27 Feb, not the first week inside the period), diesel's
 margin went 42.4 → 47.6 and contributed 6% of the 83.5 c/L price rise,
-against 78% from landed cost. Margin was already at the 84th percentile
-before the crisis. The real follow-up is that **crude rose 10% while
+against 78% from landed cost. **Correction, 15 Aug 2026:** an earlier
+version of this paragraph said margin "was already at the 84th percentile
+before the crisis". That is a full-history percentile, and margins have
+tripled since 2004, so the yardstick measures the drift. Against the last
+three years, diesel's pre-crisis 42.4 sits at the **33rd** percentile and
+petrol's 37.6 at the **48th** — middling to slightly low for their own era,
+not elevated. The real follow-up is that **crude rose 10% while
 diesel's landed cost rose 61%** — the crude-to-product spread did the work,
 and a crude-only model cannot see it. Rockets and feathers is the dip
 itself, not the destination.
