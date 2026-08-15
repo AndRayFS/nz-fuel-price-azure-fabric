@@ -1109,6 +1109,39 @@ is slower than petrol" is not robust either.** At a common K of 3, 4 or 5
 ordering only flips at K ≥ 6. Compare centres of mass only at a common K,
 and state the K.
 
+**What the creep is: the 2026 crisis, and nothing else.** Found on the
+fourth attempt, after seasonality, error correction and self-echo in the
+cost series were each tested and failed. Excluding the 23 crisis weeks
+collapses diesel's spread across K = 3…12 from **0.380 to 0.056**, and
+leaves the total at 0.87–0.99 at every K — stable, and indistinguishable
+from petrol's 0.89–1.00 on the same sample. The significant late weights go
+with it: lag 8 runs +0.105 (t 3.6) and lag 9 +0.084 (t 4.6) on the full
+sample, against −0.019 (t −0.4) and +0.037 (t 0.8) with the crisis removed.
+Petrol shows a much weaker version of the same thing (+0.053, t 2.7 →
++0.032, t 1.3).
+
+The intermediate hypotheses died as follows, and are recorded because each
+looked reasonable: month dummies move the totals by ≤0.03; an explicit
+error-correction term leaves the spread at 0.373; and diesel's cost changes
+have autocorrelation of +0.021 and −0.059 at lags 8 and 9, against a ±0.132
+band — no echo to pick up. The raw cross-correlation at those lags (+0.018,
++0.069) is not individually significant either; the regression manufactures
+significance by conditioning on the other lags.
+
+**Two readings, and 23 weeks cannot separate them.** Either an episode with
+roughly ten times the usual variance dominates a least-squares fit far
+beyond its 10% share of the rows and manufactures long-lag structure, or
+pass-through genuinely runs longer and overshoots during a crisis. The
+second is an economic claim worth testing, and it is exactly what roadmap
+step 7 was designed for — which now has a specific target instead of a
+general intention.
+
+Note the awkwardness this creates for the project's premise: crises are
+where the lag was always said to be identifiable, and the crisis is also
+what destabilises the estimate. Both can be true — a crisis has the signal
+*and* the leverage — but any crisis-period number needs the non-crisis
+number printed next to it.
+
 **What the creep is not: seasonality.** Diesel's margin is about twice as
 seasonal as petrol's (month deviations from the annual mean span 6.07 c/L
 against 3.17, trough in March, peak in May). Adding month dummies to the
