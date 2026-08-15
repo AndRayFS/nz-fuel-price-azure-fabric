@@ -1314,17 +1314,26 @@ everything above that carries the word "crisis". The measured volatility
 regime finds nine episodes in 22 years. Crude in NZD, start to end, with
 the within-episode range as (max−min)/min:
 
-| episode | crude NZD/bbl | net | range | direction |
+The regime itself is defined on the **sd of weekly % changes** over a
+9-week window (threshold ≈0.045–0.059; calm weeks sit at 0.029, high weeks
+at 0.074 median). Episodes are described here with the same statistic, not
+with peak-to-trough range — range is length-dependent *and* blind to how
+many times the price travelled its distance. A series oscillating 110↔130
+every week has weekly changes of ±18%, sd 0.168, i.e. 3.7× the threshold
+and unambiguously "high", yet a range of only 18%. Range flatters long
+one-way moves and hides violent oscillation; it is not used below.
+
+| episode | crude NZD/bbl | net | weekly sd | direction |
 |---|---|---|---|---|
-| 2004_run_up | 47 → 49 | +4.3% | 9% | up |
-| 2008_gfc_crash | 160 → 98 | −38.8% | 63% | down |
-| 2009_rebound | 71 → 86 | +21.1% | 34% | up |
-| 2015_glut_onset | 73 → 77 | +5.5% | 38% | up |
-| 2016_glut_trough | 69 → 61 | −11.6% | 87% | down |
-| 2016_opec_cuts | 60 → 67 | +11.7% | 21% | up |
-| 2020_covid_crash | 85 → 63 | −25.9% | **203%** | down |
-| 2022_ukraine | 138 → 155 | +12.3% | 25% | up |
-| **2026_iran_us** | 110 → 131 | **+19.1%** | **143%** | **up** |
+| 2004_run_up | 47 → 49 | +4.3% | 6.0% | up |
+| 2008_gfc_crash | 160 → 98 | −38.8% | 5.9% | down |
+| 2009_rebound | 71 → 86 | +21.1% | 7.5% | up |
+| 2015_glut_onset | 73 → 77 | +5.5% | 9.0% | up |
+| 2016_glut_trough | 69 → 61 | −11.6% | 7.5% | down |
+| 2016_opec_cuts | 60 → 67 | +11.7% | 5.4% | up |
+| 2020_covid_crash | 85 → 63 | −25.9% | **15.7%** | down |
+| 2022_ukraine | 138 → 155 | +12.3% | 7.8% | up |
+| **2026_iran_us** | 110 → 131 | **+19.1%** | **13.2%** | **up** |
 
 **Peak-to-trough range is length-dependent and must not be compared across
 episodes of different length on its own** — a 27-week window has more
