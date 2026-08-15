@@ -1326,12 +1326,35 @@ the within-episode range as (max−min)/min:
 | 2022_ukraine | 138 → 155 | +12.3% | 25% | up |
 | **2026_iran_us** | 110 → 131 | **+19.1%** | **143%** | **up** |
 
+**Peak-to-trough range is length-dependent and must not be compared across
+episodes of different length on its own** — a 27-week window has more
+opportunity to accumulate a wide range than a 10-week one. Length-neutral
+measures, weekly % changes in crude:
+
+| episode | weeks | sd of weekly change | worst single week | worst 8-week move |
+|---|---|---|---|---|
+| calm weeks (baseline) | — | 3.2% | 10.9% | — |
+| 2022_ukraine | 10 | 7.8% | 12.7% | 44.2% |
+| 2020_covid_crash | 19 | 15.7% | 46.7% | 117.2% |
+| **2026_iran_us** | 27 | **13.2%** | **39.7%** | **147.2%** |
+| 2026, first 10 weeks only | 10 | **18.4%** | 39.7% | 147.2% |
+
 **There has never been another large upward shock in the usable record.**
+Against Ukraine 2022 — the obvious mental comparator — 2026 runs 1.7× on
+weekly sd across the full episodes, 2.4× on a like-for-like first-ten-weeks
+basis, and 3.1× on the single worst week. Crude went 110 → 267 NZD/bbl
+against Ukraine's 138 → 173.
+
 The only episode of comparable violence is the 2020 COVID crash, which runs
 the other way and belongs to a global demand collapse with lockdowns — not
 a supply shock at all. The next largest, the 2016 glut trough, is also
-downward. The Ukraine shock, the obvious mental comparator, has a range of
-25% against 2026's 143%: nearly six times smaller.
+downward. Among *upward* episodes 2026 has no competitor: the closest is
+the 2009 rebound at 7.5% weekly sd against 13.2%.
+
+The range comparison quoted first (143% against 25%, 5.6×) survives the
+length correction, because 2026's entire range occurs inside its own first
+ten weeks — but that was luck, not method, and the length-neutral figures
+above are the ones to quote.
 
 By era it is starker still. The import era (Apr 2022+) contains 31
 high-volatility weeks in nominally two episodes, but `2022_ukraine` runs
