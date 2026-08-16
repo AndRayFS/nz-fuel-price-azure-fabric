@@ -641,3 +641,34 @@ Cautions:
 - **Whether `crude_vol_regime` should be three-way.** A `calm` tier (say
   `crude_vol_9w` below the 25th percentile, 0.023) is one line of SQL away
   and was not tested, because the step-7 contrast is binary.
+
+- **"Pass-through exceeds 100% at extreme intensity", n = 8.** The eight Final
+  Feb–Mar 2026 weeks are the most extreme in the sample (`crude_vol_9w`
+  0.066–0.177 against a 0.060 threshold) and they are what moves both this
+  document's Δβ₀ and the ADL thread's diesel total from straddling one to
+  entirely above one. The hypothesis that this is real behaviour rather than
+  contamination is worth naming, and it is **not settled**.
+
+  One attempt to settle it, recorded because it failed informatively. If
+  intensity genuinely drives pass-through, a gradient fitted on the 82 Final
+  pre-2026 high weeks should predict what the eight show. Interacting the cost
+  lags with continuous `crude_vol_9w` gives a significant interaction —
+  petrol p < 0.0001, diesel p = 0.0039 — but the two fuels move in **opposite
+  directions**: extrapolated to the intensity of the eight weeks, petrol's
+  total *falls* to 0.87 and diesel's *rises* to 1.10. And the underlying data
+  show no gradient at all. Total pass-through by intensity tercile among those
+  same pre-2026 high weeks:
+
+  | tercile | mean `crude_vol_9w` | n | Σβ petrol | Σβ diesel |
+  |---|---:|---:|---:|---:|
+  | low | 0.053 | 28 | 0.715 | 0.750 |
+  | mid | 0.074 | 27 | 1.568 | 1.182 |
+  | high | 0.126 | 27 | 0.620 | 0.829 |
+
+  Non-monotone in both fuels, and the mid tercile is the outlier rather than
+  the high one. With 27 weeks against 6 parameters these bins are thin, so the
+  wildness is unsurprising — but that is the point: **there is no stable
+  intensity gradient here to extrapolate from**, and the significant continuous
+  interaction is fitting influential weeks, not a trend. The hypothesis
+  therefore rests on the eight weeks alone and cannot be supported from the
+  rest of the sample. It needs the 2026 weeks to finalise, not more modelling.
