@@ -60,6 +60,7 @@ select
     g.exchange_rate,
     br.brent_mean,
     br.brent_range,
+    st.status,
     p.period_id,
     p.period_type
 from dbo.silver_fuel f
@@ -72,6 +73,14 @@ outer apply (
       and (pp.end_date is null or cast(f.Date as date) <= pp.end_date)
     order by pp.period_id
 ) p
+-- Status is uniform across every variable within a week (checked): from
+-- 3 Apr 2026 the whole row is Provisional, not just the two series MBIE
+-- paused. It finalises when Stats NZ publishes the quarter's CPI.
+outer apply (
+    select top 1 r.Status as status
+    from dbo.mbie_revisions r
+    where r.Date = f.Date
+) st
 outer apply (
     select avg(b.brent_usd_bbl) as brent_mean,
            max(b.brent_usd_bbl) - min(b.brent_usd_bbl) as brent_range
