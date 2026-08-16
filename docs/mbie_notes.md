@@ -197,6 +197,72 @@ copy-paste in a general definition. The rest of it confirms numerically
 what is recorded above: margin is struck against the retail price, not the
 board price.
 
+## The 2026 provisional weeks: MBIE paused, backfilled, and is waiting on Stats NZ
+
+Read from MBIE's own pages on 16 Aug 2026 (site page updated 12 Aug):
+`.../weekly-fuel-price-monitoring` and its child page
+`.../weekly-fuels-importer-cost-and-margin-restart-analysis`. This confirms
+from the source what was inferred from the regression the same morning.
+
+**MBIE suspended publication of `Importer cost` and `Importer margin` from
+18 March 2026 to 1 July 2026** — "in response to increased volatility
+resulting from the 2026 Middle East conflict... so we could better
+understand these movements". Those weeks were then published
+retrospectively. Only those two series were paused; retail prices, taxes,
+GST and ETS continued throughout.
+
+**That matches the revision record exactly.** `dbo.mbie_revisions` shows
+changes only in `Dubai crude price`, `Importer cost` and `Importer margin`
+— zero revisions in `Adjusted retail price`, `Board price`, `ETS`,
+`Exchange rate`, `GST`, `Taxes`, `Price excluding tax`, across all 1,164
+weeks. The paused series are the revised series.
+
+**"Provisional" does not mean estimated.** MBIE: "data from 1 April 2026 is
+currently provisional. Data from 1 April 2026 through 30 June 2026 will be
+finalised **when Stats NZ releases the Consumers Price Index data for the
+June 2026 quarter**." So the flag marks a *dependency on an external input
+not yet available*, not a modelled or interpolated value. This is why the
+interpolation fingerprint tests found nothing: there is no interpolation to
+find (`docs/architecture.md`).
+
+**When better data arrives:** on the Stats NZ CPI release schedule, quarter
+by quarter. April–June finalises with the June-quarter CPI; the weeks after
+that follow their own quarters. As of the 13 Aug 2026 data vintage the
+whole 3 Apr – 7 Aug stretch was still Provisional.
+
+**A known gap in the cost series, acknowledged by the publisher.** The
+Commerce Commission, "in consultation with fuel importers, has also
+identified additional costs currently affecting fuel importers", and MBIE
+is working with them "to ensure these costs are accurately reflected in our
+fuel price data". ComCom's 18 June 2026 report finds the diesel price-cost
+spread still above the previous three years. **If `Importer cost` is
+missing costs, the residual `Importer margin` is overstated by the same
+amount** — which is a documented, publisher-acknowledged reason for
+diesel's margin to look extreme, independent of any behaviour.
+
+### MBIE's own findings, and where they agree with this project
+
+Their restart analysis reports numbers this project derived independently.
+They match exactly, which is a useful check on the pipeline:
+
+- Lowest margins in the conflict: **diesel −12.4 c/L, regular petrol −0.3**
+  — identical to the trough found here on 15 Aug, and MBIE confirms these
+  are the first negative margins since the series began.
+- Negative weeks: diesel 6 Mar, 13 Mar, 3 Apr; petrol 13 Mar.
+- First-week fall: **diesel 42.4 → −2.2 c/L, petrol 37.6 → 15.3** — MBIE
+  uses the same 27 Feb pre-conflict baseline that had to be corrected into
+  this project on 14 Aug.
+- **"There was a one- to two-week lag before domestic pump prices responded
+  to the initial surge in international prices."** Independent
+  corroboration of the ADL result (peak weight at lag 1, centre of mass
+  1.5 weeks petrol / 2.1 diesel) from the body that publishes the data.
+- Diesel affected more than petrol; importer-cost sd 50.5 for diesel in
+  2026 against 21.1 in the Ukraine conflict, "an order of magnitude larger
+  than what has historically been observed".
+- Dubai crude US$71/bbl pre-conflict to an all-time high US$156 in three
+  weeks.
+- Diesel's record margin 103.0 c/L in the week ended 24 Apr 2026.
+
 ## Both crude price columns are rounded to whole dollars
 
 Found 14 Aug 2026, after a size-bucketed analysis produced impossible gaps.
