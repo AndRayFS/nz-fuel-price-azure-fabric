@@ -1,6 +1,47 @@
 table forecast_accuracy
 	lineageTag: c247b326-93c8-470a-bf56-06a81d7a6cc1
 
+	/// 1 - (model error / naive error) over the trailing 26 weeks. Above zero means the model beat "the price won't move". Null until 26 weeks of outcomes exist, and blank is honest here - do not coalesce it to zero.
+	measure Skill = AVERAGE(forecast_accuracy[skill_26w])
+		formatString: 0.000
+		lineageTag: 1e392f06-e54b-473a-a4f3-bab27292791d
+
+	/// Mean absolute error of the model over the trailing 26 weeks, in c/L.
+	measure 'Model MAE 26w' = AVERAGE(forecast_accuracy[mae_model_26w])
+		formatString: 0.00
+		lineageTag: e7da4bc0-d992-4e0a-8bd7-b6cb6b74ce59
+
+	/// Same window, for the "price won't change" benchmark. The pair is the point: in volatile weeks both roughly double.
+	measure 'Naive MAE 26w' = AVERAGE(forecast_accuracy[mae_naive_26w])
+		formatString: 0.00
+		lineageTag: 2bbfbe3f-485a-430e-9b54-f0859de1bf83
+
+	/// Share of weeks where the model led naive. Denominator counts only weeks with a full window, so early history is excluded rather than scored as a loss.
+	measure 'Weeks Model Ahead %' =
+
+			DIVIDE(
+			    CALCULATE(
+			        COUNTROWS(forecast_accuracy),
+			        forecast_accuracy[skill_26w] > 0
+			    ),
+			    CALCULATE(
+			        COUNTROWS(forecast_accuracy),
+			        NOT ISBLANK(forecast_accuracy[skill_26w])
+			    )
+			)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 6e3298d8-64e7-4624-b1f7-9d5c11df01fe
+
+	/// Signed: positive means the model would have called the week high. Guarded, because a plain subtraction reads a missing outcome as zero and would draw the three pending weeks as a ~250 c/L error.
+	measure 'Forecast Error' =
+
+			VAR Actual = SUM(forecast_accuracy[actual_price])
+			VAR Called = SUM(forecast_accuracy[pred_adl_ecm])
+			RETURN
+			IF(NOT ISBLANK(Actual), Called - Actual)
+		formatString: 0.00
+		lineageTag: b28070c8-b777-4dd7-9a73-0f1f6da40e0f
+
 	column week_date
 		dataType: dateTime
 		formatString: Long Date
