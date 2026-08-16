@@ -84,6 +84,33 @@ IMPORT_ONLY_FROM = pd.Timestamp("2022-04-01")  # Marsden Point stopped refining
 # ETS auctions began Mar 2021 and are held in the final month of each quarter.
 ETS_AUCTIONS_FROM = pd.Timestamp("2021-01-01")
 
+# Publication status, from MBIE's own pages (read by the ADL thread, Aug 2026).
+# Everything from 1 Apr 2026 is Provisional and finalises only when Stats NZ
+# releases the June-quarter CPI — so "provisional" here means *awaiting an
+# external input*, not estimated or interpolated. This turned out to be
+# load-bearing: the diesel pass-through instability is these weeks, not the
+# crisis (docs/period_labelling.md §7).
+PROVISIONAL_FROM = pd.Timestamp("2026-04-01")
+
+# Separately, MBIE *suspended* publication of Importer cost and Importer margin
+# from 18 Mar to 1 Jul 2026 over conflict-driven volatility, then backfilled
+# them. Only those two series were paused; retail, board, tax, ETS and FX ran
+# normally throughout. So this is a narrower and stronger caveat than
+# PROVISIONAL_FROM, and it applies to exactly the two columns most of this
+# project's margin work depends on.
+COST_BACKFILL_FROM = pd.Timestamp("2026-03-18")
+COST_BACKFILL_TO = pd.Timestamp("2026-07-01")
+
+# Magnitude, deliberately separate from volatility. The volatility axis
+# measures jaggedness and is blind to a large *smooth* move: Nov 2021 - May
+# 2022 took crude 114 -> 170 NZD/bbl, +49%, at a weekly sd of only 5.3%, and
+# two thirds of it scores `normal`. A half-year window is what catches a drift
+# that slow; 8 or 13 weeks does not. Threshold is just below the p90 of |26-week
+# move| (0.405), and 100 of the 168 weeks it flags are `normal` on volatility,
+# so the two axes are genuinely not substitutes.
+MOVE_LONG_SPAN = 26
+MOVE_LONG_THRESHOLD = 0.35
+
 # c/L. Before 2010 `taxes` is quantised to 0.1, and diesel's rounds back and
 # forth between 0.3 and 0.4 for years, so any threshold at or below 0.1 picks up
 # 257 "steps" of which 223 are that rounding. At 0.2 the count is 34 and every
@@ -159,8 +186,22 @@ def main() -> None:
         start = weeks.Date[run.index[0]].strftime("%Y-%m-%d")
         weeks.loc[run.index, "crude_episode_id"] = EPISODE_NAMES.get(start, "")
 
+    move_long = np.log(weeks.dubai_crude_nzd).diff(MOVE_LONG_SPAN)
+    weeks["crude_move_26w"] = move_long.round(4)
+    weeks["crude_move_regime"] = np.select(
+        [move_long >= MOVE_LONG_THRESHOLD, move_long <= -MOVE_LONG_THRESHOLD],
+        ["large_up", "large_down"],
+        default="normal",
+    )
+
     weeks["ets_auction_quarter"] = (weeks.Date >= ETS_AUCTIONS_FROM) & (
         weeks.Date.dt.month % 3 == 0
+    )
+    weeks["data_status"] = np.where(
+        weeks.Date >= PROVISIONAL_FROM, "provisional", "final"
+    )
+    weeks["cost_backfilled"] = weeks.Date.between(
+        COST_BACKFILL_FROM, COST_BACKFILL_TO
     )
     weeks["data_regime"] = np.select(
         [weeks.Date < IDENTITY_FROM, weeks.Date < DATAMINE_FROM],
@@ -213,9 +254,13 @@ def main() -> None:
             "crude_vol_window_full",
             "crude_episode_id",
             "crude_move_8w",
+            "crude_move_26w",
+            "crude_move_regime",
             "tax_step_cpl",
             "tax_step_window",
             "data_regime",
+            "data_status",
+            "cost_backfilled",
             "identity_holds",
             "supply_chain",
             "ets_auction_quarter",
@@ -228,6 +273,9 @@ def main() -> None:
     print(f"{len(flags)} rows -> {OUT}")
     print(flags.crude_vol_regime.value_counts().to_string())
     print(flags.data_regime.value_counts().to_string())
+    print(flags.crude_move_regime.value_counts().to_string())
+    print(flags.data_status.value_counts().to_string())
+    print(f"cost_backfilled rows: {flags.cost_backfilled.sum()}")
     print(f"tax step weeks: {(flags.tax_step_cpl != 0).sum()}")
     print(f"named episodes: {flags.crude_episode_id.nunique() - 1}")
 
