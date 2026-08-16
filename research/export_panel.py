@@ -88,7 +88,7 @@ outer apply (
     where b.date between dateadd(day, -4, cast(f.Date as date))
                      and cast(f.Date as date)
 ) br
-where f.Fuel in ('Regular Petrol', 'Diesel')
+where f.Fuel in ('Regular Petrol', 'Diesel', 'Premium Petrol 95R')
 order by f.Fuel, f.Date
 """
 

@@ -95,14 +95,28 @@ provisional — not a result, and it should not be presented as one.
 table, joined on `week_date` and `fuel`. Also present: `crude_episode_id`
 (name the episode in a tooltip) and `crude_move_regime`.
 
-What the shading shows, at two weeks:
+What the shading shows, at two weeks. Every column here is an **average of
+the rolling 26-week columns** (`skill_26w`, `mae_model_26w`,
+`mae_naive_26w`) over rows with a full window — not a pool of raw weekly
+errors. The two differ a lot in the `high` bucket: pooled raw errors put
+diesel at 8.43 against 11.16, because pooling weights the extreme weeks by
+how many there are rather than by how many windows they land in. Say which
+one a number is before quoting it.
 
 | fuel | regime | avg skill | model MAE | naive MAE |
 |---|---|---|---|---|
-| diesel | normal | 0.179 | 2.85 | 3.69 |
-| diesel | **high** | 0.141 | **5.96** | **7.64** |
-| petrol | normal | 0.164 | 2.93 | 3.70 |
-| petrol | **high** | 0.158 | **4.18** | **5.38** |
+| diesel | normal | 0.179 | 2.88 | 3.73 |
+| diesel | **high** | 0.141 | **5.69** | **7.23** |
+| regular petrol | normal | 0.164 | 2.95 | 3.70 |
+| regular petrol | **high** | 0.158 | **4.12** | **5.24** |
+| premium 95R | normal | 0.172 | 2.89 | 3.63 |
+| premium 95R | **high** | **0.179** | **3.95** | **5.21** |
+
+Premium 95R was added on 16 Aug 2026 and is the strongest of the three in
+volatile weeks — the only fuel whose skill goes *up* in the `high` bucket
+rather than down. It is also the fuel whose price decomposition reconciles
+exactly (`mbie_notes.md`), so it is the cleanest input of the three. There
+is no recorded reason it was left out of the original backtest.
 
 **The model keeps its edge in volatile weeks — but everyone's error
 doubles.** That is the honest message for a reader deciding how much to
