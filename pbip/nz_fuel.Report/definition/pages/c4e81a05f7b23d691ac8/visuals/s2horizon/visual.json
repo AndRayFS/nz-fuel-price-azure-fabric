@@ -3,14 +3,14 @@
   "name": "s2horizon",
   "position": {
     "x": 960,
-    "y": 314,
+    "y": 326,
     "z": 400,
-    "height": 112,
+    "height": 72,
     "width": 310,
     "tabOrder": 400
   },
   "visual": {
-    "visualType": "slicer",
+    "visualType": "advancedSlicerVisual",
     "query": {
       "queryState": {
         "Values": {
@@ -27,25 +27,34 @@
                 }
               },
               "queryRef": "forecast_accuracy.horizon_weeks",
-              "nativeQueryRef": "horizon_weeks",
-              "active": true
+              "nativeQueryRef": "Weeks ahead",
+              "displayName": "Weeks ahead"
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "forecast_accuracy"
+                  }
+                },
+                "Property": "horizon_weeks"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
       }
     },
     "objects": {
       "data": [
         {
-          "properties": {
-            "mode": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Basic'"
-                }
-              }
-            }
-          }
+          "properties": {}
         }
       ],
       "selection": [
@@ -65,6 +74,81 @@
                 }
               }
             }
+          }
+        }
+      ],
+      "outline": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "lineColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#B3B0AD'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "id": "default"
+          }
+        }
+      ],
+      "padding": [
+        {
+          "properties": {
+            "paddingSelection": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Normal'"
+                }
+              }
+            }
+          },
+          "selector": {
+            "id": "default"
+          }
+        }
+      ],
+      "shapeCustomRectangle": [
+        {
+          "properties": {
+            "rectangleRoundedCurve": {
+              "expr": {
+                "Literal": {
+                  "Value": "4L"
+                }
+              }
+            }
+          },
+          "selector": {
+            "id": "default"
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          },
+          "selector": {
+            "id": "default"
           }
         }
       ],
@@ -123,7 +207,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Horizon (weeks ahead)'"
+                  "Value": "'Weeks ahead'"
                 }
               }
             },

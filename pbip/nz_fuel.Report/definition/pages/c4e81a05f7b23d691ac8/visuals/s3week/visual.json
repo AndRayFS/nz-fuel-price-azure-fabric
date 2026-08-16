@@ -3,9 +3,9 @@
   "name": "s3week",
   "position": {
     "x": 960,
-    "y": 430,
+    "y": 402,
     "z": 400,
-    "height": 96,
+    "height": 116,
     "width": 310,
     "tabOrder": 400
   },
@@ -56,7 +56,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Week'"
+                  "Value": "'Weeks shown'"
                 }
               }
             },

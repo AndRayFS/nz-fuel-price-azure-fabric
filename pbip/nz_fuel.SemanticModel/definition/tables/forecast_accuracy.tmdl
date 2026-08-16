@@ -80,12 +80,37 @@ table forecast_accuracy
 		formatString: 0.000
 		lineageTag: 82906c20-64a7-4336-bf9d-b53139d4ec05
 
-	/// Drives the volatility strip under the price chart: 1 in a high-volatility week, blank otherwise. Keyed on the week the call was made, which is what crude_vol_regime describes.
-	measure 'High Volatility Week' =
+	/// Drives the strip under the price chart. Marks a week that is either volatile or not yet finalised - the two things a reader has to know before trusting a point. Keyed on the week the call was made.
+	measure 'Timeline Band' =
 
-			IF(SELECTEDVALUE(forecast_accuracy[crude_vol_regime]) = "high", 1)
+			VAR Vol = SELECTEDVALUE(forecast_accuracy[crude_vol_regime])
+			VAR Status = SELECTEDVALUE(forecast_accuracy[input_status])
+			RETURN
+			IF(Vol = "high" || Status = "provisional", 1)
 		formatString: 0
 		lineageTag: d6b05b87-d5c8-4a8c-9019-7e9ba61b11d2
+
+	/// Amber for volatile, grey for provisional inputs. Where a week is both, volatility wins: it is the louder fact, and the tooltip still names the status.
+	measure 'Timeline Band Colour' =
+
+			IF(SELECTEDVALUE(forecast_accuracy[crude_vol_regime]) = "high", "#f59e0b", "#9ca3af")
+		lineageTag: 381e7fdf-bc39-4a4c-a476-2f11e9189ca0
+
+	/// The price chart's heading. Written as a measure because the horizon is a slicer choice, and a fixed heading would let two series of different informedness look comparable.
+	measure 'Price Chart Title' =
+
+			VAR H = SELECTEDVALUE(forecast_accuracy[horizon_weeks])
+			RETURN
+			"What the model would have indicated, against what happened (c/L). "
+			    & "Every point was called "
+			    & H
+			    & IF(H = 1, " week", " weeks")
+			    & " before the date beneath it"
+		lineageTag: 757dde39-ad16-4096-ba99-7272636f0ef4
+
+	/// Status of the week's inputs, for the strip's tooltip.
+	measure 'Input Status' = SELECTEDVALUE(forecast_accuracy[input_status])
+		lineageTag: 76a7ebdc-1bfe-465e-8f5e-33c736c906f4
 
 	/// Named episode behind a volatile stretch, for the strip's tooltip.
 	measure 'Episode' = SELECTEDVALUE(forecast_accuracy[crude_episode_id])

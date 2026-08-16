@@ -40,7 +40,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Skill vs naive, trailing 26w'"
+                  "Value": "'Skill vs naive, avg over selected weeks'"
                 }
               }
             },
