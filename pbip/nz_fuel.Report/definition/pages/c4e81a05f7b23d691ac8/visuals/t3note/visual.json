@@ -43,7 +43,7 @@
                     }
                   },
                   {
-                    "value": "Keep one horizon selected. Averaging skill across horizons mixes three different questions.",
+                    "value": "Skill below zero means the naive benchmark was doing better over that stretch. Those runs are part of the record, not noise to be smoothed away.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "9pt",
