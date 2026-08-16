@@ -43,6 +43,32 @@ and a fresh ADL fit on `data/panel_weekly.csv`, Final rows only, 2010+.
 | backtest window | 706 forecasts per fuel, 1 Feb 2013 – 7 Aug 2026 |
 | crude +10.1%, diesel cost +61.4% | 27 Feb → 7 Aug 2026, exact |
 
+**Every figure above is provisional in one specific way, and it must be
+rechecked once this year's weeks finalise.** The 19 weeks from 3 Apr to
+7 Aug 2026 are still `Provisional`: MBIE suspended `Importer cost` and
+`Importer margin` on 18 Mar, backfilled them, and the whole row stays
+Provisional until Stats NZ publishes the quarter's CPI. Which numbers move,
+and how:
+
+| figure | exposure to the revision |
+|---|---|
+| MAE, skill, "four weeks in ten" | **Direct.** The model trains on Final only but is scored on every week with a known outcome, 2026 included. |
+| crude +10.1%, diesel cost +61.4% | **Direct.** 27 Feb is Final; 7 Aug is Provisional, and `Importer cost` is one of the two suspended series. |
+| lag shares 26/39/20/9 | **Indirect.** Fitted on Final rows only, so today's value is clean — but 19 new Final weeks will shift it. |
+| backtest window | End date moves with each refresh. |
+
+The target itself is solid: `adjusted_retail_price` has never been revised
+in 1,164 weeks. What moves is the cost side, by roughly 0.5 c/L, against a
+model MAE of 2.7 — so the ranking of methods should hold and the shares
+should barely move. Should. That is a prediction, not a measurement, and it
+is exactly what the recheck is for.
+
+**When to recheck:** after Stats NZ publishes the June-quarter CPI. Re-run
+`research/export_panel.py`, then `headline_results.py` and `backtest.py`,
+and diff against this table. If a headline number moves outside its stated
+precision, the post needs a correction comment — the series convention is
+to correct in comments and leave the body standing (`linkedin_series.md`).
+
 **Three traps this draft had to be pulled out of**, all worth remembering
 before the next post:
 
