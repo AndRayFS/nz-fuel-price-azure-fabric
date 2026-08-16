@@ -91,10 +91,24 @@ currently reads 0.39 for petrol and 0.27 for diesel against 0.16 and 0.17
 over the finalised history, but that is 17 weeks with both sides
 provisional — not a result, and it should not be presented as one.
 
-Optional once the labelling thread's `period_flags` seed is merged: shade
-the background by `crude_vol_regime` so the reader can see whether skill
-falls apart in volatile stretches. The join is deliberately left out of the
-gold model until that decision lands.
+**Shade the background by `crude_vol_regime`** — now available on the
+table, joined on `week_date` and `fuel`. Also present: `crude_episode_id`
+(name the episode in a tooltip) and `crude_move_regime`.
+
+What the shading shows, at two weeks:
+
+| fuel | regime | avg skill | model MAE | naive MAE |
+|---|---|---|---|---|
+| diesel | normal | 0.179 | 2.85 | 3.69 |
+| diesel | **high** | 0.141 | **5.96** | **7.64** |
+| petrol | normal | 0.164 | 2.93 | 3.70 |
+| petrol | **high** | 0.158 | **4.18** | **5.38** |
+
+**The model keeps its edge in volatile weeks — but everyone's error
+doubles.** That is the honest message for a reader deciding how much to
+lean on this: a crisis does not make the model less useful than the
+alternative, it makes precision unavailable to anybody. Worth saying in
+words on the page, not just in a colour.
 
 ## DAX
 

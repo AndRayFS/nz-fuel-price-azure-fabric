@@ -38,6 +38,42 @@ history occasionally (not daily) to confirm it's still firing correctly.
 | Regenerate docs + lineage graph | `dbt docs generate` then `dbt docs serve --port 8081` |
 | Run a one-off macro (e.g. diagnostic) | `dbt run-operation <macro_name>` |
 
+## Weekly data update — the full chain, in order
+
+MBIE publishes on Wednesdays. This is the whole sequence; skipping a step
+leaves Report 1 showing last week's numbers with this week's date.
+
+```bash
+source /Users/Ray/nz-fuel-price-project/.venv/bin/activate
+
+dbt run --full-refresh                               # 1. bronze -> silver/gold
+python research/export_panel.py                      # 2. panel out to CSV
+python research/backtest.py                          # 3. refit + forecasts
+dbt seed --select forecast_history --full-refresh    # 4. forecasts -> warehouse
+dbt run --select forecast_accuracy --full-refresh    # 5. rebuild the report table
+```
+
+Then refresh the Power BI dataset.
+
+Notes:
+
+- **`--full-refresh` everywhere**, per the rule at the top of this file.
+  Step 4 especially: a plain `dbt seed` loads into the existing table and
+  fails the moment a column is added.
+- Steps 1, 2, 4 and 5 need the capacity running. Step 3 is local.
+- Provisional weeks are handled automatically: `backtest.py` trains only on
+  Final rows and applies the model to every week, so the series extends by
+  itself as MBIE finalises. Nothing to adjust by hand.
+- Whole chain is about five minutes.
+- `python research/build_period_flags.py && dbt seed --select period_flags
+  --full-refresh` only when the regime axes need regenerating — the
+  boundaries of an open episode will shift as its weeks finalise.
+
+**This wants automating and moving off the laptop.** It is five manual
+steps with a hard dependency on one person's venv, one machine's Azure
+login and the capacity being awake. Tracked as a separate task, not
+solved here.
+
 ## Project structure
 
 - `models/silver/` — long→wide pivots (`silver_general`, `silver_fuel`)
