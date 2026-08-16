@@ -1,0 +1,85 @@
+table silver_general
+	lineageTag: 4c0ad91b-cc90-4c1b-b1ad-68adef712cf4
+
+	column Week
+		dataType: string
+		lineageTag: ae6b101f-19b2-4406-abe7-695a516f0f1b
+		summarizeBy: none
+		sourceColumn: Week
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: f0977c60-115a-4610-8cc5-1366fa406dfd
+		summarizeBy: none
+		sourceColumn: Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column dubai_crude_usd
+		dataType: double
+		lineageTag: d1c15bf9-0769-459a-842f-21fd714eb7af
+		summarizeBy: sum
+		sourceColumn: dubai_crude_usd
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column dubai_crude_nzd
+		dataType: double
+		lineageTag: 0a6604e7-949e-4cf0-993d-12c4d3c21c73
+		summarizeBy: sum
+		sourceColumn: dubai_crude_nzd
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column exchange_rate
+		dataType: double
+		lineageTag: f76aa8c3-6a5e-439e-9126-0a750627cc77
+		summarizeBy: sum
+		sourceColumn: exchange_rate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column period_id =
+			
+			CALCULATE(
+			    SELECTEDVALUE(periods[period_id]),
+			    FILTER(
+			        periods,
+			        silver_general[Date] >= periods[start_date] &&
+			        (silver_general[Date] <= periods[end_date] || ISBLANK(periods[end_date]))
+			    )
+			)
+		lineageTag: ea04e015-77e3-4232-9cd4-4f9b2a4f0b2f
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition silver_general = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("fhi24zxnvquurfybnnzrkz22aq-ae4c5pcutjkedh2gfko4iqwk24.datawarehouse.fabric.microsoft.com", "analytics_warehouse"),
+				    dbo_silver_general = Source{[Schema="dbo",Item="silver_general"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(dbo_silver_general,{{"Date", type date}}),
+				    #"Changed Type with Locale" = Table.TransformColumnTypes(#"Changed Type", {{"Date", type text}}, "en-US"),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Changed Type with Locale",{{"Date", type date}})
+				in
+				    #"Changed Type1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

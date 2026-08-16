@@ -1,0 +1,154 @@
+table silver_fuel
+	lineageTag: 13d6c2a7-d341-4940-89b8-f2afd98b5f09
+
+	column Week
+		dataType: string
+		lineageTag: b64dbdff-77b0-4231-833e-5cb797af8618
+		summarizeBy: none
+		sourceColumn: Week
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 1bfce09c-9337-4e71-9213-bc1c91894796
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Fuel
+		dataType: string
+		lineageTag: 99c1e031-3500-48f6-b97c-8325ccf25d63
+		summarizeBy: none
+		sourceColumn: Fuel
+
+		annotation SummarizationSetBy = Automatic
+
+	column importer_cost
+		dataType: double
+		lineageTag: 6b634153-a995-4ca4-bce2-90bc1e296339
+		summarizeBy: sum
+		sourceColumn: importer_cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ets
+		dataType: double
+		lineageTag: bca00740-d609-4bc6-b9d0-8b093b8b36a6
+		summarizeBy: sum
+		sourceColumn: ets
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column gst
+		dataType: double
+		lineageTag: e51eff01-5d85-4cb8-a536-3a5c383b0b2f
+		summarizeBy: sum
+		sourceColumn: gst
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column taxes
+		dataType: double
+		lineageTag: ddb66fca-1ad8-486a-adc0-29d6ad2950f8
+		summarizeBy: sum
+		sourceColumn: taxes
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column price_excl_tax
+		dataType: double
+		lineageTag: 33cedecf-26c0-4991-92e3-8c32bdcbcfaf
+		summarizeBy: sum
+		sourceColumn: price_excl_tax
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column board_price
+		dataType: double
+		lineageTag: 977a9730-a341-4732-9a57-e755e4c2737e
+		summarizeBy: sum
+		sourceColumn: board_price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column adjusted_retail_price
+		dataType: double
+		lineageTag: 5fd25054-94ab-4240-8e25-b745f2b4243f
+		summarizeBy: sum
+		sourceColumn: adjusted_retail_price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column importer_margin
+		dataType: double
+		lineageTag: 9aed9d25-5eeb-45c0-ba99-bbf3a03e36ca
+		summarizeBy: sum
+		sourceColumn: importer_margin
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column importer_margin_trend
+		dataType: double
+		lineageTag: dbafcf99-e7df-420f-b172-6c3abf4617a8
+		summarizeBy: sum
+		sourceColumn: importer_margin_trend
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Is Current Period Row' = ```
+			
+			VAR ThisStartDate = RELATED(periods[start_date])
+			VAR MaxStart = 
+			    CALCULATE(
+			        MAX(periods[start_date]), 
+			        ALL(periods), 
+			        NOT(ISBLANK(periods[start_date]))
+			    )
+			RETURN
+			IF(ThisStartDate = MaxStart, 1, 0)
+			```
+		formatString: 0
+		lineageTag: eb57c4a2-ab4d-4646-a073-070047ced702
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition silver_fuel = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("fhi24zxnvquurfybnnzrkz22aq-ae4c5pcutjkedh2gfko4iqwk24.datawarehouse.fabric.microsoft.com", "analytics_warehouse"),
+				    dbo_silver_fuel = Source{[Schema="dbo",Item="silver_fuel"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(dbo_silver_fuel,{{"Date", type date}}),
+				    #"Changed Type with Locale" = Table.TransformColumnTypes(#"Changed Type", {{"Date", type text}}, "en-US"),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Changed Type with Locale",{{"Date", type date}})
+				in
+				    #"Changed Type1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

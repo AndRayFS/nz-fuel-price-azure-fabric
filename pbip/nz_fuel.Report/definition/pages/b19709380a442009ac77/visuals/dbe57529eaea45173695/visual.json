@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "dbe57529eaea45173695",
+  "position": {
+    "x": 982.97872340425533,
+    "y": 255.31914893617022,
+    "z": 9000,
+    "height": 150,
+    "width": 280,
+    "tabOrder": 9000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lag Weeks"
+                    }
+                  },
+                  "Property": "Volatility Trend"
+                }
+              },
+              "queryRef": "Lag Weeks.Volatility Trend",
+              "nativeQueryRef": "Volatility Trend"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

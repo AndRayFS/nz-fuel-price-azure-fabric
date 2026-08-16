@@ -1,0 +1,259 @@
+table forecast_accuracy
+	lineageTag: c247b326-93c8-470a-bf56-06a81d7a6cc1
+
+	column week_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: fb85dbcf-9b9b-4044-a848-006fdc1c6a3e
+		summarizeBy: none
+		sourceColumn: week_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column target_week
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a0e94f81-29ad-46a0-b5e4-2dcd186e5f60
+		summarizeBy: none
+		sourceColumn: target_week
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column fuel
+		dataType: string
+		lineageTag: 1b9719ca-85c4-4771-bad6-aaefe821190c
+		summarizeBy: none
+		sourceColumn: fuel
+
+		annotation SummarizationSetBy = Automatic
+
+	column horizon_weeks
+		dataType: int64
+		formatString: 0
+		lineageTag: 04f801a8-a874-4c5b-8b20-c52c247140b3
+		summarizeBy: sum
+		sourceColumn: horizon_weeks
+
+		annotation SummarizationSetBy = Automatic
+
+	column input_status
+		dataType: string
+		lineageTag: 7911a957-ad1d-4a94-bc88-7804ae27afdf
+		summarizeBy: none
+		sourceColumn: input_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column outcome_known
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: ac413b9d-240e-4b9d-96ce-15952f1a322f
+		summarizeBy: none
+		sourceColumn: outcome_known
+
+		annotation SummarizationSetBy = Automatic
+
+	column price_now
+		dataType: double
+		lineageTag: af8c2442-62c8-4784-854e-b3505210f1f5
+		summarizeBy: sum
+		sourceColumn: price_now
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column actual_price
+		dataType: double
+		lineageTag: 7b8d1309-cef8-4aae-8435-6f8b01c79586
+		summarizeBy: sum
+		sourceColumn: actual_price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column pred_adl
+		dataType: double
+		lineageTag: a111b5a0-7327-45ff-b3f9-5e7aecc7b445
+		summarizeBy: sum
+		sourceColumn: pred_adl
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column pred_adl_ecm
+		dataType: double
+		lineageTag: 4d26b2d0-3e35-4089-a229-e806dfc4f843
+		summarizeBy: sum
+		sourceColumn: pred_adl_ecm
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column pred_naive
+		dataType: double
+		lineageTag: c7e6818a-1273-4640-a03c-a8fd78630f5e
+		summarizeBy: sum
+		sourceColumn: pred_naive
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column pred_report1_ish
+		dataType: double
+		lineageTag: 6eb4a518-fd57-4e82-8b89-b8f5f3251659
+		summarizeBy: sum
+		sourceColumn: pred_report1_ish
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column abs_err_adl
+		dataType: double
+		lineageTag: 4e724007-58e9-4e55-993a-d165618088a3
+		summarizeBy: sum
+		sourceColumn: abs_err_adl
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column abs_err_adl_ecm
+		dataType: double
+		lineageTag: 4f074f15-e24e-41e0-b2b9-14d3776b2341
+		summarizeBy: sum
+		sourceColumn: abs_err_adl_ecm
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column abs_err_naive
+		dataType: double
+		lineageTag: 3e764bbf-b77f-41aa-b67f-be011c630127
+		summarizeBy: sum
+		sourceColumn: abs_err_naive
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column abs_err_report1
+		dataType: double
+		lineageTag: 622e5355-489c-4e4c-9c91-5cdba0370cc7
+		summarizeBy: sum
+		sourceColumn: abs_err_report1
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column mae_model_26w
+		dataType: double
+		lineageTag: e35198a7-6747-4b8f-914c-df654e9cea85
+		summarizeBy: sum
+		sourceColumn: mae_model_26w
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column mae_naive_26w
+		dataType: double
+		lineageTag: b0dfb186-93ba-4318-b782-c4de0e3b75a3
+		summarizeBy: sum
+		sourceColumn: mae_naive_26w
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column mae_report1_26w
+		dataType: double
+		lineageTag: bf0b6f62-8214-429b-b795-40802c336493
+		summarizeBy: sum
+		sourceColumn: mae_report1_26w
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column window_n
+		dataType: int64
+		formatString: 0
+		lineageTag: 4fe3e6ef-72db-4207-8a0b-913f638ffff9
+		summarizeBy: sum
+		sourceColumn: window_n
+
+		annotation SummarizationSetBy = Automatic
+
+	column skill_26w
+		dataType: double
+		lineageTag: 7bde66e0-a9ff-4c58-87bc-d9fd776cfe0f
+		summarizeBy: sum
+		sourceColumn: skill_26w
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column skill_report1_26w
+		dataType: double
+		lineageTag: 7b970b42-afb3-49a4-8189-a01dc52f61e9
+		summarizeBy: sum
+		sourceColumn: skill_report1_26w
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column crude_vol_regime
+		dataType: string
+		lineageTag: 04f28203-bad9-433b-9588-6ecdba1a6b87
+		summarizeBy: none
+		sourceColumn: crude_vol_regime
+
+		annotation SummarizationSetBy = Automatic
+
+	column crude_episode_id
+		dataType: string
+		lineageTag: 9c0298fe-8412-4d84-883b-860099685cc0
+		summarizeBy: none
+		sourceColumn: crude_episode_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column crude_move_regime
+		dataType: string
+		lineageTag: 2ca90a00-f907-4122-bd40-5a8d22933050
+		summarizeBy: none
+		sourceColumn: crude_move_regime
+
+		annotation SummarizationSetBy = Automatic
+
+	column flag_data_status
+		dataType: string
+		lineageTag: 666114ca-cfcf-4855-bad6-849721041ecc
+		summarizeBy: none
+		sourceColumn: flag_data_status
+
+		annotation SummarizationSetBy = Automatic
+
+	partition forecast_accuracy = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("fhi24zxnvquurfybnnzrkz22aq-ae4c5pcutjkedh2gfko4iqwk24.datawarehouse.fabric.microsoft.com", "analytics_warehouse"),
+				    dbo_forecast_accuracy = Source{[Schema="dbo",Item="forecast_accuracy"]}[Data]
+				in
+				    dbo_forecast_accuracy
+

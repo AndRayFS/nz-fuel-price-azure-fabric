@@ -1,0 +1,40 @@
+table volatility_config
+	lineageTag: c4dd46cf-a12a-4e69-a9bf-40b1b5abac91
+
+	column window_weeks
+		dataType: int64
+		formatString: 0
+		lineageTag: 38b08ec9-5d27-43b7-b709-436941673996
+		summarizeBy: sum
+		sourceColumn: window_weeks
+
+		annotation SummarizationSetBy = Automatic
+
+	column window_days
+		dataType: int64
+		formatString: 0
+		lineageTag: 5021d835-74d1-46d1-884d-141ab2098b71
+		summarizeBy: sum
+		sourceColumn: window_days
+
+		annotation SummarizationSetBy = Automatic
+
+	column calm_baseline
+		dataType: double
+		lineageTag: a1da1641-e33a-44e9-91d0-08a96e0e532e
+		summarizeBy: sum
+		sourceColumn: calm_baseline
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition volatility_config = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("fhi24zxnvquurfybnnzrkz22aq-ae4c5pcutjkedh2gfko4iqwk24.datawarehouse.fabric.microsoft.com", "analytics_warehouse"),
+				    dbo_volatility_config = Source{[Schema="dbo",Item="volatility_config"]}[Data]
+				in
+				    dbo_volatility_config
+

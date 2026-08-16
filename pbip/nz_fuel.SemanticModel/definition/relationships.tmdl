@@ -1,0 +1,22 @@
+relationship AutoDetected_27c2457e-1beb-4dce-8992-158da9e1893a
+	fromColumn: lag_correlation.period_id
+	toColumn: periods.period_id
+
+relationship AutoDetected_3bd779fc-46d2-4f05-9fbf-1b121993a21a
+	fromColumn: lag_resolved.period_id
+	toColumn: periods.period_id
+
+relationship AutoDetected_f654c362-809b-4166-859f-8117149b0c4f
+	fromColumn: silver_fuel.Week
+	toColumn: silver_general.Week
+
+relationship f1eefc84-c132-2cbb-e336-f4c33334d991
+	fromColumn: silver_general.period_id
+	toColumn: periods.period_id
+
+relationship f4a91bab-1fcb-884a-a1a1-58f7d21a3eaa
+	crossFilteringBehavior: bothDirections
+	fromCardinality: one
+	fromColumn: factor_volatility.Date
+	toColumn: silver_general.Date
+

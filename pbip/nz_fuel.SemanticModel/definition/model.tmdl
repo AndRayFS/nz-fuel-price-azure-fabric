@@ -1,0 +1,27 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["lag_correlation","lag_resolved","periods","silver_fuel","silver_general","factor_volatility","volatility_config","forecast_accuracy"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table lag_correlation
+ref table lag_resolved
+ref table periods
+ref table silver_fuel
+ref table silver_general
+ref table factor_volatility
+ref table 'Lag Weeks'
+ref table volatility_config
+ref table forecast_accuracy
+
+ref cultureInfo en-US
+

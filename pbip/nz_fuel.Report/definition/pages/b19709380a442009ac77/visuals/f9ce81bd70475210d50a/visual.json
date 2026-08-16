@@ -1,0 +1,56 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "f9ce81bd70475210d50a",
+  "position": {
+    "x": 953.19148936170222,
+    "y": 525.53191489361711,
+    "z": 12000,
+    "height": 178.72340425531911,
+    "width": 326.80851063829778,
+    "tabOrder": 13000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lag Weeks"
+                    }
+                  },
+                  "Property": "Forecast Pct Change"
+                }
+              },
+              "queryRef": "Lag Weeks.Forecast Pct Change",
+              "nativeQueryRef": "Forecast Pct Change"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Lag Weeks"
+                  }
+                },
+                "Property": "Forecast Pct Change"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
