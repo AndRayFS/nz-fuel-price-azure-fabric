@@ -64,10 +64,21 @@ select
     case when r.window_n = 26 and r.mae_naive_26w > 0
          then 1.0 - r.mae_model_26w / r.mae_naive_26w end as skill_26w,
     case when r.window_n = 26 and r.mae_naive_26w > 0
-         then 1.0 - r.mae_report1_26w / r.mae_naive_26w end as skill_report1_26w
+         then 1.0 - r.mae_report1_26w / r.mae_naive_26w end as skill_report1_26w,
+    -- Regime context for background shading: it lets a reader see whether
+    -- the model's accuracy falls apart in volatile stretches, which is the
+    -- "when can I trust this" question answered without words.
+    --
+    -- Keyed on the week the CALL was made, not the target week — the
+    -- question is what conditions the model was working in when it spoke.
+    --
+    -- Join on BOTH week_date and fuel. period_flags is one row per
+    -- (week, fuel); joining on the date alone silently doubles every row.
+    f.crude_vol_regime,
+    f.crude_episode_id,
+    f.crude_move_regime,
+    f.data_status as flag_data_status
 from rolled r
-
--- Regime context (crude_vol_regime, crude_episode_id) is deliberately NOT
--- joined here. seeds/period_flags.csv belongs to the labelling thread and
--- the decision to register and load it is still open; joining it would make
--- this model fail until that lands. Add the join once it is merged.
+left join {{ ref('period_flags') }} f
+    on f.week_date = r.week_date
+   and f.fuel      = r.fuel
