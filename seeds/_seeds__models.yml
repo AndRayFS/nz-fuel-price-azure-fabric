@@ -73,3 +73,64 @@ seeds:
       - name: variable_name
         tests:
           - not_null
+
+  # Several independent regime axes, replacing the single `period_type` of
+  # `periods`. One row per (week, fuel), covering all 1,164 weeks — there is no
+  # unlabelled residual. Generated, not hand-maintained: regenerate with
+  # `python research/build_period_flags.py`, never by editing the CSV.
+  #
+  # Rationale, thresholds and the tests behind each axis: docs/period_labelling.md.
+  #
+  # `data_status` is the one to filter on before estimating anything. The 19
+  # Provisional weeks from Apr 2026 are enough on their own to invert which
+  # fuel appears to pass costs through faster (period_labelling.md §7).
+  #
+  # `periods` is deliberately still registered above: the two coexist until the
+  # merge decision lands, and nothing has been removed from it.
+  - name: period_flags
+    columns:
+      - name: week_date
+        tests:
+          - not_null
+      - name: fuel
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Regular Petrol', 'Diesel']
+      - name: crude_vol_regime
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['high', 'normal']
+      - name: crude_move_regime
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['large_up', 'large_down', 'normal']
+      - name: data_regime
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['pre2010_unreconciled', 'envisory', 'datamine']
+      - name: data_status
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['final', 'provisional']
+      - name: supply_chain
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['domestic_refinery', 'import_only']
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - week_date
+              - fuel

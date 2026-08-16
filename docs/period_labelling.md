@@ -19,16 +19,23 @@ and `docs/mbie_notes.md`.
 
 ## The short version
 
-The single crisis/calm axis is not merely coarse, it is **wrong on four of
-its six periods**, and it discards more crude-shock weeks than it keeps.
-Replacing it with independent axes recovers a pass-through result the old
-flag cannot see at all: on 2010+ diesel, the interaction of cost lags with
-the new volatility regime is significant at p = 0.007, where the same test
-against the old `crisis` flag returns p = 0.905.
+The single crisis/calm axis is not merely coarse, it **disagrees with the
+data on four of its six periods**, and it discards more crude-shock weeks
+than it keeps. Replacing it with independent axes recovers a pass-through
+result the old flag cannot see at all: on Final data, both fuels pass cost
+through roughly twice as fast in high-volatility weeks (joint p < 0.0001),
+where the same test against the old `crisis` flag returns p = 0.905 for
+diesel. The *direction* is robust across every specification tried; the
+coefficient is not, and §7 says why.
+
+Two of those axes exist because the ADL thread found things this document
+originally got wrong: **`data_status`**, without which the pass-through
+result is not merely weaker but *inverted* as to which fuel responds, and
+**`crude_move_regime`**, because volatility is blind to a large smooth climb.
 
 | what changed | old | new |
 |---|---|---|
-| axes | 1 (`period_type`) | 7 (across 11 columns) |
+| axes | 1 (`period_type`) | 9 (across 15 columns) |
 | weeks with a value | 200 of 1,164 | 1,164 of 1,164 |
 | crude-shock weeks identified | 77 | 135 |
 | …of which the old seed never labelled | — | 82 |
@@ -52,12 +59,23 @@ Every week was cross-tabulated against a volatility regime derived below.
 
 Read down the column:
 
-- **`04_tariff_2025` is not a crude event.** Over its 13 weeks crude in NZD
-  goes 128 → 116, a cumulative −9.8%; the largest 8-week move inside it is
-  −19%, and its weekly volatility (sd of log changes 0.055) is ordinary. Not
-  one of its weeks clears the shock threshold at any setting tested. Whatever
-  happened in April 2025, calling it the same kind of thing as 2022 and 2026
-  puts a mild *downward* drift into the same bucket as two upward shocks.
+- **`04_tariff_2025` does not clear the volatility threshold — but it does
+  satisfy the criterion it was originally labelled on.** Over its 13 weeks
+  crude in NZD goes 128 → 116, a cumulative −9.8%; the largest 8-week move
+  inside it is −19%, and its weekly volatility (sd of log changes 0.055) is
+  ordinary. Not one of its weeks clears the shock threshold at any setting
+  tested. **This does not make the old label wrong**, and an earlier version
+  of this section overstated it as "not a crude event". The label came from
+  within-period lag behaviour, not volatility, and on that measure it looks
+  like the 2026 crisis rather than like calm — best lag 2 with r = 0.914
+  (petrol) and 0.921 (diesel), against 0.883/0.894 for `06_iranus_2026`, while
+  the adjacent `05_calm_import_era` sits at r ≈ 0.42 with its best lag pinned
+  at the search cap. Replicated here; the numbers are the ADL thread's.
+  So the volatility axis and the project's older lag axis genuinely disagree
+  on this period, and neither overrules the other. Both are weak — 13 weeks,
+  on levels, with differing lag caps — and the defensible conclusion is that
+  **no single measure here is strong enough to found a crisis/calm split**,
+  which is the argument for several axes rather than a verdict on 2025.
 - **`03_ukraine_2022` runs 18 weeks too long.** The volatility episode is
   2022-02-18 → 2022-04-22, ten weeks. The label continues to 31 Aug 2022,
   which loads two-thirds of a "crisis" period with ordinary weeks.
@@ -144,6 +162,27 @@ label is false for part of five of nine.
 So direction is published per week and continuous, as `crude_move_8w`
 (8-week log change). Sign it, threshold it, or interact with it directly;
 the choice belongs to the model, not to the seed.
+
+### Magnitude is a separate axis, because volatility is blind to a smooth climb
+
+Added 16 Aug 2026 after the ADL thread pointed out the gap. The volatility
+measure scores *jaggedness*, and a large move made in small steady steps
+scores low. The clearest case: **Nov 2021 → May 2022 took crude 114 → 170
+NZD/bbl, +49% in 30 weeks, at a weekly sd of 5.3%** — two thirds of those
+weeks are `normal`. Calling a stretch that moves crude half again "ordinary"
+is defensible for a volatility axis and indefensible as a description of the
+period.
+
+`crude_move_regime` (`large_up` / `large_down` / `normal`) fixes this on a
+**26-week** window at |log move| ≥ 0.35, just under the p90 of 0.405. The
+window length is not a free choice: that climb averages 1.3% a week, so an
+8-week window sees only ~+11% of it and a 13-week window ~+59% at its peak
+but little either side. Half a year is what a drift that slow requires.
+
+The two axes are not substitutes — of the 168 weeks flagged `large_up` or
+`large_down`, **100 are `normal` on volatility**, including the tail of the
+2008 crash, the 2008 run-up, the 2020 recovery and mid-2022. Volatility says
+how rough the ride was; magnitude says how far it went.
 
 ---
 
@@ -314,6 +353,14 @@ all 1,164 weeks. `crude_vol_regime = normal` is a measurement — the 9-week
 volatility was below the 92nd percentile — not an absence of one. There is
 no residual category and nothing to drop.
 
+This matters more than it did when the brief was written, because "non-crisis"
+has since become a sample that gets *estimated on*, not merely compared
+against (§7). Under the old seed that sample was whatever was left after six
+hand-drawn periods; under the flags it is 1,029 weeks with a stated
+criterion, of which 757 are at 2010+ against 197 in the import era alone. The
+normal-regime estimate is the stable one, so it is worth giving it the larger
+sample rather than confining it to the import era out of habit.
+
 Concretely: any comparison against the old seed silently discarded 83% of the
 sample *and* 61% of the crude-shock weeks in it. Under the new flags a
 crisis/calm contrast is `high` (135 weeks) against `normal` (1,029), on the
@@ -331,27 +378,54 @@ Test: Δ(`board_price` − taxes − gst − ets) on Δ`importer_cost` at lags 0
 fully interacted with the regime dummy, HAC (Newey-West, 4 lags) standard
 errors. Sample 2010+ so the identity break is out.
 
-| fuel | flag | flagged n | Δβ₀ | p(Δβ₀) | joint F on all 5 | mean lag |
-|---|---|---:|---:|---:|---:|---|
-| Diesel | **`crude_vol_regime`** | 109 | **+0.104** | **0.016** | **0.007** | 1.64 → **1.17** wk |
-| Diesel | old `crisis` | 77 | +0.006 | 0.910 | 0.905 | 1.40 → 1.27 wk |
-| Petrol | `crude_vol_regime` | 109 | +0.042 | 0.554 | 0.298 | 1.44 → 1.23 wk |
-| Petrol | old `crisis` | 77 | −0.092 | 0.122 | 0.237 | 1.27 → 1.38 wk |
+| fuel | flag | sample | flagged n | Δβ₀ | p(Δβ₀) | joint F on all 5 | mean lag |
+|---|---|---|---:|---:|---:|---:|---|
+| Diesel | **`crude_vol_regime`** | Final, pre-2026 | 82 | +0.224 | 0.001 | **<0.0001** | 1.64 → **0.68** wk |
+| Petrol | **`crude_vol_regime`** | Final, pre-2026 | 82 | +0.275 | 0.001 | **<0.0001** | 1.44 → **0.48** wk |
+| Diesel | `crude_vol_regime` | Final, incl. 2026 | 90 | +0.066 | 0.380 | **<0.0001** | 1.64 → 1.07 wk |
+| Petrol | `crude_vol_regime` | Final, incl. 2026 | 90 | +0.043 | 0.668 | **<0.0001** | 1.44 → 0.86 wk |
+| Diesel | `crude_vol_regime` | 2010+, all weeks | 109 | +0.104 | 0.016 | 0.007 | 1.64 → 1.17 wk |
+| Diesel | old `crisis` | 2010+, all weeks | 77 | +0.006 | 0.910 | 0.905 | 1.40 → 1.27 wk |
+| Petrol | `crude_vol_regime` | 2010+, all weeks | 109 | +0.042 | 0.554 | 0.298 | 1.44 → 1.23 wk |
+| Petrol | old `crisis` | 2010+, all weeks | 77 | −0.092 | 0.122 | 0.237 | 1.27 → 1.38 wk |
 
-On the import era alone (2022-04+), the same comparison: diesel joint
-p = 0.00002 with the new flag against 0.025 with the old; petrol 0.19
-against 0.073.
+**Quote the direction and the joint test, not Δβ₀.** Added 16 Aug 2026 after
+the ADL thread could only half-replicate this — they got the joint result and
+the halved mean lag but insignificant individual contrasts. Reconciled, and
+they were right to flag it. The cause is not the ECM term their specification
+carries (adding it moves Δβ₀ by 0.003) but the **eight Final weeks of Feb–Mar
+2026**, which take petrol's Δβ₀ from +0.275 to +0.043 and diesel's from
++0.224 to +0.066. `cost_backfilled` accounts for only two of the eight —
+excluding them recovers petrol to +0.109, still not to +0.275.
+
+So six weeks of genuinely Final, non-backfilled data move the point estimate
+by a factor of three. Those six are the most extreme in the sample
+(`crude_vol_9w` 0.066–0.177, against an entry threshold of 0.060), so this may
+be real behaviour at extreme intensity rather than contamination — but a
+coefficient that six observations can triple is not a coefficient worth
+quoting. What survives every specification tried — both fuels, both cutoffs,
+with and without an ECM term — is the **joint** test at p < 0.0001 and the
+direction: the mean lag roughly halves, landing between 0.44 and 1.07 weeks
+depending on sample.
 
 Read carefully:
 
-- **Diesel passes cost through faster in high-volatility weeks.** Contact
-  coefficient +0.10 higher, mean lag shortened by about half a week. The old
-  flag cannot see this over 2010+ at all (p = 0.905) — it is diluted by the
-  ordinary weeks in `03` and `04` and blind to the 82 unlabelled shock weeks.
-- **Petrol shows nothing on either flag.** A fuel asymmetry, which is
-  plausible given the tax and precision asymmetries already documented, but
-  it is also the direction the 2022 data-regime change would push, so it
-  should not be read as behaviour yet.
+- **Both fuels pass cost through faster in high-volatility weeks, on Final
+  data.** Mean lag roughly halved, joint test below 0.0001 in every
+  specification. The old `crisis` flag cannot see this over 2010+ at all
+  (p = 0.905 for diesel) — it is diluted by the ordinary weeks in `03` and
+  `04` and blind to the 82 unlabelled shock weeks.
+- **Petrol's null was itself an artifact of the unfinalised weeks.** On the
+  full 2010+ sample petrol shows nothing (p = 0.554, joint 0.298); dropping
+  the 19 Provisional weeks turns it into the *stronger* of the two fuels
+  (p = 0.001, joint < 0.0001). The earlier version of this section read that
+  null as a possible fuel asymmetry. It was contamination, and the direction
+  of the error is worth noting — bad weeks did not merely add noise, they
+  reversed which fuel appeared to respond.
+- **`data_status = 'final'` is necessary but not sufficient.** It is what
+  rescues the joint test and un-inverts the fuels. It does not stabilise the
+  individual coefficients, because the Final Feb–Mar 2026 weeks remain
+  (above). For a coefficient, cut at 2025-12-31 as well and say so.
 - **Neither flag separates pass-through *completeness*.** Σβ over five lags
   is 0.88–1.01 in every cell, with HAC standard errors of 0.05–0.10 — no
   difference anywhere near significance. What moves is speed, not the total.
@@ -359,6 +433,90 @@ Read carefully:
   diesel result at p = 0.007 survives a Bonferroni correction over those
   four; the import-era result is on an overlapping sample and is not
   independent evidence.
+
+### The flag locates a known instability (added after the ADL thread asked)
+
+The parallel thread found diesel's total pass-through climbing with lag
+length on the import era — 0.83 at K=3 to 1.21 at K=12 — so the number was a
+statement about the analyst's choice of K. Seasonality, error correction and
+factor autocorrelation had each been tested and failed to explain it.
+Reproduced here at 0.832 → 1.215, spread 0.383.
+
+Four tests, in order of what they rule out:
+
+**It is the 2026 episode, and not just any 27 weeks.** Dropping each of the
+189 contiguous 27-week blocks of the import era in turn, and ranking by the
+resulting spread: the block starting 2026-02-06 ranks **2nd of 189**
+(0.143 against a baseline 0.390). The top five are all the same window
+shifted by a week or two. Nothing else in the sample comes close. The
+inverse is also informative — dropping 2025-10-24 → 2026-04-24, which
+removes the run-up but keeps the collapse, *raises* the spread to 0.680.
+Splitting the episode is worse than either keeping or dropping it whole.
+
+**It is not leverage.** High-volatility weeks have 5× the factor variance
+(sd of Δ`importer_cost` 14.9 against 3.0), so mechanical domination of OLS
+was the obvious suspect. Weighting by inverse local crude variance, dropping
+nothing, leaves the spread at 0.380 against OLS's 0.390. Downweighting the
+volatile weeks does not stabilise the estimate.
+
+**It is not degrees of freedom.** With 27 high weeks and 13 coefficients at
+K=12 the interacted fit is nearly saturated, so the climb could have been
+overfitting. It is not: on 2010+ there are **109** high weeks — 8.4
+observations per parameter at K=12 — and the climb survives almost unchanged.
+
+**But it is not the volatility regime either. Corrected, 16 Aug 2026.** An
+earlier version of this section concluded from the three tests above that the
+instability "lives entirely in the high-volatility weeks", and recommended
+estimating the crisis regime on 2010+ for the larger sample. That conclusion
+was wrong, and the error is instructive: enlarging the sample to 2010+ left
+2026 *in* it, so the surviving climb was evidence about 2026, not about
+high-volatility weeks in general. The test not run was the obvious one —
+remove 2026 and see whether anything is left.
+
+| 2010+ sample | high weeks | normal spread K=3…12 | **high spread K=3…12** |
+|---|---:|---:|---:|
+| all weeks | 109 | 0.148 | **0.431** |
+| 2026 episode dropped | 82 | 0.148 | **0.154** |
+| all of 2026 dropped | 82 | 0.142 | **0.154** |
+| only Provisional (Apr 2026+) dropped | 90 | 0.148 | **0.106** |
+
+With 82 high-volatility weeks from 2010 to 2025 — all of them Final data —
+the high regime is as stable as the normal one (0.154 against 0.148). The
+climb is not a property of crude shocks. It is a property of 2026, and
+narrows further: dropping just the **19 Provisional weeks** stabilises it
+*more* than dropping the whole 27-week episode, while leaving 90 high weeks
+in the sample. The fierce Final crisis weeks of Feb–Mar 2026 are not the
+problem; the unfinalised ones are.
+
+This matches what the ADL thread found independently and from the other
+direction, and what MBIE's own pages say (below). Credit for the diagnosis is
+theirs; this section is the confirmation on the volatility axis.
+
+**So the honest statement is narrower than either "diesel is not identified"
+or "the crisis is not identified": diesel pass-through is stable and complete
+on Final data in both regimes, and the instability is an artifact of weeks
+MBIE has not finalised.** The high regime is estimable after all — on
+2010–2025.
+
+Why the data status does this, from MBIE's pages rather than inference:
+everything from **1 Apr 2026** is Provisional pending the Stats NZ
+June-quarter CPI, and separately MBIE **suspended publication of
+`Importer cost` and `Importer margin` from 18 Mar to 1 Jul 2026** over
+conflict-driven volatility and backfilled those weeks afterwards. Only those
+two series were paused — retail, board, tax, ETS and FX ran normally — and
+they are exactly the two the pass-through regression uses as its factor. Both
+facts are now axes in the seed (`data_status`, `cost_backfilled`) so this is
+expressible rather than implicit.
+
+The volatility episode boundaries themselves do **not** depend on any of
+this: `crude_vol_9w` is computed on `dubai_crude_nzd`, not on
+`importer_cost`. Crude was revised in the affected window too, though, in
+whole-dollar steps, so the 2026 boundaries should be re-derived once those
+weeks finalise.
+
+Practical consequence for step 7: filter on `data_status = 'final'` before
+anything else, and estimate the crisis regime on **2010–2025**, where there
+are 82 high weeks of finalised data.
 
 ### Threshold sensitivity
 
@@ -402,9 +560,13 @@ tested.
 | `crude_vol_window_full` | bool | **measured** | false for the first and last 4 weeks, where the centred window is truncated |
 | `crude_episode_id` | text / empty | **measured boundaries**, narrative name | see the warning below |
 | `crude_move_8w` | float | **measured** | 8-week log change of `dubai_crude_nzd`; direction lives here |
+| `crude_move_26w` | float | **measured** | 26-week log change — magnitude, independent of jaggedness |
+| `crude_move_regime` | `large_up` / `large_down` / `normal` | **measured** | \|`crude_move_26w`\| ≥ 0.35; 100 of its 168 weeks are `normal` on volatility |
 | `tax_step_cpl` | float | **measured** | Δ`taxes` for that fuel, zeroed below 0.2 c/L |
 | `tax_step_window` | bool | **measured** | step week and the one after |
 | `data_regime` | `pre2010_unreconciled` / `envisory` / `datamine` | measured + given | boundaries 2010-01-08 (rule) and 2022-01-01 (MBIE methodology) |
+| `data_status` | `final` / `provisional` | given | Provisional from 2026-04-01, pending the Stats NZ June-quarter CPI. **Filter on this first** — §7 |
+| `cost_backfilled` | bool | given | 2026-03-18 … 2026-07-01, where MBIE suspended and later backfilled `importer_cost` and `importer_margin` only |
 | `identity_holds` | bool | **measured** | whether the decomposition closes to 0.000 |
 | `supply_chain` | `domestic_refinery` / `import_only` | given | boundary 2022-04-01, Marsden Point |
 | `ets_auction_quarter` | bool | given calendar, **tested** | final month of a quarter, from 2021 |
@@ -434,11 +596,16 @@ weight.
 
 ```sql
 -- the intended step-7 contrast
-where data_regime = 'datamine'      -- one retail source
+where data_status = 'final'         -- FIRST: unfinalised weeks destabilise (§7)
   and identity_holds                -- decomposition trustworthy
   and not tax_step_window           -- no smeared policy step
 -- then interact the ADL lags with (crude_vol_regime = 'high')
 ```
+
+`data_regime = 'datamine'` narrows to one retail source, but on Final data it
+leaves only **18** high-volatility weeks against **90** for `identity_holds`
+(2010+) — prefer the wider window plus a `data_regime` dummy unless the source
+change is itself the question.
 
 Cautions:
 

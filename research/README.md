@@ -35,8 +35,10 @@ python research/export_panel.py    # only when the warehouse has new weeks
   episodes only; unlabelled weeks are not "unknown", they are ordinary
   weeks. Decide explicitly how they are treated before any crisis/calm
   comparison. **Superseded by `seeds/period_flags.csv`** — proposed, not yet
-  merged — which gives all 1,164 weeks a value on seven independent axes
-  instead of one crisis/calm label. Rationale, tests and what was discarded:
+  merged — which gives all 1,164 weeks a value on nine independent axes
+  instead of one crisis/calm label. **Filter on `data_status = 'final'`
+  before estimating anything**: the 19 Provisional weeks from Apr 2026 are
+  enough on their own to invert which fuel appears to respond faster. Rationale, tests and what was discarded:
   `docs/period_labelling.md`. Regenerate with:
 
   ```bash
