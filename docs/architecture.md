@@ -1514,6 +1514,52 @@ Three consequences that should govern how this project speaks:
    whether past crises behaved the same way. They may or may not have; the
    data cannot say, because there is no past crisis of this kind to check.
 
+## Does old crude reach the pump? Petrol: no. Diesel: not shown.
+
+`research/procurement_lag.py`, 16 Aug 2026. `Importer cost` is a
+*replacement* cost — this week's Singapore spot at this week's FX, with no
+purchase date and no voyage time in it. The fuel in the tanks was bought
+weeks earlier at a different price. So if retailers priced off what they
+paid, crude from 4-12 weeks back should move the pump price on top of
+current landed cost. Tested on 2010+, crude converted to c/L so its
+coefficient is directly comparable to the cost coefficients.
+
+| | averaged term, weeks 4-12 | p | detectable above | 9-lag block, joint p | block sum |
+|---|---|---|---|---|---|
+| petrol | +0.022 | 0.77 | 0.146 | 0.109 | -0.069 +/- 0.080 |
+| diesel | +0.246 | 0.19 | 0.371 | **0.0007** | +0.010 +/- 0.131 |
+
+**Petrol: a clean null.** Nothing, on either form, with power to see any
+effect above 0.146 - a 15% pass-through of old crude would have shown.
+Replacement-cost pricing is confirmed, `importer_cost` is the right factor,
+and the physical procurement lag lands in margin rather than price, exactly
+as the margin work predicted.
+
+**Diesel: not the same thing as a null.** The averaged term is +0.246 and
+insignificant, but the test could only detect above 0.371, so this is
+"not shown", not "not there". Power is the binding constraint.
+
+**And diesel's nine-lag block is jointly significant (p = 0.0007) while
+summing to zero.** The weights run negative at lags 4-6 and positive at
+8-12: -0.105, -0.128, -0.058, +0.016, +0.049, +0.035, +0.081, +0.080,
++0.039. **That is not the procurement signature.** A historical-cost story
+predicts positive weights summing to something meaningful; a sign-flipping
+shape cancelling to +0.010 is a contrast between crude 4-6 weeks back and
+8-12 weeks back - crude's medium-term *direction*, not its level. What it
+represents is not established. The obvious candidate is the gasoil-over-
+crude spread having its own cycle, which only a Singapore product series
+could confirm.
+
+**The hoped-for prize did not arrive.** Old crude is already known when a
+forecast is made, so a real coefficient on it would have extended the
+horizon past the current 1-3 weeks. It does not.
+
+**What a null here does not mean.** If procurement timing itself varies -
+cargoes bought six weeks ahead one month and ten the next - the effect is
+smeared across lags and moves in time, which a fixed-lag regression sees
+poorly. This rules out a *stable effect at a fixed horizon*, at the
+magnitudes stated, and nothing broader.
+
 ## Rockets and feathers, fourth attempt: still not there
 
 `research/adl_asymmetry.py`, 15 Aug 2026. Rises and falls estimated in the
