@@ -59,7 +59,7 @@ seeds:
         tests:
           - accepted_values:
               arguments:
-                values: ['Regular Petrol', 'Diesel']
+                values: ['Regular Petrol', 'Diesel', 'Premium Petrol 95R']
       # `actual_price` is deliberately NOT tested not_null: the most recent
       # rows are calls whose target week has not happened yet. That is the
       # live part of the report, not missing data.
@@ -105,7 +105,7 @@ seeds:
           - not_null
           - accepted_values:
               arguments:
-                values: ['Regular Petrol', 'Diesel']
+                values: ['Regular Petrol', 'Diesel', 'Premium Petrol 95R']
       - name: crude_vol_regime
         tests:
           - not_null

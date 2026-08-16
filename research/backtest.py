@@ -174,7 +174,7 @@ PRICE_AT: dict = {}
 
 def main() -> None:
     rows = []
-    for fuel in ("Regular Petrol", "Diesel"):
+    for fuel in ("Regular Petrol", "Diesel", "Premium Petrol 95R"):
         d = load(fuel)
         n = len(d)
         retail = d.adjusted_retail_price.to_numpy()
