@@ -3,9 +3,9 @@
   "name": "c3naive",
   "position": {
     "x": 646,
-    "y": 96,
+    "y": 116,
     "z": 202,
-    "height": 76,
+    "height": 92,
     "width": 306,
     "tabOrder": 202
   },
@@ -32,6 +32,42 @@
           ]
         }
       }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Naive error, c/L'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "heading": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Normal'"
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "drillFilterOtherVisuals": true
   }

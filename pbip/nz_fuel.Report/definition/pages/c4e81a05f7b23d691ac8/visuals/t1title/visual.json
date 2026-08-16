@@ -3,9 +3,9 @@
   "name": "t1title",
   "position": {
     "x": 10,
-    "y": 8,
+    "y": 6,
     "z": 100,
-    "height": 38,
+    "height": 46,
     "width": 1260,
     "tabOrder": 100
   },

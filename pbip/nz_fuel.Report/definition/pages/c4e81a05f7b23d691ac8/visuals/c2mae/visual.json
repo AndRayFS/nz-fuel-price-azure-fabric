@@ -3,9 +3,9 @@
   "name": "c2mae",
   "position": {
     "x": 328,
-    "y": 96,
+    "y": 116,
     "z": 201,
-    "height": 76,
+    "height": 92,
     "width": 306,
     "tabOrder": 201
   },
@@ -32,6 +32,42 @@
           ]
         }
       }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Model error, c/L'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "heading": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Normal'"
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "drillFilterOtherVisuals": true
   }
