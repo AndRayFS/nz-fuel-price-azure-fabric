@@ -86,6 +86,7 @@ def load(fuel: str) -> pd.DataFrame:
     d["d_net"] = d.net.diff()
     d["d_cost"] = d.importer_cost.diff()
     d["d_retail"] = d.adjusted_retail_price.diff()
+    d = d[d.status == "Final"]      # added 16 Aug: never train on unfinalised weeks
     d["dev"] = (d.importer_margin
                 - d.importer_margin.rolling(ECM_WINDOW, min_periods=ECM_WINDOW).mean()
                 ).shift(1)

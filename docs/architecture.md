@@ -1344,6 +1344,63 @@ fishing, petrol to private cars.
   national diesel volume. Nothing in this dataset can confirm or refute a
   contract-pricing explanation.
 
+## Canonical results — FINAL data only, 16 Aug 2026
+
+`research/headline_results.py`. Everything published before today was
+computed on a sample containing weeks MBIE has not finalised. The cutoff is
+read from the panel's `status` column rather than hardcoded, so re-running
+`export_panel.py` and then this script makes the numbers current again by
+themselves once those weeks finalise. Final through **27 Mar 2026**, 19
+Provisional weeks excluded, 2010+.
+
+**Total pass-through — both fuels complete and stable.**
+
+| K | petrol | diesel |
+|---|---|---|
+| 3 | 0.952 | 1.006 |
+| 6 | 1.004 | 1.084 |
+| 9 | 1.070 | 1.104 |
+| 12 | 1.025 | 1.100 |
+| **spread K=3..12** | **0.073** | **0.095** (was 0.324) |
+
+Diesel is fixed. Petrol barely moves (0.078 → 0.073), which is consistent
+with it never having had the problem.
+
+**Error correction** — petrol −0.103 (half-life 6.4 weeks), diesel −0.094
+(7.0). Slightly weaker than on the contaminated sample, equally significant
+(t −5.6 and −5.1).
+
+**Walk-forward, non-crisis weeks, unchanged**: at two weeks MAE falls from
+3.519 to 2.796 c/L for petrol and 3.440 to 2.669 for diesel, the same
+20–22% edge. **The crisis-week advantage is smaller than reported
+yesterday**: 9.5% for petrol and 12.7% for diesel at two weeks, against
+~20% before. Removing the Provisional weeks leaves the violent Feb–Mar
+weeks, where the model does less well. That is a downgrade and is stated as
+one.
+
+### Pass-through is faster when crude is volatile — provisional finding
+
+The labelling thread reported that filtering to Final does not merely
+stabilise the estimate, it reveals a speed effect that the contaminated
+sample hid. Checked here independently, K=4, regime-interacted, HAC:
+
+| | all data | FINAL |
+|---|---|---|
+| petrol, mean lag normal → high | 1.33 → 1.16 wk (joint p 0.42) | 1.33 → **0.61** wk (joint p <0.0001) |
+| diesel, mean lag normal → high | 1.55 → 0.94 wk (joint p 0.027) | 1.56 → **0.93** wk (joint p <0.0001) |
+
+Petrol's null on the full sample was the artifact: the interaction block
+goes from p = 0.42 to p < 0.0001 on Final data. **In volatile weeks the
+mean lag roughly halves.**
+
+Held as provisional for two reasons. The individual `Δβ₀` contrasts are not
+significant here (p 0.73 and 0.52) where the peer reports p = 0.001 with
+coefficients three times larger — their sample was Final *pre-2026* and
+this one includes Final Feb–Mar 2026, and this specification carries the
+ECM term. And "mean lag" is a ratio, which yesterday's asymmetry work
+showed inherits the denominator's noise. The direction and rough magnitude
+replicate across two independent specifications; the size does not yet.
+
 ## The diesel instability is Provisional data, not the crisis - 16 Aug 2026
 
 Everything below about diesel's pass-through creeping with lag length was
