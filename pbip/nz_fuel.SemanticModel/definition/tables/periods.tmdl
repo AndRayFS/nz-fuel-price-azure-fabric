@@ -1,0 +1,60 @@
+table periods
+	lineageTag: 932506eb-6bf9-4f2c-a57f-20880391a8c7
+
+	column period_id
+		dataType: string
+		lineageTag: c3b728c2-2d30-47c5-9fb2-d676dc291e6e
+		summarizeBy: none
+		sourceColumn: period_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column period_name
+		dataType: string
+		lineageTag: 7fd21cbc-4ba6-4006-937e-0788d0a9fcb8
+		summarizeBy: none
+		sourceColumn: period_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column start_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 668ba1e1-8146-40c9-be55-a37529d5c9b7
+		summarizeBy: none
+		sourceColumn: start_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column end_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 16121c75-4713-4886-b994-1c84fe729794
+		summarizeBy: none
+		sourceColumn: end_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column period_type
+		dataType: string
+		lineageTag: 0fc49c52-96e8-4d5d-a60d-9dc849f1eae4
+		summarizeBy: none
+		sourceColumn: period_type
+
+		annotation SummarizationSetBy = Automatic
+
+	partition periods = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("fhi24zxnvquurfybnnzrkz22aq-ae4c5pcutjkedh2gfko4iqwk24.datawarehouse.fabric.microsoft.com", "analytics_warehouse"),
+				    dbo_periods = Source{[Schema="dbo",Item="periods"]}[Data]
+				in
+				    dbo_periods
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "7f4390cd7b62ed49c452",
+  "position": {
+    "x": 821.27659574468089,
+    "y": 406.38297872340428,
+    "z": 11000,
+    "height": 119.14893617021278,
+    "width": 461.7021276595745,
+    "tabOrder": 11000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lag Weeks"
+                    }
+                  },
+                  "Property": "Forecast Display"
+                }
+              },
+              "queryRef": "Lag Weeks.Forecast Display",
+              "nativeQueryRef": "Forecast Display"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

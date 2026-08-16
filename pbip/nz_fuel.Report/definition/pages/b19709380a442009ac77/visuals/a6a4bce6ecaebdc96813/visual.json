@@ -1,0 +1,56 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "a6a4bce6ecaebdc96813",
+  "position": {
+    "x": 912.76595744680856,
+    "y": 151.06382978723406,
+    "z": 13000,
+    "height": 104.25531914893618,
+    "width": 351.06382978723406,
+    "tabOrder": 12000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lag Weeks"
+                    }
+                  },
+                  "Property": "Test Resolved R With Period"
+                }
+              },
+              "queryRef": "Lag Weeks.Test Simple Max",
+              "nativeQueryRef": "Test Resolved R With Period"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Lag Weeks"
+                  }
+                },
+                "Property": "Test Resolved R With Period"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

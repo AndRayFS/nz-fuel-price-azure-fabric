@@ -3,6 +3,17 @@
 Check dates against today before relying on this file — it goes stale by
 design and should be trimmed or updated, not left as-is indefinitely.
 
+- [ ] **23 Aug 2026** — retire the old Report 1 from My Workspace. The
+  redesign (`docs/report1_redesign.md`) is published alongside it as a
+  separate artifact, deliberately, so the two run in parallel for about a
+  week. On 23 Aug: delete the old report **and** its semantic model, then
+  confirm `/admin/widelySharedArtifacts/publishedToWeb` is back to a single
+  entry. Until then two publish-to-web links and two import models exist,
+  and each weekly update has to refresh both. Names must stay distinct the
+  whole time — two artifacts called `nz_fuel` is the failure documented in
+  `docs/architecture.md`. Export a pbix backup before deleting, outside the
+  repo, as was done on 13 Aug.
+
 - [ ] **27 Aug 2026** — the Azure free-trial credit expires. NZ$274.98 was
   left on 14 Aug, against ~NZ$2.40/day of actual burn, so ~NZ$245 will
   simply lapse. Credit does **not** carry past this date, and upgrading to

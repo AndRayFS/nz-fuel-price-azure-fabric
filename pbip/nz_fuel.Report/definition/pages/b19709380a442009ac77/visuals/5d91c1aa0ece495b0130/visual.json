@@ -1,0 +1,57 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "5d91c1aa0ece495b0130",
+  "position": {
+    "x": 570.21276595744689,
+    "y": 151.06382978723406,
+    "z": 10000,
+    "height": 117.02127659574468,
+    "width": 342.55319148936172,
+    "tabOrder": 10000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lag Weeks"
+                    }
+                  },
+                  "Property": "Crude Price Change Over Window"
+                }
+              },
+              "queryRef": "Lag Weeks.Crude Price Change Over Window",
+              "nativeQueryRef": "Crude Price Change Over Window",
+              "format": "+0.0%;-0.0%"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Lag Weeks"
+                  }
+                },
+                "Property": "Crude Price Change Over Window"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

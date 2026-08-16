@@ -1,0 +1,707 @@
+table 'Lag Weeks'
+	lineageTag: 2532706a-b466-4fca-a1c2-4a4521217a70
+
+	measure 'Lag Weeks Value' = SELECTEDVALUE('Lag Weeks'[Lag Weeks], 0)
+		formatString: 0
+		lineageTag: 9e6acb59-ae95-4cb0-830a-0d71869788d7
+
+	measure 'Selected Correlation' =
+			
+			VAR SelLag = SELECTEDVALUE('Lag Weeks'[Lag Weeks], 0)
+			RETURN
+			CALCULATE(
+			    MAX(lag_correlation[r]),
+			    lag_correlation[lag_weeks] = SelLag
+			)
+		lineageTag: 6d0fa511-2c50-4206-baaf-d2e267fe0d41
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Target Value' =
+			
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			VAR SelTarget = SELECTEDVALUE(lag_correlation[target])
+			RETURN
+			CALCULATE(
+			    SWITCH(
+			        SelTarget,
+			        "board_price", SUM(silver_fuel[board_price]),
+			        "adjusted_retail_price", SUM(silver_fuel[adjusted_retail_price])
+			    ),
+			    silver_fuel[Fuel] = SelFuel
+			)
+		lineageTag: c353b597-240c-46ea-9ab6-affdb14e2971
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Shifted Factor Value' =
+			
+			VAR SelFactor = SELECTEDVALUE(lag_correlation[factor])
+			VAR SelLagWeeks = SELECTEDVALUE('Lag Weeks'[Lag Weeks], 0)
+			VAR CurrentDate = MIN(silver_fuel[Date])
+			VAR ShiftedDate = CurrentDate - (SelLagWeeks * 7)
+			RETURN
+			CALCULATE(
+			    SWITCH(
+			        SelFactor,
+			        "dubai_crude_usd", SUM(silver_general[dubai_crude_usd]),
+			        "dubai_crude_nzd", SUM(silver_general[dubai_crude_nzd]),
+			        "exchange_rate", SUM(silver_general[exchange_rate])
+			    ),
+			    silver_general[Date] = ShiftedDate,
+			    ALL(silver_general)
+			)
+		lineageTag: b65f5b0a-4543-4674-b6ac-c553ac45aa7e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Volatility vs Calm Baseline (Live)' = ```
+			
+			VAR LatestDate = CALCULATE(MAX(factor_volatility[Date]), ALL(factor_volatility))
+			VAR CurrentVol = 
+			    CALCULATE(
+			        MAX(factor_volatility[rolling_volatility]),
+			        factor_volatility[Date] = LatestDate,
+			        ALL(factor_volatility)
+			    )
+			VAR Baseline = MAX(volatility_config[calm_baseline])
+			RETURN
+			DIVIDE(CurrentVol, Baseline)
+			```
+		lineageTag: 2456d7f1-60f0-4e4b-945f-177f7104e804
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Volatility Trend' = ```
+			
+			VAR LatestDate = CALCULATE(MAX(factor_volatility[Date]), ALL(factor_volatility))
+			VAR HalfWindowDays = MAX(volatility_config[window_days]) / 2
+			VAR RecentAvg = 
+			    CALCULATE(
+			        AVERAGE(factor_volatility[rolling_volatility]),
+			        DATESINPERIOD(silver_general[Date], LatestDate, -HalfWindowDays, DAY)
+			    )
+			VAR PriorAvg = 
+			    CALCULATE(
+			        AVERAGE(factor_volatility[rolling_volatility]),
+			        DATESINPERIOD(silver_general[Date], LatestDate - HalfWindowDays, -HalfWindowDays, DAY)
+			    )
+			RETURN
+			IF(RecentAvg < PriorAvg, "↓ easing", "↑ intensifying")
+			```
+		lineageTag: 127c6038-dcef-4c8d-aefb-6853725d84bf
+
+	measure 'Crude Price Change Over Window' = ```
+			
+			VAR LatestDate = CALCULATE(MAX(factor_volatility[Date]), ALL(factor_volatility))
+			VAR WindowDays = MAX(volatility_config[window_days])
+			VAR PriorDate = LatestDate - WindowDays
+			VAR CurrentPrice = 
+			    CALCULATE(MAX(silver_general[dubai_crude_nzd]), silver_general[Date] = LatestDate, ALL(silver_general))
+			VAR PriorPrice = 
+			    CALCULATE(MAX(silver_general[dubai_crude_nzd]), silver_general[Date] = PriorDate, ALL(silver_general))
+			RETURN
+			DIVIDE(CurrentPrice - PriorPrice, PriorPrice)
+			```
+		lineageTag: 423c9219-1714-4c15-b3ca-f4408339dadd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Forecast Pct Change' = ```
+			
+			VAR SelFactor = SELECTEDVALUE(lag_correlation[factor])
+			VAR SelTarget = SELECTEDVALUE(lag_correlation[target])
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(
+			            ALL(periods),
+			            periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date])))
+			        )
+			    )
+			VAR ResolvedLag = 
+			    CALCULATE(
+			        MAX(lag_resolved[resolved_lag]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = SelFactor,
+			        lag_resolved[target] = SelTarget,
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR Slope = 
+			    CALCULATE(
+			        MAX(lag_resolved[resolved_slope]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = SelFactor,
+			        lag_resolved[target] = SelTarget,
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR LatestDate = CALCULATE(MAX(silver_general[Date]), ALL(silver_general))
+			VAR LagDays = ResolvedLag * 7
+			VAR PriorDate = LatestDate - LagDays
+			VAR CurrentCrude = 
+			    CALCULATE(MAX(silver_general[dubai_crude_nzd]), silver_general[Date] = LatestDate, ALL(silver_general))
+			VAR PriorCrude = 
+			    CALCULATE(MAX(silver_general[dubai_crude_nzd]), silver_general[Date] = PriorDate, ALL(silver_general))
+			VAR CrudeChangeAbsolute = CurrentCrude - PriorCrude
+			VAR ForecastPriceChange = Slope * CrudeChangeAbsolute
+			VAR CurrentTargetPrice = 
+			    CALCULATE(
+			        MAX(silver_fuel[adjusted_retail_price]),
+			        silver_fuel[Fuel] = SelFuel,
+			        silver_fuel[Date] = LatestDate,
+			        ALL(silver_fuel)
+			    )
+			RETURN
+			DIVIDE(ForecastPriceChange, CurrentTargetPrice)
+			```
+		lineageTag: 5ef5903d-f1ce-4d05-b44d-26649b34b58b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Forecast Confidence' = ```
+			
+			VAR SelFactor = SELECTEDVALUE(lag_correlation[factor])
+			VAR SelTarget = SELECTEDVALUE(lag_correlation[target])
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(
+			            ALL(periods),
+			            periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date])))
+			        )
+			    )
+			VAR SelR = 
+			    CALCULATE(
+			        MAX(lag_resolved[resolved_r]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = SelFactor,
+			        lag_resolved[target] = SelTarget,
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    ABS(SelR) >= 0.7, "Strong",
+			    ABS(SelR) >= 0.5, "Moderate",
+			    "Weak — forecast not shown"
+			)
+			```
+		lineageTag: 22160b8a-6b90-4bae-8464-92ca62cbbe75
+
+	measure 'Forecast Display' =
+			
+			VAR Confidence = [Forecast Confidence]
+			VAR Pct = [Forecast Pct Change]
+			RETURN
+			IF(
+			    Confidence = "Weak — forecast not shown",
+			    "Insufficient historical signal for this fuel right now",
+			    FORMAT(Pct, "+0.0%;-0.0%") & " (" & Confidence & " confidence)"
+			)
+		lineageTag: 6d836974-f4a4-4c8c-b598-1215b8a75fd7
+
+	measure 'Test Resolved R With Period' = ```
+			
+			VAR SelFactor = SELECTEDVALUE(lag_correlation[factor])
+			VAR SelTarget = SELECTEDVALUE(lag_correlation[target])
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(
+			            ALL(periods),
+			            periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date])))
+			        )
+			    )
+			RETURN
+			CALCULATE(
+			    MAX(lag_resolved[resolved_r]),
+			    ALL(lag_resolved),
+			    lag_resolved[factor] = SelFactor,
+			    lag_resolved[target] = SelTarget,
+			    lag_resolved[fuel] = SelFuel,
+			    lag_resolved[period_id] = CurrentPeriodId
+			)
+			```
+		lineageTag: 0f51d1b9-30ec-422e-9441-eba923a12b9c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Shifted Factor Value (Resolved Lag)' = ```
+			
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(ALL(periods), periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date]))))
+			    )
+			VAR SelLag = 
+			    CALCULATE(
+			        MAX(lag_resolved[resolved_lag]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR CurrentDate = MIN(silver_fuel[Date])
+			VAR ShiftedDate = CurrentDate - (SelLag * 7)
+			RETURN
+			CALCULATE(SUM(silver_general[dubai_crude_nzd]), silver_general[Date] = ShiftedDate, ALL(silver_general))
+			```
+		lineageTag: 1e79b6c7-7664-4492-964d-4ce96c5af113
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Target Value (Fixed)' =
+			
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			RETURN
+			CALCULATE(
+			    SUM(silver_fuel[adjusted_retail_price]),
+			    silver_fuel[Fuel] = SelFuel
+			)
+		lineageTag: 1c1da158-d856-4b1a-9519-0643a64b0a56
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Test Fixed Fuel Selection' = SELECTEDVALUE(lag_correlation[fuel])
+		lineageTag: 358978be-a4ae-4a1f-9e86-ae7dd1d456e4
+
+	measure 'Is In Current Period' = ```
+			
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(ALL(periods), periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date]))))
+			    )
+			VAR PStart = CALCULATE(MAX(periods[start_date]), periods[period_id] = CurrentPeriodId, ALL(periods))
+			VAR PEnd = CALCULATE(MAX(periods[end_date]), periods[period_id] = CurrentPeriodId, ALL(periods))
+			VAR EffectiveEnd = IF(ISBLANK(PEnd), TODAY(), PEnd)
+			VAR ThisDate = MAX(silver_fuel[Date])
+			RETURN
+			IF(ThisDate >= PStart && ThisDate <= EffectiveEnd, 1, 0)
+			```
+		formatString: 0
+		lineageTag: 0358c2e1-cbbe-4fc3-b3cc-b789c16a0b9b
+
+	measure 'Report1 Branch' = ```
+			
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(ALL(periods), periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date]))))
+			    )
+			VAR IsEdgeArtifact = 
+			    CALCULATE(
+			        MAX(lag_resolved[is_edge_artifact]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR SelR = 
+			    CALCULATE(
+			        MAX(lag_resolved[resolved_r]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    IsEdgeArtifact = 1, "edge_artifact",
+			    ABS(SelR) < 0.5, "weak",
+			    "normal"
+			)
+			```
+		lineageTag: f8f5f1d1-7822-4e6f-bf3e-bfa0118293b1
+
+	measure 'Report1 When' = ```
+			
+			VAR Branch = [Report1 Branch]
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(ALL(periods), periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date]))))
+			    )
+			VAR SelLag = 
+			    CALCULATE(
+			        MAX(lag_resolved[resolved_lag]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR Gap = 
+			    CALCULATE(
+			        MAX(lag_resolved[lag_confidence_gap]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR LatestDataDate = CALCULATE(MAX(silver_general[Date]), ALL(silver_general))
+			VAR TargetDate = LatestDataDate + (SelLag * 7)
+			VAR TargetDateEarlier = LatestDataDate + ((SelLag - 1) * 7)
+			RETURN
+			SWITCH(
+			    Branch,
+			    "edge_artifact", "Comparing today's price directly — no reliable time delay found in recent data.",
+			    "weak", "",
+			    IF(
+			        Gap < 0.02,
+			        "Effects have historically shown up around " & FORMAT(TargetDateEarlier, "d MMM") & "–" & FORMAT(TargetDate, "d MMM") & ".",
+			        "Effects have historically shown up around " & FORMAT(TargetDate, "d MMMM") & "."
+			    )
+			)
+			```
+		lineageTag: 1376ebed-f5e2-4af4-aeda-43ff94394271
+
+	measure 'Report1 How Much' = ```
+			
+			VAR Branch = [Report1 Branch]
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(ALL(periods), periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date]))))
+			    )
+			VAR SelLag = 
+			    CALCULATE(
+			        MAX(lag_resolved[resolved_lag]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR Slope = 
+			    CALCULATE(
+			        MAX(lag_resolved[resolved_slope]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR LatestDate = CALCULATE(MAX(silver_general[Date]), ALL(silver_general))
+			VAR LagDays = SelLag * 7
+			VAR PriorDate = LatestDate - LagDays
+			VAR CurrentCrude = 
+			    CALCULATE(MAX(silver_general[dubai_crude_nzd]), silver_general[Date] = LatestDate, ALL(silver_general))
+			VAR PriorCrude = 
+			    CALCULATE(MAX(silver_general[dubai_crude_nzd]), silver_general[Date] = PriorDate, ALL(silver_general))
+			VAR CrudeChange = CurrentCrude - PriorCrude
+			VAR ContributionCents = Slope * CrudeChange
+			RETURN
+			SWITCH(
+			    Branch,
+			    "edge_artifact", "",
+			    "weak", "Insufficient historical signal for this fuel right now.",
+			    "Recent crude movement (" & FORMAT(CrudeChange, "+0;-0") & " NZD/barrel net, start to end of window) has historically corresponded to " &
+			    IF(ContributionCents >= 0, "an increase", "a decrease") & " of about " &
+			    FORMAT(ABS(ContributionCents), "0.0") & " c/L — this isolates crude's effect specifically; taxes, margin, ETS and retailer discounts can move independently and aren't included."
+			)
+			```
+		lineageTag: af34525a-e9dd-48fc-a053-9a602cfde04a
+
+	measure 'Report1 Strength' = ```
+			
+			VAR Branch = [Report1 Branch]
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(ALL(periods), periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date]))))
+			    )
+			VAR SelR = 
+			    CALCULATE(
+			        MAX(lag_resolved[resolved_r]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR Prominence = 
+			    CALCULATE(
+			        MAX(lag_resolved[peak_prominence]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			RETURN
+			SWITCH(
+			    Branch,
+			    "edge_artifact", "",
+			    "weak", "",
+			    "Confidence: " &
+			    SWITCH(
+			        TRUE(),
+			        ABS(SelR) >= 0.7, "Strong",
+			        ABS(SelR) >= 0.5, "Moderate",
+			        "Weak"
+			    ) & " (correlation value = " & FORMAT(SelR, "0.00") & ")" &
+			    IF(Prominence < 0.03, " — consistent across nearby weeks too", "")
+			)
+			```
+		lineageTag: 04437c89-2a91-43d1-8109-6dd5077fd536
+
+	measure 'Is Current Period (Lag Corr)' = ```
+			
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(ALL(periods), periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date]))))
+			    )
+			RETURN
+			IF(SELECTEDVALUE(lag_correlation[period_id]) = CurrentPeriodId, 1, 0)
+			```
+		formatString: 0
+		lineageTag: ded1d8cc-ab26-42fd-b17d-be96e427f7ea
+
+	measure 'Report1 Resolved Lag' = ```
+			
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(ALL(periods), periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date]))))
+			    )
+			RETURN
+			CALCULATE(
+			    MAX(lag_resolved[resolved_lag]),
+			    ALL(lag_resolved),
+			    lag_resolved[factor] = "dubai_crude_nzd",
+			    lag_resolved[target] = "adjusted_retail_price",
+			    lag_resolved[fuel] = SelFuel,
+			    lag_resolved[period_id] = CurrentPeriodId
+			)
+			```
+		formatString: 0
+		lineageTag: 2bf7c09e-5217-439f-8ffe-dbddbc3fd778
+
+	measure 'Shifted Factor Value (Fixed)' = ```
+			
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(ALL(periods), periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date]))))
+			    )
+			VAR SelLag = 
+			    CALCULATE(
+			        MAX(lag_resolved[resolved_lag]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR CurrentDate = MIN(silver_fuel[Date])
+			VAR ShiftedDate = CurrentDate - (SelLag * 7)
+			RETURN
+			CALCULATE(SUM(silver_general[dubai_crude_nzd]), silver_general[Date] = ShiftedDate, ALL(silver_general))
+			```
+		lineageTag: cdc5e637-cd74-49f6-a674-73d690706d3e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Data Freshness' = ```
+			
+			VAR LatestDataDate = CALCULATE(MAX(silver_general[Date]), ALL(silver_general))
+			RETURN
+			"Latest MBIE data: week of " & FORMAT(LatestDataDate, "d MMMM yyyy") & 
+			" · Report published: " & FORMAT(TODAY(), "d MMMM yyyy")
+			```
+		lineageTag: 633428e2-632e-46c9-8aa2-b57c29ab1a5a
+
+	measure Disclaimer =
+			
+			"⚠ Not a price forecast — shows crude oil's historical, isolated contribution to fuel prices only. Other factors (taxes, margin, ETS, retailer discounts) can move independently and aren't captured here. MBIE data updates weekly with a reporting lag; recent weeks may still be revised."
+		lineageTag: 19832cc2-27c0-410e-86c4-851dffaacd08
+
+	measure 'Report1 How Much Short' = ```
+			
+			VAR Branch = [Report1 Branch]
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(ALL(periods), periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date]))))
+			    )
+			VAR SelLag = 
+			    CALCULATE(
+			        MAX(lag_resolved[resolved_lag]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR Slope = 
+			    CALCULATE(
+			        MAX(lag_resolved[resolved_slope]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR LatestDate = CALCULATE(MAX(silver_general[Date]), ALL(silver_general))
+			VAR LagDays = SelLag * 7
+			VAR PriorDate = LatestDate - LagDays
+			VAR CurrentCrude = 
+			    CALCULATE(MAX(silver_general[dubai_crude_nzd]), silver_general[Date] = LatestDate, ALL(silver_general))
+			VAR PriorCrude = 
+			    CALCULATE(MAX(silver_general[dubai_crude_nzd]), silver_general[Date] = PriorDate, ALL(silver_general))
+			VAR ContributionCents = Slope * (CurrentCrude - PriorCrude)
+			RETURN
+			SWITCH(
+			    Branch,
+			    "edge_artifact", "n/a",
+			    "weak", "—",
+			    IF(ContributionCents >= 0, "+ ", "− ") & FORMAT(ABS(ContributionCents), "0.0") & " c/L"
+			)
+			
+			```
+		lineageTag: 34dec99d-465a-406b-88c1-c81310112e5f
+
+	measure Measure
+		lineageTag: b43ae086-714b-4019-aea1-3e793db7c052
+
+		annotation 43dbc3e8-3a1c-4b6f-9923-b49ff7d6691c = True
+
+	measure 'Report1 When Short' = ```
+			
+			VAR Branch = [Report1 Branch]
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(ALL(periods), periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date]))))
+			    )
+			VAR SelLag = 
+			    CALCULATE(
+			        MAX(lag_resolved[resolved_lag]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR Gap = 
+			    CALCULATE(
+			        MAX(lag_resolved[lag_confidence_gap]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR LatestDataDate = CALCULATE(MAX(silver_general[Date]), ALL(silver_general))
+			VAR TargetDate = LatestDataDate + (SelLag * 7)
+			VAR TargetDateEarlier = LatestDataDate + ((SelLag - 1) * 7)
+			RETURN
+			SWITCH(
+			    Branch,
+			    "edge_artifact", "Same week",
+			    "weak", "—",
+			    IF(
+			        Gap < 0.02,
+			        FORMAT(TargetDateEarlier, "d MMM") & "–" & FORMAT(TargetDate, "d MMM"),
+			        FORMAT(TargetDate, "d MMMM")
+			    )
+			)
+			```
+		lineageTag: fb392fcb-58fe-4de2-8b03-503a81e006e2
+
+	measure 'Report1 Strength Short' = ```
+			
+			VAR Branch = [Report1 Branch]
+			VAR SelFuel = SELECTEDVALUE(lag_correlation[fuel])
+			VAR CurrentPeriodId = 
+			    CALCULATE(
+			        SELECTEDVALUE(periods[period_id]),
+			        FILTER(ALL(periods), periods[start_date] = CALCULATE(MAXX(ALL(periods), periods[start_date]), NOT(ISBLANK(periods[start_date]))))
+			    )
+			VAR SelR = 
+			    CALCULATE(
+			        MAX(lag_resolved[resolved_r]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			VAR Prominence = 
+			    CALCULATE(
+			        MAX(lag_resolved[peak_prominence]),
+			        ALL(lag_resolved),
+			        lag_resolved[factor] = "dubai_crude_nzd",
+			        lag_resolved[target] = "adjusted_retail_price",
+			        lag_resolved[fuel] = SelFuel,
+			        lag_resolved[period_id] = CurrentPeriodId
+			    )
+			RETURN
+			SWITCH(
+			    Branch,
+			    "edge_artifact", "Uncertain",
+			    SWITCH(
+			        TRUE(),
+			        ABS(SelR) >= 0.7, "Strong",
+			        ABS(SelR) >= 0.5, "Moderate",
+			        "Weak"
+			    )
+			)
+			```
+		lineageTag: d6093d40-4782-4552-91a4-400fbb03d31f
+
+	measure 'Confidence Color' =
+			
+			VAR Tier = [Report1 Strength Short]
+			RETURN
+			SWITCH(
+			    Tier,
+			    "Strong", "#15803d",
+			    "Moderate", "#b45309",
+			    "Weak", "#dc2626",
+			    "Uncertain", "#dc2626",
+			    "#1a1a1a"
+			)
+		lineageTag: a167bb18-a800-4cda-a9f6-4bfabfa1c48c
+
+	column 'Lag Weeks'
+		formatString: 0
+		lineageTag: 57a2561f-638d-4eec-b226-8e79fd3a63e3
+		summarizeBy: none
+		sourceColumn: [Value]
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 0
+				}
+
+		annotation SummarizationSetBy = User
+
+	partition 'Lag Weeks' = calculated
+		mode: import
+		source = GENERATESERIES(0, 20, 1)
+
+	annotation PBI_Id = 81dece051c784840b7fd342ee99554a5
+
