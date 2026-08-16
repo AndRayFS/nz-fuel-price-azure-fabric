@@ -156,6 +156,9 @@ def report1_ish(d: pd.DataFrame, t: int) -> float:
     return best_slope * (crude[t] - crude[t - best_k])
 
 
+PRICE_AT: dict = {}
+
+
 def main() -> None:
     rows = []
     for fuel in ("Regular Petrol", "Diesel"):
@@ -164,6 +167,8 @@ def main() -> None:
         retail = d.adjusted_retail_price.to_numpy()
         cost = d.importer_cost.to_numpy()
         hi = (d.crude_vol_regime == "high").to_numpy()
+        for i, dt in enumerate(d.index):
+            PRICE_AT[(fuel, dt)] = float(retail[i])
 
         for t in range(MIN_TRAIN, n - max(HORIZONS)):
             b_adl = fit_adl(d, t + 1, with_ecm=False)
@@ -188,6 +193,25 @@ def main() -> None:
 
     res = pd.DataFrame(rows)
     res.to_csv(HERE / "data" / "backtest_results.csv", index=False)
+
+    # Seed for Report 1: one row per (week, fuel, horizon) carrying the price
+    # level the model would have called at that week, beside what happened.
+    # Levels rather than changes because a reader reads a price, not a delta.
+    seed = res.rename(columns={"date": "week_date"}).copy()
+    seed["price_now"] = seed.apply(
+        lambda r: PRICE_AT[(r.fuel, r.week_date)], axis=1)
+    seed["actual_price"] = seed.price_now + seed.actual
+    for m in ("naive", "adl", "adl_ecm", "report1_ish", "full_pass"):
+        seed[f"pred_{m}"] = seed.price_now + seed[m]
+        seed[f"err_{m}"] = seed[f"pred_{m}"] - seed.actual_price
+    seed["target_week"] = seed.week_date + pd.to_timedelta(seed.h * 7, unit="D")
+    keep = (["week_date", "target_week", "fuel", "h", "price_now",
+             "actual_price"]
+            + [f"pred_{m}" for m in ("naive", "adl", "adl_ecm", "report1_ish")]
+            + [f"err_{m}" for m in ("naive", "adl", "adl_ecm", "report1_ish")])
+    out = HERE.parent / "seeds" / "forecast_history.csv"
+    seed[keep].round(4).to_csv(out, index=False)
+    print(f"{len(seed)} rows -> {out}")
     methods = ["naive", "full_pass", "report1_ish", "adl", "adl_ecm"]
 
     for fuel in res.fuel.unique():
