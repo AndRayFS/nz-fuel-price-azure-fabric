@@ -1355,16 +1355,36 @@ Provisional weeks excluded, 2010+.
 
 **Total pass-through — both fuels complete and stable.**
 
-| K | petrol | diesel |
-|---|---|---|
-| 3 | 0.952 | 1.006 |
-| 6 | 1.004 | 1.084 |
-| 9 | 1.070 | 1.104 |
-| 12 | 1.025 | 1.100 |
-| **spread K=3..12** | **0.073** | **0.095** (was 0.324) |
+| K | petrol, Final | petrol, also cut pre-2026 | diesel, Final | diesel, also cut pre-2026 |
+|---|---|---|---|---|
+| 3 | 0.952 | 0.932 | 1.006 | 0.930 |
+| 6 | 1.004 | 0.983 | 1.084 | 1.006 |
+| 9 | 1.070 | 1.047 | 1.104 | 1.020 |
+| 12 | 1.025 | 0.994 | 1.100 | 1.012 |
+| **spread K=3..12** | **0.073** | 0.062 | **0.095** (was 0.324) | 0.082 |
 
-Diesel is fixed. Petrol barely moves (0.078 → 0.073), which is consistent
-with it never having had the problem.
+Diesel is fixed. Petrol barely moves (0.078 → 0.073), consistent with never
+having had the problem.
+
+**`data_status = 'final'` is necessary but not sufficient for a
+*coefficient*.** The labelling thread found that eight Final Feb–Mar 2026
+weeks — six of them not even backfilled — move a regime contrast by a
+factor of three, and advised cutting at 2025-12-31 as well for anything
+quoted as a number rather than a direction. Checked here:
+
+- **Petrol is robust**: the total shifts 0.02–0.03. Quote either.
+- **Diesel moves 0.08**, and it changes the claim. With those weeks the
+  total is 1.006–1.104, entirely *above* one; without them 0.930–1.020,
+  straddling one. **"Pass-through is complete" is the better-supported
+  statement, and it is better supported without those eight weeks** — with
+  them it becomes "more than complete", which is a different claim resting
+  on eight observations.
+- **Error correction is robust either way**: petrol −0.1031 → −0.1050,
+  diesel −0.0938 → −0.1013, half-lives 6.3–7.0 weeks throughout.
+
+So: quote diesel's pass-through as **complete, ~0.93–1.02**, on Final data
+excluding 2026; note that including the eight Final 2026 weeks lifts it
+above one and that this rests on those eight.
 
 **Error correction** — petrol −0.103 (half-life 6.4 weeks), diesel −0.094
 (7.0). Slightly weaker than on the contaminated sample, equally significant
