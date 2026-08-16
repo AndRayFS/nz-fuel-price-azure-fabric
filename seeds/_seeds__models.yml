@@ -60,9 +60,17 @@ seeds:
           - accepted_values:
               arguments:
                 values: ['Regular Petrol', 'Diesel']
-      - name: actual_price
+      # `actual_price` is deliberately NOT tested not_null: the most recent
+      # rows are calls whose target week has not happened yet. That is the
+      # live part of the report, not missing data.
+      - name: price_now
         tests:
           - not_null
+      - name: input_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['final', 'provisional']
 
   - name: variable_mapping
     columns:

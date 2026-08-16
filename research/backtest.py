@@ -86,7 +86,17 @@ def load(fuel: str) -> pd.DataFrame:
     d["d_net"] = d.net.diff()
     d["d_cost"] = d.importer_cost.diff()
     d["d_retail"] = d.adjusted_retail_price.diff()
-    d = d[d.status == "Final"]      # added 16 Aug: never train on unfinalised weeks
+    # Train on Final only, but APPLY everywhere. Those are different things
+    # and conflating them cost the report its last 19 weeks: an earlier
+    # version filtered here, which silently truncated the whole series at
+    # 27 Mar 2026 rather than just keeping provisional weeks out of the fit.
+    #
+    # Applying to provisional weeks is defensible and was checked: the
+    # target (`adjusted_retail_price`) has never been revised in 1,164
+    # weeks, so the forecast's base is solid, and the factor is revised by
+    # ~0.5 c/L, worth ~0.6 c/L of forecast error against a model MAE of
+    # 2.7. Rows carry `input_status` so the report can mark them.
+    d["is_final"] = (d.status == "Final")
     d["dev"] = (d.importer_margin
                 - d.importer_margin.rolling(ECM_WINDOW, min_periods=ECM_WINDOW).mean()
                 ).shift(1)
@@ -104,7 +114,10 @@ def fit_adl(d: pd.DataFrame, upto: int, with_ecm: bool) -> np.ndarray | None:
         cols.append(d.dev.to_numpy())
     X = np.column_stack([np.ones(len(d))] + cols)[:upto]
     y = d.d_net.to_numpy()[:upto]
-    ok = np.isfinite(X).all(axis=1) & np.isfinite(y)
+    # Fit on FINAL rows only — this is the filter that belongs here, rather
+    # than on the whole frame.
+    ok = (np.isfinite(X).all(axis=1) & np.isfinite(y)
+          & d.is_final.to_numpy()[:upto])
     if ok.sum() < MIN_TRAIN:
         return None
     return ols(y[ok], X[ok])
@@ -170,22 +183,26 @@ def main() -> None:
         for i, dt in enumerate(d.index):
             PRICE_AT[(fuel, dt)] = float(retail[i])
 
-        for t in range(MIN_TRAIN, n - max(HORIZONS)):
+        # Run to the end of the data, not to n - max(HORIZONS). The last few
+        # weeks produce a call with no outcome yet — that is the live part of
+        # the report and the reason it exists.
+        is_final = d.is_final.to_numpy()
+        for t in range(MIN_TRAIN, n):
             b_adl = fit_adl(d, t + 1, with_ecm=False)
             b_ecm = fit_adl(d, t + 1, with_ecm=True)
             if b_adl is None:
                 continue
             r1 = report1_ish(d, t)
             for h in HORIZONS:
-                actual = retail[t + h] - retail[t]
-                if not np.isfinite(actual):
-                    continue
+                actual = (retail[t + h] - retail[t]) if t + h < n else np.nan
                 fp = (cost[t] - cost[t - h]) * 1.15 if t - h >= 0 else np.nan
                 a = adl_forecast(d, t, b_adl, h, False)
                 e = (adl_forecast(d, t, b_ecm, h, True)
                      if b_ecm is not None else np.nan)
                 rows.append(dict(
                     fuel=fuel, date=d.index[t], h=h, actual=actual, hi=hi[t],
+                    input_status="final" if is_final[t] else "provisional",
+                    outcome_known=bool(np.isfinite(actual)),
                     naive=0.0, full_pass=fp, report1_ish=r1,
                     adl=a * 1.15 if np.isfinite(a) else np.nan,
                     adl_ecm=e * 1.15 if np.isfinite(e) else np.nan,
@@ -205,8 +222,8 @@ def main() -> None:
         seed[f"pred_{m}"] = seed.price_now + seed[m]
         seed[f"err_{m}"] = seed[f"pred_{m}"] - seed.actual_price
     seed["target_week"] = seed.week_date + pd.to_timedelta(seed.h * 7, unit="D")
-    keep = (["week_date", "target_week", "fuel", "h", "price_now",
-             "actual_price"]
+    keep = (["week_date", "target_week", "fuel", "h", "input_status",
+             "outcome_known", "price_now", "actual_price"]
             + [f"pred_{m}" for m in ("naive", "adl", "adl_ecm", "report1_ish")]
             + [f"err_{m}" for m in ("naive", "adl", "adl_ecm", "report1_ish")])
     out = HERE.parent / "seeds" / "forecast_history.csv"
@@ -214,10 +231,14 @@ def main() -> None:
     print(f"{len(seed)} rows -> {out}")
     methods = ["naive", "full_pass", "report1_ish", "adl", "adl_ecm"]
 
-    for fuel in res.fuel.unique():
-        for label, sub in (("ALL", res[res.fuel == fuel]),
-                           ("non-crisis", res[(res.fuel == fuel) & ~res.hi]),
-                           ("crisis", res[(res.fuel == fuel) & res.hi])):
+    # Accuracy tables only over weeks whose outcome is known. The most
+    # recent rows are calls without an outcome yet - the live part of the
+    # report - and averaging them in would silently drop them anyway.
+    ev = res[res.outcome_known]
+    for fuel in ev.fuel.unique():
+        for label, sub in (("ALL", ev[ev.fuel == fuel]),
+                           ("non-crisis", ev[(ev.fuel == fuel) & ~ev.hi]),
+                           ("crisis", ev[(ev.fuel == fuel) & ev.hi])):
             print(f"\n{fuel} — {label}")
             print(f"  {'h':>2} {'n':>5} " + "".join(f"{m:>13}" for m in methods))
             for h in HORIZONS:

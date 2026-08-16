@@ -22,6 +22,8 @@ with base as (
         target_week,
         fuel,
         h                                    as horizon_weeks,
+        input_status,
+        outcome_known,
         price_now,
         actual_price,
         pred_adl,
@@ -47,7 +49,9 @@ rolled as (
         avg(abs_err_report1) over (
             partition by fuel, horizon_weeks order by week_date
             rows between 25 preceding and current row) as mae_report1_26w,
-        count(*) over (
+        -- count the ERRORS, not the rows: the newest rows have no outcome
+        -- yet and must not make a window look full when it is not.
+        count(abs_err_naive) over (
             partition by fuel, horizon_weeks order by week_date
             rows between 25 preceding and current row) as window_n
     from base
