@@ -1344,6 +1344,59 @@ fishing, petrol to private cars.
   national diesel volume. Nothing in this dataset can confirm or refute a
   contract-pricing explanation.
 
+## The diesel instability is Provisional data, not the crisis - 16 Aug 2026
+
+Everything below about diesel's pass-through creeping with lag length was
+attributed to the 2026 episode. That attribution is wrong. The instability
+lives in the 19 weeks that MBIE has not yet marked Final.
+
+`dbo.mbie_revisions` carries the Status field: **Final covers 1,145 weeks
+to 27 Mar 2026; Provisional covers 19 weeks, 3 Apr - 7 Aug 2026.** So the
+violent part of the episode - the 13 Mar margin trough at -12.4 c/L, the
+20 Mar crude peak at 267 NZD/bbl - is Final data. Splitting on that line:
+
+| diesel, 2010+ | n | K=3 | K=6 | K=12 | spread |
+|---|---|---|---|---|---|
+| everything | 867 | 0.851 | 0.916 | 1.177 | **0.326** |
+| **minus the 19 Provisional weeks** | 848 | 1.006 | 1.084 | 1.100 | **0.098** |
+| minus the Final crisis weeks (Feb-Mar) | 859 | 0.796 | 0.916 | 1.108 | 0.312 |
+| minus the whole 2026 episode | 840 | 0.928 | 1.004 | 1.012 | 0.096 |
+
+**Dropping the 19 unfinalised weeks does the same work as dropping the
+entire 27-week episode** (0.098 against 0.096), while dropping the fiercest
+weeks of the crisis does almost nothing (0.312 against 0.326). Petrol shows
+no pattern on any split, consistent with never having had the problem.
+
+**What this retracts.** "Diesel's creep is the 2026 crisis, and only that"
+was measured correctly and interpreted wrongly - the episode and the
+provisional stretch overlap, and the crisis was the more interesting story,
+so it got the credit. The correct statement is narrower and duller: **weeks
+that have not been finalised destabilise the estimate.** By extension,
+"2026 differs from the other crises" is not established; what differs is
+data that is not yet finished. The n=1 observation survives only as a claim
+about episode *magnitude*, which was never in dispute.
+
+**What is NOT established: why.** Two local tests were run first and both
+came back inconclusive, so the mechanism is unknown. Roughness
+(sd of second differences over sd of first) makes the Final part of the
+episode *smoother* than the Provisional part, 0.61 against 0.91 - the
+opposite of an interpolation story, and on only 8 observations. Deviation
+from the midpoint of neighbouring weeks makes 2026 markedly *rougher* than
+history, 2.008 and 0.881 against 0.539, when naive interpolation would make
+it smoother. **Neither segment looks interpolated.** Whatever makes
+provisional weeks behave differently, it is not the smoothing mechanism
+that was hypothesised.
+
+Recorded that way deliberately: the diagnosis is confirmed at the level of
+*which weeks*, and unproven at the level of *why*. This is exactly the
+place where a data-quality explanation could absorb every unexplained
+result if allowed to, so it is held to what was actually shown.
+
+**Process rule going forward.** Exclude Provisional weeks from estimation,
+or report with and without. Excluding them, diesel's pass-through is 1.006
+to 1.100 across K=3-12 - complete and stable, matching petrol. The headline
+result is unaffected and slightly cleaner.
+
 ## "Crisis" means four different things in this project. Say which.
 
 Written 15 Aug 2026 after the word was used in three senses in one
