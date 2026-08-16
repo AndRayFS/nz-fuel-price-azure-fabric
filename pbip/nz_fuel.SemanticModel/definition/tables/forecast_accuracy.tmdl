@@ -83,10 +83,10 @@ table forecast_accuracy
 	/// Drives the strip under the price chart. Marks a week that is either volatile or not yet finalised - the two things a reader has to know before trusting a point. Keyed on the week the call was made.
 	measure 'Timeline Band' =
 
-			VAR Vol = SELECTEDVALUE(forecast_accuracy[crude_vol_regime])
-			VAR Status = SELECTEDVALUE(forecast_accuracy[input_status])
+			VAR VolRegime = SELECTEDVALUE(forecast_accuracy[crude_vol_regime])
+			VAR InputState = SELECTEDVALUE(forecast_accuracy[input_status])
 			RETURN
-			IF(Vol = "high" || Status = "provisional", 1)
+			IF(VolRegime = "high" || InputState = "provisional", 1)
 		formatString: 0
 		lineageTag: d6b05b87-d5c8-4a8c-9019-7e9ba61b11d2
 
