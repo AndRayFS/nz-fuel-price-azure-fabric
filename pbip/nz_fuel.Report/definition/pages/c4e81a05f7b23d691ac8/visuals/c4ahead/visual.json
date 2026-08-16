@@ -3,9 +3,9 @@
   "name": "c4ahead",
   "position": {
     "x": 964,
-    "y": 96,
+    "y": 116,
     "z": 203,
-    "height": 76,
+    "height": 92,
     "width": 306,
     "tabOrder": 203
   },
@@ -32,6 +32,42 @@
           ]
         }
       }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Weeks the model led naive'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "heading": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Normal'"
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "drillFilterOtherVisuals": true
   }
