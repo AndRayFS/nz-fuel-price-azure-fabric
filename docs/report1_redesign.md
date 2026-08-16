@@ -127,9 +127,17 @@ DIVIDE (
                 NOT ISBLANK ( forecast_accuracy[skill_26w] ) )
 )
 
-Forecast Error = SUM ( forecast_accuracy[pred_adl_ecm] )
-               - SUM ( forecast_accuracy[actual_price] )
+Forecast Error =
+VAR Actual = SUM ( forecast_accuracy[actual_price] )
+VAR Called = SUM ( forecast_accuracy[pred_adl_ecm] )
+RETURN
+IF ( NOT ISBLANK ( Actual ), Called - Actual )
 ```
+
+`Forecast Error` needs that guard. A plain subtraction returns `Called − BLANK`,
+which DAX evaluates as `Called − 0` — so the three weeks that have no outcome
+yet would each plot a column of roughly 250 c/L and dwarf every real error on
+the chart. The guard is what makes the pending weeks absent rather than absurd.
 
 Keep a single `horizon_weeks` selected in the slicer; averaging skill
 across horizons mixes three different questions.
