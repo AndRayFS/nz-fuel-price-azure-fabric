@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "c4ahead",
+  "position": {
+    "x": 964,
+    "y": 96,
+    "z": 203,
+    "height": 76,
+    "width": 306,
+    "tabOrder": 203
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "Weeks Model Ahead %"
+                }
+              },
+              "queryRef": "forecast_accuracy.Weeks Model Ahead %",
+              "nativeQueryRef": "Weeks Model Ahead %"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

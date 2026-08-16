@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "c2mae",
+  "position": {
+    "x": 328,
+    "y": 96,
+    "z": 201,
+    "height": 76,
+    "width": 306,
+    "tabOrder": 201
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "Model MAE 26w"
+                }
+              },
+              "queryRef": "forecast_accuracy.Model MAE 26w",
+              "nativeQueryRef": "Model MAE 26w"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

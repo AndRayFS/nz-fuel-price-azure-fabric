@@ -42,6 +42,55 @@ table forecast_accuracy
 		formatString: 0.00
 		lineageTag: b28070c8-b777-4dd7-9a73-0f1f6da40e0f
 
+	/// What the pump price actually was at the target week. Blank for the three weeks that have not arrived.
+	measure 'Actual Price' = AVERAGE(forecast_accuracy[actual_price])
+		formatString: 0.0
+		lineageTag: 29d45101-b648-4d68-833d-73b06af1b44b
+
+	/// What the model would have indicated for that week, refitting on data available then. AVERAGE not SUM: with one fuel and one horizon selected there is exactly one row per week, and AVERAGE degrades gracefully if a slicer is widened instead of silently adding two fuels together.
+	measure 'Model Call' = AVERAGE(forecast_accuracy[pred_adl_ecm])
+		formatString: 0.0
+		lineageTag: 6dfcf04a-7812-474f-8407-46e3d82e83b1
+
+	/// The benchmark: "the price won't change".
+	measure 'Naive Call' = AVERAGE(forecast_accuracy[pred_naive])
+		formatString: 0.0
+		lineageTag: cdf98303-a7bc-473c-9b35-6efc9f66cefa
+
+	/// Column fill for the error chart. Red where the model would have called the week high, teal where low.
+	measure 'Error Colour' =
+
+			IF(ISBLANK([Forecast Error]), BLANK(), IF([Forecast Error] >= 0, "#ef4444", "#0d9488"))
+		lineageTag: d60649f7-0257-4d92-bfb6-8c7205002324
+
+	/// Split in two so the area above zero can be green and the area below red. Power BI cannot fill one series by sign, and two series that never overlap read as one shape.
+	measure 'Skill Above Zero' =
+
+			VAR s = [Skill]
+			RETURN
+			IF(s > 0, s)
+		formatString: 0.000
+		lineageTag: 157f54a3-eced-4a3c-9f0e-6f00a25b6707
+
+	measure 'Skill Below Zero' =
+
+			VAR s = [Skill]
+			RETURN
+			IF(s < 0, s)
+		formatString: 0.000
+		lineageTag: 82906c20-64a7-4336-bf9d-b53139d4ec05
+
+	/// Drives the volatility strip under the price chart: 1 in a high-volatility week, blank otherwise. Keyed on the week the call was made, which is what crude_vol_regime describes.
+	measure 'High Volatility Week' =
+
+			IF(SELECTEDVALUE(forecast_accuracy[crude_vol_regime]) = "high", 1)
+		formatString: 0
+		lineageTag: d6b05b87-d5c8-4a8c-9019-7e9ba61b11d2
+
+	/// Named episode behind a volatile stretch, for the strip's tooltip.
+	measure 'Episode' = SELECTEDVALUE(forecast_accuracy[crude_episode_id])
+		lineageTag: 1d25dfa1-1e4e-4049-8168-d459ff54fdfd
+
 	column week_date
 		dataType: dateTime
 		formatString: Long Date
