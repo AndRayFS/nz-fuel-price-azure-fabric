@@ -1386,6 +1386,38 @@ So: quote diesel's pass-through as **complete, ~0.93–1.02**, on Final data
 excluding 2026; note that including the eight Final 2026 weeks lifts it
 above one and that this rests on those eight.
 
+**Can the rest of the sample corroborate what those eight weeks imply?
+No — checked, and the answer argues against the reading.** The obvious
+hypothesis is that pass-through exceeds 100% at extreme intensity, which
+would make the eight weeks real behaviour rather than contamination. If so,
+an intensity gradient fitted on earlier high-volatility weeks should point
+that way. The labelling thread fitted one and found the two fuels
+extrapolate in **opposite** directions (diesel to 1.099, petrol to 0.869)
+from the same specification on the same sample. Binning by intensity
+tercile instead, and replicated here independently:
+
+| tercile | mean vol | Σβ petrol | Σβ diesel |
+|---|---|---|---|
+| low | 0.053 | 0.598 | 0.942 |
+| **mid** | 0.067 | **1.318** | **1.095** |
+| high | 0.116 | 1.000 | 0.980 |
+
+**Non-monotone in both fuels, with the middle tercile the outlier rather
+than the highest.** The peer's run of the same test gives 0.715 / 1.568 /
+0.620 and 0.750 / 1.182 / 0.829 — the same shape, but magnitudes differing
+by 0.15–0.38, the difference being only whether the sample is restricted to
+2010+. Bins of 27–36 observations against 6 parameters swing that much on a
+sample-boundary choice.
+
+So there is no stable intensity gradient to extrapolate from, and the
+significant continuous interaction is fitting a few influential weeks
+rather than a trend. **The hypothesis rests on the eight weeks alone and
+cannot be supported from the other 22 years in either direction.** It needs
+those weeks to finalise, not more modelling. That is why "complete" is the
+right headline: not because the eight weeks are wrong, but because nothing
+else in the record corroborates what they would imply — which is now known
+specifically rather than assumed by default.
+
 **Error correction** — petrol −0.103 (half-life 6.4 weeks), diesel −0.094
 (7.0). Slightly weaker than on the contaminated sample, equally significant
 (t −5.6 and −5.1).
