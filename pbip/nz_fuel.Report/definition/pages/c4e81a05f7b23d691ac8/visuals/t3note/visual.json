@@ -3,9 +3,9 @@
   "name": "t3note",
   "position": {
     "x": 960,
-    "y": 530,
+    "y": 522,
     "z": 120,
-    "height": 182,
+    "height": 190,
     "width": 310,
     "tabOrder": 120
   },
@@ -27,7 +27,7 @@
                     }
                   },
                   {
-                    "value": "Where the black line stops, the teal one continues: those weeks' calls are made, the week has not happened.\n\n",
+                    "value": "Where the black line stops, the teal one carries on: those calls are made, the week has not happened.\n\n",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "9pt",
@@ -35,7 +35,7 @@
                     }
                   },
                   {
-                    "value": "In high-volatility weeks the model keeps its edge, but every method's error roughly doubles. A crisis does not make the model less useful than the alternative — it makes precision unavailable to anybody.\n\n",
+                    "value": "The strip marks weeks of high crude volatility in amber, and weeks whose inputs MBIE has not finalised in grey. Provisional inputs can still be revised.\n\n",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "9pt",
@@ -43,7 +43,15 @@
                     }
                   },
                   {
-                    "value": "Skill below zero means the naive benchmark was doing better over that stretch. Those runs are part of the record, not noise to be smoothed away.",
+                    "value": "Through the 2026 crisis diesel's error ran about seven times its calm-week level — not double, as the 13-year regime averages suggest. The model still led the naive benchmark throughout: a crisis does not make it less useful than the alternative, it makes precision unavailable to anybody.\n\n",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9pt",
+                      "color": "#1a1a1a"
+                    }
+                  },
+                  {
+                    "value": "Cards average the rolling 26-week columns across the weeks you have selected, so the MAE pair will not reproduce Skill by division — the mean of ratios is not the ratio of means.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "9pt",

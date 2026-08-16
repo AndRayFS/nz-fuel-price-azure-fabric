@@ -40,7 +40,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Model error, c/L'"
+                  "Value": "'Model error c/L, avg of 26w windows'"
                 }
               }
             },

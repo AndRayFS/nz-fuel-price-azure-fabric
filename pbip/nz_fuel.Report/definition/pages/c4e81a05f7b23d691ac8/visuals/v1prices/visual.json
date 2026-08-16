@@ -5,7 +5,7 @@
     "x": 10,
     "y": 214,
     "z": 300,
-    "height": 196,
+    "height": 176,
     "width": 940,
     "tabOrder": 300
   },
@@ -208,8 +208,13 @@
           "properties": {
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'What the model would have indicated, against what happened (c/L)'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "Price Chart Title"
                 }
               }
             },

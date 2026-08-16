@@ -3,9 +3,9 @@
   "name": "v2regime",
   "position": {
     "x": 10,
-    "y": 414,
+    "y": 394,
     "z": 310,
-    "height": 30,
+    "height": 44,
     "width": 940,
     "tabOrder": 310
   },
@@ -42,11 +42,11 @@
                       "Entity": "forecast_accuracy"
                     }
                   },
-                  "Property": "High Volatility Week"
+                  "Property": "Timeline Band"
                 }
               },
-              "queryRef": "forecast_accuracy.High Volatility Week",
-              "nativeQueryRef": "High Volatility Week"
+              "queryRef": "forecast_accuracy.Timeline Band",
+              "nativeQueryRef": "Timeline Band"
             }
           ]
         },
@@ -65,6 +65,20 @@
               },
               "queryRef": "forecast_accuracy.Episode",
               "nativeQueryRef": "Episode"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "Input Status"
+                }
+              },
+              "queryRef": "forecast_accuracy.Input Status",
+              "nativeQueryRef": "Input Status"
             }
           ]
         }
@@ -96,8 +110,13 @@
               "solid": {
                 "color": {
                   "expr": {
-                    "Literal": {
-                      "Value": "'#f59e0b'"
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "forecast_accuracy"
+                        }
+                      },
+                      "Property": "Timeline Band Colour"
                     }
                   }
                 }
@@ -179,7 +198,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'High-volatility weeks'"
+                  "Value": "'Amber: high crude volatility. Grey: inputs not yet finalised by MBIE'"
                 }
               }
             },

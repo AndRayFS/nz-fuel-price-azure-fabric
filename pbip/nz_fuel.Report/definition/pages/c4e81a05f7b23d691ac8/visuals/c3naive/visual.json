@@ -40,7 +40,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Naive error, c/L'"
+                  "Value": "'Naive error c/L, avg of 26w windows'"
                 }
               }
             },
