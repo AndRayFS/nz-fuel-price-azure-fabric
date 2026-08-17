@@ -1,0 +1,7 @@
+# The pbip project round-trips through Power BI Desktop on a Windows VM, which
+# rewrites every file it touches with CRLF. Without this, one Save As returned
+# a 3,800-line diff for three real edits and buried them.
+#
+# Store LF in the repo and check out LF: Desktop reads either, and a diff that
+# shows only what changed is the whole reason the report lives here as text.
+pbip/** text=auto eol=lf
