@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "x4ahead",
   "position": {
-    "x": 967,
-    "y": 176,
+    "x": 958.608695652174,
+    "y": 76.05795686141305,
     "z": 150,
-    "height": 38,
-    "width": 307,
+    "height": 53.33334748641305,
+    "width": 307.4782608695652,
     "tabOrder": 150
   },
   "visual": {
@@ -53,8 +53,35 @@
             }
           }
         }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
       ]
     },
     "drillFilterOtherVisuals": true
-  }
+  },
+  "parentGroupName": "1fe0c93e11e3454607c7"
 }

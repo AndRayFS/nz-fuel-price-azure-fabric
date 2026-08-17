@@ -3,10 +3,10 @@
   "name": "t3note",
   "position": {
     "x": 960,
-    "y": 637.21739130434787,
+    "y": 648.3478260869565,
     "z": 2000,
-    "height": 322.78260869565219,
-    "width": 310.26086956521738,
+    "height": 311.6521739130435,
+    "width": 310.2608695652174,
     "tabOrder": 2000
   },
   "visual": {
@@ -31,7 +31,41 @@
               {
                 "textRuns": [
                   {
-                    "value": "Where the black line stops, the teal one carries on: those calls are made, the week has not happened.",
+                    "value": "Where the ",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9pt",
+                      "color": "#1a1a1a"
+                    }
+                  },
+                  {
+                    "value": "black ",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9pt",
+                      "color": "#1a1a1a"
+                    }
+                  },
+                  {
+                    "value": "line stops, the ",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9pt",
+                      "color": "#1a1a1a"
+                    }
+                  },
+                  {
+                    "value": "blue ",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9pt",
+                      "color": "#0ea5e9"
+                    }
+                  },
+                  {
+                    "value": "one carries on: those calls are made, the week has not happened.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "9pt",
@@ -129,6 +163,19 @@
               "expr": {
                 "Literal": {
                   "Value": "92D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }

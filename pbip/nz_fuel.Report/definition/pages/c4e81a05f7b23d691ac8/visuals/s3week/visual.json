@@ -5,8 +5,8 @@
     "x": 960,
     "y": 528.695652173913,
     "z": 8000,
-    "height": 102.95652173913044,
-    "width": 310.26086956521738,
+    "height": 117.79712975543478,
+    "width": 310.2608695652174,
     "tabOrder": 8000
   },
   "visual": {
@@ -181,6 +181,19 @@
               "expr": {
                 "Literal": {
                   "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }
