@@ -251,7 +251,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Skill against the naive benchmark, trailing 26 weeks. Above zero the model is ahead'"
+                  "Value": "'Less error than the naive benchmark, trailing 26 weeks. Above zero the model is ahead'"
                 }
               }
             },

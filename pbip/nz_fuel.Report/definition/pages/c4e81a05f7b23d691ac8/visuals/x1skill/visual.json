@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "0 means no better than assuming the price won't change. 0.2 means a fifth less error than that.",
+                    "value": "0% means no better than assuming the price won't change. Below zero the model had more error than that.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "8pt",
