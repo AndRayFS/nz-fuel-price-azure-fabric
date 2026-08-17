@@ -2,12 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "c4ahead",
   "position": {
-    "x": 959.322043777681,
+    "x": 959.0629077738871,
     "y": 0,
     "z": 3000,
-    "height": 82.813082943240786,
-    "width": 307.10700575141908,
-    "tabOrder": 3000
+    "height": 80.82267842141306,
+    "width": 307.02404874785213
   },
   "visual": {
     "visualType": "cardVisual",
@@ -206,6 +205,19 @@
         }
       ],
       "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
         {
           "properties": {
             "show": {

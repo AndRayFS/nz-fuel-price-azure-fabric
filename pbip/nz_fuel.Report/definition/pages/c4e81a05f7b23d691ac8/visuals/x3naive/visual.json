@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "x3naive",
   "position": {
-    "x": 648,
-    "y": 176,
+    "x": 645.5652173913044,
+    "y": 76.52173913043478,
     "z": 150,
-    "height": 38,
-    "width": 307,
+    "height": 50.08695652173913,
+    "width": 297.7391304347826,
     "tabOrder": 150
   },
   "visual": {
@@ -53,8 +53,35 @@
             }
           }
         }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
       ]
     },
     "drillFilterOtherVisuals": true
-  }
+  },
+  "parentGroupName": "1fe0c93e11e3454607c7"
 }

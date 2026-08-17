@@ -2,8 +2,6 @@ table forecast_accuracy
 	lineageTag: c247b326-93c8-470a-bf56-06a81d7a6cc1
 
 	/// 1 - (model error / naive error) over the trailing 26 weeks. Above zero means the model beat "the price won't move". Null until 26 weeks of outcomes exist, and blank is honest here - do not coalesce it to zero.
-	///
-	/// Shown as a percentage: a skill score is conventionally quoted either way, and "16.3% less error than assuming no change" needs no explaining where "0.163" does. The negative tail reads correctly too - -98% is 98% MORE error than the benchmark - but it is unbounded below, so a very bad window can print a number past -100%.
 	measure Skill = AVERAGE(forecast_accuracy[skill_26w])
 		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 1e392f06-e54b-473a-a4f3-bab27292791d
@@ -61,36 +59,9 @@ table forecast_accuracy
 
 	/// Column fill for the error chart. Red where the model would have called the week high, blue where low - the same blue the model's line carries above.
 	measure 'Error Colour' =
-
+			
 			IF(ISBLANK([Forecast Error]), BLANK(), IF([Forecast Error] >= 0, "#ef4444", "#0ea5e9"))
 		lineageTag: d60649f7-0257-4d92-bfb6-8c7205002324
-
-	/// Zero on every week that carries a call, blank never - and that is the whole job.
-	///
-	/// The three charts share one axis field but not one axis RANGE: the price chart
-	/// runs to the last call (28 Aug), while error and skill stop at the last week
-	/// whose outcome exists. Power BI sizes each axis to the data it has, so on a
-	/// short window the lower charts were drawn narrower and their columns no longer
-	/// sat under the weeks they belong to. Adding this as a second series extends
-	/// their domain to match without inventing an error or a skill value: a column of
-	/// height zero draws nothing.
-	measure 'Axis Anchor' =
-
-			IF(NOT ISBLANK([Model Call]), 0)
-		formatString: 0
-		lineageTag: 273bafc6-941f-43ee-adef-1e3ba79a7c7b
-
-	/// Pump-nozzle colours, carried over from the old Report 1 so the buttons look the way readers already know: green for 91, yellow for 95, grey for diesel.
-	measure 'Fuel Colour' =
-
-			SWITCH(
-			    SELECTEDVALUE(forecast_accuracy[fuel]),
-			    "Regular Petrol", "#40B54A",
-			    "Premium Petrol 95R", "#F7EC14",
-			    "Diesel", "#cccccc",
-			    "#6b7280"
-			)
-		lineageTag: 8c698132-7689-4030-b58e-f9d67520d2b4
 
 	/// Split in two so the area above zero can be blue and the area below red. Power BI cannot fill one series by sign, and two series that never overlap read as one shape.
 	measure 'Skill Above Zero' =
@@ -144,6 +115,33 @@ table forecast_accuracy
 	/// Named episode behind a volatile stretch, for the strip's tooltip.
 	measure Episode = SELECTEDVALUE(forecast_accuracy[crude_episode_id])
 		lineageTag: 1d25dfa1-1e4e-4049-8168-d459ff54fdfd
+
+	/// Zero on every week that carries a call, blank never - and that is the whole job.
+	/// 
+	/// The three charts share one axis field but not one axis RANGE: the price chart
+	/// runs to the last call (28 Aug), while error and skill stop at the last week
+	/// whose outcome exists. Power BI sizes each axis to the data it has, so on a
+	/// short window the lower charts were drawn narrower and their columns no longer
+	/// sat under the weeks they belong to. Adding this as a second series extends
+	/// their domain to match without inventing an error or a skill value: a column of
+	/// height zero draws nothing.
+	measure 'Axis Anchor' =
+			
+			IF(NOT ISBLANK([Model Call]), 0)
+		formatString: 0
+		lineageTag: 273bafc6-941f-43ee-adef-1e3ba79a7c7b
+
+	/// Pump-nozzle colours, carried over from the old Report 1 so the buttons look the way readers already know: green for 91, yellow for 95, grey for diesel.
+	measure 'Fuel Colour' =
+			
+			SWITCH(
+			    SELECTEDVALUE(forecast_accuracy[fuel]),
+			    "Regular Petrol", "#40B54A",
+			    "Premium Petrol 95R", "#F7EC14",
+			    "Diesel", "#cccccc",
+			    "#6b7280"
+			)
+		lineageTag: 8c698132-7689-4030-b58e-f9d67520d2b4
 
 	column week_date
 		dataType: dateTime

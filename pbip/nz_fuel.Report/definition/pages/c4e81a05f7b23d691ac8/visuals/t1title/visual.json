@@ -3,9 +3,9 @@
   "name": "t1title",
   "position": {
     "x": 10.394766523798783,
-    "y": 6.2368599142792691,
+    "y": 6.236859914279269,
     "z": 0,
-    "height": 53.013309271373792,
+    "height": 53.01330927137379,
     "width": 1259.8457026844123,
     "tabOrder": 0
   },
@@ -55,6 +55,19 @@
               "expr": {
                 "Literal": {
                   "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }

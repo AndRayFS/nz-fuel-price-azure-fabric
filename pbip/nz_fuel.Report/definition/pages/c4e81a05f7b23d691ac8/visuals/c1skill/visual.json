@@ -5,9 +5,8 @@
     "x": 0,
     "y": 0,
     "z": 0,
-    "height": 83.15813219039026,
-    "width": 307.1070057514191,
-    "tabOrder": 0
+    "height": 81.15943444293478,
+    "width": 307.02404874785213
   },
   "visual": {
     "visualType": "cardVisual",
@@ -293,6 +292,19 @@
         }
       ],
       "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
         {
           "properties": {
             "show": {

@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "t2caveat",
   "position": {
-    "x": 11.43424317617866,
-    "y": 66.5265057523122,
+    "x": 11.130434782608695,
+    "y": 59.82608695652174,
     "z": 1000,
-    "height": 27.026392961876834,
-    "width": 1258.8062260320326,
+    "height": 25.043478260869566,
+    "width": 1259.1304347826087,
     "tabOrder": 1000
   },
   "visual": {
@@ -55,6 +55,19 @@
         }
       ],
       "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
         {
           "properties": {
             "show": {
