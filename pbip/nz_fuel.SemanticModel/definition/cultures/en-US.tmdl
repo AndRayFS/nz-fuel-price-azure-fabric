@@ -1,2 +1,53 @@
 cultureInfo en-US
 
+	linguisticMetadata =
+			{
+			  "Version": "2.0.0",
+			  "Language": "en-US",
+			  "Entities": {
+			    "forecast_accuracy.fuel": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "fuel"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Fuel": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.horizon_weeks": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "horizon_weeks"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Weeks ahead": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    }
+			  }
+			}
+		contentType: json
+

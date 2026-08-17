@@ -10,13 +10,13 @@
       "nodes": [
         {
           "location": {
-            "x": 1805.3830500146937,
-            "y": 166.49627769489967
+            "x": 638.16081719609008,
+            "y": 0
           },
           "nodeIndex": "forecast_accuracy",
           "nodeLineageTag": "c247b326-93c8-470a-bf56-06a81d7a6cc1",
           "size": {
-            "height": 300,
+            "height": 1000,
             "width": 234
           },
           "zIndex": 0

@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "v4skill",
   "position": {
-    "x": 10,
-    "y": 584,
-    "z": 330,
-    "height": 128,
-    "width": 940,
-    "tabOrder": 330
+    "x": 11.130434782608695,
+    "y": 751.304347826087,
+    "z": 5000,
+    "height": 208.69565217391303,
+    "width": 940.5217391304348,
+    "tabOrder": 5000
   },
   "visual": {
     "visualType": "areaChart",
@@ -23,11 +23,11 @@
                       "Entity": "forecast_accuracy"
                     }
                   },
-                  "Property": "target_week"
+                  "Property": "Target week"
                 }
               },
               "queryRef": "forecast_accuracy.target_week",
-              "nativeQueryRef": "target_week",
+              "nativeQueryRef": "Target week",
               "active": true
             }
           ]
@@ -61,6 +61,20 @@
               },
               "queryRef": "forecast_accuracy.Skill Below Zero",
               "nativeQueryRef": "Skill Below Zero"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "Axis Anchor"
+                }
+              },
+              "queryRef": "forecast_accuracy.Axis Anchor",
+              "nativeQueryRef": "Axis Anchor"
             }
           ]
         }
@@ -75,7 +89,7 @@
                     "Entity": "forecast_accuracy"
                   }
                 },
-                "Property": "target_week"
+                "Property": "Target week"
               }
             },
             "direction": "Ascending"
@@ -93,7 +107,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#0d9488'"
+                      "Value": "'#0ea5e9'"
                     }
                   }
                 }
@@ -120,6 +134,24 @@
           },
           "selector": {
             "metadata": "forecast_accuracy.Skill Below Zero"
+          }
+        },
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#ffffff'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "forecast_accuracy.Axis Anchor"
           }
         }
       ],
@@ -189,6 +221,19 @@
         {
           "properties": {
             "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "valueAxis": [
+        {
+          "properties": {
+            "showAxisTitle": {
               "expr": {
                 "Literal": {
                   "Value": "false"

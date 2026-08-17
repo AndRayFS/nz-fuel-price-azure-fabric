@@ -3,11 +3,11 @@
   "name": "s3week",
   "position": {
     "x": 960,
-    "y": 402,
-    "z": 400,
-    "height": 116,
-    "width": 310,
-    "tabOrder": 400
+    "y": 528.695652173913,
+    "z": 8000,
+    "height": 102.95652173913044,
+    "width": 310.26086956521738,
+    "tabOrder": 8000
   },
   "visual": {
     "visualType": "slicer",
@@ -23,11 +23,11 @@
                       "Entity": "forecast_accuracy"
                     }
                   },
-                  "Property": "target_week"
+                  "Property": "Target week"
                 }
               },
               "queryRef": "forecast_accuracy.target_week",
-              "nativeQueryRef": "target_week",
+              "nativeQueryRef": "Target week",
               "active": true
             }
           ]
@@ -38,10 +38,106 @@
       "data": [
         {
           "properties": {
+            "startDate": {
+              "expr": {
+                "Literal": {
+                  "Value": "datetime'2026-01-01T00:00:00'"
+                }
+              }
+            },
             "mode": {
               "expr": {
                 "Literal": {
                   "Value": "'Between'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "filter": {
+              "filter": {
+                "Version": 2,
+                "From": [
+                  {
+                    "Name": "f",
+                    "Entity": "forecast_accuracy",
+                    "Type": 0
+                  }
+                ],
+                "Where": [
+                  {
+                    "Condition": {
+                      "Comparison": {
+                        "ComparisonKind": 2,
+                        "Left": {
+                          "Column": {
+                            "Expression": {
+                              "SourceRef": {
+                                "Source": "f"
+                              }
+                            },
+                            "Property": "Target week"
+                          }
+                        },
+                        "Right": {
+                          "Literal": {
+                            "Value": "datetime'2026-01-01T00:00:00'"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "date": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9.9D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "header": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "14D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'''Segoe UI Semibold'', wf_segoe-ui_semibold, helvetica, arial, sans-serif'"
+                }
+              }
+            },
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }
@@ -56,7 +152,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Weeks shown'"
+                  "Value": "'Target week'"
                 }
               }
             },
@@ -78,6 +174,13 @@
               "expr": {
                 "Literal": {
                   "Value": "'Normal'"
+                }
+              }
+            },
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
                 }
               }
             }

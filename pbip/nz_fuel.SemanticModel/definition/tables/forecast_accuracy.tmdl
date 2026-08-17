@@ -18,7 +18,7 @@ table forecast_accuracy
 
 	/// Share of weeks where the model led naive. Denominator counts only weeks with a full window, so early history is excluded rather than scored as a loss.
 	measure 'Weeks Model Ahead %' =
-
+			
 			DIVIDE(
 			    CALCULATE(
 			        COUNTROWS(forecast_accuracy),
@@ -34,7 +34,7 @@ table forecast_accuracy
 
 	/// Signed: positive means the model would have called the week high. Guarded, because a plain subtraction reads a missing outcome as zero and would draw the three pending weeks as a ~250 c/L error.
 	measure 'Forecast Error' =
-
+			
 			VAR Actual = SUM(forecast_accuracy[actual_price])
 			VAR Called = SUM(forecast_accuracy[pred_adl_ecm])
 			RETURN
@@ -57,15 +57,42 @@ table forecast_accuracy
 		formatString: 0.0
 		lineageTag: cdf98303-a7bc-473c-9b35-6efc9f66cefa
 
-	/// Column fill for the error chart. Red where the model would have called the week high, teal where low.
+	/// Column fill for the error chart. Red where the model would have called the week high, blue where low - the same blue the model's line carries above.
 	measure 'Error Colour' =
 
-			IF(ISBLANK([Forecast Error]), BLANK(), IF([Forecast Error] >= 0, "#ef4444", "#0d9488"))
+			IF(ISBLANK([Forecast Error]), BLANK(), IF([Forecast Error] >= 0, "#ef4444", "#0ea5e9"))
 		lineageTag: d60649f7-0257-4d92-bfb6-8c7205002324
+
+	/// Zero on every week that carries a call, blank never - and that is the whole job.
+	///
+	/// The three charts share one axis field but not one axis RANGE: the price chart
+	/// runs to the last call (28 Aug), while error and skill stop at the last week
+	/// whose outcome exists. Power BI sizes each axis to the data it has, so on a
+	/// short window the lower charts were drawn narrower and their columns no longer
+	/// sat under the weeks they belong to. Adding this as a second series extends
+	/// their domain to match without inventing an error or a skill value: a column of
+	/// height zero draws nothing.
+	measure 'Axis Anchor' =
+
+			IF(NOT ISBLANK([Model Call]), 0)
+		formatString: 0
+		lineageTag: 273bafc6-941f-43ee-adef-1e3ba79a7c7b
+
+	/// Pump-nozzle colours, carried over from the old Report 1 so the buttons look the way readers already know: green for 91, yellow for 95, grey for diesel.
+	measure 'Fuel Colour' =
+
+			SWITCH(
+			    SELECTEDVALUE(forecast_accuracy[fuel]),
+			    "Regular Petrol", "#40B54A",
+			    "Premium Petrol 95R", "#F7EC14",
+			    "Diesel", "#cccccc",
+			    "#6b7280"
+			)
+		lineageTag: 8c698132-7689-4030-b58e-f9d67520d2b4
 
 	/// Split in two so the area above zero can be green and the area below red. Power BI cannot fill one series by sign, and two series that never overlap read as one shape.
 	measure 'Skill Above Zero' =
-
+			
 			VAR s = [Skill]
 			RETURN
 			IF(s > 0, s)
@@ -73,7 +100,7 @@ table forecast_accuracy
 		lineageTag: 157f54a3-eced-4a3c-9f0e-6f00a25b6707
 
 	measure 'Skill Below Zero' =
-
+			
 			VAR s = [Skill]
 			RETURN
 			IF(s < 0, s)
@@ -82,7 +109,7 @@ table forecast_accuracy
 
 	/// Drives the strip under the price chart. Marks a week that is either volatile or not yet finalised - the two things a reader has to know before trusting a point. Keyed on the week the call was made.
 	measure 'Timeline Band' =
-
+			
 			VAR VolRegime = SELECTEDVALUE(forecast_accuracy[crude_vol_regime])
 			VAR InputState = SELECTEDVALUE(forecast_accuracy[input_status])
 			RETURN
@@ -92,13 +119,13 @@ table forecast_accuracy
 
 	/// Amber for volatile, grey for provisional inputs. Where a week is both, volatility wins: it is the louder fact, and the tooltip still names the status.
 	measure 'Timeline Band Colour' =
-
+			
 			IF(SELECTEDVALUE(forecast_accuracy[crude_vol_regime]) = "high", "#f59e0b", "#9ca3af")
 		lineageTag: 381e7fdf-bc39-4a4c-a476-2f11e9189ca0
 
 	/// The price chart's heading. Written as a measure because the horizon is a slicer choice, and a fixed heading would let two series of different informedness look comparable.
 	measure 'Price Chart Title' =
-
+			
 			VAR H = SELECTEDVALUE(forecast_accuracy[horizon_weeks])
 			RETURN
 			"What the model would have indicated, against what happened (c/L). "
@@ -113,7 +140,7 @@ table forecast_accuracy
 		lineageTag: 76a7ebdc-1bfe-465e-8f5e-33c736c906f4
 
 	/// Named episode behind a volatile stretch, for the strip's tooltip.
-	measure 'Episode' = SELECTEDVALUE(forecast_accuracy[crude_episode_id])
+	measure Episode = SELECTEDVALUE(forecast_accuracy[crude_episode_id])
 		lineageTag: 1d25dfa1-1e4e-4049-8168-d459ff54fdfd
 
 	column week_date
@@ -127,12 +154,12 @@ table forecast_accuracy
 
 		annotation UnderlyingDateTimeDataType = Date
 
-	column target_week
+	column 'Target week'
 		dataType: dateTime
 		formatString: Long Date
 		lineageTag: a0e94f81-29ad-46a0-b5e4-2dcd186e5f60
 		summarizeBy: none
-		sourceColumn: target_week
+		sourceColumn: Target week
 
 		annotation SummarizationSetBy = Automatic
 
@@ -368,7 +395,8 @@ table forecast_accuracy
 		source =
 				let
 				    Source = Sql.Database("fhi24zxnvquurfybnnzrkz22aq-ae4c5pcutjkedh2gfko4iqwk24.datawarehouse.fabric.microsoft.com", "analytics_warehouse"),
-				    dbo_forecast_accuracy = Source{[Schema="dbo",Item="forecast_accuracy"]}[Data]
+				    dbo_forecast_accuracy = Source{[Schema="dbo",Item="forecast_accuracy"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(dbo_forecast_accuracy,{{"target_week", "Target week"}})
 				in
-				    dbo_forecast_accuracy
+				    #"Renamed Columns"
 

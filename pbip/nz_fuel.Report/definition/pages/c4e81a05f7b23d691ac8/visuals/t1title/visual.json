@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "t1title",
   "position": {
-    "x": 10,
-    "y": 6,
-    "z": 100,
-    "height": 46,
-    "width": 1260,
-    "tabOrder": 100
+    "x": 10.394766523798783,
+    "y": 6.2368599142792691,
+    "z": 0,
+    "height": 53.013309271373792,
+    "width": 1259.8457026844123,
+    "tabOrder": 0
   },
   "visual": {
     "visualType": "textbox",
@@ -48,6 +48,13 @@
               "expr": {
                 "Literal": {
                   "Value": "8D"
+                }
+              }
+            },
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
                 }
               }
             }
