@@ -3,11 +3,11 @@
   "name": "s2horizon",
   "position": {
     "x": 960,
-    "y": 326,
-    "z": 400,
-    "height": 72,
-    "width": 310,
-    "tabOrder": 400
+    "y": 422.95652173913044,
+    "z": 7000,
+    "height": 98.782608695652172,
+    "width": 310.26086956521738,
+    "tabOrder": 7000
   },
   "visual": {
     "visualType": "advancedSlicerVisual",

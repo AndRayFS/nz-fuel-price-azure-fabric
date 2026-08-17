@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "t2caveat",
   "position": {
-    "x": 10,
-    "y": 54,
-    "z": 110,
-    "height": 56,
-    "width": 940,
-    "tabOrder": 110
+    "x": 11.43424317617866,
+    "y": 66.5265057523122,
+    "z": 1000,
+    "height": 27.026392961876834,
+    "width": 1258.8062260320326,
+    "tabOrder": 1000
   },
   "visual": {
     "visualType": "textbox",
@@ -47,7 +47,20 @@
             "top": {
               "expr": {
                 "Literal": {
-                  "Value": "8D"
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }

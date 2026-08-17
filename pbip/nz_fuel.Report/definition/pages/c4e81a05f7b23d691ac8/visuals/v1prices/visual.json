@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "v1prices",
   "position": {
-    "x": 10,
-    "y": 214,
-    "z": 300,
-    "height": 176,
-    "width": 940,
-    "tabOrder": 300
+    "x": 9.73913043478261,
+    "y": 218,
+    "z": 3000,
+    "height": 304,
+    "width": 940.5217391304348,
+    "tabOrder": 3000
   },
   "visual": {
     "visualType": "lineChart",
@@ -23,11 +23,11 @@
                       "Entity": "forecast_accuracy"
                     }
                   },
-                  "Property": "target_week"
+                  "Property": "Target week"
                 }
               },
               "queryRef": "forecast_accuracy.target_week",
-              "nativeQueryRef": "target_week",
+              "nativeQueryRef": "Target week",
               "active": true
             }
           ]
@@ -89,7 +89,7 @@
                     "Entity": "forecast_accuracy"
                   }
                 },
-                "Property": "target_week"
+                "Property": "Target week"
               }
             },
             "direction": "Ascending"
@@ -125,7 +125,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#0d9488'"
+                      "Value": "'#0ea5e9'"
                     }
                   }
                 }
@@ -143,7 +143,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#6b7280'"
+                      "Value": "'#16a34a'"
                     }
                   }
                 }
@@ -159,6 +159,13 @@
         {
           "properties": {
             "gridlineShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "showAxisTitle": {
               "expr": {
                 "Literal": {
                   "Value": "false"
