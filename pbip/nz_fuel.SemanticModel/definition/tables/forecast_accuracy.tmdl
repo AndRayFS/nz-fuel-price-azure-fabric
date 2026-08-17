@@ -2,8 +2,10 @@ table forecast_accuracy
 	lineageTag: c247b326-93c8-470a-bf56-06a81d7a6cc1
 
 	/// 1 - (model error / naive error) over the trailing 26 weeks. Above zero means the model beat "the price won't move". Null until 26 weeks of outcomes exist, and blank is honest here - do not coalesce it to zero.
+	///
+	/// Shown as a percentage: a skill score is conventionally quoted either way, and "16.3% less error than assuming no change" needs no explaining where "0.163" does. The negative tail reads correctly too - -98% is 98% MORE error than the benchmark - but it is unbounded below, so a very bad window can print a number past -100%.
 	measure Skill = AVERAGE(forecast_accuracy[skill_26w])
-		formatString: 0.000
+		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 1e392f06-e54b-473a-a4f3-bab27292791d
 
 	/// Mean absolute error of the model over the trailing 26 weeks, in c/L.
@@ -90,13 +92,13 @@ table forecast_accuracy
 			)
 		lineageTag: 8c698132-7689-4030-b58e-f9d67520d2b4
 
-	/// Split in two so the area above zero can be green and the area below red. Power BI cannot fill one series by sign, and two series that never overlap read as one shape.
+	/// Split in two so the area above zero can be blue and the area below red. Power BI cannot fill one series by sign, and two series that never overlap read as one shape.
 	measure 'Skill Above Zero' =
 			
 			VAR s = [Skill]
 			RETURN
 			IF(s > 0, s)
-		formatString: 0.000
+		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 157f54a3-eced-4a3c-9f0e-6f00a25b6707
 
 	measure 'Skill Below Zero' =
@@ -104,7 +106,7 @@ table forecast_accuracy
 			VAR s = [Skill]
 			RETURN
 			IF(s < 0, s)
-		formatString: 0.000
+		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 82906c20-64a7-4336-bf9d-b53139d4ec05
 
 	/// Drives the strip under the price chart. Marks a week that is either volatile or not yet finalised - the two things a reader has to know before trusting a point. Keyed on the week the call was made.

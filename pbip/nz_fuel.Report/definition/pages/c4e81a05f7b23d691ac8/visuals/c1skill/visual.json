@@ -5,8 +5,8 @@
     "x": 0,
     "y": 0,
     "z": 0,
-    "height": 83.158132190390262,
-    "width": 307.10700575141908,
+    "height": 83.15813219039026,
+    "width": 307.1070057514191,
     "tabOrder": 0
   },
   "visual": {
@@ -226,7 +226,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Skill vs naive, avg over selected weeks'"
+                  "Value": "'Less error than assuming no change, avg over selected weeks'"
                 }
               }
             },
