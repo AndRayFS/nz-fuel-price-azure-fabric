@@ -6,7 +6,14 @@ design and should be trimmed or updated, not left as-is indefinitely.
 - [ ] **23 Aug 2026** — retire the old Report 1 from My Workspace. The
   redesign (`docs/report1_redesign.md`) is published alongside it as a
   separate artifact, deliberately, so the two run in parallel for about a
-  week. On 23 Aug: delete the old report **and** its semantic model, then
+  week.
+
+  **`nz_fuel_v2` — the redesign — was published to My Workspace on 17 Aug
+  2026 and is served at**
+  `app.powerbi.com/view?r=eyJrIjoiZGQ4YzE2OWUtNTg1Zi00NzY4LWFiYTUtNGJmYTJlZmNkOWFiIiwidCI6IjY2YWVkMTI5LWFjZWQtNDgyOS05NzAxLTZiNzMxNTY3NWEwNCJ9`.
+  The old `nz_fuel` report keeps its own separate link until 23 Aug.
+
+  On 23 Aug: delete the old `nz_fuel` report **and** its semantic model, then
   confirm `/admin/widelySharedArtifacts/publishedToWeb` is back to a single
   entry. Until then two publish-to-web links and two import models exist,
   and each weekly update has to refresh both. Names must stay distinct the
