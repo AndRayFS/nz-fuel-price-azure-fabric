@@ -1159,10 +1159,11 @@ week_date,fuel,crude_vol_regime,crude_vol_9w,crude_vol_window_full,crude_episode
 2026-06-26,Diesel,high,0.0938,True,2026_iran_us,-0.422,0.1147,normal,0.0,False,datamine,provisional,True,True,import_only,True
 2026-07-03,Diesel,high,0.0888,True,2026_iran_us,-0.3584,0.0996,normal,0.0,False,datamine,provisional,False,True,import_only,False
 2026-07-10,Diesel,high,0.0916,True,2026_iran_us,-0.3493,0.1596,normal,0.0,False,datamine,provisional,False,True,import_only,False
-2026-07-17,Diesel,high,0.0975,False,2026_iran_us,-0.297,0.199,normal,0.0,False,datamine,provisional,False,True,import_only,False
-2026-07-24,Diesel,high,0.0833,False,2026_iran_us,-0.0579,0.3351,normal,0.0,False,datamine,provisional,False,True,import_only,False
-2026-07-31,Diesel,high,0.0851,False,2026_iran_us,-0.1068,0.2553,normal,0.0,False,datamine,provisional,False,True,import_only,False
-2026-08-07,Diesel,high,0.0914,False,2026_iran_us,-0.1421,0.1747,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-07-17,Diesel,high,0.0995,True,2026_iran_us,-0.297,0.199,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-07-24,Diesel,high,0.0846,False,2026_iran_us,-0.0579,0.3351,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-07-31,Diesel,high,0.0844,False,2026_iran_us,-0.1068,0.2553,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-08-07,Diesel,high,0.0876,False,2026_iran_us,-0.1421,0.1747,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-08-14,Diesel,high,0.0977,False,2026_iran_us,0.1247,0.2582,normal,0.0,False,datamine,provisional,False,True,import_only,False
 2004-04-23,Premium Petrol 95R,normal,,False,,,,normal,0.0,False,pre2010_unreconciled,final,False,False,domestic_refinery,False
 2004-04-30,Premium Petrol 95R,normal,0.0385,False,,,,normal,0.0,False,pre2010_unreconciled,final,False,False,domestic_refinery,False
 2004-05-07,Premium Petrol 95R,normal,0.0381,False,,,,normal,0.0,False,pre2010_unreconciled,final,False,False,domestic_refinery,False
@@ -2323,10 +2324,11 @@ week_date,fuel,crude_vol_regime,crude_vol_9w,crude_vol_window_full,crude_episode
 2026-06-26,Premium Petrol 95R,high,0.0938,True,2026_iran_us,-0.422,0.1147,normal,0.0,False,datamine,provisional,True,True,import_only,True
 2026-07-03,Premium Petrol 95R,high,0.0888,True,2026_iran_us,-0.3584,0.0996,normal,0.0,False,datamine,provisional,False,True,import_only,False
 2026-07-10,Premium Petrol 95R,high,0.0916,True,2026_iran_us,-0.3493,0.1596,normal,0.0,False,datamine,provisional,False,True,import_only,False
-2026-07-17,Premium Petrol 95R,high,0.0975,False,2026_iran_us,-0.297,0.199,normal,0.0,False,datamine,provisional,False,True,import_only,False
-2026-07-24,Premium Petrol 95R,high,0.0833,False,2026_iran_us,-0.0579,0.3351,normal,0.0,False,datamine,provisional,False,True,import_only,False
-2026-07-31,Premium Petrol 95R,high,0.0851,False,2026_iran_us,-0.1068,0.2553,normal,0.0,False,datamine,provisional,False,True,import_only,False
-2026-08-07,Premium Petrol 95R,high,0.0914,False,2026_iran_us,-0.1421,0.1747,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-07-17,Premium Petrol 95R,high,0.0995,True,2026_iran_us,-0.297,0.199,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-07-24,Premium Petrol 95R,high,0.0846,False,2026_iran_us,-0.0579,0.3351,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-07-31,Premium Petrol 95R,high,0.0844,False,2026_iran_us,-0.1068,0.2553,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-08-07,Premium Petrol 95R,high,0.0876,False,2026_iran_us,-0.1421,0.1747,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-08-14,Premium Petrol 95R,high,0.0977,False,2026_iran_us,0.1247,0.2582,normal,0.0,False,datamine,provisional,False,True,import_only,False
 2004-04-23,Regular Petrol,normal,,False,,,,normal,0.0,False,pre2010_unreconciled,final,False,False,domestic_refinery,False
 2004-04-30,Regular Petrol,normal,0.0385,False,,,,normal,0.0,False,pre2010_unreconciled,final,False,False,domestic_refinery,False
 2004-05-07,Regular Petrol,normal,0.0381,False,,,,normal,0.0,False,pre2010_unreconciled,final,False,False,domestic_refinery,False
@@ -3487,7 +3489,8 @@ week_date,fuel,crude_vol_regime,crude_vol_9w,crude_vol_window_full,crude_episode
 2026-06-26,Regular Petrol,high,0.0938,True,2026_iran_us,-0.422,0.1147,normal,0.0,False,datamine,provisional,True,True,import_only,True
 2026-07-03,Regular Petrol,high,0.0888,True,2026_iran_us,-0.3584,0.0996,normal,0.0,False,datamine,provisional,False,True,import_only,False
 2026-07-10,Regular Petrol,high,0.0916,True,2026_iran_us,-0.3493,0.1596,normal,0.0,False,datamine,provisional,False,True,import_only,False
-2026-07-17,Regular Petrol,high,0.0975,False,2026_iran_us,-0.297,0.199,normal,0.0,False,datamine,provisional,False,True,import_only,False
-2026-07-24,Regular Petrol,high,0.0833,False,2026_iran_us,-0.0579,0.3351,normal,0.0,False,datamine,provisional,False,True,import_only,False
-2026-07-31,Regular Petrol,high,0.0851,False,2026_iran_us,-0.1068,0.2553,normal,0.0,False,datamine,provisional,False,True,import_only,False
-2026-08-07,Regular Petrol,high,0.0914,False,2026_iran_us,-0.1421,0.1747,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-07-17,Regular Petrol,high,0.0995,True,2026_iran_us,-0.297,0.199,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-07-24,Regular Petrol,high,0.0846,False,2026_iran_us,-0.0579,0.3351,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-07-31,Regular Petrol,high,0.0844,False,2026_iran_us,-0.1068,0.2553,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-08-07,Regular Petrol,high,0.0876,False,2026_iran_us,-0.1421,0.1747,normal,0.0,False,datamine,provisional,False,True,import_only,False
+2026-08-14,Regular Petrol,high,0.0977,False,2026_iran_us,0.1247,0.2582,normal,0.0,False,datamine,provisional,False,True,import_only,False
