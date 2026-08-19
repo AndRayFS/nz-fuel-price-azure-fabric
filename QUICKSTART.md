@@ -46,30 +46,47 @@ leaves Report 1 showing last week's numbers with this week's date.
 ```bash
 source /Users/Ray/nz-fuel-price-project/.venv/bin/activate
 
-dbt run --full-refresh                               # 1. bronze -> silver/gold
-python research/export_panel.py                      # 2. panel out to CSV
-python research/backtest.py                          # 3. refit + forecasts
-dbt seed --select forecast_history --full-refresh    # 4. forecasts -> warehouse
-dbt run --select forecast_accuracy --full-refresh    # 5. rebuild the report table
+# 0. resume the capacity, run `ingest_mbie_weekly`, and CHECK ITS ROW COUNT
+#    (see below) before trusting anything downstream
+dbt snapshot                                         # 1. revision history
+dbt run --full-refresh                               # 2. bronze -> silver/gold
+dbt test                                             # 3. 60 tests, all should pass
+python research/export_panel.py                      # 4. panel out to CSV
+python research/build_period_flags.py                # 5. regime axes, from the panel
+python research/backtest.py                          # 6. refit + forecasts
+dbt seed --select period_flags forecast_history --full-refresh   # 7. -> warehouse
+dbt run --select forecast_accuracy --full-refresh    # 8. rebuild the report table
 ```
 
 Then refresh the Power BI dataset.
 
 Notes:
 
+- **Check `rowsRead` on the copy activity, not just its status.** On
+  19 Aug 2026 the ingest reported `Succeeded` twice while serving a
+  week-old file out of MBIE's CDN — green pipeline, 60 green tests, report
+  a week stale. The pipeline now appends a per-run cache-buster to the URL;
+  the row count is still the only proof the fetch was fresh. Full account
+  in `docs/architecture.md`.
+- **Step 5 comes before step 6, not after.** `build_period_flags.py` reads
+  the panel and `backtest.py` reads the flags, so running the flags later
+  leaves `backtest_results.csv` split on last week's regime values. The
+  centred 9-week window means the last four weeks' numbers move every time
+  a new week lands, so this is not a no-op.
 - **`--full-refresh` everywhere**, per the rule at the top of this file.
-  Step 4 especially: a plain `dbt seed` loads into the existing table and
+  Step 7 especially: a plain `dbt seed` loads into the existing table and
   fails the moment a column is added.
-- Steps 1, 2, 4 and 5 need the capacity running. Step 3 is local.
+- Steps 1, 2, 3, 4, 7 and 8 need the capacity running. Steps 5 and 6 are
+  local.
 - Provisional weeks are handled automatically: `backtest.py` trains only on
   Final rows and applies the model to every week, so the series extends by
   itself as MBIE finalises. Nothing to adjust by hand.
 - Whole chain is about five minutes.
-- `python research/build_period_flags.py && dbt seed --select period_flags
-  --full-refresh` only when the regime axes need regenerating — the
-  boundaries of an open episode will shift as its weeks finalise.
+- `seeds/brent_daily.csv` (FRED `DCOILBRENTEU`) is diagnostic only — no
+  model or forecast reads it. FRED runs a few days behind, so the newest
+  week's `brent_mean` is an average of whatever days exist.
 
-**This wants automating and moving off the laptop.** It is five manual
+**This wants automating and moving off the laptop.** It is eight manual
 steps with a hard dependency on one person's venv, one machine's Azure
 login and the capacity being awake. Tracked as a separate task, not
 solved here.
