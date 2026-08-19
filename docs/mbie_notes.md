@@ -14,6 +14,13 @@ https://www.mbie.govt.nz/assets/Data-Files/Energy/Weekly-fuel-price-monitoring/w
   incremental, not paginated. Safe for automated pulls (HTTP/Web activity),
   but bronze should be a full truncate+reload, not a merge.
 - Stable URL, confirmed working for scheduled/unattended fetches.
+- **Served through Imperva's CDN, and the edge can be a week behind the
+  origin.** On 19 Aug 2026 the Fabric copy activity (Australia East) read
+  the previous week's file from the plain URL while the same request from
+  Auckland returned the new one. Any query string bypasses the edge cache
+  and reaches origin, so `ingest_mbie_weekly` appends `?cb=<ticks>` per run
+  — see `docs/architecture.md`. Publication time that week was 01:01 UTC
+  (13:01 NZT) Wednesday, per `last-modified`.
 
 ## File structure — long/narrow format
 

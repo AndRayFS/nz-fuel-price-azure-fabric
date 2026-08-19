@@ -831,6 +831,27 @@ entry). A pbix backup of the deleted report was exported first, to
 `~/nz-fuel-price-project/nz_fuel_projectws_backup_20260813.pbix` — outside
 the repo.
 
+### `nz_fuel_v2` inherited the same unbound-connection fault — 19 Aug 2026
+
+The 13 Aug fix bound a ShareableCloud connection to the **`nz_fuel`** model.
+`nz_fuel_v2`, published from Desktop on 17 Aug, is a separate model and got
+a *default* connection of its own, so its first service refresh (19 Aug)
+failed with the same `Premium_ASWL_Error`. The diagnostic from 13 Aug still
+holds and is one call: `GET /datasets/{id}/datasources` returns
+`datasourceId` + `gatewayId` for `nz_fuel` and neither for `nz_fuel_v2`.
+
+**Fixed the same day** by pointing `nz_fuel_v2` at the connection `nz_fuel`
+already uses — the two models read the same warehouse, so no second
+connection was needed. The refresh then completed in 5.5 s, and a DAX probe
+(`POST /datasets/{id}/executeQueries`) confirmed the import actually landed:
+`forecast_accuracy` 6,363 rows, max `week_date` 2026-08-14, matching the
+warehouse row-for-row. That probe is worth keeping as the verification step
+— `Completed` on a refresh says the model reloaded, not that it reloaded
+*the new week*.
+
+**Any model published from Desktop starts unbound**; expect this on every
+new model, not just this one.
+
 ### Weekly sequence from here
 
 `resume capacity → run ingest_mbie_weekly → dbt snapshot → dbt run
@@ -843,6 +864,55 @@ above. Scheduled refresh is now technically possible, but it would have to
 fire inside the window when the capacity happens to be running (it
 auto-pauses at 23:00 NZT and is resumed by hand), so it is left disabled
 rather than half-working.
+
+## The ingest read a week-old file and reported success — 19 Aug 2026
+
+MBIE published week `2026w33` (14 Aug) at 01:01 UTC on 19 Aug. Two
+consecutive `ingest_mbie_weekly` runs that morning finished `Succeeded`
+with `rowsRead = rowsCopied = 34920` — exactly the previous week's file,
+34,950 rows minus the 30 rows of the new week. Nothing failed: bronze was
+truncated and reloaded with stale content, `dbt run --full-refresh` and all
+60 tests passed on it, and `silver_fuel` stayed at 2026-08-07.
+
+**The activity's own row count is the only signal.** A copy activity that
+fetches an old file is indistinguishable from a correct run at every layer
+below it — the pipeline is green, the tests are green, and the report is a
+week behind. Compare `rowsRead` against the source, not the run status.
+
+**Cause: CDN edge caching, not the pipeline.** `mbie.govt.nz` sits behind
+Imperva (`x-cdn: Imperva`). The same URL served different bytes to
+different callers that morning:
+
+| request | etag | rows |
+|---|---|---|
+| plain URL, from Auckland | `"c85b0d15"` | 34,950 |
+| plain URL, from Fabric (Australia East) | — | 34,920 |
+| URL + any query string | `"6a850076-2be92b"` | 34,950 |
+
+The two etag *formats* are the tell: `c85b0d15` is Imperva's own, the
+`inode-size` form is the origin's. A query string misses the edge cache key
+and reaches origin. The AU PoP was still holding a copy cached before
+01:01 UTC; `cache-control` on the response is only `no-transform`, so the
+edge is free to decide its own TTL and nothing in the response says when it
+expires.
+
+**Fix, applied to the pipeline definition:** the HTTP source's
+`HttpServerLocation` now carries a per-run cache-buster, appended to the
+connection's base URL —
+
+```json
+"relativeUrl": { "value": "@concat('?cb=', ticks(utcnow()))",
+                 "type": "Expression" }
+```
+
+— after which the next run read 34,950. The URL itself stays in the
+connection (`Weekly-fuel-price-monitoring-MBIE andrei`); only the pipeline
+changed. Cost: one origin fetch a week, which is what the ingest was always
+meant to be doing.
+
+Both the pipeline definition and the connection were read and written
+through the Fabric REST API (`getDefinition` / `updateDefinition`), not the
+portal.
 
 ## Levels vs changes — the project has always correlated levels, and it matters
 
