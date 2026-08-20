@@ -10,3 +10,4 @@ logs/
 __pycache__/
 *.pyc
 research/data/.aip_cache/
+!research/art/fuel_price_anatomy.gif
