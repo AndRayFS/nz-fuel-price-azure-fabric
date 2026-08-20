@@ -52,6 +52,7 @@ dbt snapshot                                         # 1. revision history
 dbt run --full-refresh                               # 2. bronze -> silver/gold
 dbt test                                             # 3. 60 tests, all should pass
 python research/export_panel.py                      # 4. panel out to CSV
+python research/aip_check.py                         # 4b. outside check on the ingest
 python research/build_period_flags.py                # 5. regime axes, from the panel
 python research/backtest.py                          # 6. refit + forecasts
 dbt seed --select period_flags forecast_history --full-refresh   # 7. -> warehouse
@@ -68,6 +69,17 @@ Notes:
   a week stale. The pipeline now appends a per-run cache-buster to the URL;
   the row count is still the only proof the fetch was fresh. Full account
   in `docs/architecture.md`.
+- **Step 4b is the only check that can catch a stale source.** Everything
+  we test is downstream of the same MBIE file, so a stale-but-well-formed
+  CSV passes all 60 tests. `aip_check.py` compares our newest week's move
+  against the Argus Singapore quote republished weekly by the Australian
+  Institute of Petroleum — an independent path to the same market. It exits
+  non-zero when our cost barely moves while Argus moved, when the two
+  disagree in sign, or when AIP already has a week our panel lacks. Verified
+  against all three simulated failures, including a replay of the 19 Aug
+  bug. It compares the week-on-week *move*, never the level: the gap to our
+  landed cost drifts (diesel 6.9 → 13.4 USD/bbl over Oct 2025 – Aug 2026,
+  petrol steady at 7.4 – 9.6). Needs `pypdf`. Detail in `docs/mbie_notes.md`.
 - **Step 5 comes before step 6, not after.** `build_period_flags.py` reads
   the panel and `backtest.py` reads the flags, so running the flags later
   leaves `backtest_results.csv` split on last week's regime values. The
