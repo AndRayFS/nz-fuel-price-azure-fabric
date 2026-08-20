@@ -15,6 +15,7 @@ in `draft_part7.md`.
 | 5 | Report 1 live, confidence framing, 9am–11pm window | "a look at what all this actually cost in Microsoft Fabric" |
 | 6 | Costs: 98.5%/1.5% split, USD/NZD error, pause savings | **"back to the data: new sources, and extending the methodology"** |
 | 7 | Backtest: the published formula lost to "no change"; the report gets its own scorecard | **"everyone says prices follow oil — crude +10.1%, diesel's landed cost +61.4%"** |
+| 8 | *(drafted, unpublished)* Anatomy of a litre: six layers, and which of them actually move — animated 2020–2026 | **"the model is blind to the week in progress, and that week carries a quarter of the effect"** |
 
 Each post opens by referring back to the previous one and closes by naming
 the next.

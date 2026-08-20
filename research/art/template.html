@@ -1,0 +1,205 @@
+<title>Anatomy of a Fuel Price</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#EDF2F2; --surface:#FFFFFF; --ink:#0E2126; --muted:#5A6C70; --line:#CFDADB;
+  --l1:#0F3B47; --l2:#1B7086; --l3:#57A6B4; --l4:#7C8A8E; --l5:#9AA7AA; --l6:#C3CCCD;
+  --accent:#B4530A; --accent-soft:#F0E0D2; --rib:0.30;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0C1719; --surface:#122124; --ink:#E6EDED; --muted:#93A5A8; --line:#26393C;
+    --l1:#2C6E80; --l2:#3F9CB2; --l3:#7FC4CF; --l4:#7A8A8D; --l5:#96A5A8; --l6:#B4BFC0;
+    --accent:#E8873A; --accent-soft:#33241A; --rib:0.38;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0C1719; --surface:#122124; --ink:#E6EDED; --muted:#93A5A8; --line:#26393C;
+  --l1:#2C6E80; --l2:#3F9CB2; --l3:#7FC4CF; --l4:#7A8A8D; --l5:#96A5A8; --l6:#B4BFC0;
+  --accent:#E8873A; --accent-soft:#33241A; --rib:0.38;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  font-size:16px; line-height:1.6;
+}
+.wrap{max-width:1080px; margin:0 auto; padding:56px 28px 88px; display:flex; flex-direction:column; gap:52px}
+header{display:flex; flex-direction:column; gap:14px; border-bottom:2px solid var(--ink); padding-bottom:26px}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--accent);
+}
+h1{
+  font-family:Archivo,system-ui,sans-serif; font-weight:700; font-size:clamp(30px,5vw,50px);
+  line-height:1.04; margin:0; text-wrap:balance; letter-spacing:-.02em;
+}
+.thesis{font-size:clamp(17px,2.2vw,20px); color:var(--muted); max-width:62ch; margin:0}
+h2{
+  font-family:Archivo,system-ui,sans-serif; font-weight:600; font-size:23px;
+  margin:0 0 6px; letter-spacing:-.01em; text-wrap:balance;
+}
+.lede{color:var(--muted); margin:0 0 22px; max-width:66ch}
+figure{margin:0; background:var(--surface); border:1px solid var(--line); border-radius:3px; padding:22px 20px 18px}
+.scroller{overflow-x:auto}
+svg.sankey,svg.flow{display:block; width:100%; min-width:720px; height:auto}
+figcaption{
+  margin-top:16px; padding-top:14px; border-top:1px solid var(--line);
+  font-size:14.5px; color:var(--muted); max-width:74ch;
+}
+figcaption b{color:var(--ink); font-weight:500}
+.colhead{font-family:Archivo,sans-serif; font-size:12.5px; font-weight:600; letter-spacing:.1em; fill:var(--ink)}
+.colsub{font-family:"IBM Plex Mono",monospace; font-size:11.5px; fill:var(--muted)}
+.lab{font-family:"IBM Plex Sans",sans-serif; font-size:13px; font-weight:500; fill:var(--ink)}
+.val{font-family:"IBM Plex Mono",monospace; font-size:11.5px; fill:var(--muted)}
+.rib{stroke:none}
+.bar.l1,.rib.l1{fill:var(--l1)} .bar.l2,.rib.l2{fill:var(--l2)} .bar.l3,.rib.l3{fill:var(--l3)}
+.bar.l4,.rib.l4{fill:var(--l4)} .bar.l5,.rib.l5{fill:var(--l5)} .bar.l6,.rib.l6{fill:var(--l6)}
+.rib{fill-opacity:var(--rib)}
+.grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line)}
+.cell{background:var(--surface); padding:17px 18px; display:flex; flex-direction:column; gap:7px}
+.cell .swatch{width:34px; height:5px; border-radius:2px}
+.cell h3{font-family:Archivo,sans-serif; font-size:15.5px; font-weight:600; margin:0}
+.cell p{margin:0; font-size:14px; color:var(--muted)}
+.cell dl{margin:4px 0 0; display:grid; grid-template-columns:auto 1fr; gap:3px 12px; font-size:13px}
+.cell dt{color:var(--muted); font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.05em; text-transform:uppercase}
+.cell dd{margin:0}
+.modelled{border-left:3px solid var(--accent)}
+.notes{font-size:14px; color:var(--muted); display:flex; flex-direction:column; gap:11px; max-width:74ch}
+.notes b{color:var(--ink); font-weight:500}
+code{font-family:"IBM Plex Mono",monospace; font-size:.9em; background:var(--accent-soft); padding:1px 5px; border-radius:2px}
+.flow .box{fill:var(--surface); stroke:var(--line)}
+.flow .cloud{fill:none; stroke:var(--accent); stroke-dasharray:7 5; stroke-width:1.6}
+.flow .btxt{font-family:"IBM Plex Sans",sans-serif; font-size:12.5px; font-weight:500; fill:var(--ink)}
+.flow .stxt{font-family:"IBM Plex Mono",monospace; font-size:10.5px; fill:var(--muted)}
+.flow .atxt{font-family:"IBM Plex Mono",monospace; font-size:10.5px; fill:var(--accent); letter-spacing:.04em}
+.flow .arr{stroke:var(--ink); stroke-width:1.4; fill:none}
+.flow .arr-dim{stroke:var(--muted); stroke-width:1.2; fill:none; stroke-dasharray:5 4}
+@media (max-width:640px){ .wrap{padding:36px 16px 64px; gap:40px} }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">NZ Fuel Price Project &#183; Part 8</div>
+  <h1>What you actually pay for, per litre</h1>
+  <p class="thesis">A pump price is seven separate things stacked together. Only some of them
+  can move in a given week &mdash; and which ones move changes completely depending on what the
+  world is doing. Diesel, New Zealand, weekly MBIE data.</p>
+</header>
+
+<section>
+  <h2>When markets are calm</h2>
+  <p class="lede">Left: what makes up the average litre. Right: how much of the week-to-week
+  movement each layer is responsible for. The ribbons show the same layer changing its role.</p>
+  <figure>
+    <div class="scroller">{{SANKEY_CALM}}</div>
+    <figcaption>Three years of quiet markets, 2023&ndash;2025, 156 weeks. The price barely
+    stirs &mdash; about <b>7 c/L of total movement per week</b>, spread across every layer at once.
+    Crude is the largest single piece of the price, but the domestic chain generates more of
+    the actual week-to-week movement than it does.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>When the market breaks</h2>
+  <p class="lede">Same diesel, same layers, March to August 2026.</p>
+  <figure>
+    <div class="scroller">{{SANKEY_CRISIS}}</div>
+    <figcaption>Twenty-four weeks of crisis. Weekly movement goes from 7 to
+    <b>44 c/L &mdash; six times more</b> &mdash; and refining, a thin band in calm markets, swells
+    into the largest block of the price after crude. The government layers do not react at all:
+    they are the same size in both charts, and they generate almost none of the movement in either.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>Which layers the model touches</h2>
+  <p class="lede">The model does not forecast oil, and it does not forecast tax. It takes the
+  cost movement that has already happened and works out how much of it has not reached the
+  pump yet.</p>
+  <figure>
+    <div class="scroller">{{FLOW}}</div>
+    <figcaption>Excise and ETS are announced, not predicted &mdash; they get looked up and added.
+    GST is not a force at all: it multiplies everything under it by 1.15. What is left is where
+    a model can earn its keep.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>The seven layers, and where each number comes from</h2>
+  <div class="grid">
+    <div class="cell modelled">
+      <div class="swatch" style="background:var(--l1)"></div>
+      <h3>Crude oil</h3>
+      <p>The barrel itself, priced on the world market.</p>
+      <dl><dt>Set by</dt><dd>Global crude market</dd>
+      <dt>Moves</dt><dd>Every week</dd>
+      <dt>Source</dt><dd>MBIE weekly, Dubai crude</dd></dl>
+    </div>
+    <div class="cell modelled">
+      <div class="swatch" style="background:var(--l2)"></div>
+      <h3>Refining + shipping</h3>
+      <p>Turning crude into diesel, then getting it to a New Zealand wharf. Not a refinery's
+      costs &mdash; the market's price for finished fuel over the price of crude.</p>
+      <dl><dt>Set by</dt><dd>Singapore product market</dd>
+      <dt>Moves</dt><dd>Every week</dd>
+      <dt>Source</dt><dd>Derived; cross-checked against Argus via AIP</dd></dl>
+    </div>
+    <div class="cell modelled">
+      <div class="swatch" style="background:var(--l3)"></div>
+      <h3>NZ chain + margin</h3>
+      <p>Everything from the wharf to the nozzle &mdash; terminals, trucking, running the station
+      &mdash; plus whatever profit sits in the chain.</p>
+      <dl><dt>Set by</dt><dd>Domestic supply chain</dd>
+      <dt>Moves</dt><dd>Every week</dd>
+      <dt>Source</dt><dd>A residual: price minus tax minus landed cost</dd></dl>
+    </div>
+    <div class="cell">
+      <div class="swatch" style="background:var(--l4)"></div>
+      <h3>Fuel excise</h3>
+      <p>A fixed number of cents per litre. Tiny on diesel: trucks pay by distance travelled
+      instead, through a separate charge that never appears at the pump.</p>
+      <dl><dt>Set by</dt><dd>Government</dd>
+      <dt>Moves</dt><dd>9 times in 3 years</dd>
+      <dt>Source</dt><dd>Published, known in advance</dd></dl>
+    </div>
+    <div class="cell">
+      <div class="swatch" style="background:var(--l5)"></div>
+      <h3>Emissions charge</h3>
+      <p>The carbon cost of the fuel, under the Emissions Trading Scheme.</p>
+      <dl><dt>Set by</dt><dd>Carbon unit market</dd>
+      <dt>Moves</dt><dd>Most weeks, but small</dd>
+      <dt>Source</dt><dd>MBIE weekly</dd></dl>
+    </div>
+    <div class="cell">
+      <div class="swatch" style="background:var(--l6)"></div>
+      <h3>GST</h3>
+      <p>15% on top of everything above. It has no life of its own &mdash; it grows and shrinks
+      with whatever it sits on.</p>
+      <dl><dt>Set by</dt><dd>Tax rate</dd>
+      <dt>Moves</dt><dd>Never, as a rate</dd>
+      <dt>Source</dt><dd>Arithmetic</dd></dl>
+    </div>
+  </div>
+</section>
+
+<section class="notes">
+  <p><b>How to read the right-hand column.</b> It is the average size of each layer's weekly
+  change, in cents per litre, shown as a share of all the movement in that period. It measures
+  how much a layer stirs, not whether it pushed the price up or down.</p>
+  <p><b>Refining and shipping are shown together.</b> They can only be separated for weeks where
+  an Argus quote is available through the Australian Institute of Petroleum, and those start in
+  late 2025. Where both are known, shipping and wharfage account for roughly 8&ndash;13 c/L of
+  that band.</p>
+  <p><b>The 2026 weeks are still provisional.</b> MBIE suspended its cost and margin series in
+  March, backfilled them, and the rows stay provisional until the quarter's CPI is published.
+  Every crisis figure here will be recomputed when they finalise.</p>
+  <p><b>&ldquo;NZ chain + margin&rdquo; is a residual, not a measurement.</b> It is what remains after
+  tax and landed cost are subtracted, so every error in the cost model lands in it with the sign
+  flipped. It is a gross margin for the whole domestic chain &mdash; not any company's profit.</p>
+  <p>Data: MBIE weekly fuel price monitoring; international quotes by Argus Media, republished
+  by the Australian Institute of Petroleum. Charts built from the project's own pipeline.</p>
+</section>
+</div>
