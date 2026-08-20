@@ -9,3 +9,4 @@ logs/
 .claude/settings.local.json
 __pycache__/
 *.pyc
+research/data/.aip_cache/

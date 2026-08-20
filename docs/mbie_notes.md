@@ -341,6 +341,64 @@ stale quarterly constant shifts the whole series by an offset, and an
 additive offset changes neither `r` nor the slope. It matters for anything
 read as a *level*.
 
+## The Singapore quote is observable after all — via Australia (20 Aug 2026)
+
+`Importer cost` is built from an Argus Singapore product quote we do not
+have and cannot afford. The Australian Institute of Petroleum republishes
+that same Argus quote — Gasoil for diesel, MOGAS95 for petrol, alongside
+Tapis and North Sea Dated — in a free weekly PDF, published **Sunday**,
+three days ahead of MBIE's Wednesday release.
+
+Checked over 20 diesel weeks and 13 petrol weeks (Oct 2025 – Aug 2026),
+converted from AU cents/litre at the RBA-adjacent FRED rate:
+
+| | level correlation | week-on-week changes |
+|---|---|---|
+| Diesel: AIP Gasoil vs `Importer cost` | 0.9992 | 0.997 |
+| Petrol: AIP MOGAS95 vs `Importer cost` | 0.9998 | — |
+
+**So the Singapore benchmark has been in the panel since 2004**, as
+`Importer cost` offset by the freight-and-wharfage markup. An additive
+offset changes neither correlation nor slope, so anything built on
+*changes* — the ADL, the lag work, the crude/crack split — can use
+`Importer cost` directly and needs no external product series. That closes
+roadmap item 2's "a Singapore product quote is the better new factor" as
+already satisfied, for changes-based work.
+
+**The markup is not constant, and diesel's is not petrol's.** Diesel's went
+6.9 → 13.4 USD/bbl across those months; petrol's held between 7.4 and 9.6
+(sd 0.79). Week to week it moves ~±0.5 against ~±10 in the cost itself, so
+it is flat enough for differencing and misleading for levels.
+
+Cause unresolved. Freight and wharfage are **not** ruled out by the fact
+that petrol's markup held: petrol and diesel move as segregated parcels on
+different vessels, and the route rate can differ by product. The candidates
+remain product-specific freight, the quarterly quality premium, and a
+widened spread between AIP's 10ppm marker and MBIE's 50ppm high-pour one.
+Twenty weeks with gaps cannot separate them.
+
+**There is no archive.** AIP keeps only recent files — 15 diesel and 11
+petrol reports when surveyed — and deletes the rest; Mar–Jun 2026, the peak
+of the crisis, is already gone. Two things follow: each report carries both
+"Last Week" and "Previous Week", so one fetch yields two weeks and a missed
+run costs nothing; and `research/data/aip_singapore_weekly.csv` accumulates,
+so weeks outlive their deletion upstream.
+
+**Fetch via the WordPress REST API, not by guessing URLs.** Upload folders
+track the CMS upload date, not the data date — January reports sit under
+`2026/02`, August ones under `2026/03` — so brute force found only 12 of 33
+candidate weeks. `wp-json/wp/v2/media?search=Weekly-Diesel-Prices-Report`
+returns the exact list. The table sits on page 3 of each PDF; the parser is
+tied to that layout and will fail loudly if it changes.
+
+Used by `research/aip_check.py` as the weekly ingest check (step 4b in
+`QUICKSTART.md`) — the only check that can catch a stale-but-well-formed
+MBIE file, since everything else we test is downstream of that same file.
+
+Data is Argus, published by AIP under licence, with their own calculations
+layered on. Attribution is required if any of it is republished, including
+in the LinkedIn series.
+
 ## `Importer margin` is not the importer's margin — read the name as a warning
 
 Established 15 Aug 2026, working back from the identity:
