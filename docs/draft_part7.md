@@ -1,7 +1,7 @@
 # Part 7 draft — the report that shows its own losses
 
-Status: draft for the user to polish and publish, alongside the redesigned
-Report 1. Written 17 Aug 2026.
+Status: **published 18 Aug 2026** — https://lnkd.in/p/ejjH8i-z
+Written 17 Aug 2026, alongside the redesigned Report 1.
 
 Spine: the formula already published in Report 1 lost to "the price won't
 change", and could never have been backtested in the first place. The
