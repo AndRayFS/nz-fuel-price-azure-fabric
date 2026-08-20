@@ -1,7 +1,10 @@
 # LinkedIn series — index and house style
 
-Derived from reading all six published posts (Parts 1–5 read 10 Aug 2026,
+Derived from reading all seven published posts (Parts 1–5 read 10 Aug 2026,
 Part 6 on 11 Aug). Links live in `README.md`.
+
+**Part 7 published 18 Aug 2026:** https://lnkd.in/p/ejjH8i-z — text as drafted
+in `draft_part7.md`.
 
 | Part | Topic | Ends by promising |
 |---|---|---|
@@ -11,6 +14,7 @@ Part 6 on 11 Aug). Links live in `README.md`.
 | 4 | dbt on Fabric, macros, lineage, the lag bug found vs R | "build the Power BI reports" |
 | 5 | Report 1 live, confidence framing, 9am–11pm window | "a look at what all this actually cost in Microsoft Fabric" |
 | 6 | Costs: 98.5%/1.5% split, USD/NZD error, pause savings | **"back to the data: new sources, and extending the methodology"** |
+| 7 | Backtest: the published formula lost to "no change"; the report gets its own scorecard | **"everyone says prices follow oil — crude +10.1%, diesel's landed cost +61.4%"** |
 
 Each post opens by referring back to the previous one and closes by naming
 the next.

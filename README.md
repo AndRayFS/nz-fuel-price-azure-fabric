@@ -9,7 +9,7 @@ dbt as the transformation layer.
 2-week lag finding all originate there. This repo ports that logic onto a
 proper pipeline and extends it.
 
-**Companion posts:** [Part 1](https://www.linkedin.com/posts/andreimor_watching-the-news-about-the-latest-escalation-ugcPost-7485572175953920001-Uzat/) · [Part 2](https://www.linkedin.com/posts/andreimor_tree-ugcPost-7487295986630025216-b4Rj/) · [Part 3](https://www.linkedin.com/posts/andreimor_registration-costs-first-sql-ugcPost-7488350666168377346-Xctc/) · [Part 4 (dbt)](https://www.linkedin.com/posts/andreimor_microsoftfabric-dbt-dataengineering-share-7489268212065366017-QKU2/) · [Part 5 (Power BI)](https://www.linkedin.com/posts/andreimor_fuel-report-ugcPost-7491290122466971648-Qazx/)
+**Companion posts:** [Part 1](https://www.linkedin.com/posts/andreimor_watching-the-news-about-the-latest-escalation-ugcPost-7485572175953920001-Uzat/) · [Part 2](https://www.linkedin.com/posts/andreimor_tree-ugcPost-7487295986630025216-b4Rj/) · [Part 3](https://www.linkedin.com/posts/andreimor_registration-costs-first-sql-ugcPost-7488350666168377346-Xctc/) · [Part 4 (dbt)](https://www.linkedin.com/posts/andreimor_microsoftfabric-dbt-dataengineering-share-7489268212065366017-QKU2/) · [Part 5 (Power BI)](https://www.linkedin.com/posts/andreimor_fuel-report-ugcPost-7491290122466971648-Qazx/) · [Part 7 (backtest)](https://lnkd.in/p/ejjH8i-z)
 
 ## Architecture
 
