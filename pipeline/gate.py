@@ -192,7 +192,15 @@ def main() -> int:
     ap.add_argument("--json", action="store_true", help="machine-readable output")
     args = ap.parse_args()
 
-    result = decide(gather(), args.max_run_age_hours, args.stale_after_days)
+    # Anything that stops the gate from reaching a verdict is itself a reason
+    # not to run the chain. Fail closed, and say so in one line rather than a
+    # traceback: the Fabric run APIs are flaky (see fabric_io.RETRIES), and a
+    # transient outage must not read as a fault in the data.
+    try:
+        result = decide(gather(), args.max_run_age_hours, args.stale_after_days)
+    except Exception as exc:  # noqa: BLE001 — the verdict is "we could not tell"
+        result = {"verdict": "gate_check_failed", "exit": STOP,
+                  "detail": f"{type(exc).__name__}: {exc}"}
 
     if args.json:
         print(json.dumps(result, indent=2, default=str))

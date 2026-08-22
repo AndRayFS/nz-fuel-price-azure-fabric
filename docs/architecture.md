@@ -968,12 +968,25 @@ try to distinguish "MBIE has not published yet" from "the CDN served last
 week's file" — both mean *do not run the chain*, and telling them apart is
 what the AIP contour is for, at warn level.
 
-**Two API behaviours found by trying them.** Activity detail hangs off
+**Three API behaviours found by trying them.** Activity detail hangs off
 `/v1/workspaces/{ws}/datapipelines/pipelineruns/{runId}/queryactivityruns`,
 with the pipeline id absent from the path; the three routes the item and job
-APIs suggest all return 404. And `lastUpdatedAfter`/`lastUpdatedBefore` are
+APIs suggest all return 404. `lastUpdatedAfter`/`lastUpdatedBefore` are
 effectively mandatory: omit them and the call returns HTTP 200 with an empty
 activity list, which reads exactly like a run that copied nothing.
+
+And the endpoint is **flaky** — roughly one failure in ten identical calls,
+measured with the capacity *active*, in two shapes: HTTP 500 `UnknownError`,
+and a refused connection. An earlier reading of the same 500 blamed a paused
+capacity; that was wrong, and only running it repeatedly with the capacity up
+showed it. Neither shape says anything about the run being asked about, so
+both are retried four times with a short backoff, honouring `Retry-After`;
+4xx other than 429 is our own fault and is not retried. The gate additionally
+fails **closed**: anything that stops it reaching a verdict becomes
+`gate_check_failed` and exit 1, one line rather than a traceback, so a
+transient outage never reads as a fault in the data — and never opens the
+gate. `getDefinition`, by contrast, genuinely does need the capacity active,
+returning `CapacityNotActive`.
 
 **The escalation that stops "nothing to do" becoming the same bug.** A CDN
 stuck on one file looks identical every week, and a gate that answers

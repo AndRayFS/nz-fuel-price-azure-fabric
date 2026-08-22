@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import json
 import struct
+import sys
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -63,22 +65,48 @@ def _api_token() -> str:
     return AzureCliCredential().get_token(FABRIC_SCOPE).token
 
 
+# `queryactivityruns` is flaky: measured 22 Aug 2026 at roughly one failure in
+# ten identical calls with the capacity ACTIVE, in two shapes — HTTP 500
+# `UnknownError`, and a refused connection. Neither says anything about the run
+# being asked about, so both are retried. Without this the gate dies with a
+# traceback on a healthy week, which is a false alarm dressed as a fault.
+RETRIES = 4
+BACKOFF_SECONDS = 2
+
+
 def _call(method: str, path: str, body: dict | None = None) -> dict:
-    req = urllib.request.Request(
-        f"{FABRIC_API}/{path.lstrip('/')}",
-        method=method,
-        data=None if body is None else json.dumps(body).encode(),
-        headers={
-            "Authorization": f"Bearer {_api_token()}",
-            "Content-Type": "application/json",
-        },
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            return json.loads(resp.read() or b"{}")
-    except urllib.error.HTTPError as exc:
-        detail = exc.read().decode(errors="replace")[:500]
-        raise RuntimeError(f"Fabric API {exc.code} on {path}: {detail}") from exc
+    last: Exception | None = None
+
+    for attempt in range(RETRIES):
+        req = urllib.request.Request(
+            f"{FABRIC_API}/{path.lstrip('/')}",
+            method=method,
+            data=None if body is None else json.dumps(body).encode(),
+            headers={
+                "Authorization": f"Bearer {_api_token()}",
+                "Content-Type": "application/json",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                return json.loads(resp.read() or b"{}")
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode(errors="replace")[:500]
+            last = RuntimeError(f"Fabric API {exc.code} on {path}: {detail}")
+            # 4xx other than 429 is our fault and will not improve by asking
+            # again — a wrong id, a renamed item, a token without the right role.
+            if exc.code < 500 and exc.code != 429:
+                raise last from exc
+            wait = float(exc.headers.get("Retry-After") or BACKOFF_SECONDS * (attempt + 1))
+        except urllib.error.URLError as exc:
+            last = RuntimeError(f"Fabric API unreachable on {path}: {exc.reason}")
+            wait = BACKOFF_SECONDS * (attempt + 1)
+
+        if attempt < RETRIES - 1:
+            print(f"  retrying in {wait:.0f}s ({last})", file=sys.stderr)
+            time.sleep(wait)
+
+    raise last  # type: ignore[misc]
 
 
 def ingest_runs(limit: int = 12) -> list[dict]:
