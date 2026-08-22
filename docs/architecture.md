@@ -2528,6 +2528,45 @@ and warns rather than fails only because W2 dropped that check from blocking
 to warning for unrelated reasons. A decision made about source authority is
 what keeps vintage runs unblocked.
 
+### Which objects actually move, checked one by one
+
+`binary_checksum(*)` summed per table, every object in the warehouse, current
+against vintage @ 7 Aug. Six move and twelve do not, and the twelve are not one
+category but four.
+
+**Moves (6).** `silver_fuel`, `silver_general`, `lag_correlation`,
+`lag_resolved`, `factor_volatility`, `monitoring.monitor_aip_gap`. Note that
+`lag_correlation` and `lag_resolved` keep their row counts (900 and 108) and
+change values only, so a row count is not a sufficient check for whether a
+vintage is loaded.
+
+**Seeds — the var cannot reach them (6).** `periods`, `variable_mapping`,
+`brent_daily`, `period_flags`, `forecast_history`,
+`monitoring.aip_singapore_weekly`. The first three are hand-written and
+*should* stay fixed. The last three are derived and are exactly what the
+six-step chain rebuilds.
+
+**The version history and its monitors (3).** `mbie_revisions`,
+`monitor_revisions`, `monitor_revision_summary`. These read the snapshot
+directly, and the snapshot is the *source* of the vintage rather than a
+consumer of it — it holds every version at once and no as-of filter applies.
+Correctly unchanged: the revision contour keeps reporting on all of history
+while silver stands on one date.
+
+**Pipeline state (1).** `pipeline.processed_weeks` is untouched, which is the
+mechanical reason nothing detects a vintage warehouse — the freshness gate
+compares bronze against this table and a vintage run moves neither.
+
+**And one that descends from silver yet did not move.** `volatility_config`
+was rebuilt and came back bit-identical, because it computes its baseline over
+`period_type = 'calm'` only — periods 02 and 05. Every week the 7 Aug vintage
+changes lives in `06_iranus_2026`, which is not calm, so its input window was
+untouched. This is contingent, not structural: a revision landing on a calm
+week would move it. Do not read the invariance as a property of the model.
+
+`forecast_accuracy` is the twelfth, covered above: seeds only, no silver
+ancestor at all.
+
 ### The risk this design accepts
 
 Silver and gold are overwritten in place, so between entering a vintage and
