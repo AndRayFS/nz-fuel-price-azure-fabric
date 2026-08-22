@@ -14,6 +14,13 @@ in `research/`. They move in that branch.
 | `mark_processed.py` | closes the run by recording which week was processed |
 | `fabric_io.py` | the warehouse connection and the Fabric REST calls both need |
 | `test_gate.py` | replays the gate's decision against the runs that happened |
+| `vintage.py` | puts the whole system on a past date, and brings it back |
+
+`vintage.py` is the one file here that does **not** run weekly. It lives in
+this package rather than `research/` because it is deterministic, needs no
+judgement at runtime, shares `fabric_io`, and — decisively — the gate depends
+on the marker it writes. An exploratory script cannot be a precondition of the
+weekly run.
 
 ## The gate
 
@@ -47,6 +54,24 @@ neither code lets the chain run.
 reads what arrived rather than what MBIE published, which is not what W3
 originally specified.
 
+## Vintages
+
+```bash
+python pipeline/vintage.py --as-of 2026-08-13   # go there
+python pipeline/vintage.py --status             # what is loaded right now
+python pipeline/vintage.py --return             # come home
+```
+
+Do not set `as_of_vintage` by hand. It moves six warehouse objects out of
+eighteen and leaves `forecast_accuracy` — the table Report 1 leads with — on
+today's data, with nothing recording the discrepancy. The script runs the whole
+six-step chain, restores the hand-written seeds from the commit current on that
+date, and writes the marker the gate reads.
+
+Horizon is 17 July 2026 for data and 1 August 2026 for code, so full system
+vintages start at 6 August. A date means the state as that day *ended*.
+`QUICKSTART.md` carries the rest.
+
 ## Running it
 
 ```bash
@@ -55,8 +80,8 @@ python pipeline/mark_processed.py  # after forecast_accuracy is rebuilt
 python pipeline/test_gate.py       # no capacity, no network, no dependencies
 ```
 
-Both `gate.py` and `mark_processed.py` need the Fabric capacity up and an
-`az login`. `test_gate.py` needs neither.
+`gate.py`, `mark_processed.py` and `vintage.py` need the Fabric capacity up and
+an `az login`. `test_gate.py` needs neither.
 
 ## State
 
@@ -69,3 +94,15 @@ processed_week | bronze_rows | ingest_run_id | ingest_rows_read | recorded_at
 ```
 
 The table is created on first write, so a fresh warehouse needs no setup step.
+
+`pipeline.warehouse_vintage` in the same schema — what date the warehouse is
+standing on. Append-only, newest row wins, `as_of` null meaning current:
+
+```
+as_of | code_commit | silver_weeks | entered_at
+```
+
+It exists because a vintage warehouse is otherwise undetectable — bronze does
+not move when silver goes back, so every freshness check passes on a warehouse
+that must not be run against. The gate reads it *first*, before anything about
+freshness.
