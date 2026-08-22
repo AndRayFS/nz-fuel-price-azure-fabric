@@ -13,9 +13,20 @@ seeds:
   # anything: no model downstream of silver reads it. Data is Argus under AIP
   # licence; attribution is required if any of it is republished.
   - name: aip_singapore_weekly
+    # Types are pinned, not inferred. An empty file — the store lost, or a
+    # first run before anything is collected — leaves dbt-fabric nothing to
+    # infer from, and it made `fuel` an `int`, which turned the
+    # `accepted_values` test into a hard cast error rather than a warning.
+    # Verified 22 Aug 2026.
     config:
       column_types:
         week: date
+        fuel: varchar(20)
+        tapis_aucpl: float
+        brent_aucpl: float
+        product_aucpl: float
+        aud_usd: float
+        product_usd_bbl: float
     columns:
       - name: week
         description: Friday the AIP report averages to. Aligns with MBIE's `Date`.

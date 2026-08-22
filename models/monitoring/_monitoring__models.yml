@@ -5,6 +5,11 @@ version: 2
 # the freshness gate. A discrepancy here is meant to be read and judged, not to
 # halt a recompute of numbers it does not touch.
 #
+# `warn` covers a test that returns rows. It does not cover a test that cannot
+# run: a database error is an ERROR whatever the severity says, which is why
+# the seed's column types are pinned rather than inferred (architecture.md,
+# "Two holes found by breaking it on purpose").
+#
 # The signal tests look only at the newest snapshot run / newest shared week.
 # History stays in the models. That is why there is no acknowledgement seed
 # yet: last week's flag is not re-raised this week, so nothing accumulates to
