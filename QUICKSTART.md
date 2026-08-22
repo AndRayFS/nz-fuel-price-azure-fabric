@@ -74,18 +74,18 @@ Notes:
 
 - **Step 0b is the only step allowed to stop the run, and its exit code is
   the whole point.** `0` carry on, `2` nothing to do (stop, quietly), `1` stop
-  and go and look. **It cannot stop anything by itself** — this block is a
-  list of commands, not a script: there is no `set -e` and no dependency
-  between the steps, so pasting the whole thing on a `nothing_new` week runs
-  the entire chain on unchanged data. Run step 0b on its own, read what it
-  says, and only then continue. Binding the chain to the verdict is W7. It reads `rowsRead` off the copy activity through the
+  and go and look. It reads `rowsRead` off the copy activity through the
   Fabric REST API — the number a human used to read in the portal — and
   compares it against bronze and against what the source held when the last
   week was processed. On 19 Aug 2026 the ingest reported `Succeeded` twice
   while serving a week-old file out of MBIE's CDN: green pipeline, 60 green
-  tests, report a week stale. The gate returns `2` on that run and the chain
+  tests, report a week stale. The gate returns `2` on that run, so the chain
   never starts. Reasoning in `pipeline/gate.py`; full account of the failure
   in `docs/architecture.md`.
+- **The verdict is not yet binding.** This block is a list of commands, not a
+  script: no `set -e`, no dependency between the steps. Pasted whole on a
+  `nothing_new` week, every step after the gate runs anyway. Declaring the
+  chain so the steps genuinely depend on the gate is W7.
 - **Step 10 is not optional.** The gate compares against
   `pipeline.processed_weeks`, and `mark_processed.py` is what writes it.
   Skipping it leaves the gate believing last week was never processed.
