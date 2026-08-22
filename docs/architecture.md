@@ -852,6 +852,42 @@ warehouse row-for-row. That probe is worth keeping as the verification step
 **Any model published from Desktop starts unbound**; expect this on every
 new model, not just this one.
 
+### The old `nz_fuel` retired — 23 Aug 2026
+
+The six-day parallel run ended as planned: the original `nz_fuel` report and
+its semantic model were deleted from My Workspace, leaving `nz_fuel_v2` as
+the only report, the only import model and the only publish-to-web link
+(`/admin/widelySharedArtifacts/publishedToWeb` back to a single entry, as
+after the 13 Aug cleanup). A pbix backup went to
+`~/nz-fuel-price-project/nz_fuel_backup_20260823.pbix`, outside the repo.
+
+The whole thing ran through the Power BI REST API from the terminal, with a
+token from `az account get-access-token --resource
+https://analysis.windows.net/powerbi/api` — the same user identity the
+portal uses, no separate app registration. `GET/DELETE /myorg/reports/{id}`,
+`/myorg/datasets/{id}` and `GET /myorg/reports/{id}/Export` (which returns
+the pbix bytes directly, 200, no async polling) all work that way, and the
+admin `widelySharedArtifacts` endpoint too. Worth preferring over clicking
+for anything where picking the wrong `nz_fuel` is the failure mode.
+
+**The ShareableCloud connection survives its original model.** The 13 Aug
+connection was created against `nz_fuel` and later re-used by `nz_fuel_v2`;
+deleting the `nz_fuel` dataset did not take it down —
+`GET /datasets/{v2}/datasources` still returns both `datasourceId` and
+`gatewayId` afterwards. Connections are workspace-level objects, not model
+children. Checked rather than assumed, because a broken binding here would
+only have surfaced at the next weekly refresh.
+
+From now on each weekly update refreshes **one** model, not two. The live
+report — the only public link this project has — is
+
+`app.powerbi.com/view?r=eyJrIjoiZGQ4YzE2OWUtNTg1Zi00NzY4LWFiYTUtNGJmYTJlZmNkOWFiIiwidCI6IjY2YWVkMTI5LWFjZWQtNDgyOS05NzAxLTZiNzMxNTY3NWEwNCJ9`
+
+(report `c31bf57c-86a4-40cb-908e-ea49ae773a2e`, model
+`221ea91d-5855-4c0c-a5da-4c4af0a2650a`). It was recorded only in
+`.claude/rules/active-items.md` until now, which is a file written to go
+stale; it belongs here.
+
 ### Weekly sequence from here
 
 `resume capacity → run ingest_mbie_weekly → dbt snapshot → dbt run
