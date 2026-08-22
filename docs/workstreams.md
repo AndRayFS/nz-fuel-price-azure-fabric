@@ -97,7 +97,25 @@ tracking.
 `models/silver/silver_general.sql`, `macros/pivot_variables.sql`,
 `research/export_panel.py`, `research/backtest.py`, `models/silver/*.yml`.
 
-## W2 — Monitoring contour
+## W2 — Monitoring contour — **landed 22 Aug 2026**
+
+Branch `w2-monitoring-contour`. Delivered as described below, with three
+departures worth stating. The AIP comparison became a model *and* tests
+rather than one or the other: `monitor_aip_gap` keeps every week, the tests
+look only at the newest, which is what makes the acknowledgement seed
+unnecessary for now (open question 5, closed below). The store moved as an
+ordinary dbt seed rather than a bespoke table — `git mv`, then `dbt seed`,
+and the re-run of `aip_check.py` reproduced the file byte-identically, so it
+was a move and not a re-derivation. And `aip_check.py` gave up blocking
+entirely, including on a parse failure: it now collects and exits 0, and the
+store failing to advance is itself one of the warnings.
+
+Pointing the contour at itself produced the first finding: 29 revision
+events across four snapshot runs, every one of them a still-Provisional week
+being adjusted, with `Importer cost` and `Importer margin` moving in exact
+opposition so the pump price never moves. No Final week has been rewritten
+in the snapshot's lifetime. Full record in `architecture.md`, "The monitoring
+contour — signals with no authority".
 
 **Now.** Two quality mechanisms exist and neither is contained. Revisions
 are captured by `snapshots/mbie_revisions.sql` but nothing signals that a
@@ -494,7 +512,12 @@ lands last rather than editing it in each.
    the trial? (W9, and the pre-existing ~27 Sep item)
 4. Can a Power BI line chart carry annotations without positioned text
    boxes? (W11)
-5. Should the AIP acknowledgement seed exist from the start, or wait for
-   the first false positive to show what fields it needs? (W2)
+5. ~~Should the AIP acknowledgement seed exist from the start, or wait for
+   the first false positive to show what fields it needs?~~ **Answered
+   22 Aug 2026:** neither — it is not needed yet. Scoping the tests to the
+   newest snapshot run and the newest shared week means a flag is raised
+   once rather than every week after, so nothing accumulates to be silenced.
+   The seed becomes necessary the first time a discrepancy *persists* across
+   weeks, and that is when its fields will be obvious. (W2)
 6. Where does "last processed week" live — `forecast_accuracy` or a marker
    table written by the reconciliation step? (W3)

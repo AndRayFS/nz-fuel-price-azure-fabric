@@ -36,9 +36,20 @@ after they vanish upstream. Each report carries TWO weeks, "Last Week" and
 Data is Argus, published by AIP under licence. Attribution required if any
 of it is republished; see the notes page of any report.
 
+WHAT THIS SCRIPT DOES, AND WHAT IT NO LONGER DOES. It fetches, parses,
+converts and appends. It does not compare and it does not judge. The
+comparison against `importer_cost` is `models/monitoring/monitor_aip_gap.sql`
+and its warn-level tests, so it runs in the warehouse, over data everyone can
+see, instead of against a CSV on one laptop. This script therefore always
+exits 0: a discrepancy is a signal, and signals do not stop the weekly run.
+
+The store it writes is `seeds/monitoring/aip_singapore_weekly.csv`, which is
+loaded with `dbt seed`. That file is the only copy of the weeks AIP has
+already deleted -- append to it, never regenerate it.
+
 Usage:
-    python research/aip_check.py            # fetch, parse, append, compare
-    python research/aip_check.py --no-fetch # re-check from the stored CSV
+    python research/aip_check.py            # fetch, parse, append to the seed
+    python research/aip_check.py --no-fetch # re-parse the cached PDFs only
 """
 
 from __future__ import annotations
@@ -53,9 +64,11 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent
+REPO = ROOT.parent
 CACHE = ROOT / "data" / ".aip_cache"
-OUT = ROOT / "data" / "aip_singapore_weekly.csv"
-PANEL = ROOT / "data" / "panel_weekly.csv"
+# The PDFs stay local and disposable; the extracted weeks are the asset, and
+# they live in the seed that `monitoring` is built from.
+OUT = REPO / "seeds" / "monitoring" / "aip_singapore_weekly.csv"
 
 API = "https://aip.com.au/wp-json/wp/v2/media"
 LITRES_PER_BBL = 158.987
@@ -116,7 +129,12 @@ def parse() -> pd.DataFrame:
                     }
                 )
     if not rows:
-        sys.exit("No report tables parsed - the PDF layout has probably changed.")
+        # Loud, but not fatal: a re-styled PDF is a problem with the check, not
+        # with the data, and must not take the weekly recompute down with it.
+        # The store simply stops advancing, which
+        # `tests/monitoring/aip_latest_week_out_of_step.sql` then warns about.
+        print("  ! no report tables parsed - the PDF layout has probably changed", file=sys.stderr)
+        return pd.DataFrame(columns=["week", "fuel", "tapis_aucpl", "brent_aucpl", "product_aucpl"])
     return pd.DataFrame(rows).drop_duplicates(["week", "fuel"]).sort_values(["fuel", "week"])
 
 
@@ -141,54 +159,6 @@ def merge(new: pd.DataFrame) -> pd.DataFrame:
     return new.drop_duplicates(["week", "fuel"], keep="last").sort_values(["fuel", "week"])
 
 
-def compare(aip: pd.DataFrame) -> int:
-    """Does our newest MBIE week move the way Argus says it moved?"""
-    if not PANEL.exists():
-        print("  panel_weekly.csv absent - run research/export_panel.py first")
-        return 0
-    panel = pd.read_csv(PANEL, parse_dates=["Date"])
-    panel["cost_usd_bbl"] = panel["importer_cost"] / 100 * panel["exchange_rate"] * LITRES_PER_BBL
-
-    status = 0
-    for fuel in REPORTS:
-        ours = panel[panel["Fuel"] == fuel].set_index("Date")["cost_usd_bbl"].sort_index()
-        theirs = aip[aip["fuel"] == fuel].set_index("week")["product_usd_bbl"].sort_index()
-        both = sorted(set(ours.index) & set(theirs.index))
-        if len(both) < 2:
-            print(f"  {fuel}: fewer than two shared weeks - nothing to compare")
-            continue
-
-        latest = both[-1]
-        prior = both[-2]
-        gap_weeks = (latest - prior).days // 7
-        ours_move = ours[latest] - ours[prior]
-        theirs_move = theirs[latest] - theirs[prior]
-
-        # A stale ingest shows up as our series not moving while Argus did.
-        flag = ""
-        if abs(theirs_move) > 2 and abs(ours_move) < 0.25 * abs(theirs_move):
-            flag = "  <-- STALE? our cost barely moved while Argus moved"
-            status = 1
-        if ours_move * theirs_move < 0 and min(abs(ours_move), abs(theirs_move)) > 2:
-            flag = "  <-- DISAGREES IN SIGN"
-            status = 1
-
-        print(
-            f"  {fuel:15s} {prior.date()} -> {latest.date()} ({gap_weeks}w): "
-            f"MBIE {ours_move:+7.2f}   Argus {theirs_move:+7.2f} USD/bbl"
-            f"   markup {ours[latest] - theirs[latest]:5.1f}{flag}"
-        )
-
-        newest_panel = ours.index.max()
-        if newest_panel < theirs.index.max():
-            print(
-                f"  {fuel:15s} ! AIP already has {theirs.index.max().date()}, "
-                f"our panel stops at {newest_panel.date()}"
-            )
-            status = 1
-    return status
-
-
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--no-fetch", action="store_true", help="use cached PDFs only")
@@ -198,16 +168,24 @@ def main() -> int:
         print("Fetching report list from the AIP media API...")
         fetch_pdfs()
 
-    df = merge(add_usd(parse()))
+    parsed = parse()
+    if parsed.empty:
+        print("Nothing parsed; the stored weeks are left exactly as they were.")
+        return 0
+
+    before = len(pd.read_csv(OUT)) if OUT.exists() else 0
+    df = merge(add_usd(parsed))
     OUT.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(OUT, index=False)
     counts = df.groupby("fuel")["week"].agg(["count", "min", "max"])
-    print(f"\nStored {len(df)} rows -> {OUT.relative_to(ROOT.parent)}")
+    print(f"\nStored {len(df)} rows ({len(df) - before:+d}) -> {OUT.relative_to(REPO)}")
     for fuel, r in counts.iterrows():
         print(f"  {fuel:15s} {r['count']:3d} weeks  {r['min'].date()} .. {r['max'].date()}")
 
-    print("\nWeek-on-week move, ours vs Argus:")
-    return compare(df)
+    print("\nLoad it and read the signals:")
+    print("  dbt seed --select aip_singapore_weekly --full-refresh")
+    print("  dbt build --select monitor_aip_gap")
+    return 0
 
 
 if __name__ == "__main__":

@@ -1,0 +1,44 @@
+version: 2
+
+seeds:
+  # The Argus Singapore product quote, as republished weekly by the Australian
+  # Institute of Petroleum. Accumulated by `research/aip_check.py`; loaded here
+  # so the comparison runs in the warehouse rather than on one laptop.
+  #
+  # THIS FILE IS THE ONLY COPY. AIP keeps 11-15 recent reports and deletes the
+  # rest — Mar-Jun 2026 is already gone from the source — so weeks in here
+  # cannot be re-derived once they age out. Append to it, never regenerate it.
+  #
+  # It lives in `monitoring`, not in bronze, because it is not a source for
+  # anything: no model downstream of silver reads it. Data is Argus under AIP
+  # licence; attribution is required if any of it is republished.
+  - name: aip_singapore_weekly
+    config:
+      column_types:
+        week: date
+    columns:
+      - name: week
+        description: Friday the AIP report averages to. Aligns with MBIE's `Date`.
+        tests:
+          - not_null:
+              config:
+                severity: warn
+      - name: fuel
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Diesel', 'Regular Petrol']
+              config:
+                severity: warn
+      - name: product_usd_bbl
+        description: AU cents/litre converted at the week's mean FRED DEXUSAL rate.
+        tests:
+          - not_null:
+              config:
+                severity: warn
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [week, fuel]
+          config:
+            severity: warn

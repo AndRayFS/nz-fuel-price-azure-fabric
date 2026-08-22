@@ -26,10 +26,24 @@ models:
     gold:
       +docs:
         node_color: '#6b21a8'
+    monitoring:
+      +schema: monitoring
+      +docs:
+        node_color: '#475569'
 seeds:
   nz_fuel_price_project:
     +docs:
       node_color: '#b45309'
+    monitoring:
+      +schema: monitoring
 
 vars:
   volatility_window_weeks: 6
+
+  # Monitoring thresholds, in the units the AIP comparison works in:
+  # USD/bbl, week-on-week move. A move smaller than the first is noise and
+  # is never flagged; ours coming in under the second times Argus's is the
+  # shape a stale ingest makes. Both carried over from research/aip_check.py,
+  # where they were set against 20 weeks of comparison, not derived.
+  aip_move_threshold_usd: 2
+  aip_damping_ratio: 0.25
