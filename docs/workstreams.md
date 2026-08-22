@@ -391,13 +391,39 @@ objections that ruled out a Fabric notebook apply here.
   non-browser client — so the gate stays one step, after the ingest, and
   waking the capacity is unconditional. Roughly NZ$0.06 a run, spent even on
   weeks with nothing new.
-- **Generated artefacts.** `seeds/forecast_history.csv` is 835 KB, git
-  committed, and rewritten weekly. Under CI that becomes a weekly bot
-  commit and the history grows fast. The clean answer is to have the
-  pipeline write `forecast_history` straight to the warehouse and retire
-  the seed round-trip — which is safe *here* in a way it was not inside a
+- **Generated artefacts — three seeds, not one.** `forecast_history.csv`
+  (836 KB), `period_flags.csv` (444 KB) and the AIP store are all derived
+  data reaching the warehouse by round-tripping through git. Under CI each
+  weekly run becomes a bot commit and the history grows fast. The clean
+  answer is for the pipeline to write them straight to the warehouse and
+  retire the seed round-trip — safe *here* in a way it was not inside a
   Fabric notebook, because the code stays in git and runs reproducibly.
-  Reopen this question during W8, not before.
+
+  This is the branch that unblocks it: a seed cannot leave git earlier,
+  because `dbt seed` reads the working tree and a clean clone would fail to
+  build. `panel_weekly.csv` and `backtest_results.csv` are not seeds and
+  were gitignored on 23 Aug without waiting for this.
+
+  `brent_daily.csv` joins them, corrected 23 Aug: it was first filed as
+  hand-downloaded and therefore staying, but FRED serves it under a stable
+  series id and its one question is already answered, so it becomes a fetcher
+  in `research/` and the seed retires. That also touches `export_panel.py`,
+  which joins `dbo.brent_daily`.
+
+  `periods.csv` and `variable_mapping.csv` stay in git and are not part of
+  this — they are hand-written configuration, and the reviewable history of
+  why a period boundary moved is the point of them. Full reasoning in
+  `architecture.md`, "Observations belong in the warehouse, configuration
+  belongs in git".
+
+  - **Do not delete `seeds/monitoring/aip_singapore_weekly.csv` until
+    warehouse retention is verified.** It is the only copy of the AIP series
+    in existence — the source keeps 11–15 reports and Mar–Jun 2026 is already
+    lost — and git is currently its crude backup. Restore points and
+    time-travel retention must be checked and configured deliberately first,
+    not assumed. This subpoint exists because it is the one irreplaceable
+    file in the project and a branch about Entra, OIDC and cron is exactly
+    where it would be walked past.
 - Public repository: secrets are not exposed to forks, and Actions minutes
   are free, but the workflow file is world-readable — no identifiers that
   are not already public.

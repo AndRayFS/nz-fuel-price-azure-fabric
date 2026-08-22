@@ -10,4 +10,11 @@ logs/
 __pycache__/
 *.pyc
 research/data/.aip_cache/
+
+# Derived data does not round-trip through git; the warehouse holds it.
+# Neither file is a seed and no ref() or build step reads either, so both
+# left immediately rather than waiting for W8. See architecture.md,
+# "Observations belong in the warehouse, configuration belongs in git".
+research/data/panel_weekly.csv
+research/data/backtest_results.csv
 !research/art/fuel_price_anatomy.gif
