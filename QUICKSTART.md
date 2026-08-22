@@ -228,9 +228,20 @@ Three things to know before using it:
 - **`forecast_accuracy` does not move**, because it descends from the
   `forecast_history` and `period_flags` seeds and never reads silver. In a
   vintage warehouse it is the one gold table still showing current numbers.
-  For a fully consistent vintage, continue: `python research/export_panel.py`,
-  `python research/backtest.py`, `dbt seed --select forecast_history`, then
-  `dbt run --full-refresh` again — and run the same four on the way back.
+  For a fully consistent vintage, continue with the four steps that rebuild
+  the seeds, then run again — and repeat all six without the var on the way
+  back. `period_flags` is in there because it is derived from the panel too,
+  and `backtest.py` reads it alongside the panel:
+
+  ```bash
+  python research/export_panel.py         # panel <- vintage silver
+  python research/build_period_flags.py   # period_flags <- vintage panel
+  python research/backtest.py             # forecast_history <- both
+  dbt seed --select period_flags forecast_history
+  dbt run --full-refresh --vars '{as_of_vintage: "2026-08-07"}'
+  ```
+
+  Those three CSVs are git-tracked. Do not commit while a vintage is loaded.
 - **`aip_latest_week_out_of_step` warns** during a vintage run, correctly:
   silver's newest week is older than the AIP store's. WARN, not ERROR, so
   nothing is blocked.

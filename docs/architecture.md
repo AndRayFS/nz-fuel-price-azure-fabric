@@ -2514,9 +2514,12 @@ returns `forecast_history` and `period_flags` and nothing else — both seeds �
 and in a vintage run it builds first, before silver exists. It is therefore not
 a contaminated number in a partial vintage run, it is an unmoved one: the only
 gold table still showing current values while the rest went back. A fully
-consistent vintage needs `export_panel.py` → `backtest.py` →
-`dbt seed --select forecast_history` → a second `dbt run`, and the same four
-on the way home.
+consistent vintage needs `export_panel.py` → `build_period_flags.py` →
+`backtest.py` → `dbt seed --select period_flags forecast_history` → a second
+`dbt run`, and the same five on the way home. `period_flags` belongs in that
+list because it is derived from the panel by rule and `backtest.py` reads it
+alongside the panel — omitting it would leave the regime axes standing on
+today's data while the prices went back.
 
 The monitoring contour goes vintage as well, because `monitor_aip_gap`
 descends from `silver_fuel`. `aip_latest_week_out_of_step` warns during a

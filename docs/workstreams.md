@@ -352,16 +352,18 @@ week, which is a visible error rather than a silent one. The separate schema
 also cost work rather than saving it: `export_panel.py` holds raw SQL with
 `dbo.` hardcoded and would have needed the schema parameterised.
 
-**The chain is five steps, not one.** The var reaches gold on its own, but
+**The chain is six steps, not one.** The var reaches gold on its own, but
 `forecast_history` is a seed — computed in Python, loaded by `dbt seed` — so
 a fully consistent vintage runs:
 
 ```
-dbt run --full-refresh (with the var)  →  export_panel.py  →  backtest.py
-   →  dbt seed --select forecast_history  →  dbt run --full-refresh
+dbt run --full-refresh (with the var)  →  export_panel.py
+   →  build_period_flags.py  →  backtest.py
+   →  dbt seed --select period_flags forecast_history
+   →  dbt run --full-refresh (with the var)
 ```
 
-and the return runs the same five without it. Cheap in wall clock — the
+and the return runs the same six without it. Cheap in wall clock — the
 whole weekly chain is about five minutes. Until that seed is rebuilt,
 `forecast_accuracy` simply does not move: it descends from seeds only and
 never reads silver, so in a partial vintage run it is the one gold table
