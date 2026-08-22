@@ -2708,7 +2708,18 @@ Coming back, all thirteen `binary_checksum(*)` fingerprints matched the
 pre-vintage warehouse exactly, `forecast_history` included — which is the
 stronger of the two results, because that file is not restored from git on the
 way home but recomputed by `backtest.py` from current silver. The Python half
-of the chain is deterministic to the byte.
+of the chain is deterministic to the byte. A second round trip, to 6 August,
+reproduced the same fingerprints again.
+
+**The gate's refusal was then exercised for real**, not only as a replayed
+case. It matters that the warehouse was in a state where the gate already had
+something to say: on current data it returns `ingest_not_run`, the last ingest
+being 88 hours old. With the 6 August vintage loaded the verdict became
+`warehouse_is_vintage`, naming the date and the command that undoes it, and
+after the return it went back to `ingest_not_run`. So the check does not merely
+fire — it *precedes* a check that was already firing, which is the only
+ordering that is safe. A vintage warehouse on a week with fresh data would
+otherwise have passed everything.
 
 ### The risk this design accepts
 
