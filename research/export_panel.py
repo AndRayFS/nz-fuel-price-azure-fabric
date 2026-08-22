@@ -6,9 +6,14 @@ CSV. That is deliberate, not lazy:
   * estimation is a loop of twenty specifications, not one query — round
     trips to a warehouse would dominate the wall clock;
   * the F2 capacity bills real money from 28 Aug 2026 and auto-pauses at
-    23:00 NZT, so research that needs it up is research that stalls;
-  * the committed CSV makes every number in docs/ reproducible by anyone
-    without an Azure subscription.
+    23:00 NZT, so research that needs it up is research that stalls.
+
+The CSV is local and gitignored. It used to be committed, on the argument
+that it made every number in docs/ reproducible without an Azure
+subscription — but rebuilding the panel needs the MBIE ingest and a
+warehouse either way, so what that bought a reader was arithmetic, never
+the pipeline. Derived data lives in the warehouse; see architecture.md,
+"Observations belong in the warehouse, configuration belongs in git".
 
 Auth mirrors ~/.dbt/profiles.yml (`authentication: CLI`): an Azure CLI
 token, packed into the ODBC access-token attribute exactly the way

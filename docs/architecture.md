@@ -2415,3 +2415,79 @@ unreachable. Both are now caught — the AIP media API failing leaves the cached
 PDFs to be parsed, and a FRED failure leaves the store untouched rather than
 half-converted. Simulated both; both exit 0 and the seed came back
 byte-identical.
+
+## Observations belong in the warehouse, configuration belongs in git — 23 Aug 2026
+
+Eight CSVs are version-controlled and four of them are rewritten every week.
+Today that costs little: `.git` is 12 MB. Under CI (W8) each weekly run
+becomes a bot commit, and ~2.9 MB of churn per week starts accumulating in
+the history forever. The W8 risk list already named `forecast_history.csv`
+as the case to fix; the rule below generalises it, because the same argument
+covers three more files.
+
+**The rule is not "no data in git".** The boundary is not size and not file
+type — it is *who produced it*:
+
+- **Observations accumulate on their own** — a source publishes them, or a
+  script derives them. They belong in the warehouse, which is the tool built
+  for that. `forecast_history`, `period_flags`, `panel_weekly`,
+  `backtest_results`, the AIP store, and `brent_daily`.
+- **Configuration and hypotheses are written by a person.** They belong in
+  git, and their value is mostly the history: who moved a boundary, when, and
+  what the commit message said. `periods.csv` is six hand-drawn period
+  boundaries that this project calls a hypothesis in half a dozen places;
+  `variable_mapping.csv` is eleven rows of mapping. Neither accumulates.
+  Moving them into the warehouse would trade reviewable history for nothing —
+  no warehouse backup reconstructs *why* a period boundary moved.
+
+So the file count barely changes. What changes is that no derived table
+round-trips through version control on its way into the warehouse.
+
+**What today's arrangement actually gets wrong.** Not duplication — `dbo.periods`
+and `dbo.variable_mapping` exist *because* `dbt seed` put them there, so the
+CSV is the single truth and the table is its copy. The real defect is the
+footgun underneath: editing one of those tables directly appears to work and
+is silently discarded by the next `dbt seed`. Making the warehouse the master
+for observations removes that class of surprise for everything that is not
+hand-written config.
+
+**Sequencing, and why it is not one job.** Removing a *seed* from git breaks a
+clean clone: `dbt seed` reads the working tree, finds nothing, and the build
+fails. So `forecast_history`, `period_flags` and the AIP store cannot leave
+until something regenerates or hosts them on a fresh checkout, and that is
+exactly what W8 builds. They are recorded there.
+
+`panel_weekly.csv` and `backtest_results.csv` are not seeds — no `ref()` and
+no build step reads either — so they were gitignored immediately rather than
+waiting for a branch that depends on W5 and W6.
+
+**`brent_daily.csv` was misfiled here on 23 Aug and is corrected the same day.**
+The first version of this note kept it in git on the grounds that "download it
+yourself" does not work, the procedure being written down nowhere. That is an
+argument for writing the procedure down, not for storing the data: FRED serves
+it under a stable series id (`DCOILBRENTEU`), so a script fetches it in a few
+lines. It is not the AIP case, where no archive exists at all — nothing about
+it is irreplaceable, only unrecorded.
+
+Its purpose is also spent. It was acquired to settle one question — whether
+MBIE's weekly crude number is Friday's quote or the Mon–Fri mean — and the
+answer is measured and recorded above. What remains is two diagnostic columns
+in the panel that no gold model reads. So it belongs in `research/` as a
+fetcher, with the seed and the warehouse table retired; that also means editing
+`export_panel.py`, which joins `dbo.brent_daily`. Until then it cannot leave
+git for the same clean-clone reason as the other seeds, so it travels with
+them in W8.
+
+**One file is irreplaceable, and the rule must not be applied to it carelessly.**
+`seeds/monitoring/aip_singapore_weekly.csv` is the only copy of the AIP series
+that exists anywhere: the source retains 11–15 reports and Mar–Jun 2026 is
+already lost. Git is currently serving as its crude backup. Moving the master
+into the warehouse is right, but only once warehouse retention has been checked
+and configured deliberately — restore points and time-travel retention, verified,
+not assumed. The CSV does not get deleted before that.
+
+**The public-repository argument this retires.** `export_panel.py` promised that
+the committed panel made every number in `docs/` reproducible without an Azure
+subscription. That promise was always weak — rebuilding the panel needs the MBIE
+ingest and a warehouse, so the CSV let a reader check arithmetic but never the
+pipeline. A public repository publishes the code; it is not a data store.
