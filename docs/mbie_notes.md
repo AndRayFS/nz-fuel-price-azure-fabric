@@ -587,6 +587,14 @@ If the trend line itself is ever needed, recompute it locally in gold from the
 raw `Importer margin` values rather than trusting MBIE's version to stay
 stable — since evidently it never fully does.
 
+**Extended 22 Aug 2026: it is no longer loaded into silver at all.** The
+exclusion above was from revision tracking only, so the column still rode
+along in `silver_fuel` where nothing read it. Its row was removed from
+`seeds/variable_mapping.csv`, which drops both the value and its status
+column from the pivot. Bronze still holds the rows; restoring it is the same
+one line in reverse. Reasoning: `architecture.md`, "Status belongs to a
+value, not to a week".
+
 Everything else in the diff was small and expected: single-digit row counts,
 all within the most recent 1–2 weeks, all still `Provisional` — ordinary
 week-to-week correction, not a data quality problem.

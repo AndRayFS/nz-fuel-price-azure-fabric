@@ -10,4 +10,3 @@ Price excluding tax,,price_excl_tax,true,true
 Board price,,board_price,true,true
 Adjusted retail price,,adjusted_retail_price,true,true
 Importer margin,,importer_margin,true,true
-Importer margin trend,,importer_margin_trend,true,false

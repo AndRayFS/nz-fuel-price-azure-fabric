@@ -8,16 +8,16 @@
 
 {% set results = dbt_utils.get_query_results_as_dict(query) %}
 
+-- Status is carried per variable, the same way values are. MBIE records it
+-- per value, and silver reshapes rather than decides, so no week-level
+-- status is invented here: whoever needs a training filter states which
+-- columns it depends on.
 select
     Week,
     Date,
     Fuel,
-    {% for i in range(results['variable_name'] | length) %}
-    max(case when Variable = '{{ results["variable_name"][i] }}'
-        {%- if results["unit_filter"][i] %} and Unit = '{{ results["unit_filter"][i] }}'{% endif %}
-        then TRY_CAST(Value AS FLOAT) end) as {{ results["canonical_name"][i] }}
-    {%- if not loop.last %},{% endif %}
-    {% endfor %}
+    {{ pivot_variables(results) }},
+    {{ pivot_variables(results, value_column='Status', suffix='_status', cast_numeric=false) }}
 from {{ source('bronze', 'weekly_prices') }}
 where Fuel != 'NA'
 {% set cutoff = var('simulate_cutoff_date', none) %}

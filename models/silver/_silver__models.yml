@@ -16,6 +16,25 @@ models:
       - name: exchange_rate
         tests:
           - not_null
+      # Status columns are not tested for `not_null`: MBIE's own status
+      # field is only meaningful for the weeks it publishes it for, and an
+      # absent status is a fact about the source, not a defect. What is
+      # asserted is that when a value is present it is one MBIE documents.
+      - name: dubai_crude_usd_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Provisional', 'Final']
+      - name: dubai_crude_nzd_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Provisional', 'Final']
+      - name: exchange_rate_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Provisional', 'Final']
 
   - name: silver_fuel
     columns:
@@ -31,6 +50,46 @@ models:
       - name: board_price
         tests:
           - not_null
+      - name: importer_cost_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Provisional', 'Final']
+      - name: importer_margin_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Provisional', 'Final']
+      - name: adjusted_retail_price_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Provisional', 'Final']
+      - name: board_price_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Provisional', 'Final']
+      - name: price_excl_tax_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Provisional', 'Final']
+      - name: taxes_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Provisional', 'Final']
+      - name: gst_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Provisional', 'Final']
+      - name: ets_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Provisional', 'Final']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
