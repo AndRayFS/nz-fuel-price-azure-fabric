@@ -14,7 +14,7 @@ the list of dated obligations. Nothing here restates those.
 
 | date | event | consequence |
 |---|---|---|
-| 23 Aug 2026 | old `nz_fuel` report + semantic model retired | back to one publish-to-web entry |
+| 23 Aug 2026 | old `nz_fuel` report + semantic model retired | **done** — one publish-to-web entry, one model to refresh |
 | 25–27 Aug 2026 | owner away, no laptop | nothing may be left mid-flight |
 | 26 Aug 2026 | MBIE publishes (Wednesday) | **decision: skip this run**, do it 28 Aug |
 | 27 Aug 2026 | Azure trial credit expires | ~NZ$245 lapses regardless |

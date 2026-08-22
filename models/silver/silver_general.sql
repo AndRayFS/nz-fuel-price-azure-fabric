@@ -14,7 +14,7 @@ select
     Date,
     {{ pivot_variables(results) }},
     {{ pivot_variables(results, value_column='Status', suffix='_status', cast_numeric=false) }}
-from {{ source('bronze', 'weekly_prices') }}
+from {{ weekly_prices_relation() }} wp
 where Fuel = 'NA'
 {% set cutoff = var('simulate_cutoff_date', none) %}
 {% if cutoff %}
