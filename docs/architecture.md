@@ -2451,3 +2451,93 @@ unreachable. Both are now caught — the AIP media API failing leaves the cached
 PDFs to be parsed, and a FRED failure leaves the store untouched rather than
 half-converted. Simulated both; both exit 0 and the seed came back
 byte-identical.
+
+## The revision is worth 0.003 of r, and no lag at all — 23 Aug 2026
+
+`simulate_cutoff_date` has always answered "weeks up to date N", with today's
+corrected values inside them. It could not answer "what was believed on date
+N". The snapshot held the versions and nothing read them that way, so the
+standing caveat under the walk-forward results — "the panel is the current
+vintage, so absolute errors are flattered by an unknown amount" — stayed
+unknown by construction.
+
+A var, `as_of_vintage`, now swaps silver's source from bronze to
+`dbo.mbie_revisions` filtered by validity. Bronze cannot serve this: it holds
+one copy of the current MBIE file and every ingest overwrites it. The snapshot
+*is* the version record, which fixes the horizon at 17 July 2026 — the
+backfill date, not the first `dbt snapshot` run — with five vintages available
+(17 Jul, 31 Jul, 6, 13, 19 Aug).
+
+Nothing downstream changed. Gold reads silver exclusively through `ref()`, so
+`lag_correlation`, `lag_resolved` and `factor_volatility` recompute on the
+vintage with no edit. Same objects, same schema, no parallel warehouse: the
+return is a plain `dbt run --full-refresh` with no var, which is the shape
+`simulate_cutoff_date` has used since the backtests.
+
+### Three states, and what separates them
+
+A vintage differs from the current warehouse in two ways at once — it has
+fewer weeks *and* it has unrevised values. Reading the difference as "the
+revision effect" would conflate them. So three runs, at as-of 7 August 2026,
+period `06_iranus_2026`, target `adjusted_retail_price`:
+
+| factor / fuel | current | cutoff @ 7 Aug | vintage @ 7 Aug |
+|---|---|---|---|
+| crude NZD / Diesel | 0.89938868 | 0.90003096 | 0.89659953 |
+| crude NZD / Regular | 0.92265504 | 0.92261073 | 0.92603805 |
+| crude USD / Diesel | 0.90406797 | 0.90487102 | 0.90167715 |
+| crude USD / Regular | 0.92813865 | 0.92858547 | 0.93225722 |
+| exchange rate / Diesel | 0.36780094 | 0.37288308 | 0.36841345 |
+| exchange rate / Regular | 0.49021143 | 0.50135591 | 0.50031742 |
+
+The middle column holds the same weeks as the right one and today's values,
+so **vintage minus cutoff is the revision alone**: ±0.003 to 0.004 of
+`resolved_r`, in both directions. Current minus cutoff is the two extra weeks:
+larger than the revision on `exchange_rate` (0.011 on Regular), comparable on
+crude.
+
+**Not one `resolved_lag` moved.** All 108 rows carry the same lag in the
+vintage as in the current warehouse, and `05_calm_import_era` came back
+bit-identical, which is the expected confinement — only the period holding the
+affected weeks can change.
+
+So the flattering is real, measured, and small where it has been measured: the
+lag machinery is unaffected and the correlation moves in the third decimal.
+One date, one revision event, five weeks of snapshot history — this is a
+measurement, not a general result, and it gets better every week the snapshot
+runs.
+
+### Two things the branch found rather than planned
+
+`forecast_accuracy` does not participate. `dbt list --select +forecast_accuracy`
+returns `forecast_history` and `period_flags` and nothing else — both seeds —
+and in a vintage run it builds first, before silver exists. It is therefore not
+a contaminated number in a partial vintage run, it is an unmoved one: the only
+gold table still showing current values while the rest went back. A fully
+consistent vintage needs `export_panel.py` → `backtest.py` →
+`dbt seed --select forecast_history` → a second `dbt run`, and the same four
+on the way home.
+
+The monitoring contour goes vintage as well, because `monitor_aip_gap`
+descends from `silver_fuel`. `aip_latest_week_out_of_step` warns during a
+vintage run — correctly, silver's newest week is older than the AIP store's —
+and warns rather than fails only because W2 dropped that check from blocking
+to warning for unrelated reasons. A decision made about source authority is
+what keeps vintage runs unblocked.
+
+### The risk this design accepts
+
+Silver and gold are overwritten in place, so between entering a vintage and
+returning, the warehouse genuinely holds vintage numbers, and **nothing detects
+that state**: the freshness gate compares bronze against
+`pipeline.processed_weeks`, and a vintage run moves neither. The mitigation is
+that entry and return are documented as one operation rather than two, and the
+exposure is bounded by every weekly run rebuilding everything anyway. Report 1
+is insulated by being an Import model refreshed by an explicit step — vintage
+numbers cannot reach the published link unless a human refreshes while in that
+state, and the report would then show an earlier maximum week, which is a
+visible error rather than a silent one.
+
+Setting `as_of_vintage` and `simulate_cutoff_date` together raises a
+compilation error. The composition has no reading: weeks up to one date,
+valued as at another.

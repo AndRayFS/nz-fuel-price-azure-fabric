@@ -195,6 +195,46 @@ Source (MBIE) structure and gotchas: `docs/mbie_notes.md`
   `monitor_aip_gap` raises a flag. Both are USD/bbl week-on-week
   quantities; loosen them here rather than in the model.
 
+## Asking what the data looked like on a past date
+
+Two different questions, two vars, and setting both raises a compilation
+error rather than returning a mixture:
+
+- `simulate_cutoff_date` — **observation date.** Which weeks are visible.
+  Values are today's, corrections included.
+- `as_of_vintage` — **vintage.** What was believed on that date. Silver
+  reads the snapshot instead of bronze, so revised numbers come back in
+  their pre-revision form.
+
+Horizon for `as_of_vintage` is **17 July 2026**; five vintages exist
+(17 Jul, 31 Jul, 6, 13, 19 Aug). Earlier dates have one version and give
+current numbers.
+
+```bash
+# enter the vintage: silver reads the snapshot, gold follows through ref()
+dbt run --full-refresh --vars '{as_of_vintage: "2026-08-07"}'
+
+# come back. NOT OPTIONAL - the warehouse holds vintage numbers until it runs
+dbt run --full-refresh
+```
+
+Three things to know before using it:
+
+- **The warehouse is genuinely in a vintage state between those commands.**
+  Nothing detects it: the freshness gate compares bronze against
+  `pipeline.processed_weeks` and a vintage run moves neither. Treat entry
+  and return as one operation. Report 1 is unaffected unless someone
+  refreshes the semantic model while in that state.
+- **`forecast_accuracy` does not move**, because it descends from the
+  `forecast_history` and `period_flags` seeds and never reads silver. In a
+  vintage warehouse it is the one gold table still showing current numbers.
+  For a fully consistent vintage, continue: `python research/export_panel.py`,
+  `python research/backtest.py`, `dbt seed --select forecast_history`, then
+  `dbt run --full-refresh` again — and run the same four on the way back.
+- **`aip_latest_week_out_of_step` warns** during a vintage run, correctly:
+  silver's newest week is older than the AIP store's. WARN, not ERROR, so
+  nothing is blocked.
+
 ## After making changes
 
 ```bash

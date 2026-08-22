@@ -238,7 +238,67 @@ paying for full refreshes over unchanged data.
 **Depends on.** Nothing.
 **Touches.** new script under `pipeline/`, `QUICKSTART.md`.
 
-## W4 — Vintage reconstruction — **redesigned 23 Aug 2026, not started**
+## W4 — Vintage reconstruction — **landed 23 Aug 2026**
+
+Branch `w4-vintage-mode`. Delivered as designed, with three departures worth
+stating.
+
+**`forecast_accuracy` does not mix vintage silver with a current forecast
+history, as this entry claimed before the branch ran — it has no silver
+dependency at all.** `dbt list --select +forecast_accuracy` returns exactly
+`forecast_history` and `period_flags`, both seeds, and in a vintage run it
+built *first*, before silver. So it is not wrong in a partial vintage run,
+it is simply unmoved: the one gold table still showing current numbers while
+everything else went back. The correction matters because the original
+phrasing implied a contaminated number that a reader would go looking for.
+
+**`dbt_project.yml` was not touched.** The plan had the var declared there,
+but `simulate_cutoff_date` has always been an inline `var(..., none)` default
+with no project-level entry, and matching that beat introducing a second
+convention.
+
+**The monitoring contour goes vintage too**, which the plan did not
+anticipate: `monitor_aip_gap` descends from `silver_fuel`. In a vintage run
+`aip_latest_week_out_of_step` warns, correctly — silver's newest week is
+older than the AIP store's. It warns rather than fails only because W2
+deliberately dropped that check from blocking to warning, so a decision made
+for other reasons is what keeps a vintage run unblocked.
+
+### What it measured on the first use
+
+Entered at as-of 7 Aug 2026, against the current warehouse:
+
+| | weeks | silver_fuel rows | sum(r) in lag_correlation |
+|---|---|---|---|
+| current | 1165 | 3495 | 243.71841837 |
+| vintage @ 7 Aug | 1163 | 3489 | 236.86209402 |
+
+**Not one `resolved_lag` changed** — all 108 rows hold the same lag in both
+states, and period `05_calm_import_era` came back bit-identical, confirming
+the difference is confined to the period holding the affected weeks.
+
+A vintage differs from current in two ways at once, though — fewer weeks
+*and* unrevised values — so a third run isolated the revision with
+`simulate_cutoff_date` at the same date (same weeks, today's values). On
+period 06 / `adjusted_retail_price`, the revision alone is worth **±0.003 to
+0.004 of `resolved_r`**, in both directions, moving no lag. The two extra
+weeks are worth more than the revision on `exchange_rate` (up to 0.011) and
+about the same on crude.
+
+That is the standing caveat in `architecture.md` — "absolute errors are
+flattered by an unknown amount" — measured for the first time. One date, one
+revision event, inside a five-week snapshot history: not a general result,
+but no longer an unknown one.
+
+### Verification
+
+The return prong was exercised four times (vintage → current → vintage →
+cutoff → current) and reproduced the pre-change fingerprint of all six tables
+exactly every time, to eight decimal places. `dbt test` is PASS=83 WARN=0 on
+return, and PASS=82 WARN=1 in the vintage state, the warning being the AIP
+one above.
+
+---
 
 The entry below replaces a design this document carried until 23 Aug: an
 analysis in `analyses/` plus a side file `panel_weekly_asof_DATE.csv` that
@@ -303,9 +363,9 @@ dbt run --full-refresh (with the var)  →  export_panel.py  →  backtest.py
 
 and the return runs the same five without it. Cheap in wall clock — the
 whole weekly chain is about five minutes. Until that seed is rebuilt,
-`forecast_accuracy` mixes vintage silver with a forecast history that knows
-the future, so it is the one gold model that is wrong rather than merely
-stale in a partial vintage run.
+`forecast_accuracy` simply does not move: it descends from seeds only and
+never reads silver, so in a partial vintage run it is the one gold table
+still showing current numbers.
 
 **Known limits, to be stated in the doc rather than discovered later.**
 Horizon is **17 July 2026** (answered below, measured not assumed), so
@@ -342,10 +402,10 @@ everything anyway.
 Needs live capacity for each full refresh. Free until 27 Aug; billed after.
 
 **Depends on.** Nothing.
-**Touches.** `models/silver/silver_fuel.sql`,
-`models/silver/silver_general.sql`, `dbt_project.yml` (var default),
-`QUICKSTART.md`. Not `export_panel.py` — under this design the warehouse
-moves underneath it and the script is unchanged.
+**Touches.** `macros/weekly_prices_relation.sql` (new),
+`models/silver/silver_fuel.sql`, `models/silver/silver_general.sql`,
+`QUICKSTART.md`. Not `export_panel.py` — the warehouse moves underneath it
+and the script is unchanged. Not `dbt_project.yml`, per the departure above.
 
 ---
 
