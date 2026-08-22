@@ -36,10 +36,20 @@
   {%- endif -%}
 
   {%- if vintage -%}
+    {#- As at the END of the named day, not its midnight. A snapshot run on the
+        13th stamps dbt_valid_from at that morning's hour, so `<= '2026-08-13'`
+        would compare against midnight and return the state BEFORE that day's
+        run. `--as-of 13 Aug` has to mean "as the 13th left it", not "as the
+        12th left it", not least because the git half of a vintage resolves the
+        commit with --before='DATE 23:59:59' and the two halves must agree.
+        Validity is the half-open interval [valid_from, valid_to), so at the
+        instant T = start of the next day a row is visible when
+        valid_from < T and (valid_to is null or valid_to >= T). -#}
     (select Week, Date, Fuel, Variable, Unit, Value, Status
      from {{ ref('mbie_revisions') }}
-     where dbt_valid_from <= '{{ vintage }}'
-       and (dbt_valid_to is null or dbt_valid_to > '{{ vintage }}'))
+     where dbt_valid_from < dateadd(day, 1, cast('{{ vintage }}' as date))
+       and (dbt_valid_to is null
+            or dbt_valid_to >= dateadd(day, 1, cast('{{ vintage }}' as date))))
   {%- else -%}
     {{ source('bronze', 'weekly_prices') }}
   {%- endif -%}

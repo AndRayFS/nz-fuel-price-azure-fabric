@@ -2567,6 +2567,74 @@ week would move it. Do not read the invariance as a property of the model.
 `forecast_accuracy` is the twelfth, covered above: seeds only, no silver
 ancestor at all.
 
+### From six objects to the whole system
+
+The var on its own was half a tool, and the half it delivered was the half
+that is easy to misread: silver and the lags standing on a date while
+`forecast_accuracy` — the table Report 1 leads with — stands on today, with
+nothing anywhere recording the discrepancy. Useful for measuring a revision;
+useless for the thing a vintage is actually for, which is picking up the whole
+system as it was and working in it — re-cutting a report, testing a hypothesis
+without look-ahead.
+
+`pipeline/vintage.py` is the whole operation. `--as-of DATE`, `--status`,
+`--return`.
+
+**Two versioned stores, and each holds what the other cannot.** The snapshot
+holds MBIE's numbers, which are not in git. Git holds `periods`,
+`variable_mapping` and `brent_daily`, which are hand-written and not in the
+snapshot. A vintage restores from both: the seeds come from
+`git rev-list -1 --before='DATE 23:59:59'`, the data from the validity filter.
+The line in `workstreams.md` that called this a limit — "full historical
+fidelity is a git question, not a snapshot one" — turned out to name the
+mechanism rather than a shortcoming.
+
+**Both halves now resolve to the END of the named day**, which the first
+implementation got wrong in a way worth recording. The macro compared
+`dbt_valid_from <= 'DATE'`, i.e. against midnight, while the git half used
+`--before='DATE 23:59:59'`. A snapshot run on the 13th stamps that morning's
+hour, so `--as-of 2026-08-13` returned the state the *12th* left, with 1163
+weeks, while the seeds came from the 13th. Caught by the row count on the
+first real run, not by reading the code.
+
+**Code stays current, and that is the design.** "What would today's method
+have said on the data available then" is the question without look-ahead in
+it; "what did the report say that day" is archaeology and would reproduce
+bugs this project has since found and documented. Old code is reachable
+through git, but it could not read a vintage without backporting
+`weekly_prices_relation` — so it would not be purely historical either, and
+the choice is between two impure options rather than between pure and impure.
+
+**A seed that did not exist yet is kept, not deleted.** `brent_daily.csv`
+arrived on 15 Aug 2026, so a vintage of the 13th has no version to restore.
+Deleting it would break `export_panel.py`, which joins it. The script keeps
+HEAD's copy and prints that it did: an approximation that says which way it
+leans beats both a failure and a silent substitution.
+
+**The marker earns its place by making the state answerable.**
+`pipeline.warehouse_vintage` is append-only, newest row wins, and the gate
+reads it as its *first* check — before anything about freshness, because a
+vintage warehouse would pass every other check while being unfit to run. The
+concrete hazard: a weekly chain over a vintage would `dbt seed` the vintage
+`forecast_history` sitting on disk and rebuild `forecast_accuracy` from it on
+top of current silver, publishing a report mixing two dates from a run in
+which nothing failed.
+
+### Verified end to end
+
+Round trip on 23 Aug 2026, to 13 August and back. Going out, every object
+moved that should: `forecast_accuracy` 6363 → 6354 rows, `forecast_history`
+likewise, `period_flags` 3495 → 3492, and `variable_mapping` 11 → 12 rows —
+the 13 August config still carried `Importer margin trend`, which W1 removed
+that same morning, so the historical configuration genuinely applied rather
+than being nominally restored.
+
+Coming back, all thirteen `binary_checksum(*)` fingerprints matched the
+pre-vintage warehouse exactly, `forecast_history` included — which is the
+stronger of the two results, because that file is not restored from git on the
+way home but recomputed by `backtest.py` from current silver. The Python half
+of the chain is deterministic to the byte.
+
 ### The risk this design accepts
 
 Silver and gold are overwritten in place, so between entering a vintage and
