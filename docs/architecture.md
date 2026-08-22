@@ -852,6 +852,42 @@ warehouse row-for-row. That probe is worth keeping as the verification step
 **Any model published from Desktop starts unbound**; expect this on every
 new model, not just this one.
 
+### The old `nz_fuel` retired — 23 Aug 2026
+
+The six-day parallel run ended as planned: the original `nz_fuel` report and
+its semantic model were deleted from My Workspace, leaving `nz_fuel_v2` as
+the only report, the only import model and the only publish-to-web link
+(`/admin/widelySharedArtifacts/publishedToWeb` back to a single entry, as
+after the 13 Aug cleanup). A pbix backup went to
+`~/nz-fuel-price-project/nz_fuel_backup_20260823.pbix`, outside the repo.
+
+The whole thing ran through the Power BI REST API from the terminal, with a
+token from `az account get-access-token --resource
+https://analysis.windows.net/powerbi/api` — the same user identity the
+portal uses, no separate app registration. `GET/DELETE /myorg/reports/{id}`,
+`/myorg/datasets/{id}` and `GET /myorg/reports/{id}/Export` (which returns
+the pbix bytes directly, 200, no async polling) all work that way, and the
+admin `widelySharedArtifacts` endpoint too. Worth preferring over clicking
+for anything where picking the wrong `nz_fuel` is the failure mode.
+
+**The ShareableCloud connection survives its original model.** The 13 Aug
+connection was created against `nz_fuel` and later re-used by `nz_fuel_v2`;
+deleting the `nz_fuel` dataset did not take it down —
+`GET /datasets/{v2}/datasources` still returns both `datasourceId` and
+`gatewayId` afterwards. Connections are workspace-level objects, not model
+children. Checked rather than assumed, because a broken binding here would
+only have surfaced at the next weekly refresh.
+
+From now on each weekly update refreshes **one** model, not two. The live
+report — the only public link this project has — is
+
+`app.powerbi.com/view?r=eyJrIjoiZGQ4YzE2OWUtNTg1Zi00NzY4LWFiYTUtNGJmYTJlZmNkOWFiIiwidCI6IjY2YWVkMTI5LWFjZWQtNDgyOS05NzAxLTZiNzMxNTY3NWEwNCJ9`
+
+(report `c31bf57c-86a4-40cb-908e-ea49ae773a2e`, model
+`221ea91d-5855-4c0c-a5da-4c4af0a2650a`). It was recorded only in
+`.claude/rules/active-items.md` until now, which is a file written to go
+stale; it belongs here.
+
 ### Weekly sequence from here
 
 `resume capacity → run ingest_mbie_weekly → dbt snapshot → dbt run
@@ -2491,3 +2527,202 @@ the committed panel made every number in `docs/` reproducible without an Azure
 subscription. That promise was always weak — rebuilding the panel needs the MBIE
 ingest and a warehouse, so the CSV let a reader check arithmetic but never the
 pipeline. A public repository publishes the code; it is not a data store.
+## The revision is worth 0.003 of r, and no lag at all — 23 Aug 2026
+
+`simulate_cutoff_date` has always answered "weeks up to date N", with today's
+corrected values inside them. It could not answer "what was believed on date
+N". The snapshot held the versions and nothing read them that way, so the
+standing caveat under the walk-forward results — "the panel is the current
+vintage, so absolute errors are flattered by an unknown amount" — stayed
+unknown by construction.
+
+A var, `as_of_vintage`, now swaps silver's source from bronze to
+`dbo.mbie_revisions` filtered by validity. Bronze cannot serve this: it holds
+one copy of the current MBIE file and every ingest overwrites it. The snapshot
+*is* the version record, which fixes the horizon at 17 July 2026 — the
+backfill date, not the first `dbt snapshot` run — with five vintages available
+(17 Jul, 31 Jul, 6, 13, 19 Aug).
+
+Nothing downstream changed. Gold reads silver exclusively through `ref()`, so
+`lag_correlation`, `lag_resolved` and `factor_volatility` recompute on the
+vintage with no edit. Same objects, same schema, no parallel warehouse: the
+return is a plain `dbt run --full-refresh` with no var, which is the shape
+`simulate_cutoff_date` has used since the backtests.
+
+### Three states, and what separates them
+
+A vintage differs from the current warehouse in two ways at once — it has
+fewer weeks *and* it has unrevised values. Reading the difference as "the
+revision effect" would conflate them. So three runs, at as-of 7 August 2026,
+period `06_iranus_2026`, target `adjusted_retail_price`:
+
+| factor / fuel | current | cutoff @ 7 Aug | vintage @ 7 Aug |
+|---|---|---|---|
+| crude NZD / Diesel | 0.89938868 | 0.90003096 | 0.89659953 |
+| crude NZD / Regular | 0.92265504 | 0.92261073 | 0.92603805 |
+| crude USD / Diesel | 0.90406797 | 0.90487102 | 0.90167715 |
+| crude USD / Regular | 0.92813865 | 0.92858547 | 0.93225722 |
+| exchange rate / Diesel | 0.36780094 | 0.37288308 | 0.36841345 |
+| exchange rate / Regular | 0.49021143 | 0.50135591 | 0.50031742 |
+
+The middle column holds the same weeks as the right one and today's values,
+so **vintage minus cutoff is the revision alone**: ±0.003 to 0.004 of
+`resolved_r`, in both directions. Current minus cutoff is the two extra weeks:
+larger than the revision on `exchange_rate` (0.011 on Regular), comparable on
+crude.
+
+**Not one `resolved_lag` moved.** All 108 rows carry the same lag in the
+vintage as in the current warehouse, and `05_calm_import_era` came back
+bit-identical, which is the expected confinement — only the period holding the
+affected weeks can change.
+
+So the flattering is real, measured, and small where it has been measured: the
+lag machinery is unaffected and the correlation moves in the third decimal.
+One date, one revision event, five weeks of snapshot history — this is a
+measurement, not a general result, and it gets better every week the snapshot
+runs.
+
+### Two things the branch found rather than planned
+
+`forecast_accuracy` does not participate. `dbt list --select +forecast_accuracy`
+returns `forecast_history` and `period_flags` and nothing else — both seeds —
+and in a vintage run it builds first, before silver exists. It is therefore not
+a contaminated number in a partial vintage run, it is an unmoved one: the only
+gold table still showing current values while the rest went back. A fully
+consistent vintage needs `export_panel.py` → `build_period_flags.py` →
+`backtest.py` → `dbt seed --select period_flags forecast_history` → a second
+`dbt run`, and the same five on the way home. `period_flags` belongs in that
+list because it is derived from the panel by rule and `backtest.py` reads it
+alongside the panel — omitting it would leave the regime axes standing on
+today's data while the prices went back.
+
+The monitoring contour goes vintage as well, because `monitor_aip_gap`
+descends from `silver_fuel`. `aip_latest_week_out_of_step` warns during a
+vintage run — correctly, silver's newest week is older than the AIP store's —
+and warns rather than fails only because W2 dropped that check from blocking
+to warning for unrelated reasons. A decision made about source authority is
+what keeps vintage runs unblocked.
+
+### Which objects actually move, checked one by one
+
+`binary_checksum(*)` summed per table, every object in the warehouse, current
+against vintage @ 7 Aug. Six move and twelve do not, and the twelve are not one
+category but four.
+
+**Moves (6).** `silver_fuel`, `silver_general`, `lag_correlation`,
+`lag_resolved`, `factor_volatility`, `monitoring.monitor_aip_gap`. Note that
+`lag_correlation` and `lag_resolved` keep their row counts (900 and 108) and
+change values only, so a row count is not a sufficient check for whether a
+vintage is loaded.
+
+**Seeds — the var cannot reach them (6).** `periods`, `variable_mapping`,
+`brent_daily`, `period_flags`, `forecast_history`,
+`monitoring.aip_singapore_weekly`. The first three are hand-written and
+*should* stay fixed. The last three are derived and are exactly what the
+six-step chain rebuilds.
+
+**The version history and its monitors (3).** `mbie_revisions`,
+`monitor_revisions`, `monitor_revision_summary`. These read the snapshot
+directly, and the snapshot is the *source* of the vintage rather than a
+consumer of it — it holds every version at once and no as-of filter applies.
+Correctly unchanged: the revision contour keeps reporting on all of history
+while silver stands on one date.
+
+**Pipeline state (1).** `pipeline.processed_weeks` is untouched, which is the
+mechanical reason nothing detects a vintage warehouse — the freshness gate
+compares bronze against this table and a vintage run moves neither.
+
+**And one that descends from silver yet did not move.** `volatility_config`
+was rebuilt and came back bit-identical, because it computes its baseline over
+`period_type = 'calm'` only — periods 02 and 05. Every week the 7 Aug vintage
+changes lives in `06_iranus_2026`, which is not calm, so its input window was
+untouched. This is contingent, not structural: a revision landing on a calm
+week would move it. Do not read the invariance as a property of the model.
+
+`forecast_accuracy` is the twelfth, covered above: seeds only, no silver
+ancestor at all.
+
+### From six objects to the whole system
+
+The var on its own was half a tool, and the half it delivered was the half
+that is easy to misread: silver and the lags standing on a date while
+`forecast_accuracy` — the table Report 1 leads with — stands on today, with
+nothing anywhere recording the discrepancy. Useful for measuring a revision;
+useless for the thing a vintage is actually for, which is picking up the whole
+system as it was and working in it — re-cutting a report, testing a hypothesis
+without look-ahead.
+
+`pipeline/vintage.py` is the whole operation. `--as-of DATE`, `--status`,
+`--return`.
+
+**Two versioned stores, and each holds what the other cannot.** The snapshot
+holds MBIE's numbers, which are not in git. Git holds `periods`,
+`variable_mapping` and `brent_daily`, which are hand-written and not in the
+snapshot. A vintage restores from both: the seeds come from
+`git rev-list -1 --before='DATE 23:59:59'`, the data from the validity filter.
+The line in `workstreams.md` that called this a limit — "full historical
+fidelity is a git question, not a snapshot one" — turned out to name the
+mechanism rather than a shortcoming.
+
+**Both halves now resolve to the END of the named day**, which the first
+implementation got wrong in a way worth recording. The macro compared
+`dbt_valid_from <= 'DATE'`, i.e. against midnight, while the git half used
+`--before='DATE 23:59:59'`. A snapshot run on the 13th stamps that morning's
+hour, so `--as-of 2026-08-13` returned the state the *12th* left, with 1163
+weeks, while the seeds came from the 13th. Caught by the row count on the
+first real run, not by reading the code.
+
+**Code stays current, and that is the design.** "What would today's method
+have said on the data available then" is the question without look-ahead in
+it; "what did the report say that day" is archaeology and would reproduce
+bugs this project has since found and documented. Old code is reachable
+through git, but it could not read a vintage without backporting
+`weekly_prices_relation` — so it would not be purely historical either, and
+the choice is between two impure options rather than between pure and impure.
+
+**A seed that did not exist yet is kept, not deleted.** `brent_daily.csv`
+arrived on 15 Aug 2026, so a vintage of the 13th has no version to restore.
+Deleting it would break `export_panel.py`, which joins it. The script keeps
+HEAD's copy and prints that it did: an approximation that says which way it
+leans beats both a failure and a silent substitution.
+
+**The marker earns its place by making the state answerable.**
+`pipeline.warehouse_vintage` is append-only, newest row wins, and the gate
+reads it as its *first* check — before anything about freshness, because a
+vintage warehouse would pass every other check while being unfit to run. The
+concrete hazard: a weekly chain over a vintage would `dbt seed` the vintage
+`forecast_history` sitting on disk and rebuild `forecast_accuracy` from it on
+top of current silver, publishing a report mixing two dates from a run in
+which nothing failed.
+
+### Verified end to end
+
+Round trip on 23 Aug 2026, to 13 August and back. Going out, every object
+moved that should: `forecast_accuracy` 6363 → 6354 rows, `forecast_history`
+likewise, `period_flags` 3495 → 3492, and `variable_mapping` 11 → 12 rows —
+the 13 August config still carried `Importer margin trend`, which W1 removed
+that same morning, so the historical configuration genuinely applied rather
+than being nominally restored.
+
+Coming back, all thirteen `binary_checksum(*)` fingerprints matched the
+pre-vintage warehouse exactly, `forecast_history` included — which is the
+stronger of the two results, because that file is not restored from git on the
+way home but recomputed by `backtest.py` from current silver. The Python half
+of the chain is deterministic to the byte.
+
+### The risk this design accepts
+
+Silver and gold are overwritten in place, so between entering a vintage and
+returning, the warehouse genuinely holds vintage numbers, and **nothing detects
+that state**: the freshness gate compares bronze against
+`pipeline.processed_weeks`, and a vintage run moves neither. The mitigation is
+that entry and return are documented as one operation rather than two, and the
+exposure is bounded by every weekly run rebuilding everything anyway. Report 1
+is insulated by being an Import model refreshed by an explicit step — vintage
+numbers cannot reach the published link unless a human refreshes while in that
+state, and the report would then show an earlier maximum week, which is a
+visible error rather than a silent one.
+
+Setting `as_of_vintage` and `simulate_cutoff_date` together raises a
+compilation error. The composition has no reading: weeks up to one date,
+valued as at another.

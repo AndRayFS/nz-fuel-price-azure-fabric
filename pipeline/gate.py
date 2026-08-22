@@ -93,14 +93,41 @@ def gather() -> dict:
             row = cur.fetchone()
             marker_week, marker_rows = row if row else (None, None)
 
+        # Is the warehouse standing on a past date? `vintage.py` puts it there
+        # and nothing else can tell: bronze does not move when silver goes back,
+        # so every other check below would pass on a warehouse that must not be
+        # run against.
+        cur.execute("select count(*) from INFORMATION_SCHEMA.TABLES "
+                    "where table_schema = 'pipeline' and table_name = 'warehouse_vintage'")
+        if cur.fetchone()[0] == 0:
+            vintage_as_of = None
+        else:
+            cur.execute("select top 1 as_of from pipeline.warehouse_vintage "
+                        "order by entered_at desc")
+            row = cur.fetchone()
+            vintage_as_of = row[0] if row else None
+
     return {"run": run, "rows_read": rows_read,
             "bronze_week": bronze_week, "bronze_rows": bronze_rows,
             "marker_week": marker_week, "marker_rows": marker_rows,
+            "vintage_as_of": vintage_as_of,
             "now": datetime.now(timezone.utc)}
 
 
 def decide(facts: dict, max_run_age_hours: float, stale_after_days: int = 14) -> dict:
     """The whole decision, as a verdict plus the numbers behind it. Pure."""
+    # First, before anything about freshness: is this warehouse even itself?
+    # A vintage load leaves the derived seeds on disk holding past values, so a
+    # weekly chain run over it would seed a vintage `forecast_history` and
+    # rebuild `forecast_accuracy` from it on top of current silver — a report
+    # mixing two dates, produced by a run in which every other check passed.
+    if facts.get("vintage_as_of") is not None:
+        return {"verdict": "warehouse_is_vintage", "exit": STOP,
+                "detail": (f"the warehouse is loaded with the {facts['vintage_as_of']} "
+                           "vintage — run `python pipeline/vintage.py --return` "
+                           "before the weekly chain"),
+                "vintage_as_of": str(facts["vintage_as_of"])}
+
     run = facts["run"]
     if run is None:
         return {"verdict": "no_ingest_runs", "exit": STOP,

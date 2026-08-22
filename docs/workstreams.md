@@ -1,4 +1,4 @@
-# Workstreams — plan of record, 22 Aug 2026
+# Workstreams — plan of record, 23 Aug 2026
 
 Twelve pieces of work, grouped by what they are about rather than by when
 they happen. Each is meant to be one branch. Every entry states what
@@ -14,7 +14,7 @@ the list of dated obligations. Nothing here restates those.
 
 | date | event | consequence |
 |---|---|---|
-| 23 Aug 2026 | old `nz_fuel` report + semantic model retired | back to one publish-to-web entry |
+| 23 Aug 2026 | old `nz_fuel` report + semantic model retired | **done** — one publish-to-web entry, one model to refresh |
 | 25–27 Aug 2026 | owner away, no laptop | nothing may be left mid-flight |
 | 26 Aug 2026 | MBIE publishes (Wednesday) | **decision: skip this run**, do it 28 Aug |
 | 27 Aug 2026 | Azure trial credit expires | ~NZ$245 lapses regardless |
@@ -238,40 +238,197 @@ paying for full refreshes over unchanged data.
 **Depends on.** Nothing.
 **Touches.** new script under `pipeline/`, `QUICKSTART.md`.
 
-## W4 — Vintage reconstruction
+## W4 — Vintage reconstruction — **landed 23 Aug 2026**
+
+Branch `w4-vintage-mode`. Delivered, then extended past the original scope in
+the same branch: the var alone turned out to be half a tool. It moves six
+objects out of eighteen and leaves `forecast_accuracy` on today's data, which
+answers "how big was that revision" but not "give me the system as it was so I
+can work in it" — and the second is what a vintage is for.
+
+`pipeline/vintage.py` is the finished shape: `--as-of DATE`, `--status`,
+`--return`. It restores the hand-written seeds from the commit current on that
+date, runs the six-step chain, and records the state in
+`pipeline.warehouse_vintage`, which the freshness gate now reads as its first
+check. Code deliberately stays current — the question with no look-ahead is
+what today's method would have said on the data available then. Full record in
+`architecture.md`, "The revision is worth 0.003 of r, and no lag at all".
+
+Four departures worth stating.
+
+**`forecast_accuracy` does not mix vintage silver with a current forecast
+history, as this entry claimed before the branch ran — it has no silver
+dependency at all.** `dbt list --select +forecast_accuracy` returns exactly
+`forecast_history` and `period_flags`, both seeds, and in a vintage run it
+built *first*, before silver. So it is not wrong in a partial vintage run,
+it is simply unmoved: the one gold table still showing current numbers while
+everything else went back. The correction matters because the original
+phrasing implied a contaminated number that a reader would go looking for.
+
+**`dbt_project.yml` was not touched.** The plan had the var declared there,
+but `simulate_cutoff_date` has always been an inline `var(..., none)` default
+with no project-level entry, and matching that beat introducing a second
+convention.
+
+**Both halves of a date must mean the same instant.** The macro first
+compared `dbt_valid_from <= 'DATE'` — midnight — while the git half resolved
+the commit with `--before='DATE 23:59:59'`. A snapshot run on the 13th stamps
+that morning, so `--as-of 2026-08-13` served the state the 12th left while the
+seeds came from the 13th. Both now resolve to the end of the named day. Caught
+by a row count on the first real run.
+
+**The monitoring contour goes vintage too**, which the plan did not
+anticipate: `monitor_aip_gap` descends from `silver_fuel`. In a vintage run
+`aip_latest_week_out_of_step` warns, correctly — silver's newest week is
+older than the AIP store's. It warns rather than fails only because W2
+deliberately dropped that check from blocking to warning, so a decision made
+for other reasons is what keeps a vintage run unblocked.
+
+### What it measured on the first use
+
+Entered at as-of 7 Aug 2026, against the current warehouse:
+
+| | weeks | silver_fuel rows | sum(r) in lag_correlation |
+|---|---|---|---|
+| current | 1165 | 3495 | 243.71841837 |
+| vintage @ 7 Aug | 1163 | 3489 | 236.86209402 |
+
+**Not one `resolved_lag` changed** — all 108 rows hold the same lag in both
+states, and period `05_calm_import_era` came back bit-identical, confirming
+the difference is confined to the period holding the affected weeks.
+
+A vintage differs from current in two ways at once, though — fewer weeks
+*and* unrevised values — so a third run isolated the revision with
+`simulate_cutoff_date` at the same date (same weeks, today's values). On
+period 06 / `adjusted_retail_price`, the revision alone is worth **±0.003 to
+0.004 of `resolved_r`**, in both directions, moving no lag. The two extra
+weeks are worth more than the revision on `exchange_rate` (up to 0.011) and
+about the same on crude.
+
+That is the standing caveat in `architecture.md` — "absolute errors are
+flattered by an unknown amount" — measured for the first time. One date, one
+revision event, inside a five-week snapshot history: not a general result,
+but no longer an unknown one.
+
+### Verification
+
+The return prong was exercised four times (vintage → current → vintage →
+cutoff → current) and reproduced the pre-change fingerprint of all six tables
+exactly every time, to eight decimal places. `dbt test` is PASS=83 WARN=0 on
+return, and PASS=82 WARN=1 in the vintage state, the warning being the AIP
+one above.
+
+---
+
+The entry below replaces a design this document carried until 23 Aug: an
+analysis in `analyses/` plus a side file `panel_weekly_asof_DATE.csv` that
+the research code could be pointed at. That was rejected for being a
+half-measure. If the question is "what did we know on date N", then silver,
+gold and the panel must *all* stand on date N — a vintage CSV beside a
+current warehouse answers it for one file and leaves `skill_26w`, the
+resolved lags and every gold table on today's data. Recording the argument
+because the rejected shape looks cheaper and will suggest itself again.
 
 **Now.** There is no way to ask "what did the data look like as known on
 date N". `simulate_cutoff_date` in silver filters by *observation date*
-("data up to August"), which is a different question from *vintage*
-("data as it was known in August"). The snapshot holds the versions but
-nothing reads them that way.
+("data up to August"), which is a different question from *vintage* ("data
+as it was known in August"): the first returns today's corrected numbers for
+older weeks, the second returns what was believed at the time. The snapshot
+holds the versions and nothing reads them that way.
 
-**Target.** An analysis in `analyses/` that filters the snapshot by
+Measured 23 Aug, as-of 7 Aug against current: eight cells differ, all in
+2026w31 — `importer_cost` 185.4915 → 186.1226 on diesel, crude 82 → 83
+USD/bbl, with `importer_margin` moving in exact opposition. A
+`simulate_cutoff_date` run to the same date returns 186.1226, a number
+nobody could have known on 7 August. That gap is the whole deliverable.
+
+**Target.** A mode, not a side file. A var `as_of_vintage` makes
+`silver_fuel` and `silver_general` read `dbo.mbie_revisions` filtered by
 validity —
 
 ```sql
-where dbt_valid_from <= @as_of and (dbt_valid_to is null or dbt_valid_to > @as_of)
+where dbt_valid_from <= '{{ var("as_of_vintage") }}'
+  and (dbt_valid_to is null or dbt_valid_to > '{{ var("as_of_vintage") }}')
 ```
 
-— and reshapes it with the existing `pivot_variables` macro, so no
-transformation logic is duplicated. It materialises nothing and the clean
-path does not know it exists. `export_panel.py --as-of DATE` writes
-`panel_weekly_asof_DATE.csv` beside the current panel without overwriting
-it, so the research code can be pointed at a vintage.
+— instead of `source('bronze', ...)`, reshaped by the same
+`pivot_variables` call the models already make. Everything above follows for
+free: gold reads silver through `ref()` exclusively, so `lag_correlation`,
+`lag_resolved` and `factor_volatility` recompute on the vintage without a
+line of change. Same objects, same schema. Return is a plain
+`dbt run --full-refresh` with no var set.
+
+This is deliberately the colour already worn by `simulate_cutoff_date`,
+which has run six backtests this way — including its return path, documented
+in `architecture.md`: "silver/gold are fully regenerated by a plain
+`dbt run --full-refresh` with no var set afterward".
+
+**No separate schema.** An earlier version of this design routed vintage
+output to a `vintage` schema so the warehouse was never in a "wrong" state.
+Dropped: Report 1's semantic model is Import and refreshed by an explicit
+step, so vintage numbers cannot reach the published link without a human
+running a refresh — and if one did, the report would show an earlier maximum
+week, which is a visible error rather than a silent one. The separate schema
+also cost work rather than saving it: `export_panel.py` holds raw SQL with
+`dbo.` hardcoded and would have needed the schema parameterised.
+
+**The chain is six steps, not one.** The var reaches gold on its own, but
+`forecast_history` is a seed — computed in Python, loaded by `dbt seed` — so
+a fully consistent vintage runs:
+
+```
+dbt run --full-refresh (with the var)  →  export_panel.py
+   →  build_period_flags.py  →  backtest.py
+   →  dbt seed --select period_flags forecast_history
+   →  dbt run --full-refresh (with the var)
+```
+
+and the return runs the same six without it. Cheap in wall clock — the
+whole weekly chain is about five minutes. Until that seed is rebuilt,
+`forecast_accuracy` simply does not move: it descends from seeds only and
+never reads silver, so in a partial vintage run it is the one gold table
+still showing current numbers.
 
 **Known limits, to be stated in the doc rather than discovered later.**
-The horizon is the first snapshot run (`min(dbt_valid_from)` — check it).
-Granularity is per snapshot run, weekly, not per instant. `Importer margin
-trend` is excluded from tracking by design and cannot be reconstructed.
-Only MBIE data is versioned — `periods.csv`, `brent_daily` and the other
-seeds are not, so a vintage panel carries August values under December
-definitions; full historical fidelity is a git question, not a snapshot
-one.
+Horizon is **17 July 2026** (answered below, measured not assumed), so
+anything earlier has exactly one version and a vintage run reproduces
+current numbers there. Granularity is per snapshot run — five exist: 17 Jul,
+31 Jul, 6, 13, 19 Aug. `Importer margin trend` is excluded from tracking by
+design and cannot be reconstructed. Only MBIE data is versioned: `periods`,
+`brent_daily` and the rest are seeds, so a vintage warehouse carries July
+values under today's period definitions.
 
-**Risks.** Low. Nothing is materialised, nothing is overwritten.
+**Therefore the payoff today is near zero, and that is not an argument
+against it.** Five vintages spanning five weeks, 29 changed cells, none of
+them touching the target. A vintage `skill_26w` will differ in the third
+decimal on a handful of points. What it buys is that `architecture.md`'s
+standing caveat — "absolute errors are flattered by an unknown amount" —
+stops being unknown. The measurement gets better every week the snapshot
+runs.
+
+**Steps.** Conditional source in the two silver models; decide the
+interaction with `simulate_cutoff_date` (set together they produce a
+mixture nobody can interpret — most likely refuse both at once); confirm
+which gold models are meaningful in a partial vintage run; verify the return
+prong reproduces current numbers byte-identically, the way W1 was verified
+against `forecast_history.csv`; then QUICKSTART.
+
+**Risks.** No longer "low, nothing is materialised" — this design overwrites
+silver and gold in place and depends on the return prong actually being run.
+Nothing detects a warehouse left in a vintage state: the W3 gate compares
+bronze against `pipeline.processed_weeks`, and a vintage run moves neither.
+The mitigation is procedural — document entry and return as one operation,
+not two — and the exposure is bounded by every weekly run rebuilding
+everything anyway.
+
+Needs live capacity for each full refresh. Free until 27 Aug; billed after.
 
 **Depends on.** Nothing.
-**Touches.** `analyses/vintage_panel.sql`, `research/export_panel.py`.
+**Touches.** `macros/weekly_prices_relation.sql` (new),
+`pipeline/vintage.py` (new), `models/silver/silver_fuel.sql`,
+`models/silver/silver_general.sql`, `pipeline/gate.py`, `pipeline/test_gate.py`,
+`QUICKSTART.md`. Not `export_panel.py` — the warehouse moves underneath it and
+the script is unchanged. Not `dbt_project.yml`, per the departure above.
 
 ---
 
@@ -549,16 +706,17 @@ and is unaffected by the 27 Aug credit expiry. It can start immediately and
 run alongside everything else. W6 is likewise free-standing and needs
 nothing but a text editor.
 
-**Twelve entries is not twelve equal branches.** W4 is small, W10–W12 are
-analysis rather than engineering and do not need the same branch
-discipline, and W12 is explicitly backlog. Realistically this is about
-seven branches of structural work.
+**Twelve entries is not twelve equal branches.** W10-W12 are analysis rather
+than engineering and do not need the same branch discipline, and W12 is
+explicitly backlog. Realistically this is about seven branches of structural
+work. W4 was in this sentence as "small" until 23 Aug; the redesign from a
+side file to a whole-chain mode makes it an ordinary branch.
 
 # Conflict map for parallel branches
 
 | file | wanted by |
 |---|---|
-| `research/export_panel.py` | W1, W4, W5 |
+| `research/export_panel.py` | W1, W5 |
 | `research/backtest.py` | W1, W5 |
 | `models/silver/silver_fuel.sql` | W1 |
 | `models/silver/silver_general.sql` | W1 |
@@ -567,14 +725,21 @@ seven branches of structural work.
 | `research/aip_check.py` | W2, W5 |
 | `.claude/rules/active-items.md` | W9 |
 
-`export_panel.py` is wanted by three branches and `QUICKSTART.md` by four.
-Land W1 before W4, and leave the `QUICKSTART` rewrite to whichever branch
-lands last rather than editing it in each.
+`QUICKSTART.md` is wanted by four branches; leave its rewrite to whichever
+lands last rather than editing it in each. `export_panel.py` was wanted by
+three until W4 was redesigned on 23 Aug to move the warehouse under the
+script rather than change it.
 
 # Open questions
 
-1. `min(dbt_valid_from)` on the snapshot — the vintage horizon. Needs live
-   capacity to answer (W4).
+1. ~~`min(dbt_valid_from)` on the snapshot — the vintage horizon.~~
+   **Answered 23 Aug 2026: 17 July 2026**, which is the one-off backfill date
+   rather than the first `dbt snapshot` run — the backfill worked as intended,
+   31,347 of 31,484 rows start there, so an as-of query returns a full panel
+   and not just the rows that changed. Five vintages exist (17 Jul, 31 Jul,
+   6, 13, 19 Aug), 29 rows are closed, and the snapshot spans 2004w17-2026w33
+   at every one of them. Consequence for W4: before 17 July there is exactly
+   one version, so a vintage run reproduces current numbers there. (W4)
 2. ~~Does `accepted_values` hold for `importer_margin_trend_status`, or does
    that column have to be dropped from the pivot?~~ **Answered 22 Aug 2026:**
    it holds — bronze carries `Final`/`Provisional` on that variable exactly
