@@ -1,0 +1,67 @@
+version: 2
+
+# Every test in this contour is `severity: warn`, deliberately. Monitoring
+# produces signals and feeds no model; the weekly run's only stopping point is
+# the freshness gate. A discrepancy here is meant to be read and judged, not to
+# halt a recompute of numbers it does not touch.
+#
+# The signal tests look only at the newest snapshot run / newest shared week.
+# History stays in the models. That is why there is no acknowledgement seed
+# yet: last week's flag is not re-raised this week, so nothing accumulates to
+# be silenced (workstreams.md, open question 5).
+
+models:
+  - name: monitor_revisions
+    description: >
+      One row per revision event in `mbie_revisions` — a tracked value that
+      came back different from the version already held. Signal only.
+    columns:
+      - name: detected_on
+        description: Snapshot run that noticed the change, not the week revised.
+        tests:
+          - not_null:
+              config:
+                severity: warn
+      - name: revision_class
+        tests:
+          - not_null:
+              config:
+                severity: warn
+          - accepted_values:
+              arguments:
+                values: ['finalised_unchanged', 'finalised_revised', 'final_rewritten', 'provisional_revised']
+              config:
+                severity: warn
+
+  - name: monitor_revision_summary
+    description: >
+      How many weeks changed in each snapshot run and in which variables. The
+      weekly read; `monitor_revisions` holds the detail behind any row of it.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [detected_on, Variable, Unit, revision_class]
+          config:
+            severity: warn
+
+  - name: monitor_aip_gap
+    description: >
+      Our `importer_cost` against the Argus Singapore quote republished by AIP,
+      compared on the week-on-week move. `markup_usd_bbl` is reported and never
+      tested — the level gap drifts by design.
+    columns:
+      - name: markup_usd_bbl
+        description: MBIE landed cost minus Argus quote. Drifts; diagnostic only.
+      - name: gap_weeks
+        description: >
+          Weeks between this row and the one it is compared against. Above 1
+          means AIP lost the reports in between, and a flag on such a row is
+          not a staleness signal.
+      - name: flag
+        description: null, `stale_suspected`, or `sign_disagreement`.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [week, fuel]
+          config:
+            severity: warn

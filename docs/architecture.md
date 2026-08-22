@@ -2178,3 +2178,111 @@ Removal is one line in `seeds/variable_mapping.csv`: the pivot is
 seed-driven, so both the value column and its status column disappear with
 it. Bronze is untouched and still holds the rows, so restoring the series
 is the same one line in reverse.
+
+## The monitoring contour — signals with no authority — 22 Aug 2026
+
+Two quality mechanisms existed and neither was contained. Revisions were
+captured by `snapshots/mbie_revisions.sql` and then read by nobody, so
+historical numbers could change without anything saying so. `aip_check.py`
+did the opposite: it sat in the middle of the weekly chain and exited
+non-zero, halting a recompute of New Zealand numbers on the authority of an
+Australian PDF whose publication regime we do not know.
+
+Both now live in one place, `monitoring` — a warehouse schema of its own,
+three models and a seed, produced by the same `dbt run` as everything else
+and read by nothing. Every test in it is `severity: warn`. That is the whole
+design: **the contour is allowed to notice, never to stop.** Authority is
+kept proportional to how much the check actually knows, and the run's single
+stopping point is left for the freshness gate (W3).
+
+It is deliberately not in bronze. The AIP store is not a source — nothing
+downstream of silver reads it — and putting it in bronze would eventually
+invite someone to treat it as one.
+
+`macros/generate_schema_name.sql` overrides dbt's default so a custom schema
+is used verbatim instead of being prefixed onto `target.schema`; the object
+is `monitoring.monitor_aip_gap`, not `dbo_monitoring.monitor_aip_gap`. Every
+model with no `schema` config is unaffected and verified still to resolve to
+`dbo` — silver, gold and the snapshot all did after the change, and the full
+`dbt build` came back 99 nodes, PASS=99.
+
+### What the revision history actually contains
+
+The first thing the contour was pointed at itself. Over four snapshot runs
+(31 Jul, 6, 13 and 19 Aug 2026) the snapshot holds **29 revision events, all
+of one kind**: a Provisional week revised while still Provisional. Not one
+Provisional → Final transition, and not one Final week rewritten.
+
+The pattern is tight enough to state as a rule and then watch for exceptions:
+
+- Each run revised **exactly one week** — the second-most-recent — and never
+  reached further back.
+- Only three variables have ever moved: `Importer cost`, `Importer margin`
+  and `Dubai crude price`. `Board price`, `Adjusted retail price`,
+  `Price excluding tax`, `Taxes`, `GST` and `ETS` are tracked and have never
+  changed.
+- `Importer cost` and `Importer margin` move in **exact opposition**: summed
+  per (run, week, fuel) the two deltas net to zero in all twelve groups. The
+  pump price is not being restated; the split of it between landed cost and
+  margin is.
+- Crude revisions are whole-dollar (132 → 133 USD/bbl, 87 → 88 NZD/bbl),
+  which is the rounding already documented in `docs/mbie_notes.md` showing up
+  as movement.
+
+**So revisions have so far touched the model's inputs and never its target.**
+That is worth knowing before reading too much into it: the snapshot's history
+starts 17 July 2026 and MBIE's last finalisation was 27 March, so the run has
+never yet been present for the event the report is most exposed to — a Final
+week changing under a published `skill_26w`. `revisions_rewrote_a_final_week`
+exists for exactly that moment and has, correctly, never fired.
+
+### Porting the AIP check to SQL, and checking the port
+
+The comparison moved out of `aip_check.py` and into
+`models/monitoring/monitor_aip_gap.sql`, which reads `importer_cost` and
+`exchange_rate` from silver directly. That removes the reason the check sat
+at step 4b: it depended on `panel_weekly.csv`, which does not exist until
+step 4. Collection is now step 1 and needs no warehouse; the comparison
+happens where the data already is.
+
+Per the lesson from the R port, the SQL was checked against the reference it
+replaced rather than against itself. The pandas calculation and the model
+agree to three decimals on the newest week (diesel level 172.160, markup
+11.998; petrol 124.712, markup 8.833), and the markup ranges reproduce the
+figures the docs already carried: diesel 6.911–13.414, petrol 7.406–9.559.
+
+Both flag branches were then made to fire, because a check nobody has seen
+trigger is not a check. Loosening `aip_damping_ratio` to 0.99 through
+`--vars` flagged 17 of 33 rows `stale_suspected` and made
+`aip_disagrees_on_the_newest_week` report `WARN 2` while `dbt test` still
+exited 0 — the blocking-to-warning change, demonstrated rather than asserted.
+Setting the ratio to 0 instead put the one sign-opposed week in the data
+(2025-11-21, diesel: ours −0.042 against Argus +0.098) through the second
+branch as `sign_disagreement`. `aip_latest_week_out_of_step` was exercised in
+both directions by filtering one side back a week: it returns `ingest_behind`
+— the 19 August failure, seen from outside — and `aip_store_behind`, which is
+new and covers the case the old script could not have, its own collection
+silently stopping.
+
+That last case is why `aip_check.py` no longer exits non-zero even when the
+PDF layout defeats the parser. A restyled Australian report is not a reason
+to stop recomputing New Zealand numbers; it stops the store advancing, and
+the store failing to advance is itself a warning.
+
+### No acknowledgement seed, and the reason it is not needed yet
+
+The plan allowed for a seed of acknowledged discrepancies so that a reviewed
+one stops firing. It is not built, because the tests are scoped to the newest
+snapshot run and the newest shared week rather than to all of history: last
+week's flag is not re-raised this week, so nothing accumulates that would
+need silencing. The models keep the full history for anyone who wants to
+look. The case that would force the decision is a discrepancy that persists
+across weeks — AIP dropping a fuel, say — and that is the point at which the
+seed's fields become obvious rather than guessed.
+
+### What this costs
+
+The AIP check was one of only three steps that needed no live capacity, and
+its comparison half now does. Collection still runs anywhere. Given that the
+gate (W3) will require the warehouse to be up before anything else runs, the
+loss is small — but it is a loss, and it was taken knowingly.

@@ -381,19 +381,26 @@ Twenty weeks with gaps cannot separate them.
 petrol reports when surveyed — and deletes the rest; Mar–Jun 2026, the peak
 of the crisis, is already gone. Two things follow: each report carries both
 "Last Week" and "Previous Week", so one fetch yields two weeks and a missed
-run costs nothing; and `research/data/aip_singapore_weekly.csv` accumulates,
-so weeks outlive their deletion upstream.
+run costs nothing; and `seeds/monitoring/aip_singapore_weekly.csv`
+accumulates, so weeks outlive their deletion upstream. That seed is the only
+copy of what has been collected — it is appended to, never regenerated, and
+moving it into the warehouse was a load, not a re-derivation.
 
 **Fetch via the WordPress REST API, not by guessing URLs.** Upload folders
 track the CMS upload date, not the data date — January reports sit under
 `2026/02`, August ones under `2026/03` — so brute force found only 12 of 33
 candidate weeks. `wp-json/wp/v2/media?search=Weekly-Diesel-Prices-Report`
 returns the exact list. The table sits on page 3 of each PDF; the parser is
-tied to that layout and will fail loudly if it changes.
+tied to that layout and will fail loudly if it changes — loudly on stderr,
+that is, without a non-zero exit: a restyled Australian PDF is not a reason
+to stop recomputing New Zealand numbers, and the store failing to advance is
+itself warned about by `aip_latest_week_out_of_step`.
 
-Used by `research/aip_check.py` as the weekly ingest check (step 4b in
-`QUICKSTART.md`) — the only check that can catch a stale-but-well-formed
-MBIE file, since everything else we test is downstream of that same file.
+Collected by `research/aip_check.py` (step 1 in `QUICKSTART.md`); the
+comparison against `Importer cost` is `models/monitoring/monitor_aip_gap.sql`
+and its warn-level tests. This is the only check that can catch a
+stale-but-well-formed MBIE file, since everything else we test is downstream
+of that same file.
 
 Data is Argus, published by AIP under licence, with their own calculations
 layered on. Attribution is required if any of it is republished, including
