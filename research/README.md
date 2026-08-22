@@ -11,10 +11,10 @@ if a fitted quantity ever needs to reach Power BI it returns as a seed,
 the way `brent_daily` did.
 
 **Everything runs offline.** `export_panel.py` pulls the weekly panel once
-into `data/panel_weekly.csv` (committed). After that no Azure is needed —
-which matters because estimation is a loop of twenty specifications, the
-F2 capacity auto-pauses at 23:00 NZT, and from 28 Aug 2026 it bills real
-money.
+into `data/panel_weekly.csv` (local, gitignored). After that no Azure is
+needed — which matters because estimation is a loop of twenty
+specifications, the F2 capacity auto-pauses at 23:00 NZT, and from
+28 Aug 2026 it bills real money.
 
 ```bash
 source /Users/Ray/nz-fuel-price-project/.venv/bin/activate
