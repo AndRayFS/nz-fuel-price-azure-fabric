@@ -37,6 +37,8 @@ correctly.
 | Reload seed data (e.g. after editing periods.csv or variable_mapping.csv) | `dbt seed --select <seed_name>` |
 | Reload seed after changing its *columns* (not just values) | `dbt seed --select <seed_name> --full-refresh` |
 | Update Provisional→Final revision history | `dbt snapshot` |
+| **Is there anything to run this week?** | `python pipeline/gate.py` — exit 0 go, 2 nothing to do, 1 stop and look |
+| Check the gate's logic without touching Fabric | `python pipeline/test_gate.py` |
 | Read this week's signals only | `dbt test --select monitoring` |
 | What changed under us in the last snapshot run | `dbt show --select monitor_revision_summary --limit 20` |
 | Regenerate docs + lineage graph | `dbt docs generate` then `dbt docs serve --port 8081` |
@@ -50,8 +52,8 @@ leaves Report 1 showing last week's numbers with this week's date.
 ```bash
 source /Users/Ray/nz-fuel-price-project/.venv/bin/activate
 
-# 0. resume the capacity, run `ingest_mbie_weekly`, and CHECK ITS ROW COUNT
-#    (see below) before trusting anything downstream
+# 0. resume the capacity and run `ingest_mbie_weekly`
+python pipeline/gate.py                              # 0b. THE GATE — read its exit code
 python research/aip_check.py                         # 1. collect the AIP weeks
 dbt seed --select aip_singapore_weekly --full-refresh  # 1b. -> monitoring schema
 dbt snapshot                                         # 2. revision history
@@ -63,18 +65,26 @@ python research/build_period_flags.py                # 6. regime axes, from the 
 python research/backtest.py                          # 7. refit + forecasts
 dbt seed --select period_flags forecast_history --full-refresh   # 8. -> warehouse
 dbt run --select forecast_accuracy --full-refresh    # 9. rebuild the report table
+python pipeline/mark_processed.py                    # 10. close the run
 ```
 
 Then refresh the Power BI dataset.
 
 Notes:
 
-- **Check `rowsRead` on the copy activity, not just its status.** On
-  19 Aug 2026 the ingest reported `Succeeded` twice while serving a
-  week-old file out of MBIE's CDN — green pipeline, 60 green tests, report
-  a week stale. The pipeline now appends a per-run cache-buster to the URL;
-  the row count is still the only proof the fetch was fresh. Full account
+- **Step 0b is the only step allowed to stop the run, and its exit code is
+  the whole point.** `0` carry on, `2` nothing to do (stop, quietly), `1` stop
+  and go and look. It reads `rowsRead` off the copy activity through the
+  Fabric REST API — the number a human used to read in the portal — and
+  compares it against bronze and against what the source held when the last
+  week was processed. On 19 Aug 2026 the ingest reported `Succeeded` twice
+  while serving a week-old file out of MBIE's CDN: green pipeline, 60 green
+  tests, report a week stale. The gate returns `2` on that run and the chain
+  never starts. Reasoning in `pipeline/gate.py`; full account of the failure
   in `docs/architecture.md`.
+- **Step 10 is not optional.** The gate compares against
+  `pipeline.processed_weeks`, and `mark_processed.py` is what writes it.
+  Skipping it leaves the gate believing last week was never processed.
 - **Step 1 is the only check that can catch a stale source.** Everything
   we test is downstream of the same MBIE file, so a stale-but-well-formed
   CSV passes every test in `dbo`. `aip_check.py` collects the Argus
@@ -98,8 +108,10 @@ Notes:
 - **`--full-refresh` everywhere**, per the rule at the top of this file.
   Step 8 especially: a plain `dbt seed` loads into the existing table and
   fails the moment a column is added.
-- Steps 1b, 2, 3, 4, 5, 8 and 9 need the capacity running. Steps 1, 6 and 7
-  are local.
+- Steps 0b, 1b, 2, 3, 4, 5, 8, 9 and 10 need the capacity running. Steps 1,
+  6 and 7 are local. The gate needs it too — its state lives in the
+  warehouse, and there is no way to ask MBIE anything without one (see
+  `pipeline/gate.py`).
 - Provisional weeks are handled automatically: `backtest.py` trains only on
   Final rows and applies the model to every week, so the series extends by
   itself as MBIE finalises. Nothing to adjust by hand.
@@ -108,13 +120,14 @@ Notes:
   model or forecast reads it. FRED runs a few days behind, so the newest
   week's `brent_mean` is an average of whatever days exist.
 
-**This wants automating and moving off the laptop.** It is ten manual
-steps with a hard dependency on one person's venv, one machine's Azure
-login and the capacity being awake. **Now planned in detail** —
-`docs/workstreams.md`, tracks 1 and 2: the freshness checks collapse into a
-single gate (W3), the chain is declared once instead of remembered (W7),
-and it moves to GitHub Actions (W8). Until those land, this table is the
-process.
+**This wants automating and moving off the laptop.** It is still eleven
+steps with a hard dependency on one person's venv, one machine's Azure login
+and the capacity being awake — but the two that needed a human *judgement*
+rather than a human *hand* are gone: freshness is step 0b and no longer a
+portal click, and "was this week already done" is step 10 rather than
+memory. What remains is planned in `docs/workstreams.md`: the chain declared
+once instead of remembered (W7), then GitHub Actions (W8). Until those land,
+this table is the process.
 
 ## Reading the monitoring signals
 
@@ -125,10 +138,10 @@ each line is a judgement to make before trusting the week.
 | what you see | what it means | what to do |
 |---|---|---|
 | no `WARN` at all | the outside check agrees and no Final week moved | nothing |
-| `aip_latest_week_out_of_step` → `ingest_behind` | AIP has a week we don't. Run after the ingest, this is the 19 Aug 2026 failure: `Succeeded` on a week-old file | re-run `ingest_mbie_weekly`, check `rowsRead`, then redo from step 2. Do not refresh Power BI |
+| `aip_latest_week_out_of_step` → `ingest_behind` | AIP has a week we don't. Run after the ingest, this is the 19 Aug 2026 failure: `Succeeded` on a week-old file | this is the answer to a gate that said `nothing_new` — it says MBIE *has* published, so the CDN served us a stale copy. Re-run `ingest_mbie_weekly`, then step 0b again. Do not refresh Power BI |
 | `aip_latest_week_out_of_step` → `aip_store_behind` | our data moved on, the store didn't: step 1 was skipped, or parsed nothing | re-run step 1 and read stderr. `no report tables parsed` means AIP restyled the PDF — the page-3 layout and the `ROW` regex in `aip_check.py` need fixing. **Our numbers are unaffected**; the check is blind until it is fixed |
 | `aip_latest_week_out_of_step` → `aip_store_empty` | the store holds nothing for that fuel | `git checkout -- seeds/monitoring/aip_singapore_weekly.csv`, reload the seed. Never regenerate the file — see below |
-| `aip_disagrees_on_the_newest_week` | our `importer_cost` and the Argus quote disagree on the newest week, by more than a damped move or in sign | this is the one check that can see a stale-but-well-formed MBIE file. Read the row in `monitor_aip_gap`, check `rowsRead` on the copy activity, and only continue once satisfied |
+| `aip_disagrees_on_the_newest_week` | our `importer_cost` and the Argus quote disagree on the newest week, by more than a damped move or in sign | the gate counts rows and cannot see this: a file of the right size carrying wrong numbers passes it. Read the row in `monitor_aip_gap` and only continue once satisfied |
 | `revisions_rewrote_a_final_week` | MBIE changed a number on a week it had already called Final | published history has moved: `skill_26w` and `forecast_accuracy` for past weeks will no longer match what the report showed. Read the row, then record it in `architecture.md` — this has not happened yet, so the first one is worth writing down |
 
 Revisions to weeks that are still Provisional do not warn — they happen most
@@ -153,6 +166,8 @@ shows them anyway if you want to look.
 
 ## Project structure
 
+- `pipeline/` — the weekly recompute: the gate, the closing marker, and the
+  Fabric plumbing both need. See `pipeline/README.md`
 - `models/silver/` — long→wide pivots (`silver_general`, `silver_fuel`)
 - `models/gold/` — lag correlation + resolved + volatility
 - `models/monitoring/` — revision and ingest signals, in their own warehouse

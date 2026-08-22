@@ -21,6 +21,17 @@ https://www.mbie.govt.nz/assets/Data-Files/Energy/Weekly-fuel-price-monitoring/w
   and reaches origin, so `ingest_mbie_weekly` appends `?cb=<ticks>` per run
   — see `docs/architecture.md`. Publication time that week was 01:01 UTC
   (13:01 NZT) Wednesday, per `last-modified`.
+- **Imperva also refuses the file to anything that is not a browser.**
+  Checked 22 Aug 2026: Chrome gets 2,877,739 bytes; Python `urllib` and curl
+  get a 212-byte `_Incapsula_Resource` challenge — over http/1.1 and http/2,
+  with a full Chrome header set, with a primed cookie jar, and even after
+  Chrome had solved the challenge from the same egress IP. It is a per-client
+  decision, not IP reputation, so no laptop or CI runner can script this
+  download. The Fabric copy activity is unaffected. Peter Ellis hit the same
+  thing from R on 8 Aug 2026 and could not find a staleness check either
+  (`freerangestats.info/blog/2026/08/08/petrol-prices`), noting the file
+  "seems to get 10 days out of date at least". This is why the freshness gate
+  counts rows that arrived instead of reading the published file.
 
 ## File structure — long/narrow format
 
