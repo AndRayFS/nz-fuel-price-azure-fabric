@@ -26,13 +26,15 @@ from gate import NOTHING_TO_DO, PROCEED, STOP, decide
 
 
 def facts(*, rows_read, bronze_week, bronze_rows, marker_week, marker_rows,
-          now, status="Completed", run_started="2026-08-19T04:36:11.3333333"):
+          now, status="Completed", run_started="2026-08-19T04:36:11.3333333",
+          vintage_as_of=None):
     return {
         "run": {"id": "r", "status": status, "startTimeUtc": run_started,
                 "failureReason": None},
         "rows_read": rows_read,
         "bronze_week": bronze_week, "bronze_rows": bronze_rows,
         "marker_week": marker_week, "marker_rows": marker_rows,
+        "vintage_as_of": vintage_as_of,
         "now": now,
     }
 
@@ -42,6 +44,12 @@ AUG22 = datetime(2026, 8, 22, 9, 0, tzinfo=timezone.utc)
 
 CASES = [
     # (name, facts, expected verdict, expected exit)
+    ("a vintage warehouse stops the chain even when the week is perfect",
+     facts(rows_read=34950, bronze_week=date(2026, 8, 14), bronze_rows=34950,
+           marker_week=date(2026, 8, 7), marker_rows=34920, now=AUG19,
+           vintage_as_of=date(2026, 8, 13)),
+     "warehouse_is_vintage", STOP),
+
     ("19 Aug, the stale fetch that reported Succeeded",
      facts(rows_read=34920, bronze_week=date(2026, 8, 7), bronze_rows=34920,
            marker_week=date(2026, 8, 7), marker_rows=34920, now=AUG19,

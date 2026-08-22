@@ -195,6 +195,52 @@ Source (MBIE) structure and gotchas: `docs/mbie_notes.md`
   `monitor_aip_gap` raises a flag. Both are USD/bbl week-on-week
   quantities; loosen them here rather than in the model.
 
+## Putting the system on a past date
+
+```bash
+python pipeline/vintage.py --as-of 2026-08-13   # go there
+python pipeline/vintage.py --status             # what is loaded right now
+python pipeline/vintage.py --return             # come home
+```
+
+Use the script, not the var by hand. `as_of_vintage` alone moves six objects
+out of eighteen and leaves `forecast_accuracy` — the table Report 1 leads
+with — on today's data, with nothing saying so. The script runs the whole
+six-step chain, restores the hand-written seeds from the commit that was
+current on that date, and records what the warehouse holds in
+`pipeline.warehouse_vintage`. The freshness gate reads that marker and
+refuses to run the weekly chain on a vintage warehouse.
+
+**Two different questions, two vars.** Setting both raises a compilation
+error rather than returning a mixture:
+
+- `simulate_cutoff_date` — **observation date.** Which weeks are visible.
+  Values are today's, corrections included.
+- `as_of_vintage` — **vintage.** What was believed on that date. Silver
+  reads the snapshot instead of bronze.
+
+**Horizon is 17 July 2026**, the snapshot backfill date; earlier dates are
+refused because every row has one version there. Five data vintages exist
+(17 Jul, 31 Jul, 6, 13, 19 Aug), and a date resolves to the state as that
+day *ended*, so `--as-of 2026-08-13` includes the 13 Aug snapshot run.
+
+**Code stays today's, deliberately.** The question worth asking is what
+today's method would have said on the data available then — that is the one
+with no look-ahead in it. Old code is reachable through git if archaeology is
+ever wanted, but it could not read a vintage without backporting
+`weekly_prices_relation`, so it would not be purely historical either.
+
+Three things to expect:
+
+- **A run takes a few minutes** and needs live capacity: two full refreshes
+  with three Python steps between them.
+- **`aip_latest_week_out_of_step` warns** in a vintage, correctly — silver's
+  newest week is older than the AIP store's. WARN, not ERROR.
+- **The script refuses to start** if `seeds/` or `research/data/` have
+  uncommitted changes while the warehouse holds current data, because it
+  rewrites both and restores them from git afterwards. Once a vintage is
+  loaded a dirty tree is expected and it proceeds.
+
 ## After making changes
 
 ```bash
