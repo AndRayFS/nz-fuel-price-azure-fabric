@@ -324,11 +324,15 @@ transitively — that is a finding, not a problem.
 
 ## W7 — Declarative chain
 
-**Now.** The weekly chain is ten steps in a markdown table plus three
+**Now.** The weekly chain is eleven steps in a markdown table plus three
 warnings that have to be remembered: step 5 before step 6 (the centred
 nine-week window moves the last four weeks' regime values every time a new
-week lands, so order is not cosmetic), `--full-refresh` everywhere, and
-`rowsRead` by eye.
+week lands, so order is not cosmetic), `--full-refresh` everywhere, and — since
+W3 — that the gate's exit code binds nobody. `rowsRead` by eye is gone; what
+replaced it is a step 0b whose verdict a human still has to obey voluntarily,
+because a markdown table cannot express a dependency. That is now this
+branch's clearest justification: W3 made the decision correct, W7 makes it
+binding.
 
 **Target.** The chain declared once, in `Taskfile.yml`: tasks with
 dependencies, order derived rather than written down, each task
