@@ -30,6 +30,10 @@ content here; read it.
 
 `docs/mbie_notes.md` — source data gotchas.
 
+`docs/workstreams.md` — the current plan of record: twelve pieces of work,
+one branch each, with dependencies and a conflict map. Read it before
+starting anything structural.
+
 ## Critical rules
 
 - Verify empirically before asserting — don't assume a dbt-fabric or
