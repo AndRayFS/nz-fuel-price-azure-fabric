@@ -240,8 +240,21 @@ paying for full refreshes over unchanged data.
 
 ## W4 — Vintage reconstruction — **landed 23 Aug 2026**
 
-Branch `w4-vintage-mode`. Delivered as designed, with three departures worth
-stating.
+Branch `w4-vintage-mode`. Delivered, then extended past the original scope in
+the same branch: the var alone turned out to be half a tool. It moves six
+objects out of eighteen and leaves `forecast_accuracy` on today's data, which
+answers "how big was that revision" but not "give me the system as it was so I
+can work in it" — and the second is what a vintage is for.
+
+`pipeline/vintage.py` is the finished shape: `--as-of DATE`, `--status`,
+`--return`. It restores the hand-written seeds from the commit current on that
+date, runs the six-step chain, and records the state in
+`pipeline.warehouse_vintage`, which the freshness gate now reads as its first
+check. Code deliberately stays current — the question with no look-ahead is
+what today's method would have said on the data available then. Full record in
+`architecture.md`, "The revision is worth 0.003 of r, and no lag at all".
+
+Four departures worth stating.
 
 **`forecast_accuracy` does not mix vintage silver with a current forecast
 history, as this entry claimed before the branch ran — it has no silver
@@ -256,6 +269,13 @@ phrasing implied a contaminated number that a reader would go looking for.
 but `simulate_cutoff_date` has always been an inline `var(..., none)` default
 with no project-level entry, and matching that beat introducing a second
 convention.
+
+**Both halves of a date must mean the same instant.** The macro first
+compared `dbt_valid_from <= 'DATE'` — midnight — while the git half resolved
+the commit with `--before='DATE 23:59:59'`. A snapshot run on the 13th stamps
+that morning, so `--as-of 2026-08-13` served the state the 12th left while the
+seeds came from the 13th. Both now resolve to the end of the named day. Caught
+by a row count on the first real run.
 
 **The monitoring contour goes vintage too**, which the plan did not
 anticipate: `monitor_aip_gap` descends from `silver_fuel`. In a vintage run
@@ -405,9 +425,10 @@ Needs live capacity for each full refresh. Free until 27 Aug; billed after.
 
 **Depends on.** Nothing.
 **Touches.** `macros/weekly_prices_relation.sql` (new),
-`models/silver/silver_fuel.sql`, `models/silver/silver_general.sql`,
-`QUICKSTART.md`. Not `export_panel.py` — the warehouse moves underneath it
-and the script is unchanged. Not `dbt_project.yml`, per the departure above.
+`pipeline/vintage.py` (new), `models/silver/silver_fuel.sql`,
+`models/silver/silver_general.sql`, `pipeline/gate.py`, `pipeline/test_gate.py`,
+`QUICKSTART.md`. Not `export_panel.py` — the warehouse moves underneath it and
+the script is unchanged. Not `dbt_project.yml`, per the departure above.
 
 ---
 
