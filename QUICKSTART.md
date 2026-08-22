@@ -78,7 +78,18 @@ Notes:
   list of commands, not a script: there is no `set -e` and no dependency
   between the steps, so pasting the whole thing on a `nothing_new` week runs
   the entire chain on unchanged data. Run step 0b on its own, read what it
-  says, and only then continue. Binding the chain to the verdict is W7. It reads `rowsRead` off the copy activity through the
+  says, and only then continue. Binding the chain to the verdict is W7.
+- **On `nothing_new`, check MBIE by hand before anything else.** Open
+  `https://www.mbie.govt.nz/assets/Data-Files/Energy/Weekly-fuel-price-monitoring/weekly-table.csv`
+  **in a browser** — scripts get an Imperva challenge, browsers get the file
+  (`docs/mbie_notes.md`) — and read the date on the last line. Newer than
+  `bronze_week`? MBIE published and the CDN served us a stale copy: re-run
+  `ingest_mbie_weekly` and go back to step 0b. Same week? Nothing has been
+  published yet and there is genuinely nothing to do. This costs ten seconds
+  and no capacity, and it is the independent read W3 wanted — the browser
+  reaches a New Zealand edge, the copy activity an Australian one, and their
+  disagreement is exactly what made 19 Aug visible. The AIP route below
+  answers the same question without a browser, but needs the capacity up. It reads `rowsRead` off the copy activity through the
   Fabric REST API — the number a human used to read in the portal — and
   compares it against bronze and against what the source held when the last
   week was processed. On 19 Aug 2026 the ingest reported `Succeeded` twice
