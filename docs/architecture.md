@@ -2286,3 +2286,39 @@ The AIP check was one of only three steps that needed no live capacity, and
 its comparison half now does. Collection still runs anywhere. Given that the
 gate (W3) will require the warehouse to be up before anything else runs, the
 loss is small — but it is a loss, and it was taken knowingly.
+
+### Two holes found by breaking it on purpose — 22 Aug 2026
+
+The contour was tested by removing the AIP store, not only by reading it, and
+that turned up two things the design had asserted rather than checked.
+
+**`severity: warn` does not cover database errors.** With an empty seed file
+dbt-fabric has nothing to infer types from and made `fuel` an `int`; the
+`accepted_values` test then failed to cast `'Regular Petrol'` and raised a
+*Database Error*, which is an ERROR regardless of severity, and took three
+downstream nodes down as SKIP. Warn severity governs a test that returns rows,
+not a test that cannot run. Fixed by pinning `column_types` on the seed, so an
+empty file still produces the right shape — verified by loading a
+headers-only file and getting a clean build.
+
+**An empty store was silent.** Every AIP check grouped the store by fuel, so
+with nothing in it there was nothing to compare and all of them passed by
+having no rows to look at — the loudest possible failure producing the
+quietest possible output. `aip_latest_week_out_of_step` now lists the two
+expected fuels itself and `left join`s the store to them, which turns an empty
+store into `aip_store_empty` rather than into silence. The general lesson is
+worth keeping: a check that derives its own expectations from the data it is
+checking cannot see that data disappear.
+
+Deleting the seed file outright is worse than emptying it and cannot be made
+into a warning: `ref('aip_singapore_weekly')` stops resolving and *every* dbt
+command fails to parse, monitoring or not. It is in git, restoring it is one
+`git checkout`, and `QUICKSTART.md` says so under "Failures that are not
+warnings".
+
+Network failure was hardened the same way, for the same reason: the docstring
+claimed the script always exits 0, which was untrue the moment AIP or FRED was
+unreachable. Both are now caught — the AIP media API failing leaves the cached
+PDFs to be parsed, and a FRED failure leaves the store untouched rather than
+half-converted. Simulated both; both exit 0 and the seed came back
+byte-identical.

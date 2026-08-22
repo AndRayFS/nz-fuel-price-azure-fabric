@@ -16,9 +16,11 @@ Should show `fabric` as a registered adapter, and the prompt should show
 `(.venv)` at the start of the line.
 
 **Before running anything that touches the Warehouse:** make sure the
-Fabric capacity is resumed (Azure Portal → `nzfuelcapacity` → Resume). It
-auto-pauses nightly at 00:01 NZT regardless of state — check Logic App run
-history occasionally (not daily) to confirm it's still firing correctly.
+Fabric capacity is resumed (Azure Portal → `nzfuelcapacity` → Resume). There
+is no auto-resume — it was disabled deliberately — so this is always a manual
+step. It auto-pauses nightly at **23:00 NZT** regardless of state; check Logic
+App run history occasionally (not daily) to confirm it's still firing
+correctly.
 
 ## Common commands
 
@@ -113,6 +115,41 @@ login and the capacity being awake. **Now planned in detail** —
 single gate (W3), the chain is declared once instead of remembered (W7),
 and it moves to GitHub Actions (W8). Until those land, this table is the
 process.
+
+## Reading the monitoring signals
+
+`dbt test` exits 0 whether or not the `monitoring` contour warned, so the
+output has to be read rather than glanced at. Nothing below stops the chain;
+each line is a judgement to make before trusting the week.
+
+| what you see | what it means | what to do |
+|---|---|---|
+| no `WARN` at all | the outside check agrees and no Final week moved | nothing |
+| `aip_latest_week_out_of_step` → `ingest_behind` | AIP has a week we don't. Run after the ingest, this is the 19 Aug 2026 failure: `Succeeded` on a week-old file | re-run `ingest_mbie_weekly`, check `rowsRead`, then redo from step 2. Do not refresh Power BI |
+| `aip_latest_week_out_of_step` → `aip_store_behind` | our data moved on, the store didn't: step 1 was skipped, or parsed nothing | re-run step 1 and read stderr. `no report tables parsed` means AIP restyled the PDF — the page-3 layout and the `ROW` regex in `aip_check.py` need fixing. **Our numbers are unaffected**; the check is blind until it is fixed |
+| `aip_latest_week_out_of_step` → `aip_store_empty` | the store holds nothing for that fuel | `git checkout -- seeds/monitoring/aip_singapore_weekly.csv`, reload the seed. Never regenerate the file — see below |
+| `aip_disagrees_on_the_newest_week` | our `importer_cost` and the Argus quote disagree on the newest week, by more than a damped move or in sign | this is the one check that can see a stale-but-well-formed MBIE file. Read the row in `monitor_aip_gap`, check `rowsRead` on the copy activity, and only continue once satisfied |
+| `revisions_rewrote_a_final_week` | MBIE changed a number on a week it had already called Final | published history has moved: `skill_26w` and `forecast_accuracy` for past weeks will no longer match what the report showed. Read the row, then record it in `architecture.md` — this has not happened yet, so the first one is worth writing down |
+
+Revisions to weeks that are still Provisional do not warn — they happen most
+weeks and are routine. `dbt show --select monitor_revision_summary --limit 20`
+shows them anyway if you want to look.
+
+### Failures that are not warnings
+
+- **`seeds/monitoring/aip_singapore_weekly.csv` deleted.** Every dbt command
+  then fails to parse — `depends on a node named 'aip_singapore_weekly' which
+  was not found` — not just the monitoring ones. The whole project is stuck
+  until `git checkout -- seeds/monitoring/aip_singapore_weekly.csv` brings it
+  back. That file is the only copy of the weeks AIP has already deleted from
+  its own site, so it is appended to and never regenerated.
+- **AIP or FRED unreachable.** Step 1 prints to stderr and still exits 0:
+  cached PDFs are parsed anyway, and if the FX series cannot be fetched the
+  store is left untouched rather than half-converted. Either way the store
+  stops advancing, which shows up next as `aip_store_behind`.
+- **Capacity paused.** Everything from step 1b on fails immediately with
+  `this Fabric capacity is currently not active`. Resume it and start again;
+  no partial state is left behind.
 
 ## Project structure
 

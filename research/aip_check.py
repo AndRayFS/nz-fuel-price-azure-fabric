@@ -89,16 +89,29 @@ def _get(url: str) -> bytes:
 
 
 def fetch_pdfs() -> None:
-    """Download any report we do not already hold. Never deletes."""
+    """Download any report we do not already hold. Never deletes.
+
+    Network failures are reported and stepped over: whatever is already in the
+    cache still parses, and a week we could not reach today comes back in the
+    next report, which carries two weeks.
+    """
     CACHE.mkdir(parents=True, exist_ok=True)
     for fuel, slug in REPORTS.items():
-        listing = json.loads(_get(f"{API}?search={slug}&per_page=100&_fields=source_url"))
+        try:
+            listing = json.loads(_get(f"{API}?search={slug}&per_page=100&_fields=source_url"))
+        except Exception as exc:
+            print(f"  ! {fuel}: could not reach the AIP media API: {exc}", file=sys.stderr)
+            continue
         new = 0
         for item in listing:
             url = item["source_url"]
             dest = CACHE / url.rsplit("/", 1)[-1]
             if not dest.exists():
-                dest.write_bytes(_get(url))
+                try:
+                    dest.write_bytes(_get(url))
+                except Exception as exc:
+                    print(f"  ! {fuel}: {url.rsplit('/', 1)[-1]} failed: {exc}", file=sys.stderr)
+                    continue
                 new += 1
         print(f"  {fuel}: {len(listing)} on server, {new} newly downloaded")
 
@@ -173,8 +186,15 @@ def main() -> int:
         print("Nothing parsed; the stored weeks are left exactly as they were.")
         return 0
 
+    try:
+        priced = add_usd(parsed)
+    except Exception as exc:
+        # No FRED, no conversion, and half-converted rows are worse than none.
+        print(f"! could not fetch the FX series ({exc}); store left unchanged", file=sys.stderr)
+        return 0
+
     before = len(pd.read_csv(OUT)) if OUT.exists() else 0
-    df = merge(add_usd(parsed))
+    df = merge(priced)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(OUT, index=False)
     counts = df.groupby("fuel")["week"].agg(["count", "min", "max"])
