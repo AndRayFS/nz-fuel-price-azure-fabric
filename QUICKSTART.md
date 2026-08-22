@@ -53,7 +53,7 @@ leaves Report 1 showing last week's numbers with this week's date.
 source /Users/Ray/nz-fuel-price-project/.venv/bin/activate
 
 # 0. resume the capacity and run `ingest_mbie_weekly`
-python pipeline/gate.py                              # 0b. THE GATE — read its exit code
+python pipeline/gate.py                              # 0b. THE GATE — stop here unless it says 0
 python research/aip_check.py                         # 1. collect the AIP weeks
 dbt seed --select aip_singapore_weekly --full-refresh  # 1b. -> monitoring schema
 dbt snapshot                                         # 2. revision history
@@ -74,7 +74,11 @@ Notes:
 
 - **Step 0b is the only step allowed to stop the run, and its exit code is
   the whole point.** `0` carry on, `2` nothing to do (stop, quietly), `1` stop
-  and go and look. It reads `rowsRead` off the copy activity through the
+  and go and look. **It cannot stop anything by itself** — this block is a
+  list of commands, not a script: there is no `set -e` and no dependency
+  between the steps, so pasting the whole thing on a `nothing_new` week runs
+  the entire chain on unchanged data. Run step 0b on its own, read what it
+  says, and only then continue. Binding the chain to the verdict is W7. It reads `rowsRead` off the copy activity through the
   Fabric REST API — the number a human used to read in the portal — and
   compares it against bronze and against what the source held when the last
   week was processed. On 19 Aug 2026 the ingest reported `Succeeded` twice
