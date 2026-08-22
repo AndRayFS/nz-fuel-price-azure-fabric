@@ -2431,8 +2431,7 @@ type — it is *who produced it*:
 - **Observations accumulate on their own** — a source publishes them, or a
   script derives them. They belong in the warehouse, which is the tool built
   for that. `forecast_history`, `period_flags`, `panel_weekly`,
-  `backtest_results`, the AIP store, and `brent_daily` once it enters the
-  weekly cycle.
+  `backtest_results`, the AIP store, and `brent_daily`.
 - **Configuration and hypotheses are written by a person.** They belong in
   git, and their value is mostly the history: who moved a boundary, when, and
   what the commit message said. `periods.csv` is six hand-drawn period
@@ -2461,6 +2460,23 @@ exactly what W8 builds. They are recorded there.
 `panel_weekly.csv` and `backtest_results.csv` are not seeds — no `ref()` and
 no build step reads either — so they were gitignored immediately rather than
 waiting for a branch that depends on W5 and W6.
+
+**`brent_daily.csv` was misfiled here on 23 Aug and is corrected the same day.**
+The first version of this note kept it in git on the grounds that "download it
+yourself" does not work, the procedure being written down nowhere. That is an
+argument for writing the procedure down, not for storing the data: FRED serves
+it under a stable series id (`DCOILBRENTEU`), so a script fetches it in a few
+lines. It is not the AIP case, where no archive exists at all — nothing about
+it is irreplaceable, only unrecorded.
+
+Its purpose is also spent. It was acquired to settle one question — whether
+MBIE's weekly crude number is Friday's quote or the Mon–Fri mean — and the
+answer is measured and recorded above. What remains is two diagnostic columns
+in the panel that no gold model reads. So it belongs in `research/` as a
+fetcher, with the seed and the warehouse table retired; that also means editing
+`export_panel.py`, which joins `dbo.brent_daily`. Until then it cannot leave
+git for the same clean-clone reason as the other seeds, so it travels with
+them in W8.
 
 **One file is irreplaceable, and the rule must not be applied to it carelessly.**
 `seeds/monitoring/aip_singapore_weekly.csv` is the only copy of the AIP series

@@ -404,6 +404,12 @@ objections that ruled out a Fabric notebook apply here.
   build. `panel_weekly.csv` and `backtest_results.csv` are not seeds and
   were gitignored on 23 Aug without waiting for this.
 
+  `brent_daily.csv` joins them, corrected 23 Aug: it was first filed as
+  hand-downloaded and therefore staying, but FRED serves it under a stable
+  series id and its one question is already answered, so it becomes a fetcher
+  in `research/` and the seed retires. That also touches `export_panel.py`,
+  which joins `dbo.brent_daily`.
+
   `periods.csv` and `variable_mapping.csv` stay in git and are not part of
   this — they are hand-written configuration, and the reviewable history of
   why a period boundary moved is the point of them. Full reasoning in
