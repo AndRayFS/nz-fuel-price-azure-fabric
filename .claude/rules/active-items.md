@@ -3,6 +3,14 @@
 Check dates against today before relying on this file — it goes stale by
 design and should be trimmed or updated, not left as-is indefinitely.
 
+- [ ] **28 Aug 2026** — run the weekly update that was deliberately skipped
+  on **Wed 26 Aug**. The owner is away 25–27 Aug with no laptop, and MBIE
+  publishes on the Wednesday in the middle of that. Skipping costs two days
+  of staleness on a report that already labels itself a retrospective
+  simulation; rushing unattended automation into place before a trip costs
+  more. This is also the first run that bills real money — a few cents.
+  Reasoning and the full plan: `docs/workstreams.md`.
+
 - [ ] **23 Aug 2026** — retire the old Report 1 from My Workspace. The
   redesign (`docs/report1_redesign.md`) is published alongside it as a
   separate artifact, deliberately, so the two run in parallel for about a

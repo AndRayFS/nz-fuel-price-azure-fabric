@@ -67,6 +67,14 @@ have indicated", never "the price will be".
 Two lines: `actual_price` and `pred_adl_ecm`. Optionally `pred_naive` as a
 faint third. The reader sees the gap directly; no explanation needed.
 
+**Use small multiples on fuel here, rather than the fuel slicer** (added 21
+Aug 2026). One panel per fuel, colour carrying the method — not the other
+way round. With fuel on a slicer the reader sees one fuel at a time and
+cannot compare them; the interesting comparison is between fuels at the
+same moment, and Premium 95R behaving differently in volatile weeks (see
+the regime table below) is exactly the thing a one-fuel-at-a-time view
+hides. Keep `horizon_weeks` single-selected regardless.
+
 **2. Error over time** — column chart, `target_week` on the axis,
 `pred_adl_ecm − actual_price`, zero line marked. Positive = the model
 called it high. Colour by sign.
@@ -80,7 +88,10 @@ leads naive in 83–86% of weeks.
 **4. Cards** — current `skill_26w`, current `mae_model_26w` in c/L, and
 share of weeks with `skill_26w > 0`.
 
-**5. Slicers** — fuel, `horizon_weeks`, date range.
+**5. Slicers** — fuel, `horizon_weeks`, date range. The fuel slicer stays
+for the cards and for visuals 2–3, which need a single fuel to be readable;
+visual 1 uses small multiples instead and should have the fuel slicer's
+interaction with it switched off, or the panels collapse to one.
 
 **6. Mark the live rows and the provisional ones.** Rows with
 `outcome_known = false` should be visually distinct — dashed line, hollow
@@ -93,7 +104,24 @@ provisional — not a result, and it should not be presented as one.
 
 **Shade the background by `crude_vol_regime`** — now available on the
 table, joined on `week_date` and `fuel`. Also present: `crude_episode_id`
-(name the episode in a tooltip) and `crude_move_regime`.
+and `crude_move_regime`.
+
+**Put the episode name on the canvas, not in a tooltip** (revised 21 Aug
+2026). The shading says "this stretch was turbulent"; the name says "this
+is when OPEC cut production." `crude_episode_id` values are already written
+as labels (`2016_opec_cuts`, `2015_glut_onset`, `2026_iran_us`), so nothing
+new has to be authored — they only have to be visible without hovering.
+Grey italics, small, above the plot area, following the convention that
+reads well on freerangestats' fuel-price charts.
+
+**Not yet verified in the VM**, and per `CLAUDE.md` it must be before it is
+relied on: Power BI has no native annotation layer on a line chart. The
+likely routes are a second series carrying data labels, or positioned text
+boxes — the latter tends to break on resize. The same check covers the
+related idea of carrying series colour inside the title text instead of a
+legend (`ggtext` does this natively in R); a Power BI visual title may not
+support per-word colour, in which case it needs a text box with the
+visual's own title switched off. Verify both before speccing them as done.
 
 What the shading shows, at two weeks. Every column here is an **average of
 the rolling 26-week columns** (`skill_26w`, `mae_model_26w`,

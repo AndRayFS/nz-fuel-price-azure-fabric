@@ -100,8 +100,11 @@ Notes:
 
 **This wants automating and moving off the laptop.** It is eight manual
 steps with a hard dependency on one person's venv, one machine's Azure
-login and the capacity being awake. Tracked as a separate task, not
-solved here.
+login and the capacity being awake. **Now planned in detail** —
+`docs/workstreams.md`, tracks 1 and 2: the freshness checks collapse into a
+single gate (W3), the chain is declared once instead of remembered (W7),
+and it moves to GitHub Actions (W8). Until those land, this table is the
+process.
 
 ## Project structure
 
