@@ -19,15 +19,29 @@ in `research/`. They move in that branch.
 
 Runs first, after the ingest and before anything else. Three exit codes:
 
-| code | meaning | what the chain does |
+| code | meaning | what should happen next |
 |---|---|---|
-| 0 | new data, and it landed | carry on |
-| 2 | nothing to do — no new week | stop, quietly |
-| 1 | stop and look | stop, loudly |
+| 0 | new data, and it landed | run the rest of the chain |
+| 2 | nothing to do — no new week | do not run the chain; nobody need look |
+| 1 | stop and look | do not run the chain; go and read why |
 
-Exit 2 is not an error and must not be treated as one. Under `set -e` the
-chain stops on both 1 and 2, which is correct; what differs is whether anyone
-needs to go and look.
+**Nothing enforces this yet.** The weekly chain is a list of commands in
+`QUICKSTART.md` that a person runs; there is no runner, no `set -e`, and no
+dependency between the steps. The gate therefore *informs* — it prints its
+verdict to stderr and returns a code — and a human decides. Paste the whole
+block on a `nothing_new` week and every step after it will run happily on
+unchanged data.
+
+Making the code binding is W7, which declares the chain in `Taskfile.yml` so
+the steps genuinely depend on the gate. Until then, read the exit code:
+
+```bash
+python pipeline/gate.py; echo "gate said $?"
+```
+
+Exit 2 is not an error and must not be reported as one. What separates it from
+1 is only whether anyone needs to investigate, not whether the chain runs —
+neither code lets the chain run.
 
 `gate.py`'s module docstring carries the reasoning — in particular why it
 reads what arrived rather than what MBIE published, which is not what W3
