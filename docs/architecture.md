@@ -914,6 +914,86 @@ Both the pipeline definition and the connection were read and written
 through the Fabric REST API (`getDefinition` / `updateDefinition`), not the
 portal.
 
+## The freshness gate, and the check it could not be — 22 Aug 2026
+
+W3 specified an independent read: download `weekly-table.csv` here, compare
+its newest week against bronze, and catch a stale CDN without anyone clicking
+through the portal. The independence was the point — every layer we own is
+downstream of one file, so the only honest check comes from outside.
+
+**It cannot be done from a script.** `mbie.govt.nz` sits behind Imperva, and
+Imperva serves a 212-byte JavaScript challenge to anything that does not look
+like a browser:
+
+| client | result |
+|---|---|
+| Chrome | 2,877,739 bytes, 34,950 rows, etag `"6a850076-2be92b"` |
+| Python `urllib` | 212 bytes, `_Incapsula_Resource` challenge |
+| curl, http/2 and http/1.1 | 212 bytes |
+| curl with a full Chrome header set | 212 bytes |
+| curl with a primed cookie jar | 212 bytes |
+| curl *after* Chrome solved the challenge from the same IP | 212 bytes |
+
+The last two rows are the finding. Both clients egress from the same address
+— `118.148.160.56`, checked on both sides — so this is not IP reputation and
+not the sandbox: it is a per-client decision, made below the HTTP layer. A CI
+runner would fare no better, which settles the same question for W8. The
+Fabric copy activity is unaffected and still fetches the file.
+
+Peter Ellis hit the same wall from R three weeks earlier and wrote it into
+his code as a shrug: *"Not sure how to determine if it is 'stale' or not,
+seems to get 10 days out of date at least"*
+(`freerangestats.info/blog/2026/08/08/petrol-prices`). His observation is
+worth more than the workaround he didn't find — it says the published file
+itself can be well behind, which weakens the original plan on its own terms:
+two downloads of the same stale file agree with each other and prove nothing.
+
+**What the gate does instead.** It asks what arrived rather than what was
+published. `rowsRead` off the copy activity, through the Fabric REST API, is
+the number a human was reading in the portal, and it is decisive: the file
+grows by exactly 30 rows a week.
+
+| run | rowsRead |
+|---|---|
+| 06 Aug | 34,890 |
+| 13 Aug | 34,920 |
+| 19 Aug 04:26 | 34,920 ← a week-old file, `Succeeded` |
+| 19 Aug 04:30 | 34,920 ← and again |
+| 19 Aug 04:36 | 34,950 ← after the cache-buster fix |
+
+Three comparisons: the run happened, recently, and completed; what it read
+equals what bronze holds; and the source has grown since the week we last
+processed. The third is the stale-CDN detector, and it deliberately does not
+try to distinguish "MBIE has not published yet" from "the CDN served last
+week's file" — both mean *do not run the chain*, and telling them apart is
+what the AIP contour is for, at warn level.
+
+**Two API behaviours found by trying them.** Activity detail hangs off
+`/v1/workspaces/{ws}/datapipelines/pipelineruns/{runId}/queryactivityruns`,
+with the pipeline id absent from the path; the three routes the item and job
+APIs suggest all return 404. And `lastUpdatedAfter`/`lastUpdatedBefore` are
+effectively mandatory: omit them and the call returns HTTP 200 with an empty
+activity list, which reads exactly like a run that copied nothing.
+
+**The escalation that stops "nothing to do" becoming the same bug.** A CDN
+stuck on one file looks identical every week, and a gate that answers
+"nothing new" forever is the 19 August failure in slow motion. So the same
+comparison becomes a hard stop once the last processed week is more than
+fourteen days old — two missed publications.
+
+**State lives in `pipeline.processed_weeks`**, its own warehouse schema
+alongside `monitoring`, written by `pipeline/mark_processed.py` as the last
+step of the chain. `forecast_accuracy.week_date` was the alternative and
+today the two agree exactly, but it couples the decision "may the chain run"
+to a report table that exists for another reason. The cost of the choice is
+stated rather than hidden: the gate now always needs live capacity, so the
+W8 idea of asking MBIE before waking it does not survive — and could not
+have, since there is no way to ask MBIE.
+
+The decision is a pure function and `pipeline/test_gate.py` replays it
+against eleven cases, the 19 August runs among them, with no network and no
+capacity.
+
 ## Levels vs changes — the project has always correlated levels, and it matters
 
 `lag_correlation_series` feeds raw `dubai_crude_nzd` and `board_price` into

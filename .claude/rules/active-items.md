@@ -11,6 +11,12 @@ design and should be trimmed or updated, not left as-is indefinitely.
   more. This is also the first run that bills real money — a few cents.
   Reasoning and the full plan: `docs/workstreams.md`.
 
+  It is also the **first run through the freshness gate** (W3, landed
+  22 Aug). Start with `python pipeline/gate.py` and read its exit code —
+  `0` go, `2` nothing to do, `1` stop and look — and finish with
+  `python pipeline/mark_processed.py`, which the gate depends on for next
+  week. `QUICKSTART.md` has the full chain.
+
 - [ ] **23 Aug 2026** — retire the old Report 1 from My Workspace. The
   redesign (`docs/report1_redesign.md`) is published alongside it as a
   separate artifact, deliberately, so the two run in parallel for about a

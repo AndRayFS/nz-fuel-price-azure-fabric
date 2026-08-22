@@ -157,7 +157,44 @@ snapshot reference.
 **Touches.** `research/aip_check.py`, `snapshots/`, new models under a
 monitoring schema, new seed, `QUICKSTART.md`.
 
-## W3 — Freshness gate
+## W3 — Freshness gate — **landed 22 Aug 2026**
+
+Branch `w3-freshness-gate`. Delivered, but not as specified: comparison 1
+turned out to be impossible, and the shape of the gate changed accordingly.
+
+**The independent read cannot be done.** `mbie.govt.nz` sits behind Imperva,
+which serves a 212-byte JavaScript challenge to every non-browser client —
+Python, curl over both HTTP versions, full Chrome header sets, a primed cookie
+jar, and even a curl issued after Chrome had solved the challenge from the
+same egress IP. Chrome gets the file; scripts do not. Per-client, not per-IP,
+so CI is no different, which answers the same question for W8 early. Full
+record in `architecture.md`, "The freshness gate, and the check it could not
+be". Peter Ellis independently failed to find a staleness check for this file
+from R two weeks earlier, and observed it running up to ten days late — which
+also weakens the original premise: two downloads of the same stale file agree
+with each other and prove nothing.
+
+**So the gate asks what arrived, not what was published.** `rowsRead` off the
+copy activity via the Fabric REST API — the number the human was reading in
+the portal — against bronze and against what the source held when the last
+week was processed. The file grows by exactly 30 rows a week, and the 19 Aug
+runs read 34,920 / 34,920 / 34,950, so the comparison is decisive on the case
+that motivated the workstream.
+
+**Three departures worth stating.** The gate no longer distinguishes "MBIE has
+not published" from "the CDN served a stale copy" — both stop the chain, and
+telling them apart stays with the AIP contour at warn level. It has three exit
+codes rather than two (0 go, 2 nothing to do, 1 stop and look), because "exit
+0 on nothing new" would let a `set -e` chain carry on. And a fourth comparison
+was added that the plan did not have: nothing-new escalates to a hard stop
+once the last processed week is more than fourteen days old, because a CDN
+stuck on one file answers "nothing new" forever, which is the same bug wearing
+a different hat.
+
+`pipeline/` now exists, holding `gate.py`, `mark_processed.py`, `fabric_io.py`
+and `test_gate.py` — the last replaying the decision over eleven cases with no
+network and no capacity. W5 moves the rest of the production scripts in beside
+them.
 
 **Now.** Freshness is asked twice, four steps apart. Step 0c is a human
 reading `rowsRead` on the copy activity in the portal — the only defence
@@ -344,6 +381,12 @@ objections that ruled out a Fabric notebook apply here.
   leaving the capacity awake, bounded by the 23:00 NZT auto-pause, so the
   exposure is hours, not unbounded. Acceptable, but it is the owner's call
   because the original decision was deliberate.
+- **The gate does not split in two, as W3 warned it might.** That caveat
+  assumed the gate could ask MBIE directly before triggering the ingest, so
+  as not to wake the capacity for nothing. It cannot — Imperva refuses every
+  non-browser client — so the gate stays one step, after the ingest, and
+  waking the capacity is unconditional. Roughly NZ$0.06 a run, spent even on
+  weeks with nothing new.
 - **Generated artefacts.** `seeds/forecast_history.csv` is 835 KB, git
   committed, and rewritten weekly. Under CI that becomes a weekly bot
   commit and the history grows fast. The clean answer is to have the
@@ -519,5 +562,11 @@ lands last rather than editing it in each.
    once rather than every week after, so nothing accumulates to be silenced.
    The seed becomes necessary the first time a discrepancy *persists* across
    weeks, and that is when its fields will be obvious. (W2)
-6. Where does "last processed week" live — `forecast_accuracy` or a marker
-   table written by the reconciliation step? (W3)
+6. ~~Where does "last processed week" live — `forecast_accuracy` or a marker
+   table written by the reconciliation step?~~ **Answered 22 Aug 2026:** a
+   marker table, `pipeline.processed_weeks`, in its own warehouse schema.
+   `forecast_accuracy.week_date` agrees with it exactly today, but it exists to
+   serve a report and could be rebuilt, filtered or repointed without anyone
+   thinking about the gate. The cost is that the gate always needs live
+   capacity — accepted, and it was unavoidable anyway once the independent MBIE
+   read proved impossible. (W3)
