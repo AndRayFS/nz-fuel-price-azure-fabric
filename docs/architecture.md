@@ -2119,3 +2119,62 @@ sharing features). Graph reports the assigned licence as
 trial appears to be tracked inside Power BI rather than in Entra. Check the
 public link the day after the trial ends; fall back to Pro (~NZ$24/mo) or
 PDF if it breaks.
+
+## Status belongs to a value, not to a week — 22 Aug 2026
+
+`silver_fuel` and `silver_general` pivoted bronze into one row per week and
+carried values only; `Status` was dropped on the way through. To get it
+back, `export_panel.py` reached sideways into the snapshot with an
+`outer apply (select top 1 r.Status ... where r.Date = f.Date)` — no
+`order by`, no `dbt_valid_to is null`. On a week that had already
+transitioned, that could return the superseded `Provisional` row, and
+`backtest.py` trained on `status == 'Final'`, so the wrong value would have
+reached the training filter rather than any output.
+
+Status is now carried the way values are: one column per variable
+(`importer_cost_status`, `adjusted_retail_price_status`, …), produced by
+the same pivot. `macros/pivot_variables.sql` — written earlier and never
+actually called — is now what both models use, once for `Value` with the
+`TRY_CAST`, once for `Status` without it, so the `case when` shape lives in
+one place instead of four.
+
+**No week-level status is computed anywhere, and that is the point.** MBIE
+records status per value. An earlier draft of this work aggregated it to
+the week and therefore had to defend "status is uniform within a week"; per
+variable, nothing depends on that claim. The training filter states its own
+dependencies instead — six variables in `backtest.py`
+(`TRAIN_STATUS_COLS`) and the same six in `headline_results.py`, being the
+series `net`, `d_cost` and `dev` are built from. `dubai_crude_nzd` is not
+among them: only `report1_ish` reads it, and that method is applied, never
+fitted.
+
+**What bronze actually contains** (checked 22 Aug 2026, all 24
+variable/unit pairs): `Final` from 2004-04-23 to 2026-03-27 and
+`Provisional` from 2026-04-03 to 2026-08-14, with no NULLs and no third
+value anywhere. So status *is* uniform within a week today — the change is
+that no model now depends on its staying that way. `accepted_values`
+(`Provisional`/`Final`) on all eleven status columns passes; the open
+question about `Importer margin trend` is answered below.
+
+**The refactor moved no numbers, which is how it was checked.** The
+re-exported panel matched the previous one in every value cell across 3,495
+rows; the new six-column flag agreed with the old single-column one on
+every row (3,435 final, 60 provisional — 20 weeks × 3 fuels); and
+`seeds/forecast_history.csv` and `research/data/backtest_results.csv` came
+back byte-identical to the committed versions.
+
+### `Importer margin trend` dropped from silver entirely
+
+It was already excluded from revision tracking as LOESS noise (see
+`docs/mbie_notes.md`). The status work made the question sharper: whether
+to give a smoothed presentation series a status column at all. The answer
+was to stop loading the series. Nothing reads it — not the gold models, not
+the analyses, not the panel, not the `nz_fuel_v2` semantic model (which
+holds only `forecast_accuracy`), and not the old `nz_fuel` report, whose
+definition references `silver_fuel` only for `Date`. Every number this
+project publishes is computed here rather than taken from MBIE's smoothing.
+
+Removal is one line in `seeds/variable_mapping.csv`: the pivot is
+seed-driven, so both the value column and its status column disappear with
+it. Bronze is untouched and still holds the rows, so restoring the series
+is the same one line in reverse.

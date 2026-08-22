@@ -196,7 +196,8 @@ dbt run --select forecast_accuracy --full-refresh
 ```
 
 Then refresh the Power BI dataset. Provisional weeks are excluded from
-training automatically — `backtest.py` filters on `status == 'Final'` — so
+training automatically — `backtest.py` requires every series it fits on to
+be Final, one status column per variable (`TRAIN_STATUS_COLS`) — so
 the series stops at the last finalised week and extends by itself as MBIE
 finalises.
 

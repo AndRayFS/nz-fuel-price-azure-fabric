@@ -43,6 +43,14 @@ OUT = Path(__file__).parent / "data" / "panel_weekly.csv"
 # Period assignment uses the first matching row of `periods` ordered by id:
 # 01 ends and 02 starts on the same day (2020-06-05), so a plain join would
 # duplicate that week.
+#
+# Status comes from silver, one column per variable, and only for the six
+# variables the estimation actually consumes. Two reasons not to carry all
+# of them: this CSV is committed and rewritten weekly, and a status column
+# nobody reads invites a filter written against the wrong variable. There
+# is deliberately no single `status` column — MBIE records status per
+# value, so the sample filter has to name the variables it depends on
+# (see backtest.py).
 QUERY = """
 select
     f.Date,
@@ -60,7 +68,12 @@ select
     g.exchange_rate,
     br.brent_mean,
     br.brent_range,
-    st.status,
+    f.adjusted_retail_price_status,
+    f.taxes_status,
+    f.gst_status,
+    f.ets_status,
+    f.importer_cost_status,
+    f.importer_margin_status,
     p.period_id,
     p.period_type
 from dbo.silver_fuel f
@@ -73,14 +86,6 @@ outer apply (
       and (pp.end_date is null or cast(f.Date as date) <= pp.end_date)
     order by pp.period_id
 ) p
--- Status is uniform across every variable within a week (checked): from
--- 3 Apr 2026 the whole row is Provisional, not just the two series MBIE
--- paused. It finalises when Stats NZ publishes the quarter's CPI.
-outer apply (
-    select top 1 r.Status as status
-    from dbo.mbie_revisions r
-    where r.Date = f.Date
-) st
 outer apply (
     select avg(b.brent_usd_bbl) as brent_mean,
            max(b.brent_usd_bbl) - min(b.brent_usd_bbl) as brent_range

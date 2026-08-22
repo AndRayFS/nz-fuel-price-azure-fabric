@@ -33,7 +33,18 @@ Four branches that fix layer boundaries. None of them is a hard
 prerequisite for Track 2, but all of them are cheaper to do before CI
 starts amplifying whatever is there.
 
-## W1 — `status` through silver
+## W1 — `status` through silver — **landed 22 Aug 2026**
+
+Branch `w1-status-through-silver`. Delivered as described below, with two
+departures worth stating. `accepted_values` passed on every status column,
+including `importer_margin_trend_status` (open question 2, now closed), so
+nothing had to be dropped for failing the test — but `Importer margin
+trend` was then removed from `variable_mapping` altogether, value column
+included, because nothing in the project reads it. And the models now
+actually call `pivot_variables`, which until this branch was a macro no
+model used. The refactor moved no numbers: `forecast_history.csv` and
+`backtest_results.csv` came back byte-identical. Full record in
+`architecture.md`, "Status belongs to a value, not to a week".
 
 **Now.** `silver_fuel` pivots bronze into one row per `(Week, Date, Fuel)`
 and carries values only; `Status` has no column and is dropped.
@@ -473,8 +484,12 @@ lands last rather than editing it in each.
 
 1. `min(dbt_valid_from)` on the snapshot — the vintage horizon. Needs live
    capacity to answer (W4).
-2. Does `accepted_values` hold for `importer_margin_trend_status`, or does
-   that column have to be dropped from the pivot? (W1)
+2. ~~Does `accepted_values` hold for `importer_margin_trend_status`, or does
+   that column have to be dropped from the pivot?~~ **Answered 22 Aug 2026:**
+   it holds — bronze carries `Final`/`Provisional` on that variable exactly
+   as on every other, with no NULLs. The column is gone regardless: the
+   whole variable was removed from `variable_mapping`, because nothing
+   reads it. (W1)
 3. Does publish-to-web work from a Pro workspace on a Free licence after
    the trial? (W9, and the pre-existing ~27 Sep item)
 4. Can a Power BI line chart carry annotations without positioned text

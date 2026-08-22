@@ -11,8 +11,9 @@ The cutoff is read from the data, not hardcoded, so this script becomes
 correct again by itself once those weeks finalise: re-run
 `export_panel.py`, then re-run this.
 
-Sample: `status == 'Final'` AND 2010+ (before 2010 the published components
-do not reconcile — see docs/mbie_notes.md).
+Sample: every series the regressions read is Final (`FINAL_STATUS_COLS`
+below — status is published per variable, not per week) AND 2010+ (before
+2010 the published components do not reconcile — see docs/mbie_notes.md).
 
 Prints the all-data figure beside each Final-only one, because the point is
 not just to have better numbers but to know which of them moved.
@@ -32,6 +33,29 @@ ECM_WINDOW = 104
 START = "2010-01-01"
 FUELS = ("Regular Petrol", "Diesel")
 
+# The sample filter, stated as the variables it depends on. Same six as
+# backtest.py's TRAIN_STATUS_COLS, and for the same reason: MBIE publishes
+# status per value, so a week is "Final" here only in the sense that every
+# series this regression reads is. Deliberately duplicated rather than
+# imported — backtest.py is the weekly production path and this is not, and
+# W5 separates them.
+FINAL_STATUS_COLS = (
+    "adjusted_retail_price_status",
+    "taxes_status",
+    "gst_status",
+    "ets_status",
+    "importer_cost_status",
+    "importer_margin_status",
+)
+
+
+def all_final(p: pd.DataFrame) -> pd.Series:
+    """True where every series the regressions read is Final."""
+    ok = pd.Series(True, index=p.index)
+    for c in FINAL_STATUS_COLS:
+        ok &= p[c].eq("Final")
+    return ok
+
 
 def load(fuel: str, final_only: bool) -> pd.DataFrame:
     p = pd.read_csv(HERE / "data" / "panel_weekly.csv", parse_dates=["Date"])
@@ -49,7 +73,7 @@ def load(fuel: str, final_only: bool) -> pd.DataFrame:
                 ).shift(1)
     d["hi"] = (d.crude_vol_regime == "high").astype(float)
     d = d[d.index >= START]
-    return d[d.status == "Final"] if final_only else d
+    return d[all_final(d)] if final_only else d
 
 
 def fit(d, k, extra=None, ecm=True):
@@ -75,9 +99,10 @@ def lag_sum(res, prefix="l"):
 
 def main() -> None:
     p = pd.read_csv(HERE / "data" / "panel_weekly.csv", parse_dates=["Date"])
-    cut = p[p.status == "Final"].Date.max()
-    prov = p[p.status == "Provisional"].Date.nunique()
-    print(f"Final through {cut.date()};  {prov} Provisional weeks excluded\n")
+    final = all_final(p)
+    cut = p[final].Date.max()
+    prov = p[~final].Date.nunique()
+    print(f"Final through {cut.date()};  {prov} non-final weeks excluded\n")
 
     print("=" * 72)
     print("1. TOTAL PASS-THROUGH by lag length K   (all data -> FINAL only)")

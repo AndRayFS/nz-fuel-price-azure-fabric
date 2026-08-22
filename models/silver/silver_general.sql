@@ -8,15 +8,12 @@
 
 {% set results = dbt_utils.get_query_results_as_dict(query) %}
 
+-- Status per variable, as in silver_fuel.
 select
     Week,
     Date,
-    {% for i in range(results['variable_name'] | length) %}
-    max(case when Variable = '{{ results["variable_name"][i] }}'
-        {%- if results["unit_filter"][i] %} and Unit = '{{ results["unit_filter"][i] }}'{% endif %}
-        then TRY_CAST(Value AS FLOAT) end) as {{ results["canonical_name"][i] }}
-    {%- if not loop.last %},{% endif %}
-    {% endfor %}
+    {{ pivot_variables(results) }},
+    {{ pivot_variables(results, value_column='Status', suffix='_status', cast_numeric=false) }}
 from {{ source('bronze', 'weekly_prices') }}
 where Fuel = 'NA'
 {% set cutoff = var('simulate_cutoff_date', none) %}

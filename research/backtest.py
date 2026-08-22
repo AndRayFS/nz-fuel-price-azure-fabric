@@ -75,6 +75,21 @@ HORIZONS = (1, 2, 3)
 R1_WINDOW = 26             # trailing window for the Report 1-style refit
 R1_MAXLAG = 8
 
+# The training filter, stated as the list of variables the fit reads. MBIE
+# publishes status per value, not per week, so "is this week final" is not
+# a question the data answers — this is: are the six series the ADL
+# consumes all final. `net` needs the first four, `d_cost` the fifth, `dev`
+# the sixth. `dubai_crude_nzd` is absent because only report1_ish uses it
+# and report1_ish is applied, never fitted, here.
+TRAIN_STATUS_COLS = (
+    "adjusted_retail_price_status",
+    "taxes_status",
+    "gst_status",
+    "ets_status",
+    "importer_cost_status",
+    "importer_margin_status",
+)
+
 
 def load(fuel: str) -> pd.DataFrame:
     p = pd.read_csv(PANEL, parse_dates=["Date"])
@@ -96,7 +111,15 @@ def load(fuel: str) -> pd.DataFrame:
     # weeks, so the forecast's base is solid, and the factor is revised by
     # ~0.5 c/L, worth ~0.6 c/L of forecast error against a model MAE of
     # 2.7. Rows carry `input_status` so the report can mark them.
-    d["is_final"] = (d.status == "Final")
+    #
+    # Before 22 Aug 2026 this read a single `status` column that
+    # export_panel.py recovered from the snapshot with an unordered
+    # `select top 1`, which on a week that had already transitioned could
+    # return the superseded Provisional row. The status now comes from
+    # silver, per variable, and the filter names its variables.
+    d["is_final"] = np.logical_and.reduce(
+        [d[c].eq("Final").to_numpy() for c in TRAIN_STATUS_COLS]
+    )
     d["dev"] = (d.importer_margin
                 - d.importer_margin.rolling(ECM_WINDOW, min_periods=ECM_WINDOW).mean()
                 ).shift(1)
