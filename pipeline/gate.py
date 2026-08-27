@@ -88,10 +88,11 @@ def gather() -> dict:
         if cur.fetchone()[0] == 0:
             marker_week = marker_rows = None
         else:
-            cur.execute("select top 1 processed_week, ingest_rows_read "
+            cur.execute("select top 1 processed_week, ingest_rows_read, recorded_at "
                         "from pipeline.processed_weeks order by recorded_at desc")
             row = cur.fetchone()
-            marker_week, marker_rows = row if row else (None, None)
+            marker_week, marker_rows, marker_recorded_at = (
+                row if row else (None, None, None))
 
         # Is the warehouse standing on a past date? `vintage.py` puts it there
         # and nothing else can tell: bronze does not move when silver goes back,
@@ -110,6 +111,7 @@ def gather() -> dict:
     return {"run": run, "rows_read": rows_read,
             "bronze_week": bronze_week, "bronze_rows": bronze_rows,
             "marker_week": marker_week, "marker_rows": marker_rows,
+            "marker_recorded_at": marker_recorded_at,
             "vintage_as_of": vintage_as_of,
             "now": datetime.now(timezone.utc)}
 
@@ -199,10 +201,17 @@ def decide(facts: dict, max_run_age_hours: float, stale_after_days: int = 14) ->
                     "detail": (f"nothing new since {marker_week}, {behind} days ago — "
                                f"past the {stale_after_days}-day limit, so this is no "
                                "longer just an unpublished week")}
+        # Two different ages, and conflating them reads as a lie on a week
+        # processed minutes ago: `behind` is how old the WEEK is, which is what
+        # the staleness rule above is about, while when the chain last ran is
+        # `recorded_at`. Say both, separately.
+        when = facts.get("marker_recorded_at")
+        ran = f" on {str(when)[:16]}" if when else ""
         return {**seen, "verdict": "nothing_new", "exit": NOTHING_TO_DO,
                 "detail": (f"the source still holds {rows_read} rows and bronze still "
-                           f"ends at {bronze_week}, as when {marker_week} was processed "
-                           f"{behind} days ago")}
+                           f"ends at {bronze_week}, unchanged since the chain last ran"
+                           f"{ran} for week {marker_week} — that week is now "
+                           f"{behind} days old")}
 
     return {**seen, "verdict": "ok", "exit": PROCEED,
             "detail": (f"new week {bronze_week}, "
