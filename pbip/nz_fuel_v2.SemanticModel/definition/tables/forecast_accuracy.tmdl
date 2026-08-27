@@ -382,14 +382,6 @@ table forecast_accuracy
 
 		annotation SummarizationSetBy = Automatic
 
-	column flag_data_status
-		dataType: string
-		lineageTag: 666114ca-cfcf-4855-bad6-849721041ecc
-		summarizeBy: none
-		sourceColumn: flag_data_status
-
-		annotation SummarizationSetBy = Automatic
-
 	partition forecast_accuracy = m
 		mode: import
 		source =

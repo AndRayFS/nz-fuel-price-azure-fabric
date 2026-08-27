@@ -17,6 +17,17 @@ design and should be trimmed or updated, not left as-is indefinitely.
   `python pipeline/mark_processed.py`, which the gate depends on for next
   week. `QUICKSTART.md` has the full chain.
 
+- [ ] **Before the next Power BI refresh** — republish the `nz_fuel_v2`
+  semantic model from Desktop. `flag_data_status` was removed from
+  `forecast_accuracy` on 27 Aug 2026 (W14) and the `column flag_data_status`
+  block was deleted from the `.tmdl` in the repo, but the **deployed** model
+  still declares it until someone publishes. The partition pulls the whole
+  table, so a model declaring a column the table no longer has fails on
+  refresh. The report was refreshed for week 2026-08-21 *before* the removal,
+  so nothing is broken today — the trap is the next weekly run, which would
+  refresh a stale model against a narrower table. Publish first, refresh
+  second.
+
 - [ ] **27 Aug 2026** — the Azure free-trial credit expires. NZ$274.98 was
   left on 14 Aug, against ~NZ$2.40/day of actual burn, so ~NZ$245 will
   simply lapse. Credit does **not** carry past this date, and upgrading to
