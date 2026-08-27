@@ -371,15 +371,17 @@ requires.
 
 ## 7. Does the new flag actually do anything?
 
-**These tables predate a change to what `Final` means — 27 Aug 2026.** They
-were computed while `data_status` was the date constant `PROVISIONAL_FROM =
-2026-04-01`. That column is gone (W14): MBIE finalised 3 Apr – 26 Jun 2026 in
-one block on 26 Aug, the constant disagreed with the source on those weeks,
-and rather than restate the source in a second place the column was removed —
-settledness is read per value from the six status columns in the panel or in
-`silver_fuel`. Every "Final" sample below is therefore 13 weeks larger than it
-was when these numbers were produced, and none of them has been re-run. Treat
-the numbers as a record of what was measured, not as reproducible today.
+**These tables are one publication out of date — 26 Aug 2026.** MBIE closed
+3 Apr – 26 Jun 2026 as Final in a single block that day, thirteen weeks at
+once, so every "Final" sample below is now thirteen weeks larger than it was
+when these numbers were produced. None has been re-run.
+
+Nothing about the sample *definition* changed, and it is worth being clear
+about that: `headline_results.py` has always filtered on the six per-value
+status columns in the panel, never on the `data_status` column that W14
+removed on 27 Aug. Re-running the script picks the thirteen weeks up on its
+own. The numbers below are a record of what was measured, not a claim about
+what today's data says.
 
 The point of the exercise is step 7 of the ADL plan: interacting the shape
 parameters with a regime flag. Worth checking the flag is not merely tidier.
