@@ -371,6 +371,16 @@ requires.
 
 ## 7. Does the new flag actually do anything?
 
+**These tables predate a change to what `Final` means — 27 Aug 2026.** They
+were computed while `data_status` was the date constant `PROVISIONAL_FROM =
+2026-04-01`. That column is gone (W14): MBIE finalised 3 Apr – 26 Jun 2026 in
+one block on 26 Aug, the constant disagreed with the source on those weeks,
+and rather than restate the source in a second place the column was removed —
+settledness is read per value from the six status columns in the panel or in
+`silver_fuel`. Every "Final" sample below is therefore 13 weeks larger than it
+was when these numbers were produced, and none of them has been re-run. Treat
+the numbers as a record of what was measured, not as reproducible today.
+
 The point of the exercise is step 7 of the ADL plan: interacting the shape
 parameters with a regime flag. Worth checking the flag is not merely tidier.
 

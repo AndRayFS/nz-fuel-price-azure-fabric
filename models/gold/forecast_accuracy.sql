@@ -76,8 +76,7 @@ select
     -- (week, fuel); joining on the date alone silently doubles every row.
     f.crude_vol_regime,
     f.crude_episode_id,
-    f.crude_move_regime,
-    f.data_status as flag_data_status
+    f.crude_move_regime
 from rolled r
 left join {{ ref('period_flags') }} f
     on f.week_date = r.week_date

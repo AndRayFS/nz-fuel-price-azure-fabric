@@ -85,19 +85,13 @@ IMPORT_ONLY_FROM = pd.Timestamp("2022-04-01")  # Marsden Point stopped refining
 ETS_AUCTIONS_FROM = pd.Timestamp("2021-01-01")
 
 # Publication status, from MBIE's own pages (read by the ADL thread, Aug 2026).
-# Everything from 1 Apr 2026 is Provisional and finalises only when Stats NZ
-# releases the June-quarter CPI — so "provisional" here means *awaiting an
-# external input*, not estimated or interpolated. This turned out to be
-# load-bearing: the diesel pass-through instability is these weeks, not the
-# crisis (docs/period_labelling.md §7).
-PROVISIONAL_FROM = pd.Timestamp("2026-04-01")
-
 # Separately, MBIE *suspended* publication of Importer cost and Importer margin
 # from 18 Mar to 1 Jul 2026 over conflict-driven volatility, then backfilled
 # them. Only those two series were paused; retail, board, tax, ETS and FX ran
-# normally throughout. So this is a narrower and stronger caveat than
-# PROVISIONAL_FROM, and it applies to exactly the two columns most of this
-# project's margin work depends on.
+# normally throughout. It applies to exactly the two columns most of this
+# project's margin work depends on. It stays a date range because a suspension
+# leaves no mark in the data: the backfilled rows look like any other — which
+# is the opposite of `Status`, and the reason this one is not derived.
 COST_BACKFILL_FROM = pd.Timestamp("2026-03-18")
 COST_BACKFILL_TO = pd.Timestamp("2026-07-01")
 
@@ -197,9 +191,6 @@ def main() -> None:
     weeks["ets_auction_quarter"] = (weeks.Date >= ETS_AUCTIONS_FROM) & (
         weeks.Date.dt.month % 3 == 0
     )
-    weeks["data_status"] = np.where(
-        weeks.Date >= PROVISIONAL_FROM, "provisional", "final"
-    )
     weeks["cost_backfilled"] = weeks.Date.between(
         COST_BACKFILL_FROM, COST_BACKFILL_TO
     )
@@ -219,6 +210,7 @@ def main() -> None:
     out = []
     for fuel, rows in panel.groupby("Fuel", sort=True):
         rows = rows.sort_values("Date").reset_index(drop=True)
+
         step = rows.taxes.diff().fillna(0.0)
         step[step.abs() < TAX_STEP_MIN] = 0.0
 
@@ -259,7 +251,6 @@ def main() -> None:
             "tax_step_cpl",
             "tax_step_window",
             "data_regime",
-            "data_status",
             "cost_backfilled",
             "identity_holds",
             "supply_chain",
@@ -274,7 +265,6 @@ def main() -> None:
     print(flags.crude_vol_regime.value_counts().to_string())
     print(flags.data_regime.value_counts().to_string())
     print(flags.crude_move_regime.value_counts().to_string())
-    print(flags.data_status.value_counts().to_string())
     print(f"cost_backfilled rows: {flags.cost_backfilled.sum()}")
     print(f"tax step weeks: {(flags.tax_step_cpl != 0).sum()}")
     print(f"named episodes: {flags.crude_episode_id.nunique() - 1}")

@@ -430,6 +430,65 @@ Needs live capacity for each full refresh. Free until 27 Aug; billed after.
 `QUICKSTART.md`. Not `export_panel.py` — the warehouse moves underneath it and
 the script is unchanged. Not `dbt_project.yml`, per the departure above.
 
+
+## W14 — `data_status` removed — **landed 27 Aug 2026**
+
+Not planned: found during the 27 Aug weekly run and done in it, which is a
+departure from one-change-per-branch worth stating rather than hiding.
+
+**What it was.** A column in `period_flags` answering "is every number this
+row depends on settled?", built from a date constant —
+`PROVISIONAL_FROM = pd.Timestamp("2026-04-01")` in `build_period_flags.py`,
+introduced 16 Aug 2026. Not for want of data: `Status` has been in the MBIE
+file and in bronze since the first commit, and `mbie_revisions` has always
+read it. Silver dropped it — until W1 landed on 22 Aug, `silver_fuel` pivoted
+values only — and the panel is built from silver, so the layer the flags
+script works in had no status to read. The constant is a symptom of the
+boundary W1 was written to fix, and it outlived the fix by five days.
+
+**What exposed it.** On 26 Aug MBIE finalised 3 Apr – 26 Jun 2026 in one
+block: 13 weeks, against 6–8 changed rows on every previous snapshot run. The
+constant then disagreed with the source on 39 rows and nothing said so —
+`finalised_*` deliberately does not warn, having been designed for a routine
+of one week per week.
+
+**Why removed rather than fixed.** The first move was to derive it from the
+six status columns W1 put in the panel, and that worked: the two definitions
+agreed on 3,459 rows of 3,498 and differed only on the 39. But deriving it
+left a restatement of MBIE's own Provisional/Final in a second place, with
+the six-column rule now written twice — once here and once as
+`TRAIN_STATUS_COLS` in `backtest.py`. And the column had no consumer:
+`forecast_accuracy` carried it to the warehouse as `flag_data_status`, the
+semantic model declared it, and nothing — no Python, no DAX measure, no
+visual — ever read the value. After W1 the source's status travels per value
+through silver into the panel; a second, coarser copy of it is not worth
+maintaining.
+
+**What it touched, and in what order.** The column is gone from
+`build_period_flags.py`, `period_flags.csv`, `_seeds__models.yml` (prose and
+its two tests) and `forecast_accuracy.sql`, and the `column flag_data_status`
+block is gone from the semantic model. **The semantic model must be
+republished from Desktop before any refresh that follows the warehouse
+losing the column** — the partition pulls the whole table, so a model still
+declaring a column the table no longer has fails on refresh. The report was
+refreshed for this week before the removal, so the next due refresh is a week
+away; the obligation is in `.claude/rules/active-items.md`.
+
+`dbt test` after removal: PASS=81, WARN=0, ERROR=0 — two tests fewer with the
+column, and the remaining warning cleared separately by the noise threshold
+added the same day.
+
+**What is left.** `period_labelling.md §7` reads its result off the
+Provisional weeks and its tables were computed under the constant. They are
+flagged as predating the change and have not been re-run; that is research,
+not a fix, and is not scheduled here. Anything wanting per-row settledness now
+reads the six status columns in the panel or in `silver_fuel`.
+
+**Touches.** `research/build_period_flags.py`, `seeds/period_flags.csv`,
+`seeds/_seeds__models.yml`, `models/gold/forecast_accuracy.sql`,
+`pbip/nz_fuel_v2.SemanticModel/.../forecast_accuracy.tmdl`,
+`docs/period_labelling.md`, `.claude/rules/active-items.md`.
+
 ---
 
 # Track 2 — Getting off the laptop
