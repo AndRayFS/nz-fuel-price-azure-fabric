@@ -5,6 +5,11 @@ against `research/data/panel_weekly.csv` (1,164 weeks × 2 fuels,
 2004-04-23 → 2026-08-07). No warehouse queries; the Fabric capacity was
 never started for this work.
 
+**The tables here are illustrations measured on their stated dates.** They are
+reproducible — `headline_results.py` runs offline against the panel in seconds
+— but they are not recomputed when the data moves, so recompute before quoting
+a figure, and only when the answer turns on the digit.
+
 Deliverables:
 
 - `seeds/period_flags.csv` — proposed replacement seed, 2,328 rows.

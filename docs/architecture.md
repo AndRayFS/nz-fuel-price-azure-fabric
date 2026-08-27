@@ -4,6 +4,12 @@ This documents the *why* behind the design choices in this project — not
 just what the pipeline does, but why it's built this way. Written for future-me
 as much as for anyone else reading the code.
 
+**Every number here is an illustration measured on a stated date, not a current
+value.** The source revises, weeks finalise in blocks, and parts of the chain
+can be run by hand — so a figure written down here says what was measured, not
+what holds today. Recompute before quoting one, and only when the answer turns
+on the digit rather than on the shape.
+
 ## Medallion layers — what each one is actually for
 
 - **Bronze** stores the raw MBIE snapshot exactly as it arrives. Nothing is
