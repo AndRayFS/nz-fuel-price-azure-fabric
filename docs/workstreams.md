@@ -493,6 +493,46 @@ reads the six status columns in the panel or in `silver_fuel`.
 
 # Track 2 — Getting off the laptop
 
+## W15 — Walk the chain together, node by node
+
+**Now.** Thirteen steps, of which seven serve the data, five serve the
+platform and one serves the report. Nobody has been through them asking, of
+each node in turn, the three questions that matter: what does it compute or
+check, who reads the result, and what breaks if it goes.
+
+The 27 Aug run is the argument for doing it. It spent most of its time on
+scaffolding rather than data, and two of the things it turned up answered
+"nobody" to the second question — a date constant nobody read (W14) and a
+column carried all the way into the semantic model with no measure and no
+visual behind it. Neither changed a number in the report. Both cost a
+session. There is no reason to think they are the last two, and no list
+saying which nodes have been audited.
+
+A diagram of the chain now exists, labelled with what each node computes and
+with what a person would have to do there by hand if the script were removed.
+That is the artefact to walk, and the human column is the useful lens: a node
+whose human equivalent nobody can state is a node nobody understands.
+
+**Target.** One pass through the chain with the owner, out loud, producing a
+short verdict per node: keep, thin, or remove. Not a refactor — a decision
+list. Anything marked remove becomes its own small branch, the way W14 did.
+
+**Why it goes before W7 and W8.** W7 declares the chain once and W8 runs it
+unattended. Declaring a chain nobody has audited freezes whatever is in it,
+and automating it means the waste runs on a schedule and bills for it. The
+cheapest moment to drop a step is before it is written into `Taskfile.yml`.
+
+**Risks.** The obvious one is that the pass turns into a redesign. It should
+not: the output is a verdict per node and nothing else. The other is that
+"remove" is easy to say about a node whose only consumer is a person looking
+at a table occasionally — `data_status` was defended on exactly that ground
+before the check showed no code reads it. Ask for the consumer by name.
+
+**Depends on.** Nothing.
+**Blocks.** W7 and W8, in judgement rather than mechanically.
+**Touches.** `docs/workstreams.md`, and whatever branches the verdicts spawn.
+
+
 ## W5 — Split `pipeline/` from `research/`
 
 **Now.** `research/` holds two different kinds of code under one README.
