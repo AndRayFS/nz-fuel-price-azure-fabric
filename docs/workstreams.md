@@ -525,13 +525,27 @@ objections that ruled out a Fabric notebook apply here.
   stored secret.
 - SPN granted the Fabric workspace role and warehouse permissions; the
   tenant setting "service principals can use Fabric APIs" enabled.
+- **SPN granted Azure RBAC on the capacity resource itself** — a role
+  carrying `Microsoft.Fabric/capacities/resume/action` and
+  `Microsoft.Fabric/capacities/suspend/action` on `nzfuelcapacity` (verified
+  against `az provider operation show --namespace Microsoft.Fabric`). This is
+  a different permission plane from the bullet above: resume and pause are ARM
+  operations, not Fabric APIs, so neither the workspace role nor the warehouse
+  grants nor the tenant setting reach them.
+  It works today only because the signed-in user holds `Contributor` on the
+  subscription (`cost_notes.md`), which the SPN does not inherit. Without this
+  the workflow authenticates fine, drives Fabric fine, and cannot wake the
+  capacity.
 - `profiles.yml` moves into the repo using `env_var()`; dbt auth becomes
   ServicePrincipal.
 - `export_panel.py` switches `AzureCliCredential` → `DefaultAzureCredential`
   so one code path serves both a local `az login` and CI.
 - The ingest is triggered through the Fabric REST job API and polled,
   which finally removes the last portal step from the chain.
-- Capacity resumed at the start and paused in an `always()` step.
+- Capacity resumed at the start and paused in an `always()` step. The resume
+  is asynchronous, so the workflow polls until the capacity reports `Active`
+  before the gate runs — everything from the gate on fails immediately with
+  `this Fabric capacity is currently not active`.
 - Scheduled by cron with the standing caveat that cron is UTC and NZ
   observes daylight saving, so the local hour drifts twice a year.
 
@@ -573,14 +587,40 @@ objections that ruled out a Fabric notebook apply here.
   `architecture.md`, "Observations belong in the warehouse, configuration
   belongs in git".
 
-  - **Do not delete `seeds/monitoring/aip_singapore_weekly.csv` until
-    warehouse retention is verified.** It is the only copy of the AIP series
-    in existence — the source keeps 11–15 reports and Mar–Jun 2026 is already
-    lost — and git is currently its crude backup. Restore points and
-    time-travel retention must be checked and configured deliberately first,
-    not assumed. This subpoint exists because it is the one irreplaceable
-    file in the project and a branch about Entra, OIDC and cron is exactly
-    where it would be walked past.
+  - **The AIP store is the one that cannot be re-fetched, so it retires
+    differently from the other two.** Bronze can be reloaded from MBIE and the
+    snapshot rebuilds itself by growing; the AIP series has no upstream at all
+    — the source keeps 11–15 reports and Mar–Jun 2026 is already gone. That is
+    why `seeds/monitoring/aip_singapore_weekly.csv` was called the one
+    irreplaceable file in the project, and why a branch about Entra, OIDC and
+    cron is exactly where it would be walked past.
+
+    **Retention checked 27 Aug 2026** and the condition is met: both
+    `analytics_warehouse` and `bronze_lakehouse` report
+    `time_travel_retention_days = 30`. For a Lakehouse the effective Delta
+    history also depends on VACUUM in OneLake, which was not checked and does
+    not change the conclusion below.
+
+    **The shape it should take, and it is not a seed.** Today `aip_check.py`
+    writes the CSV and `dbt seed --full-refresh` truncates the table and
+    reloads it from the file every week — that truncate is the entire risk,
+    and it is a risk the data does not need to carry. Instead the script
+    should append straight to an accumulating table keyed on
+    `(week_date, fuel)` with a `loaded_at` column, never truncating: the same
+    durability `dbo.mbie_revisions` has, which nobody worries about, because a
+    table that only grows is its own history and is not subject to a 30-day
+    cap. `pipeline/mark_processed.py` is the working template — it creates its
+    table on first write through `INFORMATION_SCHEMA` plus plain DDL, since
+    Fabric Warehouse has no `create ... if not exists`.
+
+    **This does not need the rest of W8.** No SPN, no OIDC, no CI:
+    `aip_check.py` already runs locally under an `az login`. It is listed here
+    so the three seeds retire in one place, but it can go first and alone.
+
+    **Order is not optional.** Create the table and the write path, repoint
+    `monitor_aip_gap` off the seed, and only then delete the CSV — removing it
+    first breaks *every* dbt command with `depends on a node named
+    'aip_singapore_weekly' which was not found`, not just the monitoring ones.
 - Public repository: secrets are not exposed to forks, and Actions minutes
   are free, but the workflow file is world-readable — no identifiers that
   are not already public.

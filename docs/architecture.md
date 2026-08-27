@@ -950,6 +950,33 @@ Both the pipeline definition and the connection were read and written
 through the Fabric REST API (`getDefinition` / `updateDefinition`), not the
 portal.
 
+**The designer flags that expression, and is formally right — 27 Aug 2026.**
+Validating the pipeline reports `'concat' does not have an overload that
+supports the arguments given: (StringLiteral, Int)`: `ticks()` returns an
+integer and Data Factory's `concat` is typed over strings. It is a
+design-time complaint only — the expression evaluates at runtime, and the
+34,950-row read above is the proof, since without a query string that run
+would have returned 34,920. The typed form is
+
+```json
+"relativeUrl": { "value": "@concat('?cb=', string(ticks(utcnow())))",
+                 "type": "Expression" }
+```
+
+**Applied 27 Aug 2026**, after that day's chain had finished, through
+`getDefinition` / `updateDefinition` — one part changed, `updateDefinition`
+returned 200 synchronously, and reading the definition back confirms the typed
+form is in place. It was deliberately not done mid-run: changing the ingest
+definition while the result of a run is being checked adds a variable exactly
+where one is least wanted.
+
+The urgency was low either way — if the cache-buster ever stopped being
+appended, the edge would serve a stale file, and that is what the gate returns
+`nothing_new` on. **Still unverified at runtime:** the next `ingest_mbie_weekly`
+run is the first that will evaluate the new form, and the number to read off it
+is `rowsRead` — 35,010 on a normal week, or 34,980 if the query string stopped
+reaching origin.
+
 ## The freshness gate, and the check it could not be — 22 Aug 2026
 
 W3 specified an independent read: download `weekly-table.csv` here, compare
