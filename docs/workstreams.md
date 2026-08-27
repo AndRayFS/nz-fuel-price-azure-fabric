@@ -517,6 +517,42 @@ whose human equivalent nobody can state is a node nobody understands.
 short verdict per node: keep, thin, or remove. Not a refactor — a decision
 list. Anything marked remove becomes its own small branch, the way W14 did.
 
+**Four BPMN diagrams, drawn as a set.** Ad-hoc boxes were tried first and were
+not enough: the notation has to carry who acts, not only what happens. BPMN
+does, and this chain needs exactly that — lanes separate the human from the
+script from the platform, and the gate is literally an exclusive gateway with
+three outcomes rather than a box with an arrow out of it.
+
+| # | diagram | what it settles |
+|---|---|---|
+| 1 | weekly load, as it is | the thirteen steps, three of them human, and where the chain leaves the warehouse |
+| 2 | research, as it is | the estimation loop that is deliberately offline, and where it touches the weekly chain |
+| 3 | weekly load, as intended | after W5, W7 and W8: no seed round-trip, chain declared once, ingest triggered by the workflow, one human step left until W9 |
+| 4 | research, as intended | open — it may be that research should not be drawn as a process at all, see below |
+
+**The pair is the point, not the pictures.** The difference between 1 and 3 is
+the work list, stated in a form that can be pointed at. A target diagram with
+no current one beside it is a wish; a current one with no target is a
+complaint.
+
+**Why research gets its own pair.** `export_panel.py`, `build_period_flags.py`
+and `backtest.py` run every week on settled algorithms — production — while
+`adl_*.py` and the twenty-specification loops are exploration, and both live
+under `research/`. That is W5, and drawing the two processes separately is the
+cheapest way to see the boundary it has to cut. Diagram 4 is marked open
+because a research process may not be a process: a loop whose whole value is
+that its shape changes every time resists being frozen into a flow, and drawing one
+anyway would invent a discipline nobody asked for. Decide that in the session
+rather than before it.
+
+**Undecided: what the diagrams are made of.** Hand-authored SVG keeps them in
+one artefact and costs nothing, but they are then drawings of BPMN rather than
+BPMN. Real `.bpmn` XML round-trips through an editor and can be re-laid-out by
+anyone, at the cost of a tool in the loop — the repo already does exactly this
+with `pbip/`, which round-trips through Power BI Desktop and is stored as text
+with an `.gitattributes` rule to keep the diffs readable. Precedent exists
+either way; pick one at the start of the session, not halfway through.
+
 **Why it goes before W7 and W8.** W7 declares the chain once and W8 runs it
 unattended. Declaring a chain nobody has audited freezes whatever is in it,
 and automating it means the waste runs on a schedule and bills for it. The
