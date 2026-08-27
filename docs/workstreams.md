@@ -545,13 +545,26 @@ that its shape changes every time resists being frozen into a flow, and drawing 
 anyway would invent a discipline nobody asked for. Decide that in the session
 rather than before it.
 
-**Undecided: what the diagrams are made of.** Hand-authored SVG keeps them in
-one artefact and costs nothing, but they are then drawings of BPMN rather than
-BPMN. Real `.bpmn` XML round-trips through an editor and can be re-laid-out by
-anyone, at the cost of a tool in the loop — the repo already does exactly this
-with `pbip/`, which round-trips through Power BI Desktop and is stored as text
-with an `.gitattributes` rule to keep the diffs readable. Precedent exists
-either way; pick one at the start of the session, not halfway through.
+**Decided: real `.bpmn` files, not drawings of BPMN.** A hand-drawn SVG is
+cheaper and immediately wrong in the way that matters — only its author can
+change it. BPMN 2.0 XML opens in any editor (Camunda Modeler, bpmn.io), so the
+owner can re-lay-out and re-scope without going through whoever drew it first.
+The repo already runs this pattern: `pbip/` round-trips through Power BI
+Desktop, is stored as text, and has a `.gitattributes` rule keeping the diffs
+readable. `.bpmn` gets the same treatment.
+
+Two practical notes. The first draft can be authored as XML directly — the
+semantic half (process, lanes, tasks, gateways, sequence flows) is
+straightforward, and only the `BPMNDiagram` layout coordinates are tedious;
+they exist to be dragged, so a mechanical first layout is the expected
+starting point rather than a defect. And the diff behaviour is worth knowing
+before the first re-layout: a semantic change reads clearly, while dragging
+boxes rewrites every coordinate in the DI section and produces a large diff
+that says nothing. Keep the two kinds of edit in separate commits.
+
+Files live in `docs/bpmn/`: `load_current.bpmn`, `research_current.bpmn`,
+`load_target.bpmn`, and `research_target.bpmn` if the session decides the
+fourth should exist at all.
 
 **Why it goes before W7 and W8.** W7 declares the chain once and W8 runs it
 unattended. Declaring a chain nobody has audited freezes whatever is in it,
