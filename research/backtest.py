@@ -106,11 +106,23 @@ def load(fuel: str) -> pd.DataFrame:
     # version filtered here, which silently truncated the whole series at
     # 27 Mar 2026 rather than just keeping provisional weeks out of the fit.
     #
-    # Applying to provisional weeks is defensible and was checked: the
-    # target (`adjusted_retail_price`) has never been revised in 1,164
-    # weeks, so the forecast's base is solid, and the factor is revised by
-    # ~0.5 c/L, worth ~0.6 c/L of forecast error against a model MAE of
-    # 2.7. Rows carry `input_status` so the report can mark them.
+    # Applying to provisional weeks is defensible, but not for the reason
+    # written here until 29 Aug 2026. That reason was "the target has never
+    # been revised in 1,164 weeks", and the June quarter finalising on 26 Aug
+    # ended it: `adjusted_retail_price` moved 1.861 c/L on diesel and 0.848
+    # on petrol, roughly four times the ~0.5 c/L this comment assumed.
+    #
+    # The real reason is stronger and does not depend on the target holding
+    # still. A finalisation is one constant level shift applied to a whole
+    # quarter (docs/mbie_notes.md, "What a finalisation actually does"), and
+    # this model forecasts a *change* in price, in which a constant cancels.
+    # Measured: recomputing on the revised panel moved MAE by at most 0.22
+    # c/L against 17-27 in that stretch, and skill in non-crisis weeks not at
+    # all. The exception is the first week of a quarter, which carries a
+    # day-weighted blend of two factors and so does not cancel; one such week
+    # is in the sample and dropping it changes nothing (0.850 -> 0.854 on the
+    # diesel K=3 total). Rows carry `input_status` so the report can mark
+    # them.
     #
     # Before 22 Aug 2026 this read a single `status` column that
     # export_panel.py recovered from the snapshot with an unordered
