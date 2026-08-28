@@ -180,6 +180,52 @@ are Monday–Friday averages of the stamped week. Consequences, revised:
    It says nothing about how many of them are averaged. Worth remembering
    the next time a single word in the dictionary looks decisive.
 
+### The retail week is seven days, not five — 29 Aug 2026
+
+The ruler above measures crude, and on crude it cannot distinguish a
+five-day window from a seven-day one: the section says so itself — "wider
+spans scoring identically are the same set of trading days with weekends
+added, which contain no quotes." Stations, however, trade on Saturday and
+Sunday and Datamine collects those days, so on the **retail** series the
+window is distinguishable. It is seven days.
+
+The quarterly adjustment factor makes it measurable without any external
+data. The factor is applied **per day**, not per week, so the first week of
+each quarter carries a day-weighted blend of the outgoing and incoming
+factors. Its share of the new factor is therefore
+
+    (days of that week falling in the new quarter) / 7
+
+if the week runs Monday–Sunday, or `/5` if Monday–Friday. Measured on every
+first-week-of-quarter since 2010 — **98 of 98, three fuels, no misses** —
+the denominator is always seven. Observed shares are 3/7, 4/7, 5/7 and 6/7,
+exact to four decimals. Before 2010 the rule does not hold, which is the
+same boundary as everything else pre-2010 in this file.
+
+So the stamp date is a **Friday sitting on the fifth day of its week**, not
+the week's end. The week stamped 2026-08-21 covers Monday 17 August through
+Sunday 23 August, and therefore extends two days *past* its own stamp.
+
+Two corrections to the list above:
+
+- Point 1 — "both series are centred on Wednesday, so there is no hidden
+  half-week offset" — holds for crude and not for the retail target, whose
+  seven-day mean is centred on **Thursday**. The offset is half a day, which
+  is small; it was recorded as exactly zero, which is the part that was
+  wrong.
+- The heading of this section should be read as "every weekly column is a
+  weekly average", which is true, and not as "every column averages the same
+  five days", which is not.
+
+Worked example, 2026-04-03. 1 April 2026 was a Wednesday; the week begins
+Monday 30 March; five of its seven days (1–5 April) fall in Q2. Diesel's
+factor for that week is 2.315366 against 0.986074 for Q1 and 2.847082 for
+Q2 — a share of 0.714285, which is 5/7. Nothing happened on 1 April; the
+date is a quarter boundary and nothing more. It is worth saying explicitly
+because that same week is also the crude peak's turn and the high-water mark
+of `Importer cost`, so it invites a market explanation for what is
+arithmetic.
+
 ### How much the weekly file hides
 
 The same daily series answers a question the weekly file cannot: how large
@@ -584,6 +630,64 @@ Provisional as "stable until the quarter ends" — it's provisional in both
 senses: subject to quarterly re-basing *and* to ordinary week-to-week
 correction.
 
+### What a finalisation actually does — measured 29 Aug 2026
+
+The first Provisional → Final transition this project has been present for
+landed on 26 Aug 2026: thirteen weeks, 3 Apr – 26 Jun 2026, the whole June
+quarter, all six status columns at once.
+
+**It is not a week-by-week recomputation. It is one level shift.** The
+quarterly factor was recalculated and applied to every week of the quarter:
+
+| | factor before (carried from Q1) | factor after | shift in `adjusted_retail_price` |
+|---|---|---|---|
+| Diesel | 0.986 | 2.847 | −1.861 c/L |
+| Regular Petrol | 2.898 | 3.746 | −0.848 c/L |
+| Premium 95R | — | — | 0.000 |
+
+`Board price`, `Importer cost`, `ETS` and `Exchange rate` did not move on a
+single one of the thirteen weeks. The whole shift travels through GST into
+`Importer margin`: −1.861 retail → −0.243 GST → −1.618 `Price excluding tax`
+= −1.618 `Importer margin`. Which is what the methodology implies, since it
+defines the flag against the factor alone: *"Data calculated using an
+estimated adjustment factor in this manner is marked as provisional. Data is
+marked final when the CPI data for that quarter has been released and the
+adjustments have been recalculated."*
+
+**What that does not license.** "A finalisation cannot move anything but the
+factor" is a stronger claim than one observation supports, and the same
+release refutes the looser version of it: alongside the transition came a
+40-week rewrite of 2023–24 at 0.0002 c/L and an ordinary revision to
+`Importer cost` on the newest week. A *finalisation* and a *release
+containing a finalisation* are different events, and one observation cannot
+separate them. The next chance is mid-October.
+
+**Scale.** 1.86 c/L reads large until the factor's own history is in view.
+Median factor by quarter, 2022+:
+
+| | min | max | mean |
+|---|---|---|---|
+| Diesel | 0.26 | 7.10 | 3.40 |
+| Regular Petrol | 2.63 | 7.16 | 5.08 |
+
+Quarter-to-quarter jumps of 3.6 c/L have happened. This one is ordinary.
+
+**A standing prediction.** A Provisional quarter carries the previous
+quarter's factor unchanged — the methodology says so and the data agrees. So
+Q3 2026 currently carries Q2's freshly-recalculated 2.847 / 3.746, and will
+shift again when Stats NZ releases the September-quarter CPI, around
+mid-October 2026. Thirteen weeks of July–September will move by whatever the
+new factor differs by; historically anywhere from nothing to ±3.6 c/L. The
+first week of the quarter will move by a day-weighted fraction of that — see
+"The retail week is seven days" above.
+
+**The backfilled weeks came through clean.** "Known structural changes"
+below asked that the 18 Mar – 1 Jul reconstruction be checked specifically
+against its eventual finalisation, on the grounds that those weeks were
+rebuilt after the fact rather than computed live. Checked, 29 Aug 2026:
+`Importer cost` on those weeks did not change in a single row. MBIE let its
+own backfill stand. Question closed.
+
 ## `Importer margin trend` — excluded from revision tracking
 
 A full diff between two snapshots (17 Jul vs 24 Jul) returned **7,010** changed
@@ -658,6 +762,11 @@ week-to-week correction, not a data quality problem.
     ordinary Provisional data, since they weren't computed in real time.
     Worth flagging specifically when checking these rows against the
     eventual Final revision.
+  - **Checked, 29 Aug 2026 — they came through clean.** Those weeks
+    finalised on 26 Aug and `Importer cost` did not change in a single row;
+    only the quarterly factor moved, which it did for every week of the
+    quarter alike. The reconstruction stands as MBIE published it. See
+    "What a finalisation actually does" above.
 
 ## Related page — fuel stock & shipping (not yet integrated)
 
