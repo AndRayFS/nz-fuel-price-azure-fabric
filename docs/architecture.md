@@ -1578,6 +1578,11 @@ fishing, petrol to private cars.
 
 ## Canonical results — FINAL data only, 16 Aug 2026
 
+> **Superseded in part on 29 Aug 2026.** The June quarter finalised on
+> 26 Aug and thirteen weeks entered the Final sample. Diesel's numbers
+> below moved; the figure this section recommends quoting did not. Read
+> "The quarter finalised" further down before using anything here.
+
 `research/headline_results.py`. Everything published before today was
 computed on a sample containing weeks MBIE has not finalised. The cutoff is
 read from the panel's `status` column rather than hardcoded, so re-running
@@ -1684,6 +1689,97 @@ this one includes Final Feb–Mar 2026, and this specification carries the
 ECM term. And "mean lag" is a ratio, which yesterday's asymmetry work
 showed inherits the denominator's noise. The direction and rough magnitude
 replicate across two independent specifications; the size does not yet.
+
+## The quarter finalised, and it answered the question — 29 Aug 2026
+
+On 26 Aug MBIE finalised thirteen weeks, 3 Apr – 26 Jun 2026 — the whole
+June quarter, all six status columns at once. Eight Provisional weeks
+remain. Recomputed offline against the panel exported 27 Aug; the capacity
+was never started for this.
+
+**The mechanics of the finalisation change nothing on their own.** It is a
+single level shift — diesel −1.861 c/L, petrol −0.848, premium untouched —
+applied from 1 April, travelling through GST into `Importer margin`
+(`docs/mbie_notes.md`, "What a finalisation actually does"). A constant
+shift cancels in differences, and the models are on differences. Verified
+rather than assumed: the old panel and the new one, both truncated at
+2026-03-27, give identical coefficients to four decimals. **Every movement
+below comes from the thirteen weeks entering the sample, none from the
+revision.**
+
+**The open question above is now closed, and the answer is no.** That
+section said the "pass-through above one" reading rested on eight Final 2026
+weeks, that nothing in the other 22 years corroborated it in either
+direction, and that it "needs those weeks to finalise, not more modelling."
+Thirteen more arrived and pulled the other way:
+
+| diesel, Final | 16 Aug | 29 Aug |
+|---|---|---|
+| K=3 | 1.006 | **0.850** |
+| K=6 | 1.084 | 0.902 |
+| K=9 | 1.104 | 1.087 |
+| K=12 | 1.100 | 1.073 |
+| **spread K=3..12** | **0.095** | **0.223** |
+
+**"Diesel is fixed" was premature.** The claim was that filtering to Final
+collapses diesel's spread from 0.324 to 0.095. On today's data the same
+filter gives 0.320 → 0.223: it removes about 30% of the instability, not
+70%. Most of the apparent repair was the crisis weeks not yet being Final
+and therefore not being in the sample at all. Petrol's spread was 0.073 and
+is 0.069 — consistent with never having had the problem.
+
+**Error correction.** Diesel's half-life 7.0 → **5.5** weeks, outside the
+6.3–7.0 band this file states as robust; petrol 6.4 → 6.1. The all-data
+versus Final gap has also nearly closed (diesel 5.3 vs 5.5), because only
+eight weeks are now excluded instead of nineteen.
+
+**The recommendation held exactly.** This file recommended quoting diesel as
+**complete, ~0.93–1.02, on Final data excluding 2026**, and flagged the
+version including 2026 as resting on eight observations. On that excluding-
+2026 sample the numbers are 0.930 / 1.006 / 1.020 / 1.013, spread 0.082,
+half-life 6.49 — **identical to four decimals across both panels.** What was
+marked fragile moved; what was recommended for quotation did not. That is
+the only test this rule has ever had, and it passed.
+
+### The regime speed effect survives in diesel and not in petrol
+
+`period_labelling.md` leads with "both fuels pass cost through roughly twice
+as fast in high-volatility weeks (joint p < 0.0001)". Half of that is gone:
+
+| K=4, interacted, HAC | 16 Aug | 29 Aug |
+|---|---|---|
+| petrol, mean lag normal → high | 1.33 → **0.61** wk, joint p <0.0001 | 1.33 → 1.07 wk, **joint p 0.159** |
+| diesel, mean lag normal → high | 1.56 → 0.93 wk, joint p <0.0001 | 1.55 → 0.81 wk, joint p 0.0001 |
+| diesel, Δβ₀ | +0.048 (p 0.52) | **+0.114 (p 0.0036)** |
+
+Petrol's effect is gone; diesel's strengthened and its individual contrast
+became significant for the first time. The finding was held as provisional
+for exactly this reason, and the caution was warranted.
+
+**The composition explains it.** All thirteen new weeks are
+`crude_vol_regime = high`, one episode (`2026_iran_us`), all
+`data_regime = datamine`, all `cost_backfilled = true`. The high-volatility
+Final sample went from 90 weeks to 103, and every one of the added weeks is
+homogeneous. A result standing on 90 observations was overturned by 13 of a
+single kind — which is the same lesson as the eight weeks above, arriving
+from the other direction.
+
+### What did not move
+
+**The backtest and Report 1 are untouched.** Skill against naive in
+non-crisis weeks is 27.2% at h=1 and 22.5% at h=2 — unchanged to the third
+decimal. Crisis weeks 30.8 → 30.1% and 22.1 → 21.9%. `backtest.py` trains on
+Final but applies everywhere, so finalisation only retrains the eight
+forecasts made after 26 June. Those moved: diesel by 0.26–0.48 c/L on
+average (max 8.5), petrol and premium by 0.04–0.08 (max 1.4). Accuracy over
+those weeks improved slightly for diesel (h=3 MAE −0.76) and worsened
+slightly for the petrols (+0.2), against an MAE of 17–27 c/L in that
+stretch — noise.
+
+**On the thirteen weeks themselves the model did poorly**: h=1 MAE 5.79
+against naive 7.42 (22% skill), h=2 11.27 against 13.37 (16%), both well
+below the crisis-week average. `report1_ish` returned 15.18 at h=1, twice
+naive's error.
 
 ## The diesel instability is Provisional data, not the crisis - 16 Aug 2026
 
@@ -2397,6 +2493,26 @@ starts 17 July 2026 and MBIE's last finalisation was 27 March, so the run has
 never yet been present for the event the report is most exposed to — a Final
 week changing under a published `skill_26w`. `revisions_rewrote_a_final_week`
 exists for exactly that moment and has, correctly, never fired.
+
+**Both of those statements expired on 26–27 Aug 2026.** The run of that week
+carried, in one release, all three of the things this section says had never
+happened:
+
+- **39 Provisional → Final transitions** (thirteen weeks × three fuels), the
+  June quarter finalising as a block.
+- **A revision to the target.** `adjusted_retail_price` moved by 1.861 c/L on
+  diesel and 0.848 on petrol across those weeks — the recalculated quarterly
+  factor. The claim that the target had never been revised in 1,164 weeks was
+  true when written and is not now.
+- **`revisions_rewrote_a_final_week` fired for the first time**, on a 40-week
+  rewrite of 2023–24 at 0.00002–0.00022 c/L. That is what
+  `revision_noise_threshold_cpl` in `dbt_project.yml` was set for, the same
+  day.
+
+What survives is the *shape*: `Importer cost` and `Importer margin` still
+move in exact opposition, and the pump price was restated only by the
+quarterly factor, uniformly across a quarter — not week by week. See
+`docs/mbie_notes.md`, "What a finalisation actually does".
 
 ### Porting the AIP check to SQL, and checking the port
 

@@ -3,19 +3,28 @@
 Check dates against today before relying on this file — it goes stale by
 design and should be trimmed or updated, not left as-is indefinitely.
 
-- [ ] **28 Aug 2026** — run the weekly update that was deliberately skipped
-  on **Wed 26 Aug**. The owner is away 25–27 Aug with no laptop, and MBIE
-  publishes on the Wednesday in the middle of that. Skipping costs two days
-  of staleness on a report that already labels itself a retrospective
-  simulation; rushing unattended automation into place before a trip costs
-  more. This is also the first run that bills real money — a few cents.
-  Reasoning and the full plan: `docs/workstreams.md`.
+- [ ] **~mid-Oct 2026** — Stats NZ releases the September-quarter CPI, and
+  MBIE finalises the thirteen weeks of Jul–Sep 2026. This is the second
+  observation of an event the project has now seen once, and the first it
+  can prepare for. Two things to check, both cheap and offline:
+  - **Does the finalisation move anything but the quarterly factor?** On
+    26 Aug it did not, but that release also carried unrelated revisions, so
+    one observation cannot separate "a finalisation" from "a release
+    containing one". Q3 currently carries Q2's factor (diesel 2.847, petrol
+    3.746) and will shift by whatever the new one differs by — historically
+    nothing to ±3.6 c/L.
+  - **Re-run `research/headline_results.py`.** Thirteen more Final weeks
+    will enter the sample. Last time that reversed a diesel result and
+    removed a petrol one; the numbers in `docs/architecture.md` are written
+    against 29 Aug 2026 and will need the same treatment again.
+  Method and expectations: `docs/mbie_notes.md`, "A standing prediction".
 
-  It is also the **first run through the freshness gate** (W3, landed
-  22 Aug). Start with `python pipeline/gate.py` and read its exit code —
-  `0` go, `2` nothing to do, `1` stop and look — and finish with
-  `python pipeline/mark_processed.py`, which the gate depends on for next
-  week. `QUICKSTART.md` has the full chain.
+- [x] **28 Aug 2026 — done, run on 27 Aug.** Gate, run and `mark_processed`
+  all behaved; the June quarter finalised in the same release (thirteen
+  weeks, 3 Apr – 26 Jun). What it changed: `docs/architecture.md`, "The
+  quarter finalised". Kept here until the next weekly run has exercised the
+  gate chain a second time, then delete. The reasoning for skipping 26 Aug
+  is in `docs/workstreams.md`; the chain itself is in `QUICKSTART.md`.
 
 - [ ] **Before the next Power BI refresh** — republish the `nz_fuel_v2`
   semantic model from Desktop. `flag_data_status` was removed from

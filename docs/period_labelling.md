@@ -27,11 +27,26 @@ and `docs/mbie_notes.md`.
 The single crisis/calm axis is not merely coarse, it **disagrees with the
 data on four of its six periods**, and it discards more crude-shock weeks
 than it keeps. Replacing it with independent axes recovers a pass-through
-result the old flag cannot see at all: on Final data, both fuels pass cost
-through roughly twice as fast in high-volatility weeks (joint p < 0.0001),
-where the same test against the old `crisis` flag returns p = 0.905 for
-diesel. The *direction* is robust across every specification tried; the
-coefficient is not, and §7 says why.
+result the old flag cannot see at all: on Final data, cost passes through
+faster in high-volatility weeks, where the same test against the old
+`crisis` flag returns p = 0.905 for diesel. The *direction* is robust across
+every specification tried; the coefficient is not, and §7 says why.
+
+Two corrections to how this paragraph read before 29 Aug 2026, both of them
+about compression rather than about the finding:
+
+- It said **"roughly twice as fast"**. That was never a measurement. §7's
+  own table puts the mean-lag ratio anywhere from 1.17× to 3.00× depending
+  on sample, and states the honest version — the mean lag roughly halves,
+  landing between 0.44 and 1.07 weeks. "Twice" is the middle of a spread,
+  and the spread is what should be quoted.
+- It said **"both fuels"** at joint p < 0.0001. After the June quarter
+  finalised on 26 Aug, that holds for diesel (joint p 0.0001, and its Δβ₀
+  significant for the first time at +0.114, p 0.0036) and not for petrol
+  (joint p 0.159, mean lag 1.33 → 1.07 wk). Thirteen homogeneous
+  high-volatility weeks removed a result that had stood on ninety. §7's
+  "provisional finding" label was doing real work. Full numbers:
+  `docs/architecture.md`, "The quarter finalised".
 
 Two of those axes exist because the ADL thread found things this document
 originally got wrong: **`data_status`**, without which the pass-through
