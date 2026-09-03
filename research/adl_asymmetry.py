@@ -28,7 +28,7 @@ detected", not as "symmetry proven": with this sample the test can miss a
 real effect of a few hundredths.
 
 K = 6, not BIC-selected. Above K=6 the high-volatility regime's estimate
-stops being identified (docs/architecture.md), and K=6 is where the two
+stops being identified (docs/research.md), and K=6 is where the two
 regimes still agree. Choosing the lag length by a criterion that the
 crisis weeks destabilise would import that instability into the asymmetry
 test.

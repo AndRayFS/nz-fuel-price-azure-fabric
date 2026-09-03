@@ -5,7 +5,7 @@
 -- BY HOW MUCH. The margin of victory (`gap`) is the point of this query:
 -- an earlier version recorded only argmax and produced a finding that did
 -- not survive contact with the gap — see "Diesel's 'lag shift' was a flat
--- peak" in docs/architecture.md.
+-- peak" in docs/research.md.
 --
 -- This is an analysis, not a model: it does not run as part of `dbt run`.
 -- Compile it (`dbt compile -s lag_stability_expanding_window`) and execute

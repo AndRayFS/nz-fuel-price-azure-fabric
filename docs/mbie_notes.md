@@ -287,7 +287,7 @@ finalised **when Stats NZ releases the Consumers Price Index data for the
 June 2026 quarter**." So the flag marks a *dependency on an external input
 not yet available*, not a modelled or interpolated value. This is why the
 interpolation fingerprint tests found nothing: there is no interpolation to
-find (`docs/architecture.md`).
+find (`docs/research.md`).
 
 **When better data arrives:** on the Stats NZ CPI release schedule, quarter
 by quarter. April–June finalises with the June-quarter CPI; the weeks after
@@ -380,7 +380,7 @@ the fuel currently in the tanks. Two consequences:
 1. Physical procurement lag is **invisible in this dataset**, not absent
    from the world. Any claim that the crude→pump lag is a pricing decision
    rather than shipping time cannot be made from this file — see the
-   correction in `architecture.md`.
+   correction in `docs/research.md`.
 2. Dubai crude is one step upstream of what actually drives the series.
    The right factor, if one is ever added, is the Argus Singapore product
    quote (Gasoline 95 RON, Gasoil 50ppm), not another crude benchmark.
@@ -728,7 +728,7 @@ week-to-week correction, not a data quality problem.
   prices come from **Envisory up to 31 Dec 2021** and from **Datamine from
   1 Jan 2022**. This was not recorded here until 13 Aug 2026, and it turned
   out to be load-bearing — see the rolling-window analysis in
-  `architecture.md`. Two fingerprints, both sharp at the boundary:
+  `docs/research.md`. Two fingerprints, both sharp at the boundary:
   - **Repeated weekly values stop dead.** Weeks where `Board price` is
     unchanged from the previous week were routine — 5 to 23 per year per
     fuel through 2021 — and the last one is **24 Dec 2021**, for both

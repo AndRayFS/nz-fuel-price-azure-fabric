@@ -184,6 +184,7 @@ shows them anyway if you want to look.
   `macros/generate_schema_name.sql` (custom schemas are used verbatim)
 
 Full design rationale: `docs/architecture.md`
+Methods and measurements: `docs/research.md`
 Source (MBIE) structure and gotchas: `docs/mbie_notes.md`
 
 ## dbt vars (dbt_project.yml)

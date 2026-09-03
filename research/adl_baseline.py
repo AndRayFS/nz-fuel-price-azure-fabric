@@ -1,6 +1,6 @@
 """Baseline distributed-lag model: how a landed-cost move reaches the pump.
 
-Steps 2-4 of the plan in docs/architecture.md. Deliberately the simplest
+Steps 2-4 of the research backlog in docs/workstreams.md. Deliberately the simplest
 thing that could work, so that later additions (error correction,
 asymmetry, regime interaction) can be judged against it.
 
