@@ -767,6 +767,42 @@ week-to-week correction, not a data quality problem.
     only the quarterly factor moved, which it did for every week of the
     quarter alike. The reconstruction stands as MBIE published it. See
     "What a finalisation actually does" above.
+- **3 Sep 2026 — the `Date` column changed format, across the whole file.**
+  Every week back to 23 Apr 2004 arrived as `28/08/2026` where the week
+  before it had been `2026-08-21`. Nothing else moved: same seven columns,
+  same order, `Week` still `2026w35`, row count up by exactly the 30 of one
+  new week. No notice, and no way to have seen it coming.
+  - **Measured, the same day:** of 35,010 rows, **21,240 (60.7%) stopped
+    parsing** and **0 failed** under `DD/MM/YYYY`. So the file is one format
+    throughout, not a mixture — which follows from the ingest being a
+    truncate-and-reload of the full history rather than an append.
+  - **The quiet 39% is the dangerous part.** `Date` is `varchar` in bronze,
+    in silver and in the snapshot; the project never stored it as a date and
+    relies on ISO strings ordering and comparing as text. Where the day is 12
+    or less, a cast under `us_english` succeeds with day and month
+    **swapped** — `06/12/2026` means 6 December and reads as 12 June. Only
+    days past the 12th fail loudly. Left alone, `order by Date` in
+    `factor_volatility`, `Date <= cutoff` in silver and the AIP join in
+    `monitor_aip_gap` would each have gone wrong without erroring.
+  - **What caught it:** the freshness gate, though not for this reason — it
+    stopped on `ingest_did_not_land` because the SQL endpoint's metadata had
+    not yet caught up with the Lakehouse write, and returned
+    `gate_check_failed` on the retry once it had. Either way the chain never
+    started. Nothing downstream ever saw a swapped date.
+  - **What absorbed it:** the snapshot. `strategy='check'` with
+    `check_cols=['Value','Status']` and a unique key on `Week`, not `Date`,
+    so a format change in a carried column creates no versions. Had `Date`
+    been in either, all 35,010 rows would have been recorded as revised and
+    `revisions_rewrote_a_final_week` would have fired on every Final week in
+    the history.
+  - **The fix is at the read, not at the load.** Bronze stays a verbatim copy
+    of the file; `macros/mbie_date.sql` and its Python twin
+    `fabric_io.MBIE_DATE` restore an ISO string on the way out, accepting
+    either format — the source has now shown it changes this without warning,
+    so a reversion would arrive the same way. Note that style 103 does **not**
+    parse ISO in Fabric (`try_convert(date, '2026-08-21', 103)` is NULL),
+    which is why the expression is a `coalesce` of two attempts rather than
+    one conversion.
 
 ## Related page — fuel stock & shipping (not yet integrated)
 

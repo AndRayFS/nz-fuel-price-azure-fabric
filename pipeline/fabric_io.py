@@ -42,6 +42,20 @@ COPY_ACTIVITY = "Copy_MBIE_weekly_data"
 FABRIC_API = "https://api.fabric.microsoft.com"
 FABRIC_SCOPE = "https://api.fabric.microsoft.com/.default"
 
+# MBIE's `Date` column as a real date, accepting either format the source has
+# used. It changed the whole file from `2026-08-21` to `28/08/2026` on
+# 3 Sep 2026 without notice, and bronze is a verbatim copy. `try_cast` alone is
+# worse than useless on the new form: days past the 12th fail, days up to it
+# parse with day and month swapped.
+#
+# This is the twin of the `mbie_date` dbt macro, which is where the reasoning
+# is written down. It cannot be shared — Jinja is not reachable from here — so
+# the rule lives in exactly two places and every reader uses one of them.
+# Unlike the macro this yields a `date`, not an ISO string: both callers want
+# to compare it as a week, not to hand it to a model.
+MBIE_DATE = ("coalesce(try_convert(date, [Date], 103), "
+             "try_cast([Date] as date))")
+
 
 def connect():
     """A warehouse connection, authenticated with an Azure CLI token."""
