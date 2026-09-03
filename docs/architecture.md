@@ -160,7 +160,10 @@ one new week's data point re-fits the *entire* historical curve — a diff
 between two weekly snapshots showed ~7,000 changed rows, ~99% of them this
 one column, spanning back to 2004. That's smoothing noise, not a real
 revision, and including it would bury genuine revisions under thousands of
-cosmetic ones every week.
+cosmetic ones every week. **Superseded 22 Aug 2026: the series was dropped
+from `silver_fuel` entirely**, so there is no longer anything for the
+snapshot to exclude — see "`Importer margin trend` dropped from silver
+entirely" below. Bronze still holds the rows.
 
 **Join gotcha hit here:** the snapshot's join to `variable_mapping` originally
 matched on `variable_name` alone. Since "Dubai crude price" has two rows in
@@ -265,6 +268,16 @@ edit.
 
 ## Slope, not just r — and the forecast's honest limits
 
+> **The forecast formula described here was measured on 15 Aug 2026 and
+> lost to doing nothing; note added 3 Sep.** Walk-forward, refitting at
+> every cutoff over 703 weeks, a reconstruction of it runs 26% worse than
+> "the price won't move" at one week, level-pegs at two, and beats naive in
+> 39% of weeks — see "Walk-forward test" below, including why a
+> period-conditioned measure cannot be backtested honestly at all. The
+> slope arithmetic, the confidence tiers and the lag-0 edge case below are
+> unaffected and still describe what is deployed; the claim that the
+> formula forecasts anything is not.
+
 `lag_correlation_series` also returns `slope` (`(nΣXY − ΣXΣY) / (nΣX² −
 (ΣX)²)`, the same regression-line slope, reusing sums already computed for
 r), carried through `lag_resolved` as `resolved_slope` (falling back to the
@@ -339,6 +352,15 @@ arguably clearer intent anyway ("the most recently started period") than
 relying on a null end date.
 
 ## Backtesting the forecast: does it actually predict anything, or just fit history?
+
+> **Superseded as evidence by the walk-forward test, 15 Aug 2026; note
+> added 3 Sep.** The six tests below are hand-run against known outcomes at
+> cutoffs chosen by hand, so "direction correct in all four" is not a skill
+> measurement. `research/backtest.py` refits every method at every cutoff
+> over 703 forecast weeks and finds this formula worse than naive at one
+> and two weeks — see "Walk-forward test" below. What survives here is the
+> *method*: `simulate_cutoff_date`, and test 3, where the confidence gate
+> withheld a number rather than reporting a weak one.
 
 Everything above validates the pipeline internally (tests pass, numbers
 match R). None of it proves the forecast formula has real predictive
@@ -774,6 +796,11 @@ convention as `lag_correlation`, kept for comparability.
 
 ## Refreshing the published report — the service could never do it until 13 Aug 2026
 
+> **The live public link, and the report and model ids, are recorded three
+> subsections down**, under "The old `nz_fuel` retired" — a heading about a
+> deletion, which is where they landed rather than where anyone would look
+> for them. Note added 3 Sep 2026.
+
 Report 1 lives in **My Workspace** as an **import** model (confirmed via
 `INFO.VIEW.TABLES()`: every table reports `StorageMode = Import`), so its
 data is a snapshot held inside the model. It does not follow the warehouse
@@ -895,6 +922,13 @@ report — the only public link this project has — is
 stale; it belongs here.
 
 ### Weekly sequence from here
+
+> **Stale as a chain, 3 Sep 2026 — `QUICKSTART.md` is canonical.** The six
+> steps below predate the freshness gate (W3) and `mark_processed.py`, so
+> following them would run the chain without ever asking whether there is
+> anything new to run, and without closing the run afterwards. What this
+> subsection is still for is the *reason* below: which steps need the
+> capacity up and which do not.
 
 `resume capacity → run ingest_mbie_weekly → dbt snapshot → dbt run
 --full-refresh → dbt test → refresh the semantic model`.
@@ -1513,6 +1547,12 @@ against `crude_vol_regime` before it is quoted again.
 
 ### Error correction: real, measurable, and not the explanation for diesel
 
+> **The magnitude is dated, 29 Aug 2026; note added 3 Sep.** After the June
+> quarter finalised, diesel's half-life is 5.5 weeks — outside the 6.3–7.0
+> band this file elsewhere calls robust — and petrol's 6.4 → 6.1. The
+> term's existence, sign and significance are unaffected; the speed is what
+> moved. See "The quarter finalised, and it answered the question" below.
+
 `research/adl_ecm.py`, 15 Aug 2026. The term is the margin's distance from
 its own trailing mean, lagged one week — trailing, because margin levels
 have tripled since 2004 and a fixed centre would measure that drift.
@@ -1669,6 +1709,14 @@ one.
 
 ### Pass-through is faster when crude is volatile — provisional finding
 
+> **Half of this is gone, 29 Aug 2026; note added 3 Sep.** Petrol's effect
+> did not survive the June quarter finalising — the interaction block goes
+> from joint p < 0.0001 back to 0.159, and the mean lag from 0.61 wk to
+> 1.07. Diesel's strengthened instead, and its individual contrast became
+> significant for the first time. See "The regime speed effect survives in
+> diesel and not in petrol" below. The finding was held as provisional for
+> exactly this reason.
+
 The labelling thread reported that filtering to Final does not merely
 stabilise the estimate, it reveals a speed effect that the contaminated
 sample hid. Checked here independently, K=4, regime-interacted, HAC:
@@ -1782,6 +1830,17 @@ below the crisis-week average. `report1_ish` returned 15.18 at h=1, twice
 naive's error.
 
 ## The diesel instability is Provisional data, not the crisis - 16 Aug 2026
+
+> **Superseded 29 Aug 2026; note added 3 Sep.** Thirteen of the nineteen
+> Provisional weeks this section rests on finalised on 26 Aug and entered
+> the sample carrying their instability with them. On today's data the same
+> Final filter moves diesel's spread 0.320 -> 0.223, not 0.324 -> 0.098: it
+> removes about 30% of the instability, not 70%. **The central claim below
+> - that dropping unfinalised weeks does the same work as dropping the
+> whole 2026 episode - does not survive.** What survives is the process
+> rule at the end, exclude Provisional weeks or report with and without,
+> and the negative result on the mechanism. Read "The quarter finalised,
+> and it answered the question" above before quoting anything here.
 
 Everything below about diesel's pass-through creeping with lag length was
 attributed to the 2026 episode. That attribution is wrong. The instability
@@ -2276,7 +2335,13 @@ project. Run them before writing anything down, not after:
    only daily granularity. Whether an equivalent series is free or
    affordable (Argus is commercial) is the open question — check before
    committing to this item.
-3. **Distributed lag model (ADL) — promoted 13 Aug 2026.** Not because
+3. **Distributed lag model (ADL) — DONE 15 Aug 2026.** Built as
+   `research/adl_baseline.py`, `adl_ecm.py` and `adl_asymmetry.py`; the
+   results are above, from "The distributed-lag model, first results"
+   onward, and the walk-forward test is built on it. The promotion
+   reasoning is kept because it is why the model exists, but the closing
+   sentence below — "a new model, not a patch" — is now a description of
+   what was built, not of what is pending. Promoted 13 Aug 2026: not because
    the search is undecided (that framing was withdrawn — see above), but
    because the profile is a smooth hill over adjacent lags at every window
    width: the effect genuinely arrives spread across neighbouring weeks,
@@ -2308,7 +2373,10 @@ project. Run them before writing anything down, not after:
    multiplies a crude *change* by `resolved_slope`, which is fitted on
    levels. Whether that is a real error in a published measure is a
    one-query question and should be answered before more analysis is piled
-   on top.
+   on top. **Answered 14 Aug 2026: it is a real error.** The levels slope
+   is inflated by about 70%, consistently across all three fuels — see "The
+   forecast measure multiplies a change by a slope fitted on levels" above.
+   The `basis` dimension itself is still not built.
 5. **Customs / Stats NZ overseas merchandise trade** — monthly petroleum
    import value *and* quantity from Customs entries, which divide out to
    the price actually paid at the border. That is the one thing MBIE's
@@ -2465,6 +2533,12 @@ model with no `schema` config is unaffected and verified still to resolve to
 `dbt build` came back 99 nodes, PASS=99.
 
 ### What the revision history actually contains
+
+> **Two of the rules below expired on 26–27 Aug 2026** — the release that
+> finalised the June quarter did all three of the things this section says
+> had never happened. The paragraph recording that sits at the end of the
+> section rather than here; read it before treating any count below as
+> current. The *shape* survives. Note added 3 Sep 2026.
 
 The first thing the contour was pointed at itself. Over four snapshot runs
 (31 Jul, 6, 13 and 19 Aug 2026) the snapshot holds **29 revision events, all
