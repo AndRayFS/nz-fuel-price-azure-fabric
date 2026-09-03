@@ -23,7 +23,13 @@ Microsoft Fabric workspace (Azure free account + F2 capacity)
 Data Factory --(orchestrates)--> Lakehouse (bronze, raw snapshot)
         |                                |
         |                                v
-        |                       Warehouse + dbt (silver -> gold, + monitoring)
+        |                       Warehouse + dbt (silver, + monitoring)
+        |                                |
+        |                                v
+        |                       Python: export_panel -> build_period_flags
+        |                                |  -> backtest, written back as seeds
+        |                                v
+        |                       Warehouse + dbt (gold: forecast_accuracy)
         `--(orchestrates)-------------->|
                                          v
                                       Power BI
@@ -39,17 +45,21 @@ Data Factory --(orchestrates)--> Lakehouse (bronze, raw snapshot)
   Each variable arrives as two columns: its value and MBIE's
   Provisional/Final status for that value, since status is published per
   value rather than per week.
-- **Gold** (`lag_correlation`, `lag_resolved`) — cross-correlation by lag,
-  period and factor, with an edge-guard that discards results sitting on the
-  tested lag boundary (see `docs/architecture.md` for why). Also includes
-  `resolved_slope`, `lag_confidence_gap` and `peak_prominence` — separating
-  "is there a real historical pattern" from "do we know exactly which week
-  it peaks in," which the dashboard surfaces as three plain-language
-  questions instead of a single forecast number.
-- **Volatility** (`factor_volatility`, `volatility_config`) — rolling
-  crude-price volatility vs. a calm-period baseline, feeding a live "is this
-  still a crisis?" indicator on the dashboard (deliberately a continuous
-  signal, not a yes/no flag — see `docs/architecture.md`).
+- **Gold** (`forecast_accuracy`) — the one gold table the published report
+  reads. Weekly walk-forward calls from the distributed-lag model at one, two
+  and three weeks, each carried next to the naive "the price won't move"
+  benchmark it is scored against, plus a trailing 26-week skill figure. It is
+  built from two seeds written by `research/backtest.py` and
+  `research/build_period_flags.py`, not from silver directly.
+- **Gold, retired but still scheduled** (`lag_correlation`, `lag_resolved`,
+  `factor_volatility`, `volatility_config`) — this project's first answer to
+  its own question, ported from the original R script: cross-correlation by
+  lag, period and factor with an edge-guard that discards results sitting on
+  the tested lag boundary, and rolling crude volatility against a
+  calm-period baseline. They fed the original dashboard; **nothing reads them
+  today**, and every weekly `--full-refresh` still builds them. Whether to
+  keep, unschedule or delete them is open — see "The T-SQL lag layer" in
+  `docs/architecture.md`.
 - **Snapshot** (`mbie_revisions`) — Type 2 tracking of MBIE's Provisional →
   Final revisions. The LOESS-recomputed `Importer margin trend` is no
   longer loaded at all: it was excluded from tracking as smoothing noise,
