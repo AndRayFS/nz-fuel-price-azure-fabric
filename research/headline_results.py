@@ -2,7 +2,7 @@
 
 Everything published before 16 Aug 2026 was computed on a sample that
 included weeks MBIE has not finalised. Those weeks demonstrably destabilise
-the estimate (docs/architecture.md), and MBIE's own pages explain why: it
+the estimate (docs/research.md), and MBIE's own pages explain why: it
 suspended `Importer cost` and `Importer margin` from 18 Mar to 1 Jul 2026,
 backfilled them, and everything from 1 Apr stays Provisional until Stats NZ
 publishes the quarter's CPI.

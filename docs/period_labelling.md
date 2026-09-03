@@ -46,7 +46,7 @@ about compression rather than about the finding:
   (joint p 0.159, mean lag 1.33 → 1.07 wk). Thirteen homogeneous
   high-volatility weeks removed a result that had stood on ninety. §7's
   "provisional finding" label was doing real work. Full numbers:
-  `docs/architecture.md`, "The quarter finalised".
+  `docs/research.md`, "The quarter finalised".
 
 Two of those axes exist because the ADL thread found things this document
 originally got wrong: **`data_status`**, without which the pass-through

@@ -15,7 +15,7 @@ design and should be trimmed or updated, not left as-is indefinitely.
     nothing to ±3.6 c/L.
   - **Re-run `research/headline_results.py`.** Thirteen more Final weeks
     will enter the sample. Last time that reversed a diesel result and
-    removed a petrol one; the numbers in `docs/architecture.md` are written
+    removed a petrol one; the numbers in `docs/research.md` are written
     against 29 Aug 2026 and will need the same treatment again.
   Method and expectations: `docs/mbie_notes.md`, "A standing prediction".
 
@@ -27,16 +27,19 @@ design and should be trimmed or updated, not left as-is indefinitely.
   run costs about NZ$1 and a capacity left running costs NZ$17.50/day.
   Suggested: NZ$20/month with alerts at 50/80/100%.
 
-- [ ] **Before the next Power BI refresh** — republish the `nz_fuel_v2`
-  semantic model from Desktop. `flag_data_status` was removed from
-  `forecast_accuracy` on 27 Aug 2026 (W14) and the `column flag_data_status`
-  block was deleted from the `.tmdl` in the repo, but the **deployed** model
-  still declares it until someone publishes. The partition pulls the whole
-  table, so a model declaring a column the table no longer has fails on
-  refresh. The report was refreshed for week 2026-08-21 *before* the removal,
-  so nothing is broken today — the trap is the next weekly run, which would
-  refresh a stale model against a narrower table. Publish first, refresh
-  second.
+- [x] **Republish `nz_fuel_v2` before the next refresh — done 3 Sep 2026**,
+  ahead of the week 2026-08-28 refresh. The deployed model had declared
+  `flag_data_status` since 27 Aug (W14) while the table no longer had the
+  column, and the partition pulls the whole table, so a refresh of the stale
+  model would have failed. Delete this once one more weekly refresh has gone
+  through cleanly.
+  - **Publishing from Desktop threw** `Cannot perform interop call to:
+    MinervaDialog.onHtmlDocumentLoaded — object with this Id is not
+    registered` — a .NET unhandled-exception box, not a model or data error.
+    It is Desktop's dialog failing to render in its embedded WebView2 control.
+    The publish went through anyway. If it recurs and does not: restart
+    Desktop, check File → Account, repair the Edge WebView2 Runtime, or skip
+    the dialog entirely by saving a `.pbix` and using My Workspace → Upload.
 
 - [x] **27 Aug 2026 — the Azure free-trial credit expired, and it stopped
   everything.** Resolved 3 Sep; delete once the budget alert above exists.
