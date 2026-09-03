@@ -67,7 +67,7 @@ def main() -> int:
         ensure_table(cur)
 
         cur.execute(
-            "select max(cast(Date as date)), count(*) "
+            f"select max({fabric_io.MBIE_DATE}), count(*) "
             "from bronze_lakehouse.mbie.weekly_prices"
         )
         processed_week, bronze_rows = cur.fetchone()

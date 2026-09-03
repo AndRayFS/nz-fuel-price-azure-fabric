@@ -79,7 +79,7 @@ def gather() -> dict:
 
     with fabric_io.connect() as conn:
         cur = conn.cursor()
-        cur.execute("select max(cast(Date as date)), count(*) "
+        cur.execute(f"select max({fabric_io.MBIE_DATE}), count(*) "
                     "from bronze_lakehouse.mbie.weekly_prices")
         bronze_week, bronze_rows = cur.fetchone()
 

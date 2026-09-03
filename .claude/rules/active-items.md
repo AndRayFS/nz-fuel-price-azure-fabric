@@ -19,12 +19,13 @@ design and should be trimmed or updated, not left as-is indefinitely.
     against 29 Aug 2026 and will need the same treatment again.
   Method and expectations: `docs/mbie_notes.md`, "A standing prediction".
 
-- [x] **28 Aug 2026 — done, run on 27 Aug.** Gate, run and `mark_processed`
-  all behaved; the June quarter finalised in the same release (thirteen
-  weeks, 3 Apr – 26 Jun). What it changed: `docs/architecture.md`, "The
-  quarter finalised". Kept here until the next weekly run has exercised the
-  gate chain a second time, then delete. The reasoning for skipping 26 Aug
-  is in `docs/workstreams.md`; the chain itself is in `QUICKSTART.md`.
+- [ ] **Set a budget alert in Cost Management — nothing guards spend right
+  now.** The subscription was upgraded to pay-as-you-go on 3 Sep 2026, which
+  **removed the spending limit**. That limit was the backstop, and it is gone;
+  what remains is the 23:00 NZT auto-pause and manual discipline. F2 is
+  NZ$0.729/hour while resumed (measured — `docs/cost_notes.md`), so a weekly
+  run costs about NZ$1 and a capacity left running costs NZ$17.50/day.
+  Suggested: NZ$20/month with alerts at 50/80/100%.
 
 - [ ] **Before the next Power BI refresh** — republish the `nz_fuel_v2`
   semantic model from Desktop. `flag_data_status` was removed from
@@ -37,19 +38,29 @@ design and should be trimmed or updated, not left as-is indefinitely.
   refresh a stale model against a narrower table. Publish first, refresh
   second.
 
-- [ ] **27 Aug 2026** — the Azure free-trial credit expires. NZ$274.98 was
-  left on 14 Aug, against ~NZ$2.40/day of actual burn, so ~NZ$245 will
-  simply lapse. Credit does **not** carry past this date, and upgrading to
-  pay-as-you-go early does not extend it — the 30-day window is fixed from
-  sign-up (~28 Jul). Two consequences:
-  - Until 27 Aug, F2 compute is effectively free. Anything heavy worth
-    doing — full-history `--full-refresh` runs, lag experiments, gold
-    rebuilds — is cheapest now.
-  - From 28 Aug, F2 bills real money (NZ$0.729/hour, i.e. NZ$17.50/day if
-    it ever runs 24 h). Fabric is not in the 12-months-free list, so nothing
-    shields it. Upgrading also **removes the spending limit**, which is
-    today's backstop — after that the only guards are the 23:00 NZT
-    auto-pause and whatever budget alert exists.
+- [x] **27 Aug 2026 — the Azure free-trial credit expired, and it stopped
+  everything.** Resolved 3 Sep; delete once the budget alert above exists.
+  What actually happened, because the note above had predicted the cost and
+  not the mechanism: the spending limit turned the subscription **read-only**
+  and Azure suspended resources inside it. `az … --action resume` on the
+  capacity returned `ReadOnlyDisabledSubscription`, and
+  `auto-pause-fabric-capacity` was found `Suspended` — so the one remaining
+  guard had been switched off by the same event, silently.
+  - **Only the billing administrator can upgrade**, and it is not the account
+    this project is normally driven from. `andrei@…onmicrosoft.com` is
+    Contributor + Cost Management Reader and gets "ask your billing
+    administrator"; the Owner and signup identity is the Microsoft Account
+    `morozov_77@hotmail.com`. Sign in as that one for billing, everything else
+    under the usual account.
+  - **ARM lags the upgrade.** Through the whole ~30-minute weekly run the
+    subscription still read `state: Disabled`,
+    `quotaId: FreeTrial_2014-09-01`, `spendingLimit: On` while every write
+    went through fine; it read `Enabled` / `PayAsYouGo_2014-09-01` /
+    `spendingLimit: Off` shortly after. Test with a write, not a read — the
+    metadata is not the truth here.
+  - `auto-pause-fabric-capacity` came back to `Enabled` on its own when the
+    subscription was re-enabled. Worth re-checking rather than assuming, since
+    it is now the only automatic guard.
 
 - [ ] **~27 Sep 2026** — the Power BI Pro trial ends ~26 Sep. The day
   after, open Report 1's public link and check it still renders with data.
