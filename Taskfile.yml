@@ -1,0 +1,177 @@
+# The weekly chain, declared once.
+#
+# Until this file existed the chain was eleven commands in a markdown table
+# that a person pasted into a terminal, which meant three things had to be
+# remembered every week: the flags run before the backtest, --full-refresh
+# goes everywhere, and nothing may run after the gate refuses. A table cannot
+# express a dependency; this file can, and W8 will invoke the same file from
+# CI so local and CI cannot drift apart.
+#
+#   task --list          every step, with what it does
+#   task weekly          the whole chain, in order, stopping where it should
+#   task <name>          one step, to resume a run that died in the middle
+#
+# QUICKSTART.md keeps the prose: what each step means, what the monitoring
+# warnings look like, and which failures are not warnings.
+
+version: '3'
+
+vars:
+  # The venv sits one level above the dbt project, which is where it was
+  # built. Override on the command line if yours is elsewhere:
+  #   task weekly VENV=/path/to/.venv
+  VENV: '{{.ROOT_DIR}}/../.venv'
+  PY: '{{.VENV}}/bin/python'
+  DBT: '{{.VENV}}/bin/dbt'
+
+tasks:
+
+  default:
+    desc: List the steps
+    cmds:
+      - task --list
+    silent: true
+
+# --- preflight ---------------------------------------------------------------
+
+  env:
+    desc: Check the venv is there and carries the fabric adapter
+    silent: true
+    cmds:
+      - |
+        if [ ! -x "{{.PY}}" ]; then
+          echo "no interpreter at {{.PY}}"
+          echo "build it:  python3.12 -m venv {{.VENV}} && {{.VENV}}/bin/pip install -r requirements.txt"
+          exit 1
+        fi
+        if ! "{{.DBT}}" --version 2>/dev/null | grep -q 'fabric:'; then
+          echo "dbt at {{.DBT}} does not register the fabric adapter"
+          exit 1
+        fi
+        echo "venv ok — $({{.PY}} --version), fabric adapter registered"
+
+# --- the gate ----------------------------------------------------------------
+
+  gate:
+    desc: "Freshness gate — the only step allowed to stop the run (0 go / 2 nothing to do / 1 look)"
+    deps: [env]
+    silent: true
+    cmds:
+      - |
+        set +e
+        "{{.PY}}" pipeline/gate.py
+        code=$?
+        set -e
+        case $code in
+          0) echo ""; echo "GATE: a new week landed — the chain continues." ;;
+          2) echo ""
+             echo "GATE: nothing to do. No new week, so the chain does not run."
+             echo "This is not a failure; it is the gate doing its job. Any"
+             echo "error task prints after this line means only that the chain"
+             echo "stopped here, which is the intended outcome." ;;
+          *) echo ""
+             echo "GATE: stop and look. Read the reason above before rerunning"
+             echo "anything — do not refresh Power BI." ;;
+        esac
+        exit $code
+
+# --- steps that need the capacity awake --------------------------------------
+
+  aip:
+    desc: "Collect the AIP weeks and load them (step 1, 1b) — the only check on a stale source"
+    cmds:
+      - '"{{.PY}}" research/aip_check.py'
+      - '"{{.DBT}}" seed --select aip_singapore_weekly --full-refresh'
+
+  snapshot:
+    desc: "Revision history — Provisional to Final (step 2)"
+    cmds:
+      - '"{{.DBT}}" snapshot'
+
+  build:
+    desc: "Bronze to silver, gold and monitoring (step 3)"
+    cmds:
+      - '"{{.DBT}}" run --full-refresh'
+
+  test:
+    desc: "Tests (step 4). Everything outside `monitoring` must pass; monitoring only warns — read the output"
+    cmds:
+      - '"{{.DBT}}" test'
+
+  panel:
+    desc: "Panel out of the warehouse into data/panel_weekly.csv (step 5)"
+    cmds:
+      - '"{{.PY}}" pipeline/export_panel.py'
+
+  seeds:
+    desc: "Derived seeds back into the warehouse (step 8)"
+    cmds:
+      - '"{{.DBT}}" seed --select period_flags forecast_history --full-refresh'
+
+  report:
+    desc: "Rebuild the table Report 1 reads (step 9)"
+    cmds:
+      - '"{{.DBT}}" run --select forecast_accuracy --full-refresh'
+
+  close:
+    desc: "Close the run — records the week as processed, which the gate reads next time (step 10)"
+    cmds:
+      - '"{{.PY}}" pipeline/mark_processed.py'
+
+# --- local steps, no capacity needed -----------------------------------------
+
+  flags:
+    desc: "Regime axes from the panel (step 6). MUST run before `backtest`"
+    cmds:
+      - '"{{.PY}}" pipeline/build_period_flags.py'
+
+  backtest:
+    desc: "Refit every method at every cutoff, write the forecast seeds (step 7)"
+    cmds:
+      - '"{{.PY}}" pipeline/backtest.py'
+
+  offline:
+    desc: "The two local steps in the order that matters — flags, then backtest"
+    cmds:
+      - task: flags
+      - task: backtest
+
+# --- the chain ---------------------------------------------------------------
+
+  weekly:
+    desc: "The whole weekly chain, in order. Resume a failed run with `task <step>`"
+    cmds:
+      - task: gate
+      - task: aip
+      - task: snapshot
+      - task: build
+      - task: test
+      - task: panel
+      - task: flags
+      - task: backtest
+      - task: seeds
+      - task: report
+      - task: close
+      - |
+        echo ""
+        echo "Chain finished. Two things are still yours to do:"
+        echo "  - refresh the Power BI dataset"
+        echo "  - read the monitoring WARNs above; a green run is not a quiet one"
+
+# --- odds and ends -----------------------------------------------------------
+
+  signals:
+    desc: "This week's monitoring signals only, without running the rest of the tests"
+    cmds:
+      - '"{{.DBT}}" test --select monitoring'
+
+  revisions:
+    desc: "What MBIE changed under us in the last snapshot run"
+    cmds:
+      - '"{{.DBT}}" show --select monitor_revision_summary --limit 20'
+
+  setup:
+    desc: "Build the venv from the pinned lock"
+    cmds:
+      - python3.12 -m venv "{{.VENV}}"
+      - '"{{.VENV}}/bin/pip" install -r requirements.txt'

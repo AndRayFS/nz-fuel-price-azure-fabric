@@ -51,6 +51,7 @@ correctly.
 | What changed under us in the last snapshot run | `dbt show --select monitor_revision_summary --limit 20` |
 | Regenerate docs + lineage graph | `dbt docs generate` then `dbt docs serve --port 8081` |
 | Run a one-off macro (e.g. diagnostic) | `dbt run-operation <macro_name>` |
+| **The weekly chain** | `task weekly` — see below. `task --list` for the individual steps |
 
 ## Weekly data update — the full chain, in order
 
@@ -58,23 +59,35 @@ MBIE publishes on Wednesdays. This is the whole sequence; skipping a step
 leaves Report 1 showing last week's numbers with this week's date.
 
 ```bash
-source /Users/Ray/nz-fuel-price-project/.venv/bin/activate
-
-# 0. resume the capacity and run `ingest_mbie_weekly`
-python pipeline/gate.py                              # 0b. THE GATE — stop here unless it says 0
-python research/aip_check.py                         # 1. collect the AIP weeks
-dbt seed --select aip_singapore_weekly --full-refresh  # 1b. -> monitoring schema
-dbt snapshot                                         # 2. revision history
-dbt run --full-refresh                               # 3. bronze -> silver/gold/monitoring
-dbt test                                             # 4. everything outside `monitoring`
-                                                     #    must pass; monitoring warns
-python pipeline/export_panel.py                      # 5. panel out to CSV
-python pipeline/build_period_flags.py                # 6. regime axes, from the panel
-python pipeline/backtest.py                          # 7. refit + forecasts
-dbt seed --select period_flags forecast_history --full-refresh   # 8. -> warehouse
-dbt run --select forecast_accuracy --full-refresh    # 9. rebuild the report table
-python pipeline/mark_processed.py                    # 10. close the run
+# 0. resume the capacity and run `ingest_mbie_weekly` — still a portal step
+task weekly
 ```
+
+That is the whole chain. It runs the eleven steps below in order, and stops
+at the gate unless the gate says go — the ordering and the dependency live in
+`Taskfile.yml` now, not in whoever is pasting.
+
+| task | step | what it is |
+|---|---|---|
+| `gate` | 0b | **the gate.** Nothing after it runs unless it exits 0 |
+| `aip` | 1, 1b | collect the AIP weeks, load them to the monitoring schema |
+| `snapshot` | 2 | revision history |
+| `build` | 3 | bronze -> silver / gold / monitoring |
+| `test` | 4 | everything outside `monitoring` must pass; monitoring warns |
+| `panel` | 5 | panel out to `data/panel_weekly.csv` |
+| `flags` | 6 | regime axes, from the panel |
+| `backtest` | 7 | refit + forecasts |
+| `seeds` | 8 | derived seeds back into the warehouse |
+| `report` | 9 | rebuild the table Report 1 reads |
+| `close` | 10 | record the week as processed |
+
+**A failed run resumes by name** — `task report`, not the whole chain again.
+`task --list` prints this table from the file itself; `task offline` runs just
+steps 6 and 7, which need no capacity; `task env` checks the venv before
+anything else does.
+
+Every step is still one command you could type by hand, and `--full-refresh`
+is written into the file rather than remembered.
 
 Then refresh the Power BI dataset.
 
@@ -90,10 +103,11 @@ Notes:
   tests, report a week stale. The gate returns `2` on that run, so the chain
   never starts. Reasoning in `pipeline/gate.py`; full account of the failure
   in `docs/architecture.md`.
-- **The verdict is not yet binding.** This block is a list of commands, not a
-  script: no `set -e`, no dependency between the steps. Pasted whole on a
-  `nothing_new` week, every step after the gate runs anyway. Declaring the
-  chain so the steps genuinely depend on the gate is W7.
+- **The verdict binds, since W7.** Every task in `weekly` comes after `gate`,
+  so a non-zero exit stops the run. `task` prints its own failure line on a
+  `2` as well, which is why the gate task explains in words first that
+  stopping was the point. Running a step directly (`task build`) deliberately
+  skips the gate — that is for resuming a run, not for starting one.
 - **Step 10 is not optional.** The gate compares against
   `pipeline.processed_weeks`, and `mark_processed.py` is what writes it.
   Skipping it leaves the gate believing last week was never processed.
@@ -132,14 +146,15 @@ Notes:
   model or forecast reads it. FRED runs a few days behind, so the newest
   week's `brent_mean` is an average of whatever days exist.
 
-**This wants automating and moving off the laptop.** It is still eleven
-steps with a hard dependency on one person's venv, one machine's Azure login
-and the capacity being awake — but the two that needed a human *judgement*
-rather than a human *hand* are gone: freshness is step 0b and no longer a
-portal click, and "was this week already done" is step 10 rather than
-memory. What remains is planned in `docs/workstreams.md`: the chain declared
-once instead of remembered (W7), then GitHub Actions (W8). Until those land,
-this table is the process.
+**What is left to automate is the machine, not the sequence.** The eleven
+steps are one command since W7, and the two that needed a human *judgement*
+rather than a human *hand* went earlier: freshness is the gate rather than a
+portal click, and "was this week already done" is step 10 rather than memory.
+What remains is a hard dependency on one person's venv, one machine's Azure
+login, the capacity being awake, and two manual bookends — resuming the
+capacity with the ingest at the front, and the Power BI refresh at the back.
+That is W8 in `docs/workstreams.md`, which invokes this same `Taskfile.yml`
+so CI and this laptop cannot drift apart.
 
 ## Reading the monitoring signals
 

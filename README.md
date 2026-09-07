@@ -125,6 +125,7 @@ details).
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+brew install go-task          # the weekly chain runs through Taskfile.yml
 ```
 
 `requirements.txt` is the pinned, complete environment — the versions every
