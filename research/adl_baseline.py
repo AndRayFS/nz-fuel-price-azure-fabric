@@ -55,7 +55,7 @@ import pandas as pd
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller
 
-PANEL = Path(__file__).parent / "data" / "panel_weekly.csv"
+PANEL = Path(__file__).parents[1] / "data" / "panel_weekly.csv"
 IMPORT_ERA = "2022-04-01"
 K_MAX = 8
 FUELS = ["Regular Petrol", "Diesel"]

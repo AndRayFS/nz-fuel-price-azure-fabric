@@ -1,7 +1,7 @@
 """Shared plumbing for the weekly pipeline: the warehouse, and the Fabric REST API.
 
 Two connections live here because the gate needs both and neither belongs to
-it. `research/export_panel.py` carries its own copy of `connect()`; the two
+it. `pipeline/export_panel.py` carries its own copy of `connect()`; the two
 converge when W5 moves that script into this package.
 
 Auth mirrors ~/.dbt/profiles.yml (`authentication: CLI`) — an Azure CLI token.

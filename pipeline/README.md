@@ -4,17 +4,32 @@ Code that runs every week on settled algorithms with no human in the loop.
 Nothing here is exploratory; nothing here should need a judgement call at
 runtime. `research/` is the other half — estimation loops, twenty
 specifications, work that is meant to be read and argued with. The split is
-W5 in `docs/workstreams.md`, and it is only half done: `export_panel.py`,
-`build_period_flags.py` and `backtest.py` are production code still sitting
-in `research/`. They move in that branch.
+W5 in `docs/workstreams.md`, landed 7 Sep 2026: `export_panel.py`,
+`build_period_flags.py` and `backtest.py` moved here from `research/`, and
+the derived data they read and write moved with them, to `data/` at the
+repository root — owned by neither package, gitignored, rebuilt by steps 5–7
+of the weekly chain.
 
 | file | what it does |
 |---|---|
 | `gate.py` | the freshness gate — the only step allowed to stop the weekly run |
+| `export_panel.py` | the weekly panel out of the warehouse into `data/panel_weekly.csv` |
+| `build_period_flags.py` | the regime axes, derived from the panel by rule, into `seeds/period_flags.csv` |
+| `backtest.py` | refits every method at every cutoff; writes `seeds/forecast_history.csv` and `data/backtest_results.csv` |
 | `mark_processed.py` | closes the run by recording which week was processed |
 | `fabric_io.py` | the warehouse connection and the Fabric REST calls both need |
 | `test_gate.py` | replays the gate's decision against the runs that happened |
 | `vintage.py` | puts the whole system on a past date, and brings it back |
+
+`aip_check.py` stayed in `research/`. It runs weekly, but it parses a PDF
+whose layout is the source's to change, and a step that needs a person the
+week AIP restyles page 3 is not the same kind of code as the five above.
+The weekly chain therefore still calls one script out of `research/`.
+
+**Order inside the chain is not cosmetic.** `build_period_flags.py` reads
+the panel and `backtest.py` reads the flags; the centred nine-week window
+moves the last four weeks' regime values every time a week lands, so running
+the flags after the backtest leaves the split on last week's regimes.
 
 `vintage.py` is the one file here that does **not** run weekly. It lives in
 this package rather than `research/` because it is deterministic, needs no

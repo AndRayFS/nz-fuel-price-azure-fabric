@@ -20,7 +20,7 @@ token, packed into the ODBC access-token attribute exactly the way
 dbt-fabric's own token provider does it (fabric_token_provider.py:214-227).
 Run `az login` first if this fails.
 
-Usage:  python research/export_panel.py
+Usage:  python pipeline/export_panel.py
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ DATABASE = "analytics_warehouse"
 SQL_SCOPE = "https://database.windows.net/.default"
 SQL_COPT_SS_ACCESS_TOKEN = 1256
 
-OUT = Path(__file__).parent / "data" / "panel_weekly.csv"
+OUT = Path(__file__).parents[1] / "data" / "panel_weekly.csv"
 
 # One row per (week, fuel). Brent columns ride along because they are free
 # here and save a second round trip; they are diagnostics, not factors.

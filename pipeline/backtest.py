@@ -63,9 +63,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-HERE = Path(__file__).parent
-PANEL = HERE / "data" / "panel_weekly.csv"
-FLAGS = HERE.parent / "seeds" / "period_flags.csv"
+ROOT = Path(__file__).parents[1]
+PANEL = ROOT / "data" / "panel_weekly.csv"
+FLAGS = ROOT / "seeds" / "period_flags.csv"
 
 START = "2010-01-01"       # identity does not reconcile before this
 MIN_TRAIN = 156            # 3 years before the first forecast
@@ -244,7 +244,7 @@ def main() -> None:
                 ))
 
     res = pd.DataFrame(rows)
-    res.to_csv(HERE / "data" / "backtest_results.csv", index=False)
+    res.to_csv(ROOT / "data" / "backtest_results.csv", index=False)
 
     # Seed for Report 1: one row per (week, fuel, horizon) carrying the price
     # level the model would have called at that week, beside what happened.
@@ -261,7 +261,7 @@ def main() -> None:
              "outcome_known", "price_now", "actual_price"]
             + [f"pred_{m}" for m in ("naive", "adl", "adl_ecm", "report1_ish")]
             + [f"err_{m}" for m in ("naive", "adl", "adl_ecm", "report1_ish")])
-    out = HERE.parent / "seeds" / "forecast_history.csv"
+    out = ROOT / "seeds" / "forecast_history.csv"
     seed[keep].round(4).to_csv(out, index=False)
     print(f"{len(seed)} rows -> {out}")
     methods = ["naive", "full_pass", "report1_ish", "adl", "adl_ecm"]

@@ -22,7 +22,7 @@ top has been overtaken by a later one: read the quote before the table.
 > **Superseded as evidence by the walk-forward test, 15 Aug 2026; note
 > added 3 Sep.** The six tests below are hand-run against known outcomes at
 > cutoffs chosen by hand, so "direction correct in all four" is not a skill
-> measurement. `research/backtest.py` refits every method at every cutoff
+> measurement. `pipeline/backtest.py` refits every method at every cutoff
 > over 703 forecast weeks and finds this formula worse than naive at one
 > and two weeks — see "Walk-forward test" below. What survives here is the
 > *method*: `simulate_cutoff_date`, and test 3, where the confidence gate
@@ -1417,7 +1417,7 @@ that is evidence of absence at that magnitude, and silence below it.
 
 ## Walk-forward test — the first number in this project that is a forecast
 
-`research/backtest.py`, 15 Aug 2026. Every method refit at every cutoff on
+`pipeline/backtest.py`, 15 Aug 2026. Every method refit at every cutoff on
 data up to that week only, 2010+, 703 forecast weeks per fuel. Target is
 the **pump price**, so the model carries its own conversion
 (`×1.15` for GST, ETS assumed unchanged) and is charged for its errors.

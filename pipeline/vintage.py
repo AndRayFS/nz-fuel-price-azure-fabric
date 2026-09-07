@@ -110,7 +110,7 @@ def commit_as_of(as_of: str) -> str:
 
 
 def working_tree_is_clean() -> bool:
-    return sh("git", "status", "--porcelain", "--", "seeds", "research/data").strip() == ""
+    return sh("git", "status", "--porcelain", "--", "seeds", "data").strip() == ""
 
 
 def existed_at(commit: str, path: str) -> bool:
@@ -157,9 +157,9 @@ def chain(as_of: str | None) -> None:
     py = sys.executable
     dbt("seed", "--full-refresh", as_of=None)
     dbt("run", "--full-refresh", as_of=as_of)
-    sh(py, "research/export_panel.py")
-    sh(py, "research/build_period_flags.py")
-    sh(py, "research/backtest.py")
+    sh(py, "pipeline/export_panel.py")
+    sh(py, "pipeline/build_period_flags.py")
+    sh(py, "pipeline/backtest.py")
     dbt("seed", "--select", "period_flags", "forecast_history", as_of=None)
     dbt("run", "--full-refresh", as_of=as_of)
 
@@ -242,7 +242,7 @@ def main() -> int:
     in_vintage = state is not None and state[0] is not None
 
     if not in_vintage and not working_tree_is_clean():
-        print("seeds/ or research/data/ have uncommitted changes, and the "
+        print("seeds/ or data/ have uncommitted changes, and the "
               "warehouse holds current data — so this is your work, not a "
               "half-finished vintage. It rewrites both and restores them from "
               "git afterwards, so it refuses to run over anything uncommitted.",

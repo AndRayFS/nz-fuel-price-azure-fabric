@@ -30,7 +30,7 @@ Each of these is its own story and does not fit in 2,500 characters:
 ## Fact-check trail
 
 Every number below was recomputed on 17 Aug 2026 before this draft was
-fixed. Sources: `research/backtest.py` output (`data/backtest_results.csv`)
+fixed. Sources: `pipeline/backtest.py` output (`data/backtest_results.csv`)
 and a fresh ADL fit on `data/panel_weekly.csv`, Final rows only, 2010+.
 
 | claim in the post | verified value |
@@ -64,7 +64,7 @@ should barely move. Should. That is a prediction, not a measurement, and it
 is exactly what the recheck is for.
 
 **When to recheck:** after Stats NZ publishes the June-quarter CPI. Re-run
-`research/export_panel.py`, then `headline_results.py` and `backtest.py`,
+`pipeline/export_panel.py`, then `headline_results.py` and `backtest.py`,
 and diff against this table. If a headline number moves outside its stated
 precision, the post needs a correction comment — the series convention is
 to correct in comments and leave the body standing (`linkedin_series.md`).

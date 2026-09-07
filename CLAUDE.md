@@ -30,7 +30,8 @@ language or directory:
 `docs/architecture.md` — the contour that runs weekly with no human in it:
 ingest, bronze through silver, the freshness gate, monitoring, the semantic
 model, and the vintage machinery. `export_panel.py`, `build_period_flags.py`
-and `backtest.py` are production and are documented there.
+and `backtest.py` are production — they live in `pipeline/` since W5 — and are
+documented there.
 
 `docs/research.md` — methods and measurements: the distributed-lag work,
 pass-through, the walk-forward test, and the corrections that overturned
