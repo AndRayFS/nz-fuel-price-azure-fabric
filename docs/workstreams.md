@@ -751,7 +751,49 @@ remains the closing reconciliation step's job.
 is wasted work).
 **Touches.** `Taskfile.yml`, `QUICKSTART.md`.
 
-## W8 — GitHub Actions
+## W8 — GitHub Actions — **code landed 7 Sep 2026, waiting on the identity**
+
+Branch `w8-github-actions`. Everything that is a file in this repository is
+done and verified as far as a paused capacity and an absent service principal
+allow. What is left is state in Azure and Fabric, which cannot be committed:
+`docs/ci_setup.md` is the procedure, and until someone walks it there is no
+identity for the workflow to authenticate as.
+
+**Delivered.** `profiles.yml` moved into the repository (verified: dbt reads
+it with `~/.dbt` removed); `AzureCliCredential` became
+`DefaultAzureCredential` in all three places; `pipeline/run_ingest.py` starts
+the pipeline through the job API and polls, removing the last portal step;
+`Taskfile.yml` gained `capacity-resume` (which waits for `Active`, because the
+resume is asynchronous), `capacity-pause`, `ingest` and `unattended`; and two
+workflows exist — the weekly run and an independent watchdog that pauses a
+capacity a broken run left awake.
+
+**No client secret is needed anywhere, which the plan did not anticipate.**
+The adapter supports `workload_identity` through `ClientAssertionCredential`,
+and `azure/login` with OIDC leaves a CLI session the existing
+`authentication: CLI` profile uses unchanged. The runner needs egress to
+github.com as well as PyPI — see W6.
+
+**Both schedules ship commented out.** A workflow that fails every Wednesday
+because it has no identity would teach everyone to stop reading red, which is
+exactly the property the gate's exit-2 handling is protecting. They go on
+together, after one manual run has passed.
+
+**Two departures worth stating.**
+
+*The seeds still round-trip through git*, so the workflow commits them back as
+the bot. The plan called that out as the thing to retire, and it remains
+unretired: doing it properly means the pipeline writing to the warehouse
+directly, which is a separate change with its own verification and no reason
+to ride along with an authentication branch. The AIP store is the one that
+must not wait long — `dbt seed --full-refresh` truncates and reloads the only
+copy of a series with no upstream.
+
+*go-task does not read vars from the environment.* Verified: an exported
+`CAPACITY_ID` was ignored while a command-line one was honoured. The
+capacity id and the venv path are therefore resolved through `sh:` so that CI
+can override them. This would have failed on a live run and been read as a
+permissions problem.
 
 **Now.** Every step runs on one laptop, under one person's `az login`,
 with `authentication: CLI` in `~/.dbt/profiles.yml`. A week away from the

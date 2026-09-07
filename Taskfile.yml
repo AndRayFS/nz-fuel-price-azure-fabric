@@ -20,7 +20,11 @@ vars:
   # The venv sits one level above the dbt project, which is where it was
   # built. Override on the command line if yours is elsewhere:
   #   task weekly VENV=/path/to/.venv
-  VENV: '{{.ROOT_DIR}}/../.venv'
+  # On this machine the venv sits one level above the dbt project; on a CI
+  # runner it is created inside the checkout. Prefer a local one, fall back to
+  # the parent, and let VENV in the environment override both.
+  VENV:
+    sh: echo "${VENV:-$([ -x .venv/bin/python ] && echo "$PWD/.venv" || echo "$PWD/../.venv")}"
   PY: '{{.VENV}}/bin/python'
   DBT: '{{.VENV}}/bin/dbt'
 
@@ -28,7 +32,14 @@ vars:
   # permission plane from everything else here — see docs/architecture.md.
   CAPACITY: nzfuelcapacity
   CAPACITY_RG: nz-fuel-price-rg
-  CAPACITY_ID: /subscriptions/e30d2fa4-fb6e-48c5-b3cd-5f9c3f270159/resourceGroups/nz-fuel-price-rg/providers/Microsoft.Fabric/capacities/nzfuelcapacity
+  # `sh:` rather than a plain string on purpose: go-task does NOT read vars
+  # from the environment (verified 7 Sep 2026 — an exported CAPACITY_ID was
+  # ignored while a command-line one won), so a workflow setting it as an env
+  # var would silently get the default. Reading it through the shell makes both
+  # work, and the subscription id is not a secret: it is already in
+  # .claude/rules/working-style.md and in the semantic model.
+  CAPACITY_ID:
+    sh: echo "${CAPACITY_ID:-/subscriptions/e30d2fa4-fb6e-48c5-b3cd-5f9c3f270159/resourceGroups/nz-fuel-price-rg/providers/Microsoft.Fabric/capacities/nzfuelcapacity}"
 
 tasks:
 
