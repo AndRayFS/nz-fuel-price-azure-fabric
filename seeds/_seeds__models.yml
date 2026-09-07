@@ -24,32 +24,6 @@ seeds:
   # comparable — only week-over-week co-movement is.
   #
   # Static snapshot: refreshing it means re-downloading the CSV by hand.
-  - name: forecast_history
-    config:
-      column_types:
-        week_date: date
-        target_week: date
-    columns:
-      - name: week_date
-        tests:
-          - not_null
-      - name: fuel
-        tests:
-          - accepted_values:
-              arguments:
-                values: ['Regular Petrol', 'Diesel', 'Premium Petrol 95R']
-      # `actual_price` is deliberately NOT tested not_null: the most recent
-      # rows are calls whose target week has not happened yet. That is the
-      # live part of the report, not missing data.
-      - name: price_now
-        tests:
-          - not_null
-      - name: input_status
-        tests:
-          - accepted_values:
-              arguments:
-                values: ['final', 'provisional']
-
   - name: variable_mapping
     columns:
       - name: canonical_name
@@ -73,44 +47,3 @@ seeds:
   #
   # `periods` is deliberately still registered above: the two coexist until the
   # merge decision lands, and nothing has been removed from it.
-  - name: period_flags
-    columns:
-      - name: week_date
-        tests:
-          - not_null
-      - name: fuel
-        tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['Regular Petrol', 'Diesel', 'Premium Petrol 95R']
-      - name: crude_vol_regime
-        tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['high', 'normal']
-      - name: crude_move_regime
-        tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['large_up', 'large_down', 'normal']
-      - name: data_regime
-        tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['pre2010_unreconciled', 'envisory', 'datamine']
-      - name: supply_chain
-        tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: ['domestic_refinery', 'import_only']
-    tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns:
-              - week_date
-              - fuel

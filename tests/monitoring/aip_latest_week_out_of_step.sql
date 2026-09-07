@@ -37,7 +37,7 @@ ours as (
 theirs as (
 
     select fuel, max(week) as latest_week
-    from {{ ref('aip_singapore_weekly') }}
+    from {{ source('monitoring_store', 'aip_singapore_weekly') }}
     group by fuel
 
 )

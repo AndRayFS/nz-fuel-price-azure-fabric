@@ -54,9 +54,33 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+import warehouse_write
+
 ROOT = Path(__file__).parents[1]
 PANEL = ROOT / "data" / "panel_weekly.csv"
-FLAGS = ROOT / "seeds" / "period_flags.csv"
+FLAGS = ROOT / "data" / "period_flags.csv"
+
+SCHEMA = "dbo"          # see build_period_flags.py on why not `pipeline`
+TABLE = "forecast_history"
+
+DDL = f"""
+create table {SCHEMA}.{TABLE} (
+    week_date     date         not null,
+    target_week   date         not null,
+    fuel          varchar(30)  not null,
+    h             int          not null,
+    input_status  varchar(20)      null,
+    outcome_known bit              null,
+    price_now     float            null,
+    actual_price  float            null,
+    pred_naive    float            null,
+    pred_adl      float            null,
+    pred_adl_ecm  float            null,
+    err_naive     float            null,
+    err_adl       float            null,
+    err_adl_ecm   float            null
+)
+"""
 
 START = "2010-01-01"       # identity does not reconcile before this
 MIN_TRAIN = 156            # 3 years before the first forecast
@@ -223,9 +247,14 @@ def main() -> None:
              "outcome_known", "price_now", "actual_price"]
             + [f"pred_{m}" for m in ("naive", "adl", "adl_ecm")]
             + [f"err_{m}" for m in ("naive", "adl", "adl_ecm")])
-    out = ROOT / "seeds" / "forecast_history.csv"
-    seed[keep].round(4).to_csv(out, index=False)
-    print(f"{len(seed)} rows -> {out}")
+    history = seed[keep].copy()
+    # Round the numeric columns only. `.round` on the whole frame warned about
+    # the date columns and did nothing to them, which was noise standing in
+    # front of the actual intent.
+    nums = history.select_dtypes("number").columns
+    history[nums] = history[nums].round(4)
+    warehouse_write.replace(history, SCHEMA, TABLE, DDL)
+    print(f"{len(history)} rows -> {SCHEMA}.{TABLE}")
     methods = ["naive", "full_pass", "adl", "adl_ecm"]
 
     # Accuracy tables only over weeks whose outcome is known. The most

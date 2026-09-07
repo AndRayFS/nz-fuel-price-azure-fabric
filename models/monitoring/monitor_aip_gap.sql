@@ -38,7 +38,7 @@ paired as (
         a.fuel,
         a.product_usd_bbl   as argus_usd_bbl,
         o.cost_usd_bbl      as mbie_usd_bbl
-    from {{ ref('aip_singapore_weekly') }} a
+    from {{ source('monitoring_store', 'aip_singapore_weekly') }} a
     inner join ours o
         on o.Date = a.week
         and o.Fuel = a.fuel

@@ -781,19 +781,43 @@ together, after one manual run has passed.
 
 **Two departures worth stating.**
 
-*The seeds still round-trip through git*, so the workflow commits them back as
-the bot. The plan called that out as the thing to retire, and it remains
-unretired: doing it properly means the pipeline writing to the warehouse
-directly, which is a separate change with its own verification and no reason
-to ride along with an authentication branch. The AIP store is the one that
-must not wait long — `dbt seed --full-refresh` truncates and reloads the only
-copy of a series with no upstream.
+*The seeds round-tripped through git for one afternoon longer.* The workflow
+first shipped with a bot commit step; that was removed the same day, when the
+round-trip itself was retired — see the entry below.
 
 *go-task does not read vars from the environment.* Verified: an exported
 `CAPACITY_ID` was ignored while a command-line one was honoured. The
 capacity id and the venv path are therefore resolved through `sh:` so that CI
 can override them. This would have failed on a live run and been read as a
 permissions problem.
+
+**The seed round-trip is retired — 7 Sep 2026.** The three derived CSVs are
+gone from git and the scripts write to the database directly
+(`pipeline/warehouse_write.py`, two modes: `replace` for tables that are a
+pure function of the panel, `append_new` for the AIP store, which is history
+and must never be truncated). dbt reads all three as sources because it does
+not own them. The chain lost a step — nine now, not eleven — and the workflow
+lost its bot commit and its `contents: write`.
+
+Verified against the retired CSVs row by row: all three tables identical, a
+full rebuild green, 65 tests with no warnings. Two things the verification
+caught that a live run would have surfaced worse:
+
+- **`dbt seed` had been converting blanks to NULL** on the way in. Writing
+  directly does not, so 3,087 weeks with no named episode arrived as empty
+  strings. Fixed at the source — the script now says "no value" rather than
+  "empty" — because the distinction is real and the seed loader had been
+  hiding it.
+- **A singular test still referenced the deleted seed** and dbt did not fail:
+  it skipped the test and carried on, 7 where there should have been 8. This
+  is exactly the ordering trap this entry warned about, caught only because
+  the test count was compared.
+
+`period_flags` and `forecast_history` live in `dbo`, alongside silver, gold
+and the hand-written seeds — layers in this project are distinguished by model
+name, not by schema. They spent an hour in a `pipeline` schema, which was
+wrong: that schema is for the chain's own state (`processed_weeks`,
+`warehouse_vintage`), not for data a gold model reads.
 
 **Now.** Every step runs on one laptop, under one person's `az login`,
 with `authentication: CLI` in `~/.dbt/profiles.yml`. A week away from the
@@ -1205,7 +1229,7 @@ side file to a whole-chain mode makes it an ordinary branch.
 | `models/silver/silver_general.sql` | W1 |
 | `models/silver/_silver__models.yml` | W1 |
 | `QUICKSTART.md` | W2, W3, W5, W7 |
-| `research/aip_check.py` | W2 |
+| `pipeline/aip_check.py` | W2 |
 | `.claude/rules/active-items.md` | W9 |
 
 `QUICKSTART.md` is wanted by four branches; leave its rewrite to whichever
