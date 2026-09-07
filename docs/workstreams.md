@@ -674,8 +674,10 @@ platform-independent. The eightieth matters to W8 —
 that downloads a ~116 MB native binary from **GitHub Releases** at install
 time. Linux and Windows wheels exist, so the pin is portable; what matters
 is that a runner with a PyPI mirror and no egress to github.com cannot
-install it at all. The download size is incidental — seconds on a weekly
-run.
+install it at all. The download size is incidental: an environment is built
+once and only the data changes afterwards. It reappears only on an ephemeral
+CI runner, which starts clean every run — and there `cache: pip` on
+`setup-python` settles it.
 
 **Now.** The venv holds 82 packages and the repository pins none of them:
 no `requirements.txt`, no `pyproject.toml`, no lockfile, no devcontainer.
