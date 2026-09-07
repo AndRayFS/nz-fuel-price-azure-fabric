@@ -15,7 +15,7 @@
 --
 -- Guard against reading r differences across periods as structural change:
 -- correlation collapses when the factor's spread narrows. Check crude's CV
--- per period first (table in docs/architecture.md) — that is what killed
+-- per period first (table in docs/research.md) — that is what killed
 -- the refinery-era hypothesis.
 
 with p as (

@@ -39,7 +39,7 @@ COLS = {"Crude oil": "#0F3B47", "Refining + shipping": "#1B7086",
 ORDER = list(COLS)
 ACCENT = "#B4530A"
 
-p = pd.read_csv(ROOT / "research/data/panel_weekly.csv", parse_dates=["Date"])
+p = pd.read_csv(ROOT / "data/panel_weekly.csv", parse_dates=["Date"])
 p = p[p.Fuel == "Diesel"].set_index("Date").sort_index()
 p["Crude oil"] = p.dubai_crude_nzd * 100 / L
 p["Refining + shipping"] = p.importer_cost - p["Crude oil"]

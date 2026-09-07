@@ -33,6 +33,29 @@ failed six times in a row on 14 Aug 2026; 45 s succeeded on the second
 attempt. `az rest` hides those headers — use `curl -D` with a token from
 `az account get-access-token` when you need to see why it is refusing.
 
+## Numbers in `docs/` are illustrations, not current values
+
+Every figure written into `docs/` is a cache of a computation made on some
+past date, and it goes stale silently — the source revises, MBIE finalises a
+block of weeks, someone runs part of the chain by hand in the portal. Nothing
+guarantees a documented number still holds, and dated caveats stapled to
+individual tables only work if a reader notices them.
+
+So the rule is about *quoting*, not about the documents:
+
+- **If the answer is about shape or logic** — why the lag halves, which
+  direction a regime pushes, whether an axis does anything at all — the cached
+  figure is the right answer. Use it, and say it is an illustration from its
+  date. Recomputing would cost time and prove nothing the reader asked about.
+- **If the answer turns on the digit** — a number about to be published,
+  quoted to someone else, or used to decide — name the date it was measured
+  and *offer* the recompute. Do not silently quote it as current, and do not
+  silently run the recompute either.
+- **Say what the recompute actually costs**, because it varies: some run
+  offline against `data/panel_weekly.csv` in seconds, others need the
+  Fabric capacity resumed and therefore money. `headline_results.py` is the
+  first kind; anything reading the warehouse is the second.
+
 Critical working rules (verify before asserting, heredoc checks, one
 change at a time, no point-forecast language) live in the root
 `CLAUDE.md` — not repeated here.

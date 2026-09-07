@@ -9,9 +9,16 @@
     )
 }}
 
+{#- Date is normalised here as well as in `weekly_prices_relation`, because this
+    reads bronze directly and must: the snapshot IS the version record, so it
+    cannot go through a macro whose other branch reads the snapshot. Rows
+    already stored carry ISO strings; without this, versions written from
+    3 Sep 2026 on would carry MBIE's new DD/MM/YYYY and the table would hold
+    both. Date is neither in the unique key nor in check_cols, so the format
+    change itself creates no spurious revisions. -#}
 select distinct
     w.Week,
-    w.Date,
+    {{ mbie_date('w.Date') }} as Date,
     w.Variable,
     w.Fuel,
     w.Value,

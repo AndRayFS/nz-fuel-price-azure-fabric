@@ -1,0 +1,29 @@
+# Direct dependencies — what this project's own code and dbt actually need.
+# The pinned, complete list is `requirements.txt`; this file records intent,
+# so that a version bump can be reasoned about rather than archaeology.
+#
+# Regenerate the lock in a clean interpreter:
+#     python3.12 -m venv /tmp/lockenv && /tmp/lockenv/bin/pip install -r requirements.in
+#     /tmp/lockenv/bin/pip freeze | grep -v '^pip==' > requirements.txt
+
+# dbt and the community Fabric adapter — NOT Microsoft's official one.
+dbt-core
+dbt-fabric-samdebruyn
+
+# The warehouse connection `export_panel.py` and `pipeline/fabric_io.py` open
+# directly, and the Azure CLI token they pack into it.
+mssql-python
+azure-identity
+
+# Estimation and the weekly recompute.
+pandas
+numpy
+statsmodels
+
+# `research/aip_check.py` parses the AIP PDFs; the import sits inside a
+# function, so it is easy to lose track of.
+pypdf
+
+# Charts in `research/art/` only. Nothing in the weekly chain needs these.
+matplotlib
+pillow

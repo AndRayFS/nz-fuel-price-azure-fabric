@@ -51,6 +51,13 @@
        and (dbt_valid_to is null
             or dbt_valid_to >= dateadd(day, 1, cast('{{ vintage }}' as date))))
   {%- else -%}
-    {{ source('bronze', 'weekly_prices') }}
+    {#- Spelled out like the vintage branch above, and for a second reason: the
+        Date column has to be normalised to an ISO string on the way out. MBIE
+        changed its format across the whole file on 3 Sep 2026 and the snapshot
+        holds the old one, so the two branches would otherwise disagree about
+        what a date looks like. See `mbie_date`. -#}
+    (select Week, {{ mbie_date('Date') }} as Date,
+            Fuel, Variable, Unit, Value, Status
+     from {{ source('bronze', 'weekly_prices') }})
   {%- endif -%}
 {% endmacro %}

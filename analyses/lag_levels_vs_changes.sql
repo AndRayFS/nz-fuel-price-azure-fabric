@@ -18,7 +18,7 @@
 -- lags all claim the same market move. They are comparable in SHAPE across
 -- fuels but must NOT be summed into distributed-lag weights — diesel's lags
 -- 0-4 sum to 2.22 against a levels slope of 0.98. Real weights need one
--- joint regression on all lags at once. See docs/architecture.md.
+-- joint regression on all lags at once. See docs/research.md.
 --
 -- Window width is a parameter, not a constant of nature: the share of
 -- decisive windows runs 44-48% at 13 weeks, 16-18% at 26 and 5-9% at 52.
