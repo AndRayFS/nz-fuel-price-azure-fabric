@@ -27,23 +27,19 @@ design and should be trimmed or updated, not left as-is indefinitely.
   run costs about NZ$1 and a capacity left running costs NZ$17.50/day.
   Suggested: NZ$20/month with alerts at 50/80/100%.
 
-- [ ] **Republish `nz_fuel_v2` again before the next refresh — four columns
-  left the table on 7 Sep 2026.** `report1_ish` was withdrawn from the
-  backtest (`docs/research.md`, "The reconstructed published formula loses to
-  doing nothing"), so `pred_report1_ish`, `abs_err_report1`,
-  `mae_report1_26w` and `skill_report1_26w` are gone from
-  `forecast_accuracy`. The `.tmdl` in `pbip/` no longer declares them, but
-  the **deployed** model still does, and the partition pulls the whole table
-  — the same trap `flag_data_status` set on 27 Aug. Nothing on the report
-  page read them, so no visual should break.
-  - **Order for the next weekly load:** rebuild the warehouse
-    (`dbt seed --select forecast_history --full-refresh`, then
-    `dbt run --select forecast_accuracy --full-refresh`) and publish from
-    Desktop — either order — and refresh the dataset only after both.
-  - **`forecast_accuracy.sql` has not been compiled against the warehouse.**
-    `dbt parse` passes; `dbt compile` needs live capacity and was refused on
-    7 Sep. The edit removed three expressions and one CTE column, so the
-    first real check is that weekly run.
+- [ ] **Publish `nz_fuel_v2` from Desktop at the next opportunity — four
+  columns left `forecast_accuracy` on 7 Sep 2026.** `report1_ish` was
+  withdrawn from the backtest (`docs/research.md`), so `pred_report1_ish`,
+  `abs_err_report1`, `mae_report1_26w` and `skill_report1_26w` are gone. The
+  `.tmdl` in `pbip/` is already updated; the deployed model still declares
+  them. No visual or measure read any of the four. Whether a refresh of the
+  stale model would actually fail is **untested** — the same situation arose
+  with `flag_data_status` on 27 Aug and the model was republished before any
+  refresh could settle it. Publishing is cheaper than finding out.
+- [ ] **`forecast_accuracy.sql` has not been compiled against the
+  warehouse** — `dbt parse` passes, `dbt compile` needs live capacity and was
+  refused on 7 Sep. The edit removed three expressions and one CTE column;
+  the next weekly run is the first real check.
 
 - [x] **Republish `nz_fuel_v2` before the next refresh — done 3 Sep 2026**,
   ahead of the week 2026-08-28 refresh. The deployed model had declared
