@@ -139,9 +139,11 @@ rather than by reading the wording harder.**
 
 ### How it was settled — daily Brent as a ruler
 
-`seeds/brent_daily.csv` (FRED `DCOILBRENTEU`, daily, free, no key; 5,650
-rows from 2004-04-23, exactly MBIE's start) was loaded purely as a
-diagnostic instrument. Brent is a **different grade** from MBIE's Dubai
+Daily Brent (FRED `DCOILBRENTEU`, free, no key; 5,650 rows from 2004-04-23,
+exactly MBIE's start) was loaded purely as a diagnostic instrument. It was a
+committed seed at the time; since 7 Sep 2026 it is fetched on demand by
+`research/fetch_brent.py`, the question here being the reason it existed and
+that question being answered. Brent is a **different grade** from MBIE's Dubai
 Fateh, so their *levels* are not comparable — but the grade spread moves
 slowly, so on **week-over-week changes** it drops out. Four candidate
 constructions were correlated against MBIE's own weekly change, on an

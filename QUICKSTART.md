@@ -142,9 +142,11 @@ Notes:
   Final rows and applies the model to every week, so the series extends by
   itself as MBIE finalises. Nothing to adjust by hand.
 - Whole chain is about five minutes.
-- `seeds/brent_daily.csv` (FRED `DCOILBRENTEU`) is diagnostic only — no
-  model or forecast reads it. FRED runs a few days behind, so the newest
-  week's `brent_mean` is an average of whatever days exist.
+- **Brent is not part of this chain** (since 7 Sep 2026). Nothing in the
+  weekly recompute reads it, so it is fetched on demand instead:
+  `python research/fetch_brent.py` writes `data/brent_daily.csv` from FRED
+  (`DCOILBRENTEU`, no key). FRED runs a few days behind, so the newest week is
+  an average of whatever days exist.
 
 **What is left to automate is the machine, not the sequence.** The eleven
 steps are one command since W7, and the two that needed a human *judgement*
