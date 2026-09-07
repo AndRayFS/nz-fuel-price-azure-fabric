@@ -635,7 +635,36 @@ boundary is unclear.
 **Touches.** `research/*` → `pipeline/*`, `research/README.md`,
 `QUICKSTART.md`, `docs/report1_redesign.md` (refresh commands).
 
-## W6 — Reproducible environment
+## W6 — Reproducible environment — **landed 7 Sep 2026**
+
+Branch `w6-reproducible-environment`. Delivered as described below, with
+three departures worth stating.
+
+**The lock is a snapshot of the working venv, not a fresh resolve.** A clean
+install on 7 Sep pulls dbt-core 1.12.3, statsmodels 0.15 and about thirty
+other bumps; not one number in `docs/` was produced under those.
+`requirements.txt` therefore pins what the results were measured on, and
+`requirements.in` records the ten direct dependencies and why each is there.
+Upgrading is now an act with a procedure attached: bump, re-run
+`pipeline/backtest.py`, confirm the seeds come back byte-identical.
+
+**Pinning found two packages nobody needs.** `openpyxl` (with `et_xmlfile`)
+and `msgpack` were installed, required by nothing and imported by nothing.
+Dropped. The prediction in this entry was that pinning would reveal a
+package installed only transitively; what it revealed was the opposite.
+
+**The devcontainer has never been built.** There is no Docker on the machine
+— by choice, the project runs on a venv — so `.devcontainer/devcontainer.json`
+is a specification, not a tested artefact, and its README says so along with
+the two things most likely to break first: `mssql-python`'s bundled ODBC
+driver on Debian, and the absent `~/.dbt/profiles.yml`.
+
+**Verified, and further than planned.** A clean venv built from
+`requirements.txt` imports every third-party module the code uses, registers
+the `fabric` adapter, passes `dbt parse`, and — the check worth having — runs
+`build_period_flags.py` and `backtest.py` to seeds identical to the
+committed ones. The environment is reproducible in the sense that matters:
+it reproduces the numbers.
 
 **Now.** The venv holds 82 packages and the repository pins none of them:
 no `requirements.txt`, no `pyproject.toml`, no lockfile, no devcontainer.

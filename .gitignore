@@ -18,3 +18,7 @@ research/.aip_cache/
 data/panel_weekly.csv
 data/backtest_results.csv
 !research/art/fuel_price_anatomy.gif
+
+# The dbt profile carries a warehouse endpoint and is not committed.
+# `.devcontainer` points DBT_PROFILES_DIR here; see .devcontainer/README.md.
+.dbt/
