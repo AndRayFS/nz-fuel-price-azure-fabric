@@ -666,6 +666,16 @@ the `fabric` adapter, passes `dbt parse`, and — the check worth having — run
 committed ones. The environment is reproducible in the sense that matters:
 it reproduces the numbers.
 
+**On one platform, and that is the limit of the claim.** The run was macOS
+on Apple Silicon under Python 3.12. Linux was checked against PyPI rather
+than by running anything: 79 of the 80 pins have wheels, 61 of them
+platform-independent. The eightieth matters to W8 —
+`dbt-core-experimental-parser`, required by `dbt-core`, ships a 4 KB sdist
+that downloads a ~116 MB native binary from **GitHub Releases** at install
+time. Linux and Windows wheels exist, so the pin is portable, but a CI
+runner with a PyPI mirror and no egress to github.com will fail to install
+it, and every uncached install moves 116 MB.
+
 **Now.** The venv holds 82 packages and the repository pins none of them:
 no `requirements.txt`, no `pyproject.toml`, no lockfile, no devcontainer.
 Only `packages.yml` (dbt packages) is version-controlled. The environment
