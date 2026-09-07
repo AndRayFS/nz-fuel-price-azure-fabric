@@ -72,8 +72,6 @@ select
     g.dubai_crude_usd,
     g.dubai_crude_nzd,
     g.exchange_rate,
-    br.brent_mean,
-    br.brent_range,
     f.adjusted_retail_price_status,
     f.taxes_status,
     f.gst_status,
@@ -92,13 +90,6 @@ outer apply (
       and (pp.end_date is null or cast(f.Date as date) <= pp.end_date)
     order by pp.period_id
 ) p
-outer apply (
-    select avg(b.brent_usd_bbl) as brent_mean,
-           max(b.brent_usd_bbl) - min(b.brent_usd_bbl) as brent_range
-    from dbo.brent_daily b
-    where b.date between dateadd(day, -4, cast(f.Date as date))
-                     and cast(f.Date as date)
-) br
 where f.Fuel in ('Regular Petrol', 'Diesel', 'Premium Petrol 95R')
 order by f.Fuel, f.Date
 """

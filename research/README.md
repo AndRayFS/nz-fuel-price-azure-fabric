@@ -8,7 +8,7 @@ errors.
 **Division of labour.** dbt and the Fabric warehouse remain the source of
 truth for *data*. Python only *estimates*. Results go back into `docs/`;
 if a fitted quantity ever needs to reach Power BI it returns as a seed,
-the way `brent_daily` did.
+the way `period_flags` does.
 
 **Everything runs offline.** Nothing in this directory touches Azure except
 `aip_check.py`, which fetches PDFs from AIP and the FX series from FRED. The

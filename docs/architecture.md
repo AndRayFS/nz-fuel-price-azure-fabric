@@ -714,7 +714,9 @@ type — it is *who produced it*:
 - **Observations accumulate on their own** — a source publishes them, or a
   script derives them. They belong in the warehouse, which is the tool built
   for that. `forecast_history`, `period_flags`, `panel_weekly`,
-  `backtest_results`, the AIP store, and `brent_daily`.
+  `backtest_results`, and the AIP store. Brent belonged in this list until
+  7 Sep 2026; it turned out to belong in neither place, since nothing reads it
+  — it is fetched when a question needs it and kept nowhere.
 - **Configuration and hypotheses are written by a person.** They belong in
   git, and their value is mostly the history: who moved a boundary, when, and
   what the commit message said. `periods.csv` is six hand-drawn period
@@ -754,14 +756,26 @@ it is irreplaceable, only unrecorded.
 
 Its purpose is also spent. It was acquired to settle one question — whether
 MBIE's weekly crude number is Friday's quote or the Mon–Fri mean — and the
-answer is measured and recorded above. What remains is two diagnostic columns
-in the panel that no gold model reads. So it belongs in `pipeline/` as a
-fetcher — it would run weekly, before the panel export, which puts it on the
-production side of the W5 boundary — with the seed and the warehouse table
-retired; that also means editing
-`export_panel.py`, which joins `dbo.brent_daily`. Until then it cannot leave
-git for the same clean-clone reason as the other seeds, so it travels with
-them in W8.
+answer is measured and recorded above. What remained was two diagnostic
+columns in the panel that no model, no forecast and no script read.
+
+**Done 7 Sep 2026, and not as the fetcher-in-`pipeline/` this paragraph
+previously called for.** Putting it in `pipeline/` would have made it a weekly
+step, and the weekly chain is the wrong place for something nothing in that
+chain depends on: a step no one needs can only ever fail. So Brent left the
+regular procedure altogether. `research/fetch_brent.py` pulls the series on
+demand into `data/`, `export_panel.py` no longer joins it, and the seed is out
+of git — verified by rebuilding both derived seeds from a panel without the
+two columns and getting byte-identical files. The fetcher reproduces the
+retired seed exactly (5,650 shared dates, maximum difference 0.0000) and
+reaches further back, since FRED holds daily Brent from 1987 and the seed
+began at MBIE's own start date.
+
+`dbo.brent_daily` is still in the warehouse, harmless and unreferenced;
+dropping it needs the capacity awake and can wait for a run that needs it up
+anyway. If Brent ever earns a place in the weekly recompute — a second factor,
+a crack spread, a check on MBIE's crude column — the script moves to
+`pipeline/` and this paragraph is what has to change first.
 
 **One file is irreplaceable, and the rule must not be applied to it carelessly.**
 `seeds/monitoring/aip_singapore_weekly.csv` is the only copy of the AIP series
@@ -865,11 +879,11 @@ category but four.
 change values only, so a row count is not a sufficient check for whether a
 vintage is loaded.
 
-**Seeds — the var cannot reach them (6).** `periods`, `variable_mapping`,
-`brent_daily`, `period_flags`, `forecast_history`,
-`monitoring.aip_singapore_weekly`. The first three are hand-written and
-*should* stay fixed. The last three are derived and are exactly what the
-six-step chain rebuilds.
+**Seeds — the var cannot reach them (5).** `periods`, `variable_mapping`,
+`period_flags`, `forecast_history`, `monitoring.aip_singapore_weekly`. The
+first two are hand-written and *should* stay fixed. The last three are derived
+and are exactly what the six-step chain rebuilds. (`brent_daily` was a sixth
+until 7 Sep 2026, when Brent left the weekly chain.)
 
 **The version history and its monitors (3).** `mbie_revisions`,
 `monitor_revisions`, `monitor_revision_summary`. These read the snapshot
@@ -906,9 +920,8 @@ without look-ahead.
 `--return`.
 
 **Two versioned stores, and each holds what the other cannot.** The snapshot
-holds MBIE's numbers, which are not in git. Git holds `periods`,
-`variable_mapping` and `brent_daily`, which are hand-written and not in the
-snapshot. A vintage restores from both: the seeds come from
+holds MBIE's numbers, which are not in git. Git holds `periods` and
+`variable_mapping`, which are hand-written and not in the snapshot. A vintage restores from both: the seeds come from
 `git rev-list -1 --before='DATE 23:59:59'`, the data from the validity filter.
 The line in `workstreams.md` that called this a limit — "full historical
 fidelity is a git question, not a snapshot one" — turned out to name the
@@ -930,11 +943,13 @@ through git, but it could not read a vintage without backporting
 `weekly_prices_relation` — so it would not be purely historical either, and
 the choice is between two impure options rather than between pure and impure.
 
-**A seed that did not exist yet is kept, not deleted.** `brent_daily.csv`
-arrived on 15 Aug 2026, so a vintage of the 13th has no version to restore.
-Deleting it would break `export_panel.py`, which joins it. The script keeps
-HEAD's copy and prints that it did: an approximation that says which way it
-leans beats both a failure and a silent substitution.
+**A seed that did not exist yet is kept, not deleted.** The case that
+prompted this was `brent_daily.csv`, which arrived on 15 Aug 2026, so a
+vintage of the 13th had no version to restore, and deleting it would have
+broken the panel export. Brent left the chain on 7 Sep and both remaining
+seeds predate every reachable vintage, so the handling is currently inert —
+kept because the next seed to arrive will hit it again. An approximation that
+says which way it leans beats both a failure and a silent substitution.
 
 **The marker earns its place by making the state answerable.**
 `pipeline.warehouse_vintage` is append-only, newest row wins, and the gate
