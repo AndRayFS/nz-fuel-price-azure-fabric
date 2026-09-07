@@ -22,3 +22,7 @@ data/backtest_results.csv
 # The dbt profile carries a warehouse endpoint and is not committed.
 # `.devcontainer` points DBT_PROFILES_DIR here; see .devcontainer/README.md.
 .dbt/
+
+# go-task writes a local id here; not shared state.
+.user.yml
+.task/
