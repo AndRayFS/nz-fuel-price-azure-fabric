@@ -15,10 +15,11 @@ warehouse either way, so what that bought a reader was arithmetic, never
 the pipeline. Derived data lives in the warehouse; see architecture.md,
 "Observations belong in the warehouse, configuration belongs in git".
 
-Auth mirrors ~/.dbt/profiles.yml (`authentication: CLI`): an Azure CLI
-token, packed into the ODBC access-token attribute exactly the way
-dbt-fabric's own token provider does it (fabric_token_provider.py:214-227).
-Run `az login` first if this fails.
+Auth mirrors `profiles.yml`: an Entra token from DefaultAzureCredential,
+packed into the ODBC access-token attribute exactly the way dbt-fabric's own
+token provider does it (fabric_token_provider.py:214-227). Locally that
+resolves to the `az login` session; on a CI runner, to the federated
+identity. Run `az login` first if this fails.
 
 Usage:  python pipeline/export_panel.py
 """
@@ -30,7 +31,7 @@ from itertools import chain, repeat
 from pathlib import Path
 
 import mssql_python
-from azure.identity import AzureCliCredential
+from azure.identity import DefaultAzureCredential
 
 SERVER = (
     "fhi24zxnvquurfybnnzrkz22aq-ae4c5pcutjkedh2gfko4iqwk24"
@@ -104,7 +105,7 @@ order by f.Fuel, f.Date
 
 
 def connect():
-    token = AzureCliCredential().get_token(SQL_SCOPE).token
+    token = DefaultAzureCredential().get_token(SQL_SCOPE).token
     encoded = bytes(chain.from_iterable(zip(bytes(token, "UTF-8"), repeat(0))))
     token_bytes = struct.pack("<i", len(encoded)) + encoded
     # No DRIVER= clause: mssql-python bundles its own driver and rejects the

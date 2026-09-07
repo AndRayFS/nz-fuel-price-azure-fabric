@@ -1,0 +1,137 @@
+
+name: Weekly load
+
+# MBIE publishes on Wednesdays. Cron is UTC and New Zealand observes daylight
+# saving, so the local hour drifts by one twice a year: 21:00 UTC Wednesday is
+# 09:00 Thursday NZST and 10:00 Thursday NZDT. That is deliberate — an hour of
+# drift costs nothing here, and a second schedule to correct it would be one
+# more thing to keep right.
+#
+# THE SCHEDULE IS OFF until the identity in docs/ci_setup.md exists and one
+# manual run has gone green. Until then every cron firing would fail at
+# azure/login, and a workflow that is red every week teaches everyone to stop
+# reading red. Uncomment the two lines below as the last step of that setup.
+on:
+  # schedule:
+  #   - cron: '0 21 * * 3'
+  workflow_dispatch:
+    inputs:
+      skip_ingest:
+        description: 'Skip the ingest and start at the gate (the file already landed)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: fabric-capacity
+  cancel-in-progress: false
+
+permissions:
+  id-token: write      # OIDC, so no client secret is stored anywhere
+  contents: write      # the derived seeds are committed back, see below
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      CAPACITY_ID: /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/nz-fuel-price-rg/providers/Microsoft.Fabric/capacities/nzfuelcapacity
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      # One pin, dbt-core-experimental-parser, downloads its real wheel from
+      # GitHub Releases rather than PyPI — the runner needs egress there, which
+      # it has. See the note in requirements.txt.
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --disable-pip-version-check -r requirements.txt
+
+      - name: Install go-task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Resuming is an ARM action on the capacity resource, a different
+      # permission plane from the Fabric workspace role — the app registration
+      # needs both. Waiting for Active is not optional: everything downstream
+      # fails immediately with "this Fabric capacity is currently not active".
+      - name: Resume the capacity
+        run: task capacity-resume
+
+      - name: Ingest
+        if: ${{ !inputs.skip_ingest }}
+        run: task ingest
+
+      # The gate exits 2 when there is no new week. That is not a failure, and
+      # a red run every quiet week would train everyone to ignore red runs — so
+      # it is caught here and ends the job green, with the reason in the log.
+      - name: Gate
+        id: gate
+        run: |
+          set +e
+          task gate
+          code=$?
+          set -e
+          if [ $code -eq 0 ]; then echo "proceed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if [ $code -eq 2 ]; then
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            echo "### No new week — the chain did not run" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "### The gate said stop and look" >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
+      - name: The rest of the chain
+        if: steps.gate.outputs.proceed == 'true'
+        run: |
+          task aip
+          task snapshot
+          task build
+          task test
+          task panel
+          task flags
+          task backtest
+          task seeds
+          task report
+          task close
+
+      # The three derived seeds still reach the warehouse by round-tripping
+      # through git, so an unattended run has to commit them or the next one
+      # rebuilds from stale inputs. Retiring that round-trip is the remaining
+      # piece of W8 — see workstreams.md.
+      - name: Commit the derived seeds
+        if: steps.gate.outputs.proceed == 'true'
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add seeds/period_flags.csv seeds/forecast_history.csv seeds/monitoring/aip_singapore_weekly.csv
+          git diff --cached --quiet || git commit -m "Weekly load $(date -u +%Y-%m-%d)"
+          git push
+
+      # always(), because `defer` inside task does not survive the runner being
+      # cancelled or timing out. The 23:00 NZT auto-pause and the pause-capacity
+      # workflow are the two lines behind this one.
+      - name: Pause the capacity
+        if: always()
+        run: task capacity-pause
+
+      - name: Say what is still manual
+        if: always()
+        run: |
+          echo "The Power BI dataset is not refreshed by this workflow — the" >> "$GITHUB_STEP_SUMMARY"
+          echo "report lives in My Workspace, where service principals cannot" >> "$GITHUB_STEP_SUMMARY"
+          echo "reach it. That is W9." >> "$GITHUB_STEP_SUMMARY"
