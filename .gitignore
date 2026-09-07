@@ -26,3 +26,7 @@ data/backtest_results.csv
 # go-task writes a local id here; not shared state.
 .user.yml
 .task/
+
+# Brent is fetched on demand for research, not committed.
+data/brent_daily.csv
+data/brent_weekly.csv
