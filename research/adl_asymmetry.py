@@ -28,7 +28,7 @@ detected", not as "symmetry proven": with this sample the test can miss a
 real effect of a few hundredths.
 
 K = 6, not BIC-selected. Above K=6 the high-volatility regime's estimate
-stops being identified (docs/architecture.md), and K=6 is where the two
+stops being identified (docs/research.md), and K=6 is where the two
 regimes still agree. Choosing the lag length by a criterion that the
 crisis weeks destabilise would import that instability into the asymmetry
 test.
@@ -45,15 +45,17 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
-HERE = Path(__file__).parent
+ROOT = Path(__file__).parents[1]
+PANEL = ROOT / "data" / "panel_weekly.csv"
+FLAGS = ROOT / "seeds" / "period_flags.csv"
 K = 6
 ECM_WINDOW = 104
 START = "2010-01-01"
 
 
 def load(fuel: str) -> pd.DataFrame:
-    p = pd.read_csv(HERE / "data" / "panel_weekly.csv", parse_dates=["Date"])
-    f = pd.read_csv(HERE.parent / "seeds" / "period_flags.csv",
+    p = pd.read_csv(PANEL, parse_dates=["Date"])
+    f = pd.read_csv(FLAGS,
                     parse_dates=["week_date"])
     d = p[p.Fuel == fuel].merge(
         f[f.fuel == fuel], left_on="Date", right_on="week_date", how="left"

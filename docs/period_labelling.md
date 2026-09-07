@@ -1,14 +1,19 @@
 # Period labelling — replacing one `period_type` with several axes
 
 Answers `research/period_labelling_brief.md`. Written 15 Aug 2026, offline
-against `research/data/panel_weekly.csv` (1,164 weeks × 2 fuels,
+against `data/panel_weekly.csv` (1,164 weeks × 2 fuels,
 2004-04-23 → 2026-08-07). No warehouse queries; the Fabric capacity was
 never started for this work.
+
+**The tables here are illustrations measured on their stated dates.** They are
+reproducible — `headline_results.py` runs offline against the panel in seconds
+— but they are not recomputed when the data moves, so recompute before quoting
+a figure, and only when the answer turns on the digit.
 
 Deliverables:
 
 - `seeds/period_flags.csv` — proposed replacement seed, 2,328 rows.
-- `research/build_period_flags.py` — the rule that generates it. Nothing in
+- `pipeline/build_period_flags.py` — the rule that generates it. Nothing in
   the seed is hand-drawn except two named boundary dates, both marked in the
   script.
 
@@ -22,11 +27,26 @@ and `docs/mbie_notes.md`.
 The single crisis/calm axis is not merely coarse, it **disagrees with the
 data on four of its six periods**, and it discards more crude-shock weeks
 than it keeps. Replacing it with independent axes recovers a pass-through
-result the old flag cannot see at all: on Final data, both fuels pass cost
-through roughly twice as fast in high-volatility weeks (joint p < 0.0001),
-where the same test against the old `crisis` flag returns p = 0.905 for
-diesel. The *direction* is robust across every specification tried; the
-coefficient is not, and §7 says why.
+result the old flag cannot see at all: on Final data, cost passes through
+faster in high-volatility weeks, where the same test against the old
+`crisis` flag returns p = 0.905 for diesel. The *direction* is robust across
+every specification tried; the coefficient is not, and §7 says why.
+
+Two corrections to how this paragraph read before 29 Aug 2026, both of them
+about compression rather than about the finding:
+
+- It said **"roughly twice as fast"**. That was never a measurement. §7's
+  own table puts the mean-lag ratio anywhere from 1.17× to 3.00× depending
+  on sample, and states the honest version — the mean lag roughly halves,
+  landing between 0.44 and 1.07 weeks. "Twice" is the middle of a spread,
+  and the spread is what should be quoted.
+- It said **"both fuels"** at joint p < 0.0001. After the June quarter
+  finalised on 26 Aug, that holds for diesel (joint p 0.0001, and its Δβ₀
+  significant for the first time at +0.114, p 0.0036) and not for petrol
+  (joint p 0.159, mean lag 1.33 → 1.07 wk). Thirteen homogeneous
+  high-volatility weeks removed a result that had stood on ninety. §7's
+  "provisional finding" label was doing real work. Full numbers:
+  `docs/research.md`, "The quarter finalised".
 
 Two of those axes exist because the ADL thread found things this document
 originally got wrong: **`data_status`**, without which the pass-through
@@ -371,6 +391,18 @@ requires.
 
 ## 7. Does the new flag actually do anything?
 
+**These tables are one publication out of date — 26 Aug 2026.** MBIE closed
+3 Apr – 26 Jun 2026 as Final in a single block that day, thirteen weeks at
+once, so every "Final" sample below is now thirteen weeks larger than it was
+when these numbers were produced. None has been re-run.
+
+Nothing about the sample *definition* changed, and it is worth being clear
+about that: `headline_results.py` has always filtered on the six per-value
+status columns in the panel, never on the `data_status` column that W14
+removed on 27 Aug. Re-running the script picks the thirteen weeks up on its
+own. The numbers below are a record of what was measured, not a claim about
+what today's data says.
+
 The point of the exercise is step 7 of the ADL plan: interacting the shape
 parameters with a regime flag. Worth checking the flag is not merely tidier.
 
@@ -623,7 +655,7 @@ Cautions:
    (with `accepted_values` tests on the three categorical columns, which is
    how `periods` is already tested) — deliberately not done here, since the
    brief reserves the merge decision.
-4. **Regenerate, don't edit.** `python research/build_period_flags.py`. The
+4. **Regenerate, don't edit.** `python pipeline/build_period_flags.py`. The
    file is derived; a hand edit will be silently overwritten.
 
 ## 10. What was not settled

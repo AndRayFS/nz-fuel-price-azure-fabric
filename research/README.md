@@ -10,15 +10,18 @@ truth for *data*. Python only *estimates*. Results go back into `docs/`;
 if a fitted quantity ever needs to reach Power BI it returns as a seed,
 the way `brent_daily` did.
 
-**Everything runs offline.** `export_panel.py` pulls the weekly panel once
-into `data/panel_weekly.csv` (local, gitignored). After that no Azure is
-needed — which matters because estimation is a loop of twenty
+**Everything runs offline.** Nothing in this directory touches Azure except
+`aip_check.py`, which fetches PDFs from AIP and the FX series from FRED. The
+panel every estimation script reads is `data/panel_weekly.csv` at the
+repository root — local, gitignored, written by `pipeline/export_panel.py`,
+which moved out of here in W5 along with `build_period_flags.py` and
+`backtest.py`. Staying offline matters because estimation is a loop of twenty
 specifications, the F2 capacity auto-pauses at 23:00 NZT, and from
 28 Aug 2026 it bills real money.
 
 ```bash
 source /Users/Ray/nz-fuel-price-project/.venv/bin/activate
-python research/export_panel.py    # only when the warehouse has new weeks
+python pipeline/export_panel.py    # needs the capacity; only when new weeks landed
 ```
 
 ## Data notes that constrain what can be fitted here
@@ -42,5 +45,5 @@ python research/export_panel.py    # only when the warehouse has new weeks
   `docs/period_labelling.md`. Regenerate with:
 
   ```bash
-  python research/build_period_flags.py   # derived; hand edits get overwritten
+  python pipeline/build_period_flags.py   # derived; hand edits get overwritten
   ```

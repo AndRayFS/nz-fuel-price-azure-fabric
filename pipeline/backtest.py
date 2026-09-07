@@ -17,15 +17,6 @@ METHODS
   full_pass    the last h weeks of cost change arrive over the next h.
                A one-line rule with no fitting, to show what the model has
                to beat before its machinery earns its keep.
-  report1_ish  Report 1's formula, `slope * (crude_t - crude_{t-k})`, with
-               BOTH the lag k and the levels slope refit on a trailing
-               26-week window.
-
-               NOT "Report 1". The real measure takes k and the slope from
-               the *current period*, and periods are drawn after the fact —
-               that 28 Feb 2026 began a crisis was knowable only weeks
-               later. A period-conditioned method cannot be honestly
-               backtested at all; this is the closest thing that can.
   adl          fits d_net on d_cost lags 0..K on all data up to the cutoff.
   adl_ecm      the same, plus the margin's distance from its trailing
                104-week mean.
@@ -63,24 +54,21 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-HERE = Path(__file__).parent
-PANEL = HERE / "data" / "panel_weekly.csv"
-FLAGS = HERE.parent / "seeds" / "period_flags.csv"
+ROOT = Path(__file__).parents[1]
+PANEL = ROOT / "data" / "panel_weekly.csv"
+FLAGS = ROOT / "seeds" / "period_flags.csv"
 
 START = "2010-01-01"       # identity does not reconcile before this
 MIN_TRAIN = 156            # 3 years before the first forecast
 K = 6
 ECM_WINDOW = 104
 HORIZONS = (1, 2, 3)
-R1_WINDOW = 26             # trailing window for the Report 1-style refit
-R1_MAXLAG = 8
 
 # The training filter, stated as the list of variables the fit reads. MBIE
 # publishes status per value, not per week, so "is this week final" is not
 # a question the data answers — this is: are the six series the ADL
 # consumes all final. `net` needs the first four, `d_cost` the fifth, `dev`
-# the sixth. `dubai_crude_nzd` is absent because only report1_ish uses it
-# and report1_ish is applied, never fitted, here.
+# the sixth.
 TRAIN_STATUS_COLS = (
     "adjusted_retail_price_status",
     "taxes_status",
@@ -106,11 +94,23 @@ def load(fuel: str) -> pd.DataFrame:
     # version filtered here, which silently truncated the whole series at
     # 27 Mar 2026 rather than just keeping provisional weeks out of the fit.
     #
-    # Applying to provisional weeks is defensible and was checked: the
-    # target (`adjusted_retail_price`) has never been revised in 1,164
-    # weeks, so the forecast's base is solid, and the factor is revised by
-    # ~0.5 c/L, worth ~0.6 c/L of forecast error against a model MAE of
-    # 2.7. Rows carry `input_status` so the report can mark them.
+    # Applying to provisional weeks is defensible, but not for the reason
+    # written here until 29 Aug 2026. That reason was "the target has never
+    # been revised in 1,164 weeks", and the June quarter finalising on 26 Aug
+    # ended it: `adjusted_retail_price` moved 1.861 c/L on diesel and 0.848
+    # on petrol, roughly four times the ~0.5 c/L this comment assumed.
+    #
+    # The real reason is stronger and does not depend on the target holding
+    # still. A finalisation is one constant level shift applied to a whole
+    # quarter (docs/mbie_notes.md, "What a finalisation actually does"), and
+    # this model forecasts a *change* in price, in which a constant cancels.
+    # Measured: recomputing on the revised panel moved MAE by at most 0.22
+    # c/L against 17-27 in that stretch, and skill in non-crisis weeks not at
+    # all. The exception is the first week of a quarter, which carries a
+    # day-weighted blend of two factors and so does not cancel; one such week
+    # is in the sample and dropping it changes nothing (0.850 -> 0.854 on the
+    # diesel K=3 total). Rows carry `input_status` so the report can mark
+    # them.
     #
     # Before 22 Aug 2026 this read a single `status` column that
     # export_panel.py recovered from the snapshot with an unordered
@@ -167,31 +167,6 @@ def adl_forecast(d: pd.DataFrame, t: int, beta: np.ndarray, h: int,
     return total
 
 
-def report1_ish(d: pd.DataFrame, t: int) -> float:
-    """Refit lag and levels slope on a trailing window, then apply the formula."""
-    crude = d.dubai_crude_nzd.to_numpy()
-    price = d.adjusted_retail_price.to_numpy()
-    lo = t - R1_WINDOW + 1
-    if lo - R1_MAXLAG < 0:
-        return np.nan
-    best_r, best_k, best_slope = -2.0, 0, 0.0
-    for k in range(R1_MAXLAG + 1):
-        x, y = crude[lo - k:t + 1 - k], price[lo:t + 1]
-        if len(x) != len(y) or not (np.isfinite(x).all() and np.isfinite(y).all()):
-            continue
-        if x.std() == 0 or y.std() == 0:
-            continue
-        r = float(np.corrcoef(x, y)[0, 1])
-        if r > best_r:
-            best_r, best_k = r, k
-            best_slope = float(np.cov(x, y, bias=True)[0, 1] / x.var())
-    if best_r < -1:
-        return np.nan
-    if t - best_k < 0:
-        return np.nan
-    return best_slope * (crude[t] - crude[t - best_k])
-
-
 PRICE_AT: dict = {}
 
 
@@ -215,7 +190,6 @@ def main() -> None:
             b_ecm = fit_adl(d, t + 1, with_ecm=True)
             if b_adl is None:
                 continue
-            r1 = report1_ish(d, t)
             for h in HORIZONS:
                 actual = (retail[t + h] - retail[t]) if t + h < n else np.nan
                 fp = (cost[t] - cost[t - h]) * 1.15 if t - h >= 0 else np.nan
@@ -226,13 +200,13 @@ def main() -> None:
                     fuel=fuel, date=d.index[t], h=h, actual=actual, hi=hi[t],
                     input_status="final" if is_final[t] else "provisional",
                     outcome_known=bool(np.isfinite(actual)),
-                    naive=0.0, full_pass=fp, report1_ish=r1,
+                    naive=0.0, full_pass=fp,
                     adl=a * 1.15 if np.isfinite(a) else np.nan,
                     adl_ecm=e * 1.15 if np.isfinite(e) else np.nan,
                 ))
 
     res = pd.DataFrame(rows)
-    res.to_csv(HERE / "data" / "backtest_results.csv", index=False)
+    res.to_csv(ROOT / "data" / "backtest_results.csv", index=False)
 
     # Seed for Report 1: one row per (week, fuel, horizon) carrying the price
     # level the model would have called at that week, beside what happened.
@@ -241,18 +215,18 @@ def main() -> None:
     seed["price_now"] = seed.apply(
         lambda r: PRICE_AT[(r.fuel, r.week_date)], axis=1)
     seed["actual_price"] = seed.price_now + seed.actual
-    for m in ("naive", "adl", "adl_ecm", "report1_ish", "full_pass"):
+    for m in ("naive", "adl", "adl_ecm", "full_pass"):
         seed[f"pred_{m}"] = seed.price_now + seed[m]
         seed[f"err_{m}"] = seed[f"pred_{m}"] - seed.actual_price
     seed["target_week"] = seed.week_date + pd.to_timedelta(seed.h * 7, unit="D")
     keep = (["week_date", "target_week", "fuel", "h", "input_status",
              "outcome_known", "price_now", "actual_price"]
-            + [f"pred_{m}" for m in ("naive", "adl", "adl_ecm", "report1_ish")]
-            + [f"err_{m}" for m in ("naive", "adl", "adl_ecm", "report1_ish")])
-    out = HERE.parent / "seeds" / "forecast_history.csv"
+            + [f"pred_{m}" for m in ("naive", "adl", "adl_ecm")]
+            + [f"err_{m}" for m in ("naive", "adl", "adl_ecm")])
+    out = ROOT / "seeds" / "forecast_history.csv"
     seed[keep].round(4).to_csv(out, index=False)
     print(f"{len(seed)} rows -> {out}")
-    methods = ["naive", "full_pass", "report1_ish", "adl", "adl_ecm"]
+    methods = ["naive", "full_pass", "adl", "adl_ecm"]
 
     # Accuracy tables only over weeks whose outcome is known. The most
     # recent rows are calls without an outcome yet - the live part of the

@@ -31,7 +31,7 @@ moving boundaries; it needs **several independent flags** instead of one
 
 ## What is already established (verified in data — do not re-derive)
 
-Sources: `docs/mbie_notes.md`, `docs/architecture.md`. Facts below were
+Sources: `docs/mbie_notes.md`, `docs/research.md`. Facts below were
 measured on the panel this week, not assumed.
 
 **Policy steps, exact dates, from the `taxes` column:**
@@ -128,12 +128,13 @@ may turn out to be invisible in weekly national averages.
 
 ## Rules and constraints
 
-- **Do not edit `seeds/periods.csv`, `models/`, `docs/architecture.md` or
+- **Do not edit `seeds/periods.csv`, `models/`, `docs/architecture.md`,
+  `docs/research.md` or
   `docs/mbie_notes.md`.** The main thread is working in those. Propose a
   new seed alongside; the merge is a later decision.
-- Data is local and offline: `research/data/panel_weekly.csv`, 1,164 weeks
+- Data is local and offline: `data/panel_weekly.csv`, 1,164 weeks
   × 2 fuels, 2004-04-23 → 2026-08-07, no gaps, no missing values.
-  Regenerate with `python research/export_panel.py` only if new weeks are
+  Regenerate with `python pipeline/export_panel.py` only if new weeks are
   needed (requires `az login` and the Fabric capacity running).
 - Python env: `source /Users/Ray/nz-fuel-price-project/.venv/bin/activate`
   (note: one level **above** the project dir). pandas/numpy/scipy/

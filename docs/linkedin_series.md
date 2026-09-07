@@ -116,7 +116,7 @@ negative." The rebuild gives r = 0.96 for the 2020–2022 calm period. What
 actually disappears in calm periods is the *identifiability of the lag* —
 the winning lag wanders across 10 different values over 85 weeks — not the
 correlation. A high calm-period correlation is usually a trend plateau
-(`architecture.md`). Worth correcting explicitly, since it is the one claim
+(`research.md`). Worth correcting explicitly, since it is the one claim
 the current data contradicts outright.
 
 ## House style

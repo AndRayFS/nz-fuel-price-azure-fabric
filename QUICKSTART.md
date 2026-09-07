@@ -15,6 +15,14 @@ dbt --version
 Should show `fabric` as a registered adapter, and the prompt should show
 `(.venv)` at the start of the line.
 
+**Building the venv from scratch** (new machine, or the existing one is
+suspect): `python3.12 -m venv .venv` then
+`.venv/bin/pip install -r requirements.txt`. That file pins every package to
+the version this project's results were produced under; `requirements.in`
+records which of them are direct dependencies and why. Do not upgrade as a
+side effect of something else — bump the pin, re-run `pipeline/backtest.py`,
+and confirm the seeds come back byte-identical first.
+
 **Before running anything that touches the Warehouse:** make sure the
 Fabric capacity is resumed (Azure Portal → `nzfuelcapacity` → Resume). There
 is no auto-resume — it was disabled deliberately — so this is always a manual
@@ -60,9 +68,9 @@ dbt snapshot                                         # 2. revision history
 dbt run --full-refresh                               # 3. bronze -> silver/gold/monitoring
 dbt test                                             # 4. everything outside `monitoring`
                                                      #    must pass; monitoring warns
-python research/export_panel.py                      # 5. panel out to CSV
-python research/build_period_flags.py                # 6. regime axes, from the panel
-python research/backtest.py                          # 7. refit + forecasts
+python pipeline/export_panel.py                      # 5. panel out to CSV
+python pipeline/build_period_flags.py                # 6. regime axes, from the panel
+python pipeline/backtest.py                          # 7. refit + forecasts
 dbt seed --select period_flags forecast_history --full-refresh   # 8. -> warehouse
 dbt run --select forecast_accuracy --full-refresh    # 9. rebuild the report table
 python pipeline/mark_processed.py                    # 10. close the run
@@ -170,8 +178,14 @@ shows them anyway if you want to look.
 
 ## Project structure
 
-- `pipeline/` — the weekly recompute: the gate, the closing marker, and the
-  Fabric plumbing both need. See `pipeline/README.md`
+- `pipeline/` — the weekly recompute, end to end: the gate, the panel
+  export, the regime flags, the backtest, the closing marker, and the Fabric
+  plumbing they share. See `pipeline/README.md`
+- `research/` — estimation and exploration, plus `aip_check.py`, the one
+  weekly step that stayed here because a restyled PDF needs a person. See
+  `research/README.md`
+- `data/` — derived, gitignored, rebuilt by steps 5–7: `panel_weekly.csv`
+  and `backtest_results.csv`. Owned by neither package; nothing in git
 - `models/silver/` — long→wide pivots (`silver_general`, `silver_fuel`)
 - `models/gold/` — lag correlation + resolved + volatility
 - `models/monitoring/` — revision and ingest signals, in their own warehouse
@@ -184,6 +198,7 @@ shows them anyway if you want to look.
   `macros/generate_schema_name.sql` (custom schemas are used verbatim)
 
 Full design rationale: `docs/architecture.md`
+Methods and measurements: `docs/research.md`
 Source (MBIE) structure and gotchas: `docs/mbie_notes.md`
 
 ## dbt vars (dbt_project.yml)
@@ -236,7 +251,7 @@ Three things to expect:
   with three Python steps between them.
 - **`aip_latest_week_out_of_step` warns** in a vintage, correctly — silver's
   newest week is older than the AIP store's. WARN, not ERROR.
-- **The script refuses to start** if `seeds/` or `research/data/` have
+- **The script refuses to start** if `seeds/` or `data/` have
   uncommitted changes while the warehouse holds current data, because it
   rewrites both and restores them from git afterwards. Once a vintage is
   loaded a dirty tree is expected and it proceeds.

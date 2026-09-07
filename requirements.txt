@@ -1,0 +1,106 @@
+# Pinned, complete environment — the versions this project is measured on.
+#
+# Generated from the working venv on 7 Sep 2026, NOT from a fresh resolve: a
+# clean install today pulls dbt-core 1.12.3, statsmodels 0.15 and a dozen
+# other bumps, and none of the numbers in docs/ were produced under those.
+# Upgrading is a deliberate act — bump here, re-run pipeline/backtest.py, and
+# check the seeds still come back byte-identical before committing.
+#
+# Direct dependencies and why each is here: requirements.in
+#
+#     python3.12 -m venv .venv
+#     .venv/bin/pip install -r requirements.txt
+#
+# Two packages were dropped as unused when this file was first written:
+# openpyxl (with et_xmlfile) and msgpack — nothing imports them and nothing
+# requires them. `dbt parse`, `dbt --version` and the full offline recompute
+# were verified without them.
+#
+# ONE PIN NEEDS MORE THAN PyPI. `dbt-core-experimental-parser` (required by
+# dbt-core) publishes only a 4 KB sdist; installing it reads `assets.json`
+# and downloads the real wheel — a ~116 MB native binary — from GitHub
+# Releases under dbt-labs/dbt-core, by sha256. Wheels exist for
+# manylinux_2_28 x86_64/aarch64, macOS x86_64/arm64 and win_amd64, so other
+# platforms are fine. The one thing to know: an install needs egress to
+# github.com and not just to a PyPI mirror. The size is incidental.
+# Checked 7 Sep 2026, version 2.0.0a5.
+agate==1.9.1
+annotated-types==0.8.0
+attrs==26.1.0
+azure-core==1.41.0
+azure-identity==1.25.3
+babel==2.18.0
+certifi==2026.7.22
+cffi==2.1.0
+charset-normalizer==3.4.9
+click==8.4.2
+colorama==0.4.6
+contourpy==1.3.3
+cryptography==49.0.0
+cycler==0.12.1
+daff==1.4.2
+dbt-adapters==1.24.5
+dbt-common==1.38.0
+dbt-core==1.12.0
+dbt-core-experimental-parser==2.0.0a5
+dbt-extractor==0.6.0
+dbt-fabric-samdebruyn==1.12.2
+dbt-protos==1.0.541
+deepdiff==8.6.2
+et_xmlfile==2.0.0
+fonttools==4.63.0
+idna==3.18
+importlib_metadata==9.0.0
+isodate==0.7.2
+Jinja2==3.1.6
+jsonschema==4.26.0
+jsonschema-specifications==2025.9.1
+kiwisolver==1.5.0
+leather==0.4.1
+MarkupSafe==3.0.3
+mashumaro==3.17
+matplotlib==3.11.1
+metricflow==0.211.0
+more-itertools==10.8.0
+msal==1.37.0
+msal-extensions==1.3.1
+mssql-python==1.12.0
+mssql-python-odbc==18.6.2
+networkx==3.6.1
+numpy==2.5.2
+orderly-set==5.5.0
+packaging==26.2
+pandas==3.0.5
+parsedatetime==2.6
+pathspec==1.0.4
+patsy==1.0.2
+pillow==12.3.0
+protobuf==6.33.6
+pycparser==3.0
+pydantic==2.13.4
+pydantic_core==2.46.4
+PyJWT==2.13.0
+pyparsing==3.3.2
+pypdf==6.16.1
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.2
+python-slugify==8.0.4
+pytimeparse==1.1.8
+pytz==2026.3.post1
+PyYAML==6.0.3
+RapidFuzz==3.14.5
+referencing==0.37.0
+requests==2.34.2
+rpds-py==2026.6.3
+scipy==1.18.0
+six==1.17.0
+snowplow-tracker==1.1.0
+sqlglot==30.14.0
+sqlparse==0.5.5
+statsmodels==0.14.6
+tabulate==0.10.0
+text-unidecode==1.3
+typing_extensions==4.16.0
+typing-inspection==0.4.2
+urllib3==2.7.0
+zipp==4.1.0

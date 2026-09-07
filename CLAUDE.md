@@ -24,9 +24,27 @@ rows for the gold models before.
 
 ## Read before changing `models/gold/`
 
-`docs/architecture.md` — every non-obvious design choice, every bug found
-and how, full backtest results, prioritized roadmap. Don't duplicate its
-content here; read it.
+Split in two on 3 Sep 2026, along the line of *consumption* rather than
+language or directory:
+
+`docs/architecture.md` — the contour that runs weekly with no human in it:
+ingest, bronze through silver, the freshness gate, monitoring, the semantic
+model, and the vintage machinery. `export_panel.py`, `build_period_flags.py`
+and `backtest.py` are production — they live in `pipeline/` since W5 — and are
+documented there.
+
+`docs/research.md` — methods and measurements: the distributed-lag work,
+pass-through, the walk-forward test, and the corrections that overturned
+earlier findings. Withdrawn findings are kept in its appendix.
+
+**Half of `models/gold/` is read by nothing.** `lag_correlation`,
+`lag_resolved`, `factor_volatility` and `volatility_config` are still built
+by every weekly `--full-refresh`, but `nz_fuel_v2` holds only
+`forecast_accuracy`, which descends from two seeds. Before changing any of
+those four, read "The T-SQL lag layer" at the end of `architecture.md` —
+the decision to keep, unschedule or delete them is open.
+
+Don't duplicate either file's content here; read them.
 
 `docs/mbie_notes.md` — source data gotchas.
 
@@ -48,3 +66,11 @@ starting anything structural.
 More detail: `.claude/rules/working-style.md` (working conventions, tooling
 split with claude.ai chat) and `.claude/rules/active-items.md`
 (time-sensitive, check-the-date items).
+
+## Reviewing a weekly load
+
+`/load-review` (`.claude/skills/load-review/`) fixes the *shape* of that
+answer — what arrived, whether anything in it is an outlier, how far it
+diverged from the forecast — and deliberately leaves the source of the
+numbers open. It also records which predictors belong in such a review:
+only the two Report 1 actually plots, `pred_adl_ecm` and `pred_naive`.

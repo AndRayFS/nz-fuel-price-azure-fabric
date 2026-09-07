@@ -47,3 +47,18 @@ vars:
   # where they were set against 20 weeks of comparison, not derived.
   aip_move_threshold_usd: 2
   aip_damping_ratio: 0.25
+
+  # Below this, a rewritten Final value is a representation artefact rather
+  # than a revision, and `revisions_rewrote_a_final_week` does not flag it.
+  # Set 27 Aug 2026, the first time that test fired: MBIE republished 40 weeks
+  # of 2023-24 with `Taxes`, `Price excluding tax` and `Importer margin`
+  # moving by 0.00002 - 0.00022 c/L in compensating directions, leaving the
+  # pump price untouched. Real revisions in the same run ran to 2.221 c/L, so
+  # the gap either side of this number is wide. Empirical, not derived — the
+  # smallest genuine revision has never been measured, and that is what would
+  # set it properly.
+  #
+  # Applies to NZD c/L only. `value_delta` carries each variable's own unit,
+  # and 0.001 means something entirely different on an exchange rate; rows in
+  # any other unit are still flagged unconditionally.
+  revision_noise_threshold_cpl: 0.001
