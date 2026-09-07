@@ -6,3 +6,89 @@ sources:
     schema: mbie
     tables:
       - name: weekly_prices
+
+  # Written by the weekly chain itself, not by dbt and not by a seed. These
+  # three used to be CSVs in git that `dbt seed` loaded every week — the route
+  # that made git the transport for data nobody writes by hand, and made every
+  # unattended run a bot commit. The scripts write them straight to the
+  # warehouse now (pipeline/warehouse_write.py); dbt reads them as sources
+  # because dbt does not own them.
+  - name: derived
+    schema: dbo
+    description: >
+      Tables the weekly recompute writes directly, alongside silver and gold
+      in `dbo` — layers here are told apart by name, not by schema. They are
+      sources rather than models because dbt reads them and does not build
+      them; they were seeds loaded from CSV until 7 Sep 2026.
+    tables:
+      - name: period_flags
+        description: >
+          Regime axes, one row per (week, fuel), rebuilt from the panel by
+          rule. Replaced wholesale each run — it is a pure function of the
+          panel, so losing it costs a recompute.
+        columns:
+          - name: week_date
+            tests:
+              - not_null:
+                  config:
+                    severity: warn
+          - name: fuel
+            tests:
+              - accepted_values:
+                  arguments:
+                    values: ['Diesel', 'Regular Petrol', 'Premium Petrol 95R']
+                  config:
+                    severity: warn
+      - name: forecast_history
+        description: >
+          Walk-forward backtest output: what each method said at each cutoff
+          and what happened. Replaced wholesale each run.
+        columns:
+          - name: week_date
+            tests:
+              - not_null:
+                  config:
+                    severity: warn
+
+  - name: monitoring_store
+    schema: monitoring
+    description: The monitoring contour's own accumulated observations.
+    tables:
+      - name: aip_singapore_weekly
+        description: >
+          Argus Singapore quotes republished weekly by the Australian
+          Institute of Petroleum, written by `pipeline/aip_check.py`.
+          APPEND-ONLY, and the one irreplaceable table in the project: AIP
+          keeps 11-15 reports on its site and Mar-Jun 2026 is already gone
+          from it, so weeks in here cannot be re-derived once they age out.
+          It was a committed CSV loaded by `dbt seed --full-refresh` until
+          7 Sep 2026 — that is, truncated and reloaded weekly from a file.
+          Never truncate this. It sits in `monitoring`, not bronze, because
+          nothing downstream of silver reads it. Data is Argus under AIP
+          licence; attribution is required if any of it is republished.
+        columns:
+          - name: week
+            description: Friday the AIP report averages to. Aligns with MBIE's `Date`.
+            tests:
+              - not_null:
+                  config:
+                    severity: warn
+          - name: fuel
+            tests:
+              - accepted_values:
+                  arguments:
+                    values: ['Diesel', 'Regular Petrol']
+                  config:
+                    severity: warn
+          - name: product_usd_bbl
+            description: AU cents/litre at the week's mean FRED DEXUSAL rate.
+            tests:
+              - not_null:
+                  config:
+                    severity: warn
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              arguments:
+                combination_of_columns: [week, fuel]
+              config:
+                severity: warn

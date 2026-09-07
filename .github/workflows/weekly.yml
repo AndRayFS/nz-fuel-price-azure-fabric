@@ -27,7 +27,8 @@ concurrency:
 
 permissions:
   id-token: write      # OIDC, so no client secret is stored anywhere
-  contents: write      # the derived seeds are committed back, see below
+  contents: read       # nothing is written back: the chain writes to the
+                       # warehouse, not to git (7 Sep 2026)
 
 jobs:
   weekly:
@@ -105,22 +106,8 @@ jobs:
           task panel
           task flags
           task backtest
-          task seeds
           task report
           task close
-
-      # The three derived seeds still reach the warehouse by round-tripping
-      # through git, so an unattended run has to commit them or the next one
-      # rebuilds from stale inputs. Retiring that round-trip is the remaining
-      # piece of W8 — see workstreams.md.
-      - name: Commit the derived seeds
-        if: steps.gate.outputs.proceed == 'true'
-        run: |
-          git config user.name  'github-actions[bot]'
-          git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add seeds/period_flags.csv seeds/forecast_history.csv seeds/monitoring/aip_singapore_weekly.csv
-          git diff --cached --quiet || git commit -m "Weekly load $(date -u +%Y-%m-%d)"
-          git push
 
       # always(), because `defer` inside task does not survive the runner being
       # cancelled or timing out. The 23:00 NZT auto-pause and the pause-capacity

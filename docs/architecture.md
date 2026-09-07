@@ -714,7 +714,10 @@ type — it is *who produced it*:
 - **Observations accumulate on their own** — a source publishes them, or a
   script derives them. They belong in the warehouse, which is the tool built
   for that. `forecast_history`, `period_flags`, `panel_weekly`,
-  `backtest_results`, and the AIP store. Brent belonged in this list until
+  `backtest_results`, and the AIP store — and since 7 Sep 2026 all of them
+  actually are: the first two and the AIP store are written straight to the
+  database by the scripts that compute them (`pipeline/warehouse_write.py`),
+  the other two are local files outside git. Brent belonged in this list until
   7 Sep 2026; it turned out to belong in neither place, since nothing reads it
   — it is fetched when a question needs it and kept nowhere.
 - **Configuration and hypotheses are written by a person.** They belong in

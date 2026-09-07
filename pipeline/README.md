@@ -13,6 +13,8 @@ of the weekly chain.
 | file | what it does |
 |---|---|
 | `gate.py` | the freshness gate — the only step allowed to stop the weekly run |
+| `aip_check.py` | the independent check on a stale source; appends to `monitoring.aip_singapore_weekly` |
+| `warehouse_write.py` | the write path the three former seeds use: `replace` for rebuildable tables, `append_new` for the one that is history |
 | `export_panel.py` | the weekly panel out of the warehouse into `data/panel_weekly.csv` |
 | `build_period_flags.py` | the regime axes, derived from the panel by rule, into `seeds/period_flags.csv` |
 | `backtest.py` | refits every method at every cutoff; writes `seeds/forecast_history.csv` and `data/backtest_results.csv` |
@@ -21,10 +23,13 @@ of the weekly chain.
 | `test_gate.py` | replays the gate's decision against the runs that happened |
 | `vintage.py` | puts the whole system on a past date, and brings it back |
 
-`aip_check.py` stayed in `research/`. It runs weekly, but it parses a PDF
-whose layout is the source's to change, and a step that needs a person the
-week AIP restyles page 3 is not the same kind of code as the five above.
-The weekly chain therefore still calls one script out of `research/`.
+`aip_check.py` moved here on 7 Sep 2026, reversing a decision made earlier
+the same day. The argument for leaving it in `research/` was that it parses a
+PDF whose layout is the source's to change, so it will one day need a person.
+That is still true and no longer decisive: it now writes to the database, it
+imports `fabric_io` and `warehouse_write`, and it runs every week without
+supervision. Fragility of the input is a property of the source; what places
+code here is who runs it and what it writes.
 
 **Order inside the chain is not cosmetic.** `build_period_flags.py` reads
 the panel and `backtest.py` reads the flags; the centred nine-week window

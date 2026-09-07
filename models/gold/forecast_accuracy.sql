@@ -32,7 +32,7 @@ with base as (
         abs(err_adl)         as abs_err_adl,
         abs(err_adl_ecm)     as abs_err_adl_ecm,
         abs(err_naive)       as abs_err_naive
-    from {{ ref('forecast_history') }}
+    from {{ source('derived', 'forecast_history') }}
 ),
 
 rolled as (
@@ -71,6 +71,6 @@ select
     f.crude_episode_id,
     f.crude_move_regime
 from rolled r
-left join {{ ref('period_flags') }} f
+left join {{ source('derived', 'period_flags') }} f
     on f.week_date = r.week_date
    and f.fuel      = r.fuel

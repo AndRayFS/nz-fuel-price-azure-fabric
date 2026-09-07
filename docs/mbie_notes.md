@@ -455,7 +455,7 @@ that is, without a non-zero exit: a restyled Australian PDF is not a reason
 to stop recomputing New Zealand numbers, and the store failing to advance is
 itself warned about by `aip_latest_week_out_of_step`.
 
-Collected by `research/aip_check.py` (step 1 in `QUICKSTART.md`); the
+Collected by `pipeline/aip_check.py` (step 1 in `QUICKSTART.md`); the
 comparison against `Importer cost` is `models/monitoring/monitor_aip_gap.sql`
 and its warn-level tests. This is the only check that can catch a
 stale-but-well-formed MBIE file, since everything else we test is downstream

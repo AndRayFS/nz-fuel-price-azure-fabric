@@ -9,14 +9,14 @@ logs/
 .claude/settings.local.json
 __pycache__/
 *.pyc
-research/.aip_cache/
 
-# Derived data does not round-trip through git; the warehouse holds it.
-# Neither file is a seed and no ref() or build step reads either, so both
-# left immediately rather than waiting for W8. See architecture.md,
-# "Observations belong in the warehouse, configuration belongs in git".
-data/panel_weekly.csv
-data/backtest_results.csv
+# Derived data does not round-trip through git; the database holds it. The
+# whole directory: the panel and the backtest output (local caches of a
+# computation), the AIP PDF cache, the local copy of period_flags the offline
+# scripts read, and anything fetched on demand such as Brent. See
+# architecture.md, "Observations belong in the warehouse, configuration
+# belongs in git".
+data/
 !research/art/fuel_price_anatomy.gif
 
 # The dbt profile carries a warehouse endpoint and is not committed.
@@ -26,7 +26,3 @@ data/backtest_results.csv
 # go-task writes a local id here; not shared state.
 .user.yml
 .task/
-
-# Brent is fetched on demand for research, not committed.
-data/brent_daily.csv
-data/brent_weekly.csv

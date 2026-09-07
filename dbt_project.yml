@@ -34,8 +34,9 @@ seeds:
   nz_fuel_price_project:
     +docs:
       node_color: '#b45309'
-    monitoring:
-      +schema: monitoring
+    # The `monitoring:` sub-config went with the AIP seed on 7 Sep 2026. Only
+    # hand-written configuration is seeded now — `periods` and
+    # `variable_mapping` — and both belong in dbo.
 
 vars:
   volatility_window_weeks: 6
@@ -43,7 +44,7 @@ vars:
   # Monitoring thresholds, in the units the AIP comparison works in:
   # USD/bbl, week-on-week move. A move smaller than the first is noise and
   # is never flagged; ours coming in under the second times Argus's is the
-  # shape a stale ingest makes. Both carried over from research/aip_check.py,
+  # shape a stale ingest makes. Both carried over from pipeline/aip_check.py,
   # where they were set against 20 weeks of comparison, not derived.
   aip_move_threshold_usd: 2
   aip_damping_ratio: 0.25

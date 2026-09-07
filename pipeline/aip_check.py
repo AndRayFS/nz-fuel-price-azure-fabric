@@ -48,8 +48,8 @@ loaded with `dbt seed`. That file is the only copy of the weeks AIP has
 already deleted -- append to it, never regenerate it.
 
 Usage:
-    python research/aip_check.py            # fetch, parse, append to the seed
-    python research/aip_check.py --no-fetch # re-parse the cached PDFs only
+    python pipeline/aip_check.py            # fetch, parse, append to the table
+    python pipeline/aip_check.py --no-fetch # re-parse the cached PDFs only
 """
 
 from __future__ import annotations
@@ -63,12 +63,31 @@ from pathlib import Path
 
 import pandas as pd
 
+import warehouse_write
+
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent
-CACHE = ROOT / ".aip_cache"
+CACHE = REPO / "data" / ".aip_cache"
 # The PDFs stay local and disposable; the extracted weeks are the asset, and
 # they live in the seed that `monitoring` is built from.
-OUT = REPO / "seeds" / "monitoring" / "aip_singapore_weekly.csv"
+SCHEMA = "monitoring"
+TABLE = "aip_singapore_weekly"
+
+# Types pinned here rather than inferred, for the reason the seed's yml gave:
+# an empty input left dbt-fabric nothing to infer from and it made `fuel` an
+# int, turning a warn-level test into a cast error.
+DDL = f"""
+create table {SCHEMA}.{TABLE} (
+    week            date         not null,
+    fuel            varchar(20)  not null,
+    tapis_aucpl     float            null,
+    brent_aucpl     float            null,
+    product_aucpl   float            null,
+    aud_usd         float            null,
+    product_usd_bbl float            null,
+    loaded_at       datetime2(3) not null
+)
+"""
 
 API = "https://aip.com.au/wp-json/wp/v2/media"
 LITRES_PER_BBL = 158.987
@@ -164,12 +183,6 @@ def add_usd(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def merge(new: pd.DataFrame) -> pd.DataFrame:
-    """Accumulate: kept weeks outlive their deletion from the AIP server."""
-    if OUT.exists():
-        old = pd.read_csv(OUT, parse_dates=["week"])
-        new = pd.concat([old, new], ignore_index=True)
-    return new.drop_duplicates(["week", "fuel"], keep="last").sort_values(["fuel", "week"])
 
 
 def main() -> int:
@@ -193,17 +206,24 @@ def main() -> int:
         print(f"! could not fetch the FX series ({exc}); store left unchanged", file=sys.stderr)
         return 0
 
-    before = len(pd.read_csv(OUT)) if OUT.exists() else 0
-    df = merge(priced)
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(OUT, index=False)
-    counts = df.groupby("fuel")["week"].agg(["count", "min", "max"])
-    print(f"\nStored {len(df)} rows ({len(df) - before:+d}) -> {OUT.relative_to(REPO)}")
+    priced = priced.drop_duplicates(["week", "fuel"], keep="last")
+    priced["loaded_at"] = pd.Timestamp.now('UTC').tz_localize(None)
+
+    # append_new, never replace: this table IS the history. AIP keeps 11-15
+    # reports on its site and Mar-Jun 2026 is already gone from it, so a
+    # truncate here loses weeks that cannot be fetched again from anywhere.
+    warehouse_write.append_new(
+        priced[["week", "fuel", "tapis_aucpl", "brent_aucpl", "product_aucpl",
+                "aud_usd", "product_usd_bbl", "loaded_at"]],
+        SCHEMA, TABLE, DDL, key=["week", "fuel"],
+    )
+
+    counts = priced.groupby("fuel")["week"].agg(["count", "min", "max"])
+    print(f"\nParsed {len(priced)} rows from the cached reports:")
     for fuel, r in counts.iterrows():
         print(f"  {fuel:15s} {r['count']:3d} weeks  {r['min'].date()} .. {r['max'].date()}")
 
-    print("\nLoad it and read the signals:")
-    print("  dbt seed --select aip_singapore_weekly --full-refresh")
+    print("\nRead the signals:")
     print("  dbt build --select monitor_aip_gap")
     return 0
 

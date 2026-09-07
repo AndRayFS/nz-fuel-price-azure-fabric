@@ -20,7 +20,7 @@ pandas
 numpy
 statsmodels
 
-# `research/aip_check.py` parses the AIP PDFs; the import sits inside a
+# `pipeline/aip_check.py` parses the AIP PDFs; the import sits inside a
 # function, so it is easy to lose track of.
 pypdf
 
