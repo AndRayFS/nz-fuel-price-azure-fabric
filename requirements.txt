@@ -21,8 +21,9 @@
 # and downloads the real wheel — a ~116 MB native binary — from GitHub
 # Releases under dbt-labs/dbt-core, by sha256. Wheels exist for
 # manylinux_2_28 x86_64/aarch64, macOS x86_64/arm64 and win_amd64, so other
-# platforms are fine, but an install needs egress to github.com and not just
-# to a PyPI mirror. Checked 7 Sep 2026, version 2.0.0a5.
+# platforms are fine. The one thing to know: an install needs egress to
+# github.com and not just to a PyPI mirror. The size is incidental.
+# Checked 7 Sep 2026, version 2.0.0a5.
 agate==1.9.1
 annotated-types==0.8.0
 attrs==26.1.0
