@@ -395,9 +395,9 @@ Horizon is **17 July 2026** (answered below, measured not assumed), so
 anything earlier has exactly one version and a vintage run reproduces
 current numbers there. Granularity is per snapshot run — five exist: 17 Jul,
 31 Jul, 6, 13, 19 Aug. `Importer margin trend` is excluded from tracking by
-design and cannot be reconstructed. Only MBIE data is versioned: `periods`,
-`brent_daily` and the rest are seeds, so a vintage warehouse carries July
-values under today's period definitions.
+design and cannot be reconstructed. Only MBIE data is versioned: `periods` and
+the rest are seeds, so a vintage warehouse carries July values under today's
+period definitions.
 
 **Therefore the payoff today is near zero, and that is not an argument
 against it.** Five vintages spanning five weeks, 29 changed cells, none of
@@ -859,11 +859,16 @@ objections that ruled out a Fabric notebook apply here.
   build. `panel_weekly.csv` and `backtest_results.csv` are not seeds and
   were gitignored on 23 Aug without waiting for this.
 
-  `brent_daily.csv` joins them, corrected 23 Aug: it was first filed as
-  hand-downloaded and therefore staying, but FRED serves it under a stable
-  series id and its one question is already answered, so it becomes a fetcher
-  in `research/` and the seed retires. That also touches `export_panel.py`,
-  which joins `dbo.brent_daily`.
+  **`brent_daily.csv` is done, 7 Sep 2026, and it did not become a weekly
+  fetcher.** The correction of 23 Aug said the seed should retire in favour of
+  a script, and that much held; what changed on doing it is where the script
+  belongs. Nothing in the weekly chain reads Brent — not a model, not a
+  forecast, not one estimation script — so making it a weekly step would have
+  added something that can only fail. It left the regular procedure instead:
+  `research/fetch_brent.py` on demand, no join in `export_panel.py`, no seed in
+  git. Verified: the derived seeds rebuild byte-identically from a panel
+  without the two Brent columns, and the fetcher reproduces the retired seed
+  exactly. Two of the three seeds below are therefore what is left.
 
   `periods.csv` and `variable_mapping.csv` stay in git and are not part of
   this — they are hand-written configuration, and the reviewable history of
@@ -1051,9 +1056,9 @@ item overlaps a branch, the branch is named.
    rather than a mechanism that turned out not to be there.
 2. **A daily benchmark — partially DONE 15 Aug 2026; the third reason is
    now closed.** The open question was what MBIE's weekly crude number
-   *is*: a weekly average or a single-day snapshot. `seeds/brent_daily.csv`
-   (FRED `DCOILBRENTEU`, 5,650 rows from 2004-04-23, free, no API key)
-   settled it — **it is the Monday–Friday mean of the stamped week**, r =
+   *is*: a weekly average or a single-day snapshot. Daily Brent
+   (FRED `DCOILBRENTEU`, free, no API key; then a committed seed, since 7 Sep
+   2026 fetched on demand by `research/fetch_brent.py`) settled it — **it is the Monday–Friday mean of the stamped week**, r =
    0.89 against 0.68 for the Friday quote, with the window pinned by grid
    search. So the feared snapshot-noise bias does not exist, and factor and
    target sit on the same footing. The same load also delivered the

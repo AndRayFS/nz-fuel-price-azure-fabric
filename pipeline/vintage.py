@@ -14,7 +14,7 @@ WHAT "THE SYSTEM ON A DATE" MEANS HERE. Two dimensions, treated differently
 and deliberately:
 
   * DATA moves. MBIE numbers come from the snapshot filtered by validity, and
-    the hand-written seeds (`periods`, `variable_mapping`, `brent_daily`) are
+    the hand-written seeds (`periods`, `variable_mapping`) are
     restored from the commit that was current on that date. Both are versioned;
     both are honoured.
 
@@ -68,7 +68,6 @@ HORIZON = date(2026, 7, 17)
 HAND_WRITTEN_SEEDS = [
     "seeds/periods.csv",
     "seeds/variable_mapping.csv",
-    "seeds/brent_daily.csv",
 ]
 
 SCHEMA = "pipeline"
@@ -124,11 +123,13 @@ def restore_seeds(commit: str) -> tuple[list[str], list[str]]:
     """Put the hand-written seeds back to `commit`.
 
     Returns (moved, absent). A seed that did not exist yet at the target date
-    is left at HEAD rather than deleted: `brent_daily` arrived on 15 Aug 2026,
-    and removing it would break `export_panel.py`, which joins it. The vintage
-    is then imperfect in one stated way instead of failing outright — and the
-    caller prints which way, because an unstated approximation is worse than
-    either.
+    is left at HEAD rather than deleted, so the vintage is imperfect in one
+    stated way instead of failing outright — and the caller prints which way,
+    because an unstated approximation is worse than either. The case that
+    prompted this was `brent_daily`, which arrived on 15 Aug 2026 and was
+    joined by `export_panel.py`; it left the weekly chain on 7 Sep and both
+    seeds here now predate every reachable vintage. The handling stays: the
+    next seed to arrive will hit it again.
     """
     present = [f for f in HAND_WRITTEN_SEEDS if existed_at(commit, f)]
     absent = [f for f in HAND_WRITTEN_SEEDS if f not in present]
