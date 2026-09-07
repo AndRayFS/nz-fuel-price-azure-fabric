@@ -1,0 +1,23 @@
+# The dbt profile, in the repository since W8 so that CI and this laptop read
+# the same one. It used to live only in ~/.dbt/profiles.yml.
+#
+# Nothing secret is here. The warehouse endpoint is already public in the
+# semantic model under pbip/, and authentication carries no key: `CLI` takes a
+# token from whoever is logged in — an `az login` locally, the federated
+# (OIDC) identity on a GitHub Actions runner, which authenticates with
+# azure/login before anything calls dbt.
+#
+# Every value can be overridden by environment variable, which is what a
+# second warehouse or a different tenant would need.
+
+nz_fuel_price_project:
+  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+  outputs:
+    dev:
+      type: fabric
+      driver: "{{ env_var('DBT_DRIVER', 'ODBC Driver 18 for SQL Server') }}"
+      server: "{{ env_var('FABRIC_SQL_ENDPOINT', 'fhi24zxnvquurfybnnzrkz22aq-ae4c5pcutjkedh2gfko4iqwk24.datawarehouse.fabric.microsoft.com') }}"
+      port: 1433
+      database: "{{ env_var('FABRIC_WAREHOUSE', 'analytics_warehouse') }}"
+      schema: dbo
+      authentication: "{{ env_var('DBT_AUTH', 'CLI') }}"

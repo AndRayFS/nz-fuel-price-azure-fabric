@@ -1,0 +1,69 @@
+
+name: Pause capacity (watchdog)
+
+# The third line of defence, behind `defer` inside task and the always() step
+# in weekly.yml. Both of those run inside the weekly job, so neither survives
+# the runner being cancelled, evicted or timed out — and a capacity left awake
+# bills NZ$0.729/hour until the 23:00 NZT auto-pause, which is the fourth line
+# and can be hours away.
+#
+# Half past the hour after the weekly run starts, plus a button. It refuses to
+# act while a weekly run is still going, so a slow ingest is never cut off
+# mid-chain: a late pause costs cents, a pause through a running load costs the
+# week's data.
+#
+# The schedule is off for the same reason weekly.yml's is: no identity yet.
+# Turn both on together — a watchdog without the run it guards is pointless,
+# and the run without the watchdog is the expensive half.
+on:
+  # schedule:
+  #   - cron: '30 21 * * 3'
+  workflow_dispatch:
+
+concurrency:
+  group: fabric-capacity
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  actions: read
+
+jobs:
+  pause:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      CAPACITY_ID: /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/nz-fuel-price-rg/providers/Microsoft.Fabric/capacities/nzfuelcapacity
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait while a weekly load is still running
+        run: |
+          for i in $(seq 1 20); do
+            running=$(gh run list --workflow weekly.yml --status in_progress --json databaseId --jq 'length')
+            [ "$running" = "0" ] && { echo "no weekly run in flight"; exit 0; }
+            echo "weekly load still running — waiting ($i)"
+            sleep 60
+          done
+          echo "a weekly load has been running for 20 minutes; pausing anyway would"
+          echo "break it, so this watchdog stands down. The 23:00 NZT auto-pause"
+          echo "remains."
+          exit 1
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Pause it if it is awake
+        run: |
+          state=$(az resource show --ids "$CAPACITY_ID" --query properties.state -o tsv)
+          echo "capacity is $state"
+          if [ "$state" = "Active" ]; then
+            az resource invoke-action --ids "$CAPACITY_ID" --action suspend >/dev/null
+            echo "### Watchdog paused a capacity the weekly run left awake" >> "$GITHUB_STEP_SUMMARY"
+          fi

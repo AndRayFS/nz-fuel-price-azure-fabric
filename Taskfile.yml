@@ -20,9 +20,26 @@ vars:
   # The venv sits one level above the dbt project, which is where it was
   # built. Override on the command line if yours is elsewhere:
   #   task weekly VENV=/path/to/.venv
-  VENV: '{{.ROOT_DIR}}/../.venv'
+  # On this machine the venv sits one level above the dbt project; on a CI
+  # runner it is created inside the checkout. Prefer a local one, fall back to
+  # the parent, and let VENV in the environment override both.
+  VENV:
+    sh: echo "${VENV:-$([ -x .venv/bin/python ] && echo "$PWD/.venv" || echo "$PWD/../.venv")}"
   PY: '{{.VENV}}/bin/python'
   DBT: '{{.VENV}}/bin/dbt'
+
+  # The F2 capacity. Resuming and pausing are ARM operations, a different
+  # permission plane from everything else here — see docs/architecture.md.
+  CAPACITY: nzfuelcapacity
+  CAPACITY_RG: nz-fuel-price-rg
+  # `sh:` rather than a plain string on purpose: go-task does NOT read vars
+  # from the environment (verified 7 Sep 2026 — an exported CAPACITY_ID was
+  # ignored while a command-line one won), so a workflow setting it as an env
+  # var would silently get the default. Reading it through the shell makes both
+  # work, and the subscription id is not a secret: it is already in
+  # .claude/rules/working-style.md and in the semantic model.
+  CAPACITY_ID:
+    sh: echo "${CAPACITY_ID:-/subscriptions/e30d2fa4-fb6e-48c5-b3cd-5f9c3f270159/resourceGroups/nz-fuel-price-rg/providers/Microsoft.Fabric/capacities/nzfuelcapacity}"
 
 tasks:
 
@@ -49,6 +66,49 @@ tasks:
           exit 1
         fi
         echo "venv ok — $({{.PY}} --version), fabric adapter registered"
+
+# --- the capacity, and the ingest that needs it awake ------------------------
+
+  capacity-status:
+    desc: "Is the capacity awake? (read-only)"
+    silent: true
+    cmds:
+      - |
+        state=$(az resource show --ids "{{.CAPACITY_ID}}" --query properties.state -o tsv)
+        echo "capacity {{.CAPACITY}}: $state"
+
+  capacity-resume:
+    desc: "Wake the capacity and wait until it reports Active — it bills from here"
+    silent: true
+    cmds:
+      - |
+        state=$(az resource show --ids "{{.CAPACITY_ID}}" --query properties.state -o tsv)
+        if [ "$state" = "Active" ]; then echo "capacity already Active"; exit 0; fi
+        echo "resuming {{.CAPACITY}} — NZ$0.729/hour from now"
+        az resource invoke-action --ids "{{.CAPACITY_ID}}" --action resume >/dev/null
+        # The resume is asynchronous and everything downstream fails hard with
+        # `this Fabric capacity is currently not active`, so wait rather than hope.
+        for i in $(seq 1 40); do
+          sleep 15
+          state=$(az resource show --ids "{{.CAPACITY_ID}}" --query properties.state -o tsv)
+          [ "$state" = "Active" ] && { echo "capacity Active after $((i * 15))s"; exit 0; }
+        done
+        echo "capacity still $state after 10 min — giving up"; exit 1
+
+  capacity-pause:
+    desc: "Pause the capacity. Safe to run when it is already paused"
+    silent: true
+    cmds:
+      - |
+        state=$(az resource show --ids "{{.CAPACITY_ID}}" --query properties.state -o tsv)
+        if [ "$state" = "Paused" ]; then echo "capacity already Paused"; exit 0; fi
+        az resource invoke-action --ids "{{.CAPACITY_ID}}" --action suspend >/dev/null
+        echo "capacity paused"
+
+  ingest:
+    desc: "Start ingest_mbie_weekly and wait for it (step 0) — replaces the portal click"
+    cmds:
+      - '"{{.PY}}" pipeline/run_ingest.py'
 
 # --- the gate ----------------------------------------------------------------
 
@@ -157,6 +217,18 @@ tasks:
         echo "Chain finished. Two things are still yours to do:"
         echo "  - refresh the Power BI dataset"
         echo "  - read the monitoring WARNs above; a green run is not a quiet one"
+
+  unattended:
+    desc: "Everything, including waking the capacity and pausing it afterwards. What CI runs"
+    cmds:
+      - task: capacity-resume
+      # `defer` runs even when a task below fails, so a broken run does not
+      # leave the capacity billing. It does NOT survive the process being
+      # killed — the workflow's own always() step and the 23:00 NZT auto-pause
+      # are the second and third lines of defence.
+      - defer: { task: capacity-pause }
+      - task: ingest
+      - task: weekly
 
 # --- odds and ends -----------------------------------------------------------
 
