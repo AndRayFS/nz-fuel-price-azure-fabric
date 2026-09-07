@@ -15,6 +15,14 @@
 # openpyxl (with et_xmlfile) and msgpack — nothing imports them and nothing
 # requires them. `dbt parse`, `dbt --version` and the full offline recompute
 # were verified without them.
+#
+# ONE PIN NEEDS MORE THAN PyPI. `dbt-core-experimental-parser` (required by
+# dbt-core) publishes only a 4 KB sdist; installing it reads `assets.json`
+# and downloads the real wheel — a ~116 MB native binary — from GitHub
+# Releases under dbt-labs/dbt-core, by sha256. Wheels exist for
+# manylinux_2_28 x86_64/aarch64, macOS x86_64/arm64 and win_amd64, so other
+# platforms are fine, but an install needs egress to github.com and not just
+# to a PyPI mirror. Checked 7 Sep 2026, version 2.0.0a5.
 agate==1.9.1
 annotated-types==0.8.0
 attrs==26.1.0
