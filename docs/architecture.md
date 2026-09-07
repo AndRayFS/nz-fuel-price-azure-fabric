@@ -774,11 +774,11 @@ retired seed exactly (5,650 shared dates, maximum difference 0.0000) and
 reaches further back, since FRED holds daily Brent from 1987 and the seed
 began at MBIE's own start date.
 
-`dbo.brent_daily` is still in the warehouse, harmless and unreferenced;
-dropping it needs the capacity awake and can wait for a run that needs it up
-anyway. If Brent ever earns a place in the weekly recompute — a second factor,
-a crack spread, a check on MBIE's crude column — the script moves to
-`pipeline/` and this paragraph is what has to change first.
+`dbo.brent_daily` was dropped by hand on 7 Sep 2026, along with two tables
+that had spent an hour in the wrong schema. If Brent ever earns a place in the
+weekly recompute — a second factor, a crack spread, a check on MBIE's crude
+column — the script moves to `pipeline/` and this paragraph is what has to
+change first.
 
 **One file is irreplaceable, and the rule must not be applied to it carelessly.**
 `seeds/monitoring/aip_singapore_weekly.csv` is the only copy of the AIP series
