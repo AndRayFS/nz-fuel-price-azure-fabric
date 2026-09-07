@@ -47,23 +47,22 @@ Runs first, after the ingest and before anything else. Three exit codes:
 | 2 | nothing to do — no new week | do not run the chain; nobody need look |
 | 1 | stop and look | do not run the chain; go and read why |
 
-**Nothing enforces this yet.** The weekly chain is a list of commands in
-`QUICKSTART.md` that a person runs; there is no runner, no `set -e`, and no
-dependency between the steps. The gate therefore *informs* — it prints its
-verdict to stderr and returns a code — and a human decides. Paste the whole
-block on a `nothing_new` week and every step after it will run happily on
-unchanged data.
-
-Making the code binding is W7, which declares the chain in `Taskfile.yml` so
-the steps genuinely depend on the gate. Until then, read the exit code:
+**The verdict binds, since W7 (7 Sep 2026).** The chain is declared in
+`Taskfile.yml`, where every step comes after `gate`, so a non-zero code stops
+the run rather than merely advising against it. Before that the chain was a
+markdown block a person pasted, and pasting it whole on a `nothing_new` week
+ran every step after the gate on unchanged data.
 
 ```bash
-python pipeline/gate.py; echo "gate said $?"
+task weekly                        # the gate first, then the rest
+python pipeline/gate.py; echo "gate said $?"    # just the verdict
 ```
 
 Exit 2 is not an error and must not be reported as one. What separates it from
 1 is only whether anyone needs to investigate, not whether the chain runs —
-neither code lets the chain run.
+neither code lets the chain run. `task` prints a failure line either way, so
+the `gate` task prints its own explanation first: on a 2 it says in words that
+stopping was the intended outcome.
 
 `gate.py`'s module docstring carries the reasoning — in particular why it
 reads what arrived rather than what MBIE published, which is not what W3

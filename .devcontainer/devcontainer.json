@@ -6,7 +6,7 @@
         "ghcr.io/devcontainers/features/azure-cli:1": {}
     },
 
-    "postCreateCommand": "pip install --no-cache-dir -r requirements.txt",
+    "postCreateCommand": "pip install --no-cache-dir -r requirements.txt && sh -c \"$(curl -sSL https://taskfile.dev/install.sh)\" -- -d -b /usr/local/bin",
 
     "customizations": {
         "vscode": {
