@@ -62,7 +62,9 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
-HERE = Path(__file__).parent
+ROOT = Path(__file__).parents[1]
+PANEL = ROOT / "data" / "panel_weekly.csv"
+FLAGS = ROOT / "seeds" / "period_flags.csv"
 K = 6
 ECM_WINDOW = 104
 START = "2010-01-01"
@@ -71,8 +73,8 @@ CPL = 0.629             # c/L per NZD/bbl
 
 
 def load(fuel: str) -> pd.DataFrame:
-    p = pd.read_csv(HERE / "data" / "panel_weekly.csv", parse_dates=["Date"])
-    f = pd.read_csv(HERE.parent / "seeds" / "period_flags.csv",
+    p = pd.read_csv(PANEL, parse_dates=["Date"])
+    f = pd.read_csv(FLAGS,
                     parse_dates=["week_date"])
     d = p[p.Fuel == fuel].merge(
         f[f.fuel == fuel], left_on="Date", right_on="week_date", how="left"

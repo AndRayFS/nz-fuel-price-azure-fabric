@@ -583,7 +583,33 @@ before the check showed no code reads it. Ask for the consumer by name.
 **Touches.** `docs/workstreams.md`, and whatever branches the verdicts spawn.
 
 
-## W5 — Split `pipeline/` from `research/`
+## W5 — Split `pipeline/` from `research/` — **landed 7 Sep 2026**
+
+Branch `w5-pipeline-research-split`. Delivered as described below, with
+three departures worth stating.
+
+**The derived data went to `data/` at the repository root, not into
+`pipeline/`.** `panel_weekly.csv` is written by production and read by six
+exploratory scripts; filing it under either package would have made one of
+them reach into the other's directory every time. Neither owns it now, and
+`.gitignore` names two paths instead of two directories.
+
+**`aip_check.py` stayed in `research/`.** It runs weekly, so by the stated
+rule it is production — but it parses a PDF whose layout is the source's to
+change, and the documented failure mode (`no report tables parsed`, AIP
+restyles page 3) is a person editing a regex. A step that needs a judgement
+the week the source changes is not code that runs unattended. The weekly
+chain therefore still calls one script out of `research/`, which is the one
+thing this branch did not deliver. Its PDF cache moved from
+`research/data/.aip_cache` to `research/.aip_cache`, so the repository has
+one directory called `data` rather than two.
+
+**Nothing moved a number.** `seeds/period_flags.csv` and
+`seeds/forecast_history.csv` were rebuilt from the new locations and came
+back byte-identical (md5 `6214b846…` and `56f39803…`), and all four
+estimation scripts run against the relocated panel. `export_panel.py` was
+compile-checked only — a real run needs the capacity resumed, and it is due
+next weekly load.
 
 **Now.** `research/` holds two different kinds of code under one README.
 `export_panel.py`, `build_period_flags.py` and `backtest.py` run every
@@ -826,7 +852,7 @@ refresh left manual.
 
 **Now.** The next methodological piece, and the owner's stated priority
 regardless of the infrastructure work. It needs no Fabric compute at all:
-estimation runs offline against `research/data/panel_weekly.csv`, so it is
+estimation runs offline against `data/panel_weekly.csv`, so it is
 unaffected by the 27 Aug credit expiry and can happen at any time.
 
 **Depends on.** Nothing. Runs in parallel with everything in Tracks 1–2.
@@ -1039,7 +1065,7 @@ W12 benchmark   ─ backlog
 ```
 
 Only three hard dependencies exist: W5 and W6 before W8, and W3/W5 before
-W7. Everything else is preference, and preference should not be presented
+W7 — W3 and W5 have both landed, so W7 is unblocked. Everything else is preference, and preference should not be presented
 as sequencing.
 
 **The three tracks are a grouping, not an order.** Reading them top to
@@ -1059,13 +1085,13 @@ side file to a whole-chain mode makes it an ordinary branch.
 
 | file | wanted by |
 |---|---|
-| `research/export_panel.py` | W1, W5 |
-| `research/backtest.py` | W1, W5 |
+| `pipeline/export_panel.py` | W1, W5 — both landed |
+| `pipeline/backtest.py` | W1, W5 — both landed |
 | `models/silver/silver_fuel.sql` | W1 |
 | `models/silver/silver_general.sql` | W1 |
 | `models/silver/_silver__models.yml` | W1 |
 | `QUICKSTART.md` | W2, W3, W5, W7 |
-| `research/aip_check.py` | W2, W5 |
+| `research/aip_check.py` | W2 |
 | `.claude/rules/active-items.md` | W9 |
 
 `QUICKSTART.md` is wanted by four branches; leave its rewrite to whichever

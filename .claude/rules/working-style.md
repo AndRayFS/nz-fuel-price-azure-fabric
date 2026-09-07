@@ -52,7 +52,7 @@ So the rule is about *quoting*, not about the documents:
   and *offer* the recompute. Do not silently quote it as current, and do not
   silently run the recompute either.
 - **Say what the recompute actually costs**, because it varies: some run
-  offline against `research/data/panel_weekly.csv` in seconds, others need the
+  offline against `data/panel_weekly.csv` in seconds, others need the
   Fabric capacity resumed and therefore money. `headline_results.py` is the
   first kind; anything reading the warehouse is the second.
 

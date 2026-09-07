@@ -27,7 +27,9 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
-HERE = Path(__file__).parent
+ROOT = Path(__file__).parents[1]
+PANEL = ROOT / "data" / "panel_weekly.csv"
+FLAGS = ROOT / "seeds" / "period_flags.csv"
 K_MAIN = 6
 ECM_WINDOW = 104
 START = "2010-01-01"
@@ -58,8 +60,8 @@ def all_final(p: pd.DataFrame) -> pd.Series:
 
 
 def load(fuel: str, final_only: bool) -> pd.DataFrame:
-    p = pd.read_csv(HERE / "data" / "panel_weekly.csv", parse_dates=["Date"])
-    f = pd.read_csv(HERE.parent / "seeds" / "period_flags.csv",
+    p = pd.read_csv(PANEL, parse_dates=["Date"])
+    f = pd.read_csv(FLAGS,
                     parse_dates=["week_date"])
     d = p[p.Fuel == fuel].merge(
         f[f.fuel == fuel][["week_date", "crude_vol_regime"]],
@@ -98,7 +100,7 @@ def lag_sum(res, prefix="l"):
 
 
 def main() -> None:
-    p = pd.read_csv(HERE / "data" / "panel_weekly.csv", parse_dates=["Date"])
+    p = pd.read_csv(PANEL, parse_dates=["Date"])
     final = all_final(p)
     cut = p[final].Date.max()
     prov = p[~final].Date.nunique()

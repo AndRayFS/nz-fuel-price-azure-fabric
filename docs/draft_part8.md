@@ -17,7 +17,7 @@ House style, hashtag conventions and the correction log: `linkedin_series.md`.
 `research/art/anim.py` builds `fuel_price_anatomy.gif` — 81 frames (one
 title card, then every month from Jan 2020 to Aug 2026), 24.5 s, 1.77 MB,
 1100×632. Run it from its own directory; it reads `fonts/*.ttf` and
-`research/data/panel_weekly.csv` by relative path and writes the GIF beside
+`data/panel_weekly.csv` by relative path and writes the GIF beside
 itself.
 
 The companion page, with the two static Sankeys, the layer cards and the
@@ -48,7 +48,7 @@ caught 21 Aug, before publication.
 
 ## Fact-check trail
 
-Recomputed 21 Aug 2026 against `research/data/panel_weekly.csv`, diesel,
+Recomputed 21 Aug 2026 against `data/panel_weekly.csv`, diesel,
 monthly means where the post quotes a month.
 
 | claim in the post | verified value |
@@ -85,7 +85,7 @@ someone's margin is the exact error the Part 1 audit corrected
 
 **When to recheck:** the 19 weeks from 3 Apr 2026 are still `Provisional`;
 `importer_cost` and `importer_margin` are the two suspended series, so every
-2026 figure above is exposed. Re-run `research/export_panel.py` after
+2026 figure above is exposed. Re-run `pipeline/export_panel.py` after
 Stats NZ publishes the June-quarter CPI, then rebuild the GIF and diff this
 table. The Apr 2020 numbers are Final and will not move.
 
@@ -155,4 +155,4 @@ NZ Fuel Price Project — Part 8 ☕
 - The closing tease is the nowcast: a Monday Brent-in-NZD reading explains
   30% (diesel) / 45% (petrol) of the current week's cost change, which is
   how lag 0 becomes usable. Designed and validated, **not yet implemented**
-  in `research/backtest.py` — Part 9 should not be written until it is.
+  in `pipeline/backtest.py` — Part 9 should not be written until it is.

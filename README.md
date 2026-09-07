@@ -49,8 +49,8 @@ Data Factory --(orchestrates)--> Lakehouse (bronze, raw snapshot)
   reads. Weekly walk-forward calls from the distributed-lag model at one, two
   and three weeks, each carried next to the naive "the price won't move"
   benchmark it is scored against, plus a trailing 26-week skill figure. It is
-  built from two seeds written by `research/backtest.py` and
-  `research/build_period_flags.py`, not from silver directly.
+  built from two seeds written by `pipeline/backtest.py` and
+  `pipeline/build_period_flags.py`, not from silver directly.
 - **Gold, retired but still scheduled** (`lag_correlation`, `lag_resolved`,
   `factor_volatility`, `volatility_config`) — this project's first answer to
   its own question, ported from the original R script: cross-correlation by

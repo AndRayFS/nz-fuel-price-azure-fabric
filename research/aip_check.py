@@ -65,7 +65,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent
-CACHE = ROOT / "data" / ".aip_cache"
+CACHE = ROOT / ".aip_cache"
 # The PDFs stay local and disposable; the extracted weeks are the asset, and
 # they live in the seed that `monitoring` is built from.
 OUT = REPO / "seeds" / "monitoring" / "aip_singapore_weekly.csv"

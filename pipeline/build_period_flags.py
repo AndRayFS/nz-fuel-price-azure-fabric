@@ -6,11 +6,11 @@ crude shock, a tax reform, a supply-chain change and a change of measurement
 into one label. Rationale, thresholds and every number quoted in the docs:
 `docs/period_labelling.md`.
 
-Everything here is derived from `research/data/panel_weekly.csv` by rule.
+Everything here is derived from `data/panel_weekly.csv` by rule.
 Nothing is hand-drawn, so the whole seed is reproducible:
 
     source /Users/Ray/nz-fuel-price-project/.venv/bin/activate
-    python research/build_period_flags.py
+    python pipeline/build_period_flags.py
 
 Two boundary dates are external facts rather than rule output — Marsden Point's
 last refining week and the Envisory/Datamine changeover — and both are marked
@@ -24,8 +24,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-PANEL = Path(__file__).parent / "data" / "panel_weekly.csv"
-OUT = Path(__file__).parents[1] / "seeds" / "period_flags.csv"
+ROOT = Path(__file__).parents[1]
+PANEL = ROOT / "data" / "panel_weekly.csv"
+OUT = ROOT / "seeds" / "period_flags.csv"
 
 # --- crude volatility regime -------------------------------------------------
 #

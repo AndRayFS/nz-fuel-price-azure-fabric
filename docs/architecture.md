@@ -509,7 +509,7 @@ question about `Importer margin trend` is answered below.
 re-exported panel matched the previous one in every value cell across 3,495
 rows; the new six-column flag agreed with the old single-column one on
 every row (3,435 final, 60 provisional — 20 weeks × 3 fuels); and
-`seeds/forecast_history.csv` and `research/data/backtest_results.csv` came
+`seeds/forecast_history.csv` and `data/backtest_results.csv` came
 back byte-identical to the committed versions.
 
 ### `Importer margin trend` dropped from silver entirely
@@ -754,8 +754,10 @@ it is irreplaceable, only unrecorded.
 Its purpose is also spent. It was acquired to settle one question — whether
 MBIE's weekly crude number is Friday's quote or the Mon–Fri mean — and the
 answer is measured and recorded above. What remains is two diagnostic columns
-in the panel that no gold model reads. So it belongs in `research/` as a
-fetcher, with the seed and the warehouse table retired; that also means editing
+in the panel that no gold model reads. So it belongs in `pipeline/` as a
+fetcher — it would run weekly, before the panel export, which puts it on the
+production side of the W5 boundary — with the seed and the warehouse table
+retired; that also means editing
 `export_panel.py`, which joins `dbo.brent_daily`. Until then it cannot leave
 git for the same clean-clone reason as the other seeds, so it travels with
 them in W8.

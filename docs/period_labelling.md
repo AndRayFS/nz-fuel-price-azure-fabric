@@ -1,7 +1,7 @@
 # Period labelling — replacing one `period_type` with several axes
 
 Answers `research/period_labelling_brief.md`. Written 15 Aug 2026, offline
-against `research/data/panel_weekly.csv` (1,164 weeks × 2 fuels,
+against `data/panel_weekly.csv` (1,164 weeks × 2 fuels,
 2004-04-23 → 2026-08-07). No warehouse queries; the Fabric capacity was
 never started for this work.
 
@@ -13,7 +13,7 @@ a figure, and only when the answer turns on the digit.
 Deliverables:
 
 - `seeds/period_flags.csv` — proposed replacement seed, 2,328 rows.
-- `research/build_period_flags.py` — the rule that generates it. Nothing in
+- `pipeline/build_period_flags.py` — the rule that generates it. Nothing in
   the seed is hand-drawn except two named boundary dates, both marked in the
   script.
 
@@ -655,7 +655,7 @@ Cautions:
    (with `accepted_values` tests on the three categorical columns, which is
    how `periods` is already tested) — deliberately not done here, since the
    brief reserves the merge decision.
-4. **Regenerate, don't edit.** `python research/build_period_flags.py`. The
+4. **Regenerate, don't edit.** `python pipeline/build_period_flags.py`. The
    file is derived; a hand edit will be silently overwritten.
 
 ## 10. What was not settled
