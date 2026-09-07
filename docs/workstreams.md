@@ -696,7 +696,32 @@ transitively — that is a finding, not a problem.
 **Depends on.** Nothing. Can be done at any time, including immediately.
 **Touches.** `requirements.txt`, `.devcontainer/`, `README.md`.
 
-## W7 — Declarative chain
+## W7 — Declarative chain — **landed 7 Sep 2026**
+
+Branch `w7-declarative-chain`. Delivered as described below, with two
+departures worth stating.
+
+**The gate's exit 2 cannot be made to look like anything but a failure.**
+`task` stops on a non-zero code and prints `Failed to run task "weekly"`,
+which is exactly right for a `1` and misleading for a `2` — "nothing to do"
+is the gate working, not the chain breaking. Rather than swallow the code
+(which would let the chain continue) the `gate` task prints its own verdict
+first and says in words that stopping was the intended outcome. The runner's
+error line then reads as noise after an explanation rather than as the
+explanation.
+
+**Three tasks exist that the plan did not call for**, all cheap and all
+earning their place: `env` checks the venv and the adapter before anything
+touches the warehouse, `offline` runs steps 6 and 7 alone (the two that need
+no capacity), and `setup` builds the venv from W6's lock. Running any step
+directly skips the gate on purpose — that is for resuming a failed run, and
+`weekly` is the entry point for starting one.
+
+**Verified as far as a paused capacity allows.** `task --list` prints all
+eighteen tasks; `task offline` reproduces both seeds byte-identically;
+`task weekly` stops at the gate and runs nothing after it, leaving the tree
+clean. A full green run needs the capacity resumed and is the next weekly
+load.
 
 **Now.** The weekly chain is eleven steps in a markdown table plus three
 warnings that have to be remembered: step 5 before step 6 (the centred
