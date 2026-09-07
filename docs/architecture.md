@@ -494,8 +494,9 @@ variable, nothing depends on that claim. The training filter states its own
 dependencies instead — six variables in `backtest.py`
 (`TRAIN_STATUS_COLS`) and the same six in `headline_results.py`, being the
 series `net`, `d_cost` and `dev` are built from. `dubai_crude_nzd` is not
-among them: only `report1_ish` reads it, and that method is applied, never
-fitted.
+among them: the only method that ever read it was `report1_ish`, withdrawn
+7 Sep 2026 (`research.md`, "The reconstructed published formula loses to
+doing nothing").
 
 **What bronze actually contains** (checked 22 Aug 2026, all 24
 variable/unit pairs): `Final` from 2004-04-23 to 2026-03-27 and

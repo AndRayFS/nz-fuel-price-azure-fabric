@@ -249,16 +249,6 @@ table forecast_accuracy
 
 		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
-	column pred_report1_ish
-		dataType: double
-		lineageTag: 6eb4a518-fd57-4e82-8b89-b8f5f3251659
-		summarizeBy: sum
-		sourceColumn: pred_report1_ish
-
-		annotation SummarizationSetBy = Automatic
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
-
 	column abs_err_adl
 		dataType: double
 		lineageTag: 4e724007-58e9-4e55-993a-d165618088a3
@@ -289,16 +279,6 @@ table forecast_accuracy
 
 		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
-	column abs_err_report1
-		dataType: double
-		lineageTag: 622e5355-489c-4e4c-9c91-5cdba0370cc7
-		summarizeBy: sum
-		sourceColumn: abs_err_report1
-
-		annotation SummarizationSetBy = Automatic
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
-
 	column mae_model_26w
 		dataType: double
 		lineageTag: e35198a7-6747-4b8f-914c-df654e9cea85
@@ -319,16 +299,6 @@ table forecast_accuracy
 
 		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
-	column mae_report1_26w
-		dataType: double
-		lineageTag: bf0b6f62-8214-429b-b795-40802c336493
-		summarizeBy: sum
-		sourceColumn: mae_report1_26w
-
-		annotation SummarizationSetBy = Automatic
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
-
 	column window_n
 		dataType: int64
 		formatString: 0
@@ -343,16 +313,6 @@ table forecast_accuracy
 		lineageTag: 7bde66e0-a9ff-4c58-87bc-d9fd776cfe0f
 		summarizeBy: sum
 		sourceColumn: skill_26w
-
-		annotation SummarizationSetBy = Automatic
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
-
-	column skill_report1_26w
-		dataType: double
-		lineageTag: 7b970b42-afb3-49a4-8189-a01dc52f61e9
-		summarizeBy: sum
-		sourceColumn: skill_report1_26w
 
 		annotation SummarizationSetBy = Automatic
 

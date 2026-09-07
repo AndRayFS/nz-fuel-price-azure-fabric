@@ -36,7 +36,6 @@ there by design, not by omission.
 | `actual_price` | what the price actually was at `target_week` |
 | `pred_adl_ecm` | the model's call. **Use this one.** |
 | `pred_naive` | "the price won't change" — the benchmark |
-| `pred_report1_ish` | the current published formula, reconstructed |
 | `abs_err_*` | absolute error per method |
 | `mae_model_26w`, `mae_naive_26w` | trailing 26-week mean absolute error |
 | `skill_26w` | `1 − model MAE / naive MAE`. **>0 = beating naive** |

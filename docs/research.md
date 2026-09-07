@@ -493,6 +493,51 @@ and "direction correct" but not whether the forecast came in over or under.
 That sign is the most diagnostic part of a backtest and had to be
 recovered by re-simulation. Record it next time.
 
+## The reconstructed published formula loses to doing nothing — withdrawn from the backtest 7 Sep 2026
+
+`report1_ish` was the walk-forward test's reconstruction of Report 1's own
+formula, `slope × (crude_t − crude_{t−k})`, with both the lag `k` and the
+levels slope refit each week on a trailing 26-week window. It was there as a
+yardstick: whatever the distributed-lag model achieved, the honest question
+was whether it beat what the project had been publishing all along.
+
+It did not merely lose to the model. It lost to doing nothing.
+
+| method | beats naive at h=2 | measured |
+|---|---|---|
+| `adl` | 56.4% of weeks | 7 Sep 2026 |
+| `adl_ecm` | 55.5% | 7 Sep 2026 |
+| `full_pass` | 47.3% | 7 Sep 2026 |
+| `report1_ish` | **34.5%** | 7 Sep 2026 |
+
+On the thirteen weeks finalised on 26 Aug 2026 it returned MAE 15.18 at
+h=1 against naive's 7.42 — twice the error of saying the price will not
+move.
+
+**Why is already measured**, in "The forecast measure multiplies a change by
+a slope fitted on levels" above: the multiplicand is a change while the
+slope comes from a regression on levels, which inflates the coefficient by
+about 70% across all three fuels. A consistently over-scaled response is
+worse than no response at all.
+
+**And the version measured here is the charitable one.** It refits `k` and
+the slope on the trailing window, so it sees only the past. The real measure
+takes both from the *current period*, and periods are drawn after the fact —
+that 28 Feb 2026 began a crisis was knowable only weeks later. A
+period-conditioned method cannot be honestly backtested at all, so the
+number above is the best case for it, not the typical one.
+
+**Withdrawn from the pipeline on 7 Sep 2026**, not just from the writing:
+the method left `backtest.py`, its two columns left
+`seeds/forecast_history.csv`, and `pred_report1_ish`, `abs_err_report1`,
+`mae_report1_26w` and `skill_report1_26w` left `forecast_accuracy` and the
+semantic model. Nothing was reading them — the report charts `pred_adl_ecm`
+against `pred_naive` — and the T-SQL lag layer the formula came from feeds
+nothing either. A benchmark is worth carrying while the answer is open;
+this one is settled, and the settlement is this section.
+
+The backtest now runs four methods: `naive`, `full_pass`, `adl`, `adl_ecm`.
+
 ## Pass-through, decomposed — and three versions of an asymmetry finding that did not survive
 
 The question this section was opened to answer is what the pump price is

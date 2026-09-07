@@ -29,11 +29,9 @@ with base as (
         pred_adl,
         pred_adl_ecm,
         pred_naive,
-        pred_report1_ish,
         abs(err_adl)         as abs_err_adl,
         abs(err_adl_ecm)     as abs_err_adl_ecm,
-        abs(err_naive)       as abs_err_naive,
-        abs(err_report1_ish) as abs_err_report1
+        abs(err_naive)       as abs_err_naive
     from {{ ref('forecast_history') }}
 ),
 
@@ -46,9 +44,6 @@ rolled as (
         avg(abs_err_naive) over (
             partition by fuel, horizon_weeks order by week_date
             rows between 25 preceding and current row) as mae_naive_26w,
-        avg(abs_err_report1) over (
-            partition by fuel, horizon_weeks order by week_date
-            rows between 25 preceding and current row) as mae_report1_26w,
         -- count the ERRORS, not the rows: the newest rows have no outcome
         -- yet and must not make a window look full when it is not.
         count(abs_err_naive) over (
@@ -63,8 +58,6 @@ select
     -- as if it carried the same weight.
     case when r.window_n = 26 and r.mae_naive_26w > 0
          then 1.0 - r.mae_model_26w / r.mae_naive_26w end as skill_26w,
-    case when r.window_n = 26 and r.mae_naive_26w > 0
-         then 1.0 - r.mae_report1_26w / r.mae_naive_26w end as skill_report1_26w,
     -- Regime context for background shading: it lets a reader see whether
     -- the model's accuracy falls apart in volatile stretches, which is the
     -- "when can I trust this" question answered without words.
