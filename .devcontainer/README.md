@@ -23,5 +23,10 @@ to need a fix on the first real build:
   endpoint and is not committed. Copy yours in, or wait for W8, which moves
   the profile into the repo behind `env_var()` for exactly this reason.
 
+`go-task` is installed by `postCreateCommand` through the project's own
+install script rather than a devcontainer feature, because the weekly chain
+is `task weekly` and a container without it can run the steps only by hand.
+That line is as untested as the rest of this file.
+
 `az login` still has to be run by hand inside the container, and its token
 does not survive a rebuild.
