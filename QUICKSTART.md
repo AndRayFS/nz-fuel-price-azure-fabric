@@ -63,23 +63,22 @@ leaves Report 1 showing last week's numbers with this week's date.
 task weekly
 ```
 
-That is the whole chain. It runs the eleven steps below in order, and stops
-at the gate unless the gate says go — the ordering and the dependency live in
+That is the whole chain. It runs the nine steps below in order, and stops at
+the gate unless the gate says go — the ordering and the dependency live in
 `Taskfile.yml` now, not in whoever is pasting.
 
 | task | step | what it is |
 |---|---|---|
 | `gate` | 0b | **the gate.** Nothing after it runs unless it exits 0 |
-| `aip` | 1, 1b | collect the AIP weeks, load them to the monitoring schema |
+| `aip` | 1 | collect the AIP weeks, straight into `monitoring.aip_singapore_weekly` |
 | `snapshot` | 2 | revision history |
 | `build` | 3 | bronze -> silver / gold / monitoring |
 | `test` | 4 | everything outside `monitoring` must pass; monitoring warns |
 | `panel` | 5 | panel out to `data/panel_weekly.csv` |
-| `flags` | 6 | regime axes, from the panel |
-| `backtest` | 7 | refit + forecasts |
-| `seeds` | 8 | derived seeds back into the warehouse |
-| `report` | 9 | rebuild the table Report 1 reads |
-| `close` | 10 | record the week as processed |
+| `flags` | 6 | regime axes, from the panel, into `dbo.period_flags` |
+| `backtest` | 7 | refit + forecasts, into `dbo.forecast_history` |
+| `report` | 8 | rebuild the table Report 1 reads |
+| `close` | 9 | record the week as processed |
 
 **A failed run resumes by name** — `task report`, not the whole chain again.
 `task --list` prints this table from the file itself; `task offline` runs just
@@ -131,13 +130,15 @@ Notes:
   leaves `backtest_results.csv` split on last week's regime values. The
   centred 9-week window means the last four weeks' numbers move every time
   a new week lands, so this is not a no-op.
-- **`--full-refresh` everywhere**, per the rule at the top of this file.
-  Step 8 especially: a plain `dbt seed` loads into the existing table and
-  fails the moment a column is added.
-- Steps 0b, 1b, 2, 3, 4, 5, 8, 9 and 10 need the capacity running. Steps 1,
-  6 and 7 are local. The gate needs it too — its state lives in the
-  warehouse, and there is no way to ask MBIE anything without one (see
-  `pipeline/gate.py`).
+- **`--full-refresh` everywhere**, per the rule at the top of this file. The
+  step that needed it hardest is gone: since 7 Sep 2026 the derived tables are
+  written to the database by the scripts that compute them, so nothing
+  round-trips through git and no seed is reloaded weekly.
+- **Every step now needs the capacity up.** `flags` and `backtest` still
+  compute offline, but they write their results to the database rather than to
+  a CSV, so the old split into "local steps" is gone. The gate needs it too —
+  its state lives there, and there is no way to ask MBIE anything without one
+  (see `pipeline/gate.py`).
 - Provisional weeks are handled automatically: `backtest.py` trains only on
   Final rows and applies the model to every week, so the series extends by
   itself as MBIE finalises. Nothing to adjust by hand.

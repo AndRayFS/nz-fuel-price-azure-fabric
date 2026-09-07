@@ -27,6 +27,15 @@ design and should be trimmed or updated, not left as-is indefinitely.
   week already loaded — that run costs a resume and a pause, roughly NZ$0.06,
   and proves every grant at once. Turn both schedules on only after it passes.
 
+- [ ] **Two stray tables to drop: `pipeline.period_flags` and
+  `pipeline.forecast_history`.** Created 7 Sep 2026 in the wrong schema and
+  immediately superseded by `dbo.period_flags` / `dbo.forecast_history`, which
+  is where the chain writes now. Nothing reads the strays. Dropping them needs
+  the capacity awake and a session allowed to run destructive SQL — this one
+  was not, which is why they are still there. `dbo.brent_daily` can go at the
+  same time: Brent left the chain the same day and the series is refetchable
+  from FRED (`research/fetch_brent.py`).
+
 - [ ] **Set a budget alert in Cost Management — nothing guards spend right
   now.** The subscription was upgraded to pay-as-you-go on 3 Sep 2026, which
   **removed the spending limit**. That limit was the backstop, and it is gone;

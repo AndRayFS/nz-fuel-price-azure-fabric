@@ -138,10 +138,9 @@ tasks:
 # --- steps that need the capacity awake --------------------------------------
 
   aip:
-    desc: "Collect the AIP weeks and load them (step 1, 1b) — the only check on a stale source"
+    desc: "Collect the AIP weeks (step 1) — the only check on a stale source"
     cmds:
-      - '"{{.PY}}" research/aip_check.py'
-      - '"{{.DBT}}" seed --select aip_singapore_weekly --full-refresh'
+      - '"{{.PY}}" pipeline/aip_check.py'
 
   snapshot:
     desc: "Revision history — Provisional to Final (step 2)"
@@ -162,11 +161,6 @@ tasks:
     desc: "Panel out of the warehouse into data/panel_weekly.csv (step 5)"
     cmds:
       - '"{{.PY}}" pipeline/export_panel.py'
-
-  seeds:
-    desc: "Derived seeds back into the warehouse (step 8)"
-    cmds:
-      - '"{{.DBT}}" seed --select period_flags forecast_history --full-refresh'
 
   report:
     desc: "Rebuild the table Report 1 reads (step 9)"
@@ -209,7 +203,6 @@ tasks:
       - task: panel
       - task: flags
       - task: backtest
-      - task: seeds
       - task: report
       - task: close
       - |

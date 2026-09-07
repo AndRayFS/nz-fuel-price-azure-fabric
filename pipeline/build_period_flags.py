@@ -24,9 +24,44 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+import warehouse_write
+
 ROOT = Path(__file__).parents[1]
 PANEL = ROOT / "data" / "panel_weekly.csv"
-OUT = ROOT / "seeds" / "period_flags.csv"
+
+# The local copy is for the offline scripts — `backtest.py` and the estimation
+# work read it as a file, and none of them should need a warehouse to run. It
+# is not committed; the warehouse table below is the one models read.
+OUT = ROOT / "data" / "period_flags.csv"
+
+# `dbo`, with silver and gold and the hand-written seeds. Layers in this
+# project are told apart by model name, not by schema — the one deliberate
+# exception is `monitoring`. The `pipeline` schema holds the chain's own
+# state (which week was processed, which vintage is loaded), and this is
+# not that: it is data a gold model reads.
+SCHEMA = "dbo"
+TABLE = "period_flags"
+
+DDL = f"""
+create table {SCHEMA}.{TABLE} (
+    week_date             date         not null,
+    fuel                  varchar(30)  not null,
+    crude_vol_regime      varchar(20)      null,
+    crude_vol_9w          float            null,
+    crude_vol_window_full bit              null,
+    crude_episode_id      varchar(40)      null,
+    crude_move_8w         float            null,
+    crude_move_26w        float            null,
+    crude_move_regime     varchar(20)      null,
+    tax_step_cpl          float            null,
+    tax_step_window       bit              null,
+    data_regime           varchar(40)      null,
+    cost_backfilled       bit              null,
+    identity_holds        bit              null,
+    supply_chain          varchar(40)      null,
+    ets_auction_quarter   bit              null
+)
+"""
 
 # --- crude volatility regime -------------------------------------------------
 #
@@ -174,12 +209,17 @@ def main() -> None:
     weeks.loc[weeks.index[-edge:], "crude_vol_window_full"] = False
 
     runs = (high != high.shift()).cumsum()
-    weeks["crude_episode_id"] = ""
+    # Missing, not empty. A week outside every named episode has no episode —
+    # the empty string this used to carry was a different claim, and only
+    # looked right because `dbt seed` silently turned blanks in the CSV into
+    # NULLs on the way in. Writing to the warehouse directly does no such
+    # conversion, so the distinction now has to be made where it is meant.
+    weeks["crude_episode_id"] = pd.NA
     for _, run in high.groupby(runs):
         if not run.iloc[0]:
             continue
         start = weeks.Date[run.index[0]].strftime("%Y-%m-%d")
-        weeks.loc[run.index, "crude_episode_id"] = EPISODE_NAMES.get(start, "")
+        weeks.loc[run.index, "crude_episode_id"] = EPISODE_NAMES.get(start, pd.NA)
 
     move_long = np.log(weeks.dubai_crude_nzd).diff(MOVE_LONG_SPAN)
     weeks["crude_move_26w"] = move_long.round(4)
@@ -260,7 +300,14 @@ def main() -> None:
     ].sort_values(["fuel", "week_date"])
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.parent.mkdir(parents=True, exist_ok=True)
     flags.to_csv(OUT, index=False)
+
+    # Rebuilt from the panel every week, so `replace` is safe: losing the table
+    # costs a recompute, not history.
+    to_write = flags.copy()
+    to_write["week_date"] = pd.to_datetime(to_write["week_date"])
+    warehouse_write.replace(to_write, SCHEMA, TABLE, DDL)
 
     print(f"{len(flags)} rows -> {OUT}")
     print(flags.crude_vol_regime.value_counts().to_string())
@@ -268,7 +315,7 @@ def main() -> None:
     print(flags.crude_move_regime.value_counts().to_string())
     print(f"cost_backfilled rows: {flags.cost_backfilled.sum()}")
     print(f"tax step weeks: {(flags.tax_step_cpl != 0).sum()}")
-    print(f"named episodes: {flags.crude_episode_id.nunique() - 1}")
+    print(f"named episodes: {flags.crude_episode_id.nunique()}")
 
 
 if __name__ == "__main__":
