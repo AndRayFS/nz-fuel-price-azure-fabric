@@ -15,6 +15,14 @@ dbt --version
 Should show `fabric` as a registered adapter, and the prompt should show
 `(.venv)` at the start of the line.
 
+**Building the venv from scratch** (new machine, or the existing one is
+suspect): `python3.12 -m venv .venv` then
+`.venv/bin/pip install -r requirements.txt`. That file pins every package to
+the version this project's results were produced under; `requirements.in`
+records which of them are direct dependencies and why. Do not upgrade as a
+side effect of something else — bump the pin, re-run `pipeline/backtest.py`,
+and confirm the seeds come back byte-identical first.
+
 **Before running anything that touches the Warehouse:** make sure the
 Fabric capacity is resumed (Azure Portal → `nzfuelcapacity` → Resume). There
 is no auto-resume — it was disabled deliberately — so this is always a manual
