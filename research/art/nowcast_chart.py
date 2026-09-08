@@ -75,6 +75,8 @@ def main() -> None:
 
     gap = d.was.iloc[-1] - d.now.iloc[-1]
     pct = gap / d.was.iloc[-1] * 100
+    print(f"sum |error|: was {d.was.iloc[-1]:.1f}, now {d.now.iloc[-1]:.1f}, "
+          f"gap {gap:.1f} c/L over {len(d)} forecasts")
     ax.annotate("", xy=(d.date.iloc[-1], d.now.iloc[-1]),
                 xytext=(d.date.iloc[-1], d.was.iloc[-1]),
                 arrowprops=dict(arrowstyle="<->", color=INK, lw=1.2))
@@ -85,7 +87,9 @@ def main() -> None:
 
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
-    ax.set_ylabel("Forecast error piled up since January, c/L",
+    # Spelled out rather than shortened: "error piled up" reads equally well
+    # as a running mean, and this is a running SUM of absolute errors.
+    ax.set_ylabel("Sum of absolute forecast errors since January, c/L",
                   color=MUTED, labelpad=9)
     ax.tick_params(colors=MUTED, length=0)
     ax.set_title("Through the quiet weeks the two are the same line.\n"
@@ -94,7 +98,8 @@ def main() -> None:
     ax.legend(frameon=False, loc="upper left", fontsize=10.5)
 
     fig.text(0.012, 0.015,
-             f"{FUEL}, two weeks ahead - {len(d)} weeks of {YEAR} - "
+             f"{FUEL}, two weeks ahead - one forecast made each week, so the "
+             f"fortnights overlap - {len(d)} of them in {YEAR} - "
              "walk-forward, refit every week - NZ Fuel Price Project",
              fontsize=8.5, color=MUTED)
 

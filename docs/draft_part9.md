@@ -19,12 +19,21 @@ Numbers: `docs/research.md`, "The week in progress is partly visible" and
 
 ## The picture
 
-Two cumulative error curves through 2026 for Regular Petrol at two weeks
-ahead: today's model, and the same model told what the week in progress has
-done so far. Cumulative rather than week-by-week, because the weekly version
-is a sawtooth. Five quiet weeks in January where the lines are one line, then
-the Iran-US episode from 6 February where they part. Ends 202.5 against
-170.3 c/L — 32 c/L, 16%.
+Two curves through 2026 for Regular Petrol at two weeks ahead: today's model,
+and the same model told what the week in progress has done so far. The y axis
+is the **running sum of absolute errors** — every week's |forecast − actual|
+added on, no averaging — and the label says so in full, because "error piled
+up" read equally well as a running mean. Cumulative rather than week-by-week,
+because the weekly version is a sawtooth.
+
+One forecast is made each week and each covers a fortnight, so the windows
+overlap and the 33 errors are not independent. That is standard for a rolling
+backtest and is stated in the footer rather than left for a reader to work
+out.
+
+Five quiet weeks in January where the lines are one line, then the Iran-US
+episode from 6 February where they part. Ends 202.5 against 170.3 c/L —
+32.3 c/L, 16%.
 
 ## The draft, ~1,300 characters
 
