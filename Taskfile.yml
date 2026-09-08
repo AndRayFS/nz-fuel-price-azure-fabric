@@ -84,7 +84,7 @@ tasks:
       - |
         state=$(az resource show --ids "{{.CAPACITY_ID}}" --query properties.state -o tsv)
         if [ "$state" = "Active" ]; then echo "capacity already Active"; exit 0; fi
-        echo "resuming {{.CAPACITY}} — NZ$0.729/hour from now"
+        echo 'resuming {{.CAPACITY}} — NZ$0.729/hour from now'
         az resource invoke-action --ids "{{.CAPACITY_ID}}" --action resume >/dev/null
         # The resume is asynchronous and everything downstream fails hard with
         # `this Fabric capacity is currently not active`, so wait rather than hope.
