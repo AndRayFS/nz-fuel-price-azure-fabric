@@ -25,11 +25,12 @@ TABLE = "processed_weeks"
 
 DDL = f"""
 create table {SCHEMA}.{TABLE} (
-    processed_week   date         not null,
-    bronze_rows      bigint       not null,
-    ingest_run_id    varchar(64)      null,
-    ingest_rows_read bigint           null,
-    recorded_at      datetime2(3) not null
+    processed_week    date         not null,
+    bronze_rows       bigint       not null,
+    ingest_run_id     varchar(64)      null,
+    ingest_rows_read  bigint           null,
+    bronze_fingerprint varchar(200)     null,
+    recorded_at       datetime2(3) not null
 )
 """
 
@@ -55,6 +56,18 @@ def ensure_table(cur) -> None:
     )
     if cur.fetchone()[0] == 0:
         cur.execute(DDL)
+        return
+
+    # The table predates `bronze_fingerprint` (added 8 Sep 2026). Add the
+    # column rather than recreating the table: the rows in here are the gate's
+    # memory of which weeks were processed, and they are not reconstructible.
+    cur.execute(
+        "select count(*) from INFORMATION_SCHEMA.COLUMNS "
+        "where table_schema = ? and table_name = ? and column_name = ?",
+        [SCHEMA, TABLE, "bronze_fingerprint"],
+    )
+    if cur.fetchone()[0] == 0:
+        cur.execute(f"alter table {SCHEMA}.{TABLE} add bronze_fingerprint varchar(200) null")
 
 
 def main() -> int:
@@ -72,15 +85,22 @@ def main() -> int:
         )
         processed_week, bronze_rows = cur.fetchone()
 
+        # Recorded so the next gate can tell "nothing happened" from "the same
+        # weeks, restated". A row count cannot: MBIE's usual revision moves
+        # cents between two columns and leaves the count identical.
+        fingerprint = fabric_io.bronze_fingerprint(cur)
+
         if processed_week is None:
             print("bronze is empty — nothing to mark", file=sys.stderr)
             return 1
 
         cur.execute(
             f"insert into {SCHEMA}.{TABLE} "
-            "(processed_week, bronze_rows, ingest_run_id, ingest_rows_read, recorded_at) "
-            "values (?, ?, ?, ?, sysutcdatetime())",
-            [processed_week, bronze_rows, (run or {}).get("id"), rows_read],
+            "(processed_week, bronze_rows, ingest_run_id, ingest_rows_read, "
+            "bronze_fingerprint, recorded_at) "
+            "values (?, ?, ?, ?, ?, sysutcdatetime())",
+            [processed_week, bronze_rows, (run or {}).get("id"), rows_read,
+             fingerprint],
         )
 
     print(

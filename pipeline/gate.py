@@ -20,7 +20,20 @@ So the gate asks what actually arrived instead of what was published:
 
   1. did the ingest run, recently, and finish;
   2. did what it read land in bronze intact;
-  3. has the source grown since the week we last processed.
+  3. has the source grown since the week we last processed;
+  4. failing that, have its NUMBERS changed since then.
+
+Check 4 was added 8 Sep 2026 and closes a blind spot check 3 has by
+construction. MBIE restates published weeks by moving cents between
+`Importer cost` and `Importer margin`, and those two move in exact opposition
+(measured: all twelve groups net to zero, architecture.md), so a restatement
+leaves the row count identical and check 3 answers "nothing to do" while the
+numbers underneath have changed. A content fingerprint —
+`fabric_io.BRONZE_FINGERPRINT_SQL`, recorded in the marker by
+`mark_processed.py` — makes that case `revised_in_place`, which proceeds.
+Proceeds rather than stops, because restatement is this source's normal
+behaviour; the dangerous version, a FINALISED week rewritten, is caught after
+the snapshot by `revisions_rewrote_a_final_week`.
 
 Check 3 is the stale-CDN detector. It cannot distinguish "MBIE has not
 published yet" from "the CDN served us last week's file" — both look like a
@@ -41,7 +54,7 @@ keeping the state in the warehouse: the W8 caveat about asking MBIE before
 waking the capacity does not survive it, since there is no way to ask MBIE.
 
 Exit codes:
-    0  proceed — new data, and it landed
+    0  proceed — new data, or the same weeks restated, and it landed
     2  nothing to do — no new week, or this week is already processed
     1  stop and look — the ingest did not run, failed, did not land, or the
        source moved in a way that needs a human
@@ -83,16 +96,35 @@ def gather() -> dict:
                     "from bronze_lakehouse.mbie.weekly_prices")
         bronze_week, bronze_rows = cur.fetchone()
 
+        # What bronze holds, not how much of it there is. See
+        # fabric_io.BRONZE_FINGERPRINT_SQL for why a row count cannot see a
+        # revision.
+        bronze_fingerprint = fabric_io.bronze_fingerprint(cur)
+
         cur.execute("select count(*) from INFORMATION_SCHEMA.TABLES "
                     "where table_schema = 'pipeline' and table_name = 'processed_weeks'")
         if cur.fetchone()[0] == 0:
-            marker_week = marker_rows = None
+            marker_week = marker_rows = marker_fingerprint = None
         else:
-            cur.execute("select top 1 processed_week, ingest_rows_read, recorded_at "
+            # `bronze_fingerprint` was added to the marker table on 8 Sep 2026;
+            # rows written before that have none, and a missing one simply
+            # means the comparison cannot be made this once.
+            cur.execute("select count(*) from INFORMATION_SCHEMA.COLUMNS "
+                        "where table_schema = 'pipeline' "
+                        "and table_name = 'processed_weeks' "
+                        "and column_name = 'bronze_fingerprint'")
+            has_fingerprint = cur.fetchone()[0] == 1
+            cols = ("processed_week, ingest_rows_read, recorded_at"
+                    + (", bronze_fingerprint" if has_fingerprint else ""))
+            cur.execute(f"select top 1 {cols} "
                         "from pipeline.processed_weeks order by recorded_at desc")
             row = cur.fetchone()
-            marker_week, marker_rows, marker_recorded_at = (
-                row if row else (None, None, None))
+            if row:
+                marker_week, marker_rows, marker_recorded_at = row[0], row[1], row[2]
+                marker_fingerprint = row[3] if has_fingerprint else None
+            else:
+                marker_week = marker_rows = marker_recorded_at = None
+                marker_fingerprint = None
 
         # Is the warehouse standing on a past date? `vintage.py` puts it there
         # and nothing else can tell: bronze does not move when silver goes back,
@@ -110,6 +142,8 @@ def gather() -> dict:
 
     return {"run": run, "rows_read": rows_read,
             "bronze_week": bronze_week, "bronze_rows": bronze_rows,
+            "bronze_fingerprint": bronze_fingerprint,
+            "marker_fingerprint": marker_fingerprint,
             "marker_week": marker_week, "marker_rows": marker_rows,
             "marker_recorded_at": marker_recorded_at,
             "vintage_as_of": vintage_as_of,
@@ -158,6 +192,9 @@ def decide(facts: dict, max_run_age_hours: float, stale_after_days: int = 14) ->
     bronze_week, bronze_rows = facts["bronze_week"], facts["bronze_rows"]
     marker_week, marker_rows = facts["marker_week"], facts["marker_rows"]
 
+    fingerprint = facts.get("bronze_fingerprint")
+    marker_fingerprint = facts.get("marker_fingerprint")
+
     seen = {"run_started": run.get("startTimeUtc"), "rows_read": rows_read,
             "bronze_rows": bronze_rows, "bronze_week": str(bronze_week),
             "last_processed_week": str(marker_week) if marker_week else None,
@@ -186,6 +223,24 @@ def decide(facts: dict, max_run_age_hours: float, stale_after_days: int = 14) ->
                 "detail": (f"bronze ends on a newer week ({bronze_week}) but the row "
                            f"count is unchanged at {rows_read} — a week was removed as "
                            "another was added, which no test downstream would notice")}
+
+    # Same week, same count — but are the numbers the same? MBIE restates
+    # published weeks by moving cents between `Importer cost` and `Importer
+    # margin`, which changes nothing a row count can see. That is a reason to
+    # rebuild, not an alarm: it is how this source behaves most weeks, and the
+    # dangerous version — a FINALISED week rewritten — is caught downstream by
+    # `revisions_rewrote_a_final_week` after the snapshot.
+    #
+    # Only when both fingerprints exist. A marker written before 8 Sep 2026 has
+    # none, and "cannot compare" must not read as "changed".
+    if bronze_week <= marker_week or rows_read == marker_rows:
+        if (fingerprint is not None and marker_fingerprint is not None
+                and fingerprint != marker_fingerprint):
+            return {**seen, "verdict": "revised_in_place", "exit": PROCEED,
+                    "detail": (f"no new week — bronze still ends at {bronze_week} with "
+                               f"{rows_read} rows — but the values changed since "
+                               f"{marker_week} was processed, so the chain has "
+                               "something to rebuild")}
 
     # No new week to process. Whether MBIE has yet to publish or the CDN served
     # last week's file, the answer is the same and the chain must not run;
