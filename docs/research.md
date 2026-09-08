@@ -1599,6 +1599,68 @@ precisely the failure this method exists to avoid. A measurement can live with
 that dependency; a Wednesday production run cannot, without at minimum a check
 that fails loudly rather than silently.
 
+## The nowcast survives the walk-forward test — 8 Sep 2026
+
+The measurement above nowcasts `Importer cost`, which is not what the report
+publishes. This one puts it inside the model and scores the pump price, by
+`research/nowcast_in_adl.py`. `pipeline/backtest.py` is **imported, not
+reimplemented** — `load`, `fit_adl`, K, MIN_TRAIN, the Final-only training
+filter and the 1.15 retail conversion are identical by construction, so the
+comparison is against the production model rather than a restatement of it.
+
+One term changes. `adl_forecast` sums `b_k * d_cost_{t+j-k}` for `k >= j`;
+with the nowcast it sums from `k >= j - 1`, because `k = j - 1` lands on index
+t+1 — the week in progress. The nowcast regression is refit at every cutoff on
+pairs up to and including t, then applied to week t+1's three-day reading.
+
+**MAE on the pump price, c/L, non-crisis weeks, n = 597:**
+
+| fuel | h | naive | adl_ecm | + nowcast | gain |
+|---|---|---|---|---|---|
+| Diesel | 1 | 1.893 | 1.372 | 1.289 | 6.0% |
+| Diesel | 2 | 3.440 | 2.650 | 2.294 | 13.4% |
+| Diesel | 3 | 4.739 | 3.842 | 3.316 | 13.7% |
+| Regular Petrol | 1 | 1.934 | 1.420 | 1.312 | 7.6% |
+| Regular Petrol | 2 | 3.519 | 2.743 | 2.369 | 13.6% |
+| Regular Petrol | 3 | 4.832 | 3.970 | 3.478 | 12.4% |
+
+It wins in every fuel, every horizon and both regimes, including crisis weeks
+(9–15%). Week by week it is closer than plain `adl_ecm` in 56% of weeks at
+h=1 and 63–64% at h=2 and h=3.
+
+**h=2 gains twice what h=1 does, and that is arithmetic rather than luck.**
+The h-week forecast is cumulative, so the nowcast enters every step inside it:
+at h=1 it contributes `b0` once, at h=2 `b0 + b1`, at h=3 `b0 + b1 + b2`. More
+of the response is recovered the further out the horizon, until accumulating
+error overtakes it — which is what the flattening from h=2 to h=3 is.
+
+**The gain shrinks passing through the model, exactly as predicted.** 17.5%
+(diesel) and 32.1% (petrol) on the cost nowcast become 13.4% and 13.6% on the
+pump price at h=2. Petrol loses much more than diesel, which is consistent
+with the coefficients: the better the cost estimate, the more the ADL's own
+pass-through error dominates what is left.
+
+**Placebo, and this is the check that matters.** Feeding *last* week's reading
+through the same extra term — information already inside `d_cost_t` — makes
+the forecast **worse**, by 1.9–6.7%. A gain there would have meant the extra
+coefficient was helping for structural reasons and the whole result was
+plumbing. It degrades instead, which is what stale data presented as fresh
+should do.
+
+**Days in hand.** Three trading days deliver about 85–90% of what the whole
+week would (h=2: 13.4 against 15.7 diesel, 13.6 against 15.7 petrol). One day
+is on a different sample — 532 weeks rather than 597, because a Monday holiday
+removes the week entirely — so its column is not directly comparable and is
+not quoted here.
+
+**What has to be true before this ships.** It touches `pipeline/backtest.py`,
+which is production; it puts an undocumented Yahoo endpoint inside the
+Wednesday chain, so the failure path has to be *degrade to plain `adl_ecm`*
+rather than fail the run; Report 1 gains a predictor and the semantic model
+needs republishing; and the confidence-tier language rules apply to the new
+series as they do to the old ones. None of that is measurement, and none of it
+is done.
+
 ## Checks that have repeatedly changed the answer
 
 Five questions, each of which has overturned at least one finding in this
