@@ -90,6 +90,8 @@ def main() -> int:
                          "d_cost_t, so a gain here would mean the extra term "
                          "is helping for some reason other than new "
                          "information, and the whole result is plumbing.")
+    ap.add_argument("--save", action="store_true",
+                    help="write the per-week results to data/ for the chart")
     args = ap.parse_args()
 
     rows = []
@@ -148,6 +150,10 @@ def main() -> int:
                 ))
 
     res = pd.DataFrame(rows)
+    if args.save:
+        out = ROOT / "data" / "nowcast_results.csv"
+        res.to_csv(out, index=False)
+        print(f"{len(res)} rows -> {out}", file=sys.stderr)
     ev = res[res.outcome_known]
     methods = ["naive", "adl_ecm", "adl_ecm_nc"]
 
