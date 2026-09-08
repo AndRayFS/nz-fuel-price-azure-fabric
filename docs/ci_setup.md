@@ -1,10 +1,15 @@
 # Setting up the CI identity — the part that cannot be committed
 
 Everything else in W8 is a file in this repository. This is the part that is
-state in Azure and in Fabric, done once, by hand, by someone holding the
-rights. Written 7 Sep 2026, verified against the live subscription where it
-says *checked*; the steps that create things were not run — that is the
-person doing the setup.
+state in Azure and in Fabric, done once, by someone holding the rights.
+
+**Status, 8 Sep 2026: four of five steps are done.** Steps 1, 3 and 5 were
+carried out and are recorded below with what they produced; step 4 waits for a
+run with the capacity awake. **Step 2 needs the Owner account** —
+`andrei@…onmicrosoft.com` holds `Contributor`, which manages resources but
+cannot grant roles, so the attempt returned `AuthorizationFailed` on
+`Microsoft.Authorization/roleDefinitions/write`. Sign in as
+`morozov_77@hotmail.com` for it, as with the billing upgrade on 3 Sep.
 
 **Three permission planes, and they do not overlap.** This is the thing most
 likely to waste an afternoon: an identity can be perfectly able to drive
@@ -21,10 +26,21 @@ The signed-in human has all three today only because they hold `Contributor`
 on the whole subscription (*checked*). A service principal inherits none of
 that.
 
-## 1. The app registration and its federated credentials
+## 1. The app registration and its federated credentials — **done 8 Sep 2026**
 
 No client secret anywhere: GitHub mints a short-lived OIDC token per run and
 Entra trusts it for this repository only.
+
+| what | value |
+|---|---|
+| application (client) id | `3f465111-2a96-4c64-84f6-88dea76c6562` |
+| service principal object id | `bb6f5f28-2bd2-43e6-9c8c-d27830e502ec` |
+| tenant id | `66aed129-aced-4829-9701-6b7315675a04` |
+| federated credential | `github-main`, subject `repo:AndRayFS/nz-fuel-price-azure-fabric:ref:refs/heads/main` |
+
+Fabric wants the **service principal object id**; `azure/login` and the
+secrets want the **application id**. Mixing them up produces a 401 that reads
+like a permissions problem. The commands that produced this:
 
 ```bash
 az ad app create --display-name nz-fuel-ci
@@ -43,7 +59,7 @@ az ad app federated-credential create --id "$APP_ID" --parameters '{
 }'
 ```
 
-## 2. Azure RBAC on the capacity — the grant that is easy to miss
+## 2. Azure RBAC on the capacity — **NOT DONE, needs the Owner account**
 
 `Microsoft.Fabric/capacities/resume/action` and `.../suspend/action` are ARM
 operations (*checked* against `az provider operation show --namespace
@@ -72,25 +88,34 @@ cat > /tmp/capacity-operator.json <<JSON
 }
 JSON
 
+# as morozov_77@hotmail.com: Contributor cannot grant roles
+APP_ID=3f465111-2a96-4c64-84f6-88dea76c6562
+
 az role definition create --role-definition /tmp/capacity-operator.json
 az role assignment create --assignee "$APP_ID" \
   --role "Fabric Capacity Operator" --scope "$CAP"
 ```
 
-## 3. Fabric — the tenant switch and the workspace role
+Without this the workflow authenticates fine, drives Fabric fine, and cannot
+wake the capacity — which surfaces as every later step failing with `this
+Fabric capacity is currently not active`.
 
-Both in the Fabric portal, neither reachable from `az`:
+## 3. Fabric — the tenant switch and the workspace role — **done 8 Sep 2026**
 
-- **Tenant setting:** admin portal → Developer settings → *Service principals
-  can use Fabric APIs*. Without it every call in `fabric_io.py` and
-  `run_ingest.py` returns 401 no matter what else is granted. Restrict it to a
-  security group containing this one app rather than enabling it tenant-wide.
-- **Workspace role:** `nz-fuel-price-project`
-  (`bc2e3801-9a54-4154-9f46-2a9dc442cad7`) → Manage access → add the app as
-  **Contributor**. Member and Admin are more than the weekly chain needs;
-  Viewer cannot start the pipeline.
+- **Tenant setting:** *Service principals can call Fabric public APIs* was
+  **already enabled**, tenant-wide and with no security-group restriction —
+  read back through `GET /v1/admin/tenantsettings`
+  (`ServicePrincipalAccessPermissionAPIs`). Narrowing it to a group holding
+  only this app would be tighter; leaving it as found is the status quo rather
+  than a decision anyone made.
+- **Workspace role:** the app is **Contributor** on `nz-fuel-price-project`
+  (`bc2e3801-9a54-4154-9f46-2a9dc442cad7`), added through the Fabric REST API
+  rather than the portal — which works because the signed-in user is Admin of
+  that workspace. Verified by reading the assignments back: `Andrei` Admin,
+  `nz-fuel-ci` Contributor. Member and Admin are more than the weekly chain
+  needs; Viewer cannot start the pipeline.
 
-## 4. The warehouse
+## 4. The warehouse — **waiting for a run with the capacity awake**
 
 Fabric workspace roles reach the item, not the SQL engine inside it. Once, in
 a query window on `analytics_warehouse`:
@@ -104,14 +129,15 @@ alter role db_owner add member [nz-fuel-ci];
 `--full-refresh` and writes `pipeline.processed_weeks`. Narrower grants are
 possible and would need revisiting every time a schema is added.
 
-## 5. GitHub
+## 5. GitHub — **done 8 Sep 2026**
 
-Repository → Settings → Secrets and variables → Actions:
+Repository → Settings → Secrets and variables → Actions. All three are set;
+`gh secret list` shows them.
 
 | secret | value |
 |---|---|
-| `AZURE_CLIENT_ID` | the `appId` from step 1 |
-| `AZURE_TENANT_ID` | `az account show --query tenantId -o tsv` |
+| `AZURE_CLIENT_ID` | `3f465111-2a96-4c64-84f6-88dea76c6562` |
+| `AZURE_TENANT_ID` | `66aed129-aced-4829-9701-6b7315675a04` |
 | `AZURE_SUBSCRIPTION_ID` | `e30d2fa4-fb6e-48c5-b3cd-5f9c3f270159` |
 
 None of the three is a credential — they identify, they do not authenticate;

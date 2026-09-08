@@ -19,13 +19,18 @@ design and should be trimmed or updated, not left as-is indefinitely.
     against 29 Aug 2026 and will need the same treatment again.
   Method and expectations: `docs/mbie_notes.md`, "A standing prediction".
 
-- [ ] **Walk `docs/ci_setup.md` — the weekly workflow has no identity yet.**
-  W8's code landed 7 Sep 2026 with both schedules commented out. Four grants
-  in three different systems (Entra federated credential, an ARM role on the
-  capacity, a Fabric tenant switch plus workspace role, a warehouse user),
-  then three repository secrets, then one manual run with `skip_ingest` on a
-  week already loaded — that run costs a resume and a pause, roughly NZ$0.06,
-  and proves every grant at once. Turn both schedules on only after it passes.
+- [ ] **One grant left before the workflow can run: the ARM role on the
+  capacity.** Four of five setup steps were done 8 Sep 2026 — the Entra app
+  (`3f465111-2a96-4c64-84f6-88dea76c6562`) with its federated credential, the
+  Fabric workspace role, the three repository secrets — and the tenant switch
+  turned out to be on already. What is left needs the **Owner** account
+  `morozov_77@hotmail.com`: `andrei@…onmicrosoft.com` is Contributor and
+  cannot grant roles (`AuthorizationFailed` on `roleDefinitions/write`).
+  Commands: `docs/ci_setup.md` step 2.
+  - Then step 4, one SQL statement, on a run with the capacity awake.
+  - Then one manual run with `skip_ingest` on a week already loaded — roughly
+    NZ$0.06, and it proves every grant at once. Turn both schedules on only
+    after it passes.
 
 - [ ] **Set a budget alert in Cost Management — nothing guards spend right
   now.** The subscription was upgraded to pay-as-you-go on 3 Sep 2026, which
