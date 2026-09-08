@@ -1524,6 +1524,81 @@ Three caveats that travel with these numbers:
   0.72 against a trailing one), so it sees four weeks ahead. It splits the
   results; it never enters a forecast.
 
+## The week in progress is partly visible — 8 Sep 2026
+
+`pipeline/backtest.py` cannot see the week it is forecasting. `adl_forecast`
+loops `for k in range(j, K + 1)`, so at horizon j every coefficient on a cost
+change it does not yet know is dropped — at h=1 that is `b0`, and crude lands
+on `Importer cost` at lag 0. The model assumes, silently, that the coming
+week's cost does not move.
+
+It does not have to. `Importer cost` is a replacement cost — this week's
+Singapore product spot at this week's FX — and the crude and currency
+underneath it trade daily in public while MBIE publishes weekly, on the
+Wednesday after the week ends. By the time the weekly chain runs, two or three
+trading days of the *next* week already exist.
+
+**Measured** by `research/nowcast_brent.py`: the change from last week's full
+Mon–Fri mean of Brent-in-NZD to this week's mean over its first k trading
+days, against the week's actual `d_cost`. 970 weeks, 2008–2026. RMSE is
+walk-forward — refit every week on everything before it — against the baseline
+the model uses today, which is that cost does not move. Cents per litre.
+
+| fuel | k days | R² (in-sample) | RMSE | baseline | error cut |
+|---|---|---|---|---|---|
+| Diesel | 1 | 0.285 | 5.190 | 6.076 | 14.6% |
+| Diesel | 2 | 0.335 | 4.837 | 5.879 | 17.7% |
+| Diesel | 3 | 0.332 | 4.834 | 5.862 | **17.5%** |
+| Diesel | 5 | 0.344 | 4.790 | 5.862 | 18.3% |
+| Regular Petrol | 1 | 0.476 | 2.690 | 3.714 | 27.6% |
+| Regular Petrol | 2 | 0.513 | 2.591 | 3.695 | 29.9% |
+| Regular Petrol | 3 | 0.545 | 2.503 | 3.688 | **32.1%** |
+| Regular Petrol | 5 | 0.571 | 2.429 | 3.688 | 34.1% |
+
+Premium Petrol tracks Regular to the third decimal and is omitted. **k = 5 is
+not observable** — it is the whole week, and the honest ceiling on what any
+Brent-based reading can do.
+
+**Three days deliver about 95% of that ceiling** — 17.5 against 18.3 for
+diesel, 32.1 against 34.1 for petrol — and Monday alone already delivers four
+fifths of it. So the design question "how many days should we wait for" has a
+boring answer: waiting past Wednesday buys almost nothing, and the choice can
+be made on operational convenience rather than on accuracy.
+
+**Stable across every cut tried.** 2015 onward, 2008 onward, and Final-only
+weeks all land within one percentage point.
+
+**This reproduces the figure the Part 8 draft carried** — "30% (diesel) / 45%
+(petrol) of the current week's cost change" — which until now had no
+specification, no sample and no code anywhere in the repository, only that one
+sentence. In-sample R² at k = 3 is 0.33 diesel and 0.55 petrol, so the diesel
+half was right and the petrol half was understated. The number can now be
+quoted because it can now be recomputed.
+
+**What this is not.** It nowcasts `Importer cost`, not the pump price. Whether
+it improves the published forecast is a different measurement: the gain has to
+pass through `b0`, which is well under 1, so a 17% cut in cost error does not
+become a 17% cut in price error. That test — the nowcast as an input to the
+ADL+ECM, scored against `pred_adl_ecm` and `pred_naive` on the Report 1
+horizons — is the one that decides whether any of this ships.
+
+**Brent is the available benchmark, not the right one.** The target is a
+Singapore *product* quote; Brent is a crude one crack spread away. Dubai, the
+Asian crude MBIE actually publishes, has no free daily source: FRED's series
+is monthly and was two months stale when checked. AIP republishes the exact
+Argus product quote weekly — 0.997 against `Importer cost` on week-on-week
+changes — but on the Sunday of the week that has *ended*, so it cannot reach
+the week in progress. Everything lost between crude and product is already
+inside the numbers above.
+
+**Source risk, stated because it decides deployment.** Both legs come from
+Yahoo's chart endpoint, which is undocumented and carries no stability
+promise. FRED is the documented alternative and is a week behind — on 8 Sep
+its newest Brent was 1 Sep and its newest NZD/USD was 28 Aug — which is
+precisely the failure this method exists to avoid. A measurement can live with
+that dependency; a Wednesday production run cannot, without at minimum a check
+that fails loudly rather than silently.
+
 ## Checks that have repeatedly changed the answer
 
 Five questions, each of which has overturned at least one finding in this
