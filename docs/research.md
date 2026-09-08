@@ -1653,6 +1653,50 @@ is on a different sample — 532 weeks rather than 597, because a Monday holiday
 removes the week entirely — so its column is not directly comparable and is
 not quoted here.
 
+**The gain is largest where the model is worst.** Splitting the crisis weeks
+by position inside the volatility episode, h=2, MAE c/L:
+
+| fuel | phase | n | naive | adl_ecm | + nowcast | gain |
+|---|---|---|---|---|---|---|
+| Diesel | weeks 1–2 | 12 | 5.96 | 4.89 | 3.93 | 19.6% |
+| Diesel | weeks 3–4 | 12 | 13.59 | 12.40 | 8.71 | 29.8% |
+| Diesel | weeks 5+ | 86 | 11.20 | 8.22 | 7.31 | 11.1% |
+| Regular Petrol | weeks 1–2 | 12 | 6.17 | 5.22 | 4.17 | 20.1% |
+| Regular Petrol | weeks 3–4 | 12 | 11.46 | 11.81 | 9.36 | 20.7% |
+| Regular Petrol | weeks 5+ | 86 | 6.22 | 4.64 | 4.09 | 11.9% |
+
+The row that matters is petrol in weeks 3–4, where `adl_ecm` **loses to naive**
+— 11.81 against 11.46 — which is the distributed lag still carrying the weights
+of a shock that has already landed. The nowcast takes it to 9.36, below naive.
+It is not only adding accuracy; it repairs the one regime where the model
+currently earns nothing.
+
+**n = 12 in those bands, and that has to travel with the number.** Six
+episodes reach the forecast sample, two weeks each. The 29.8% is one or two
+weeks away from being noise. The direction is trustworthy, the magnitude is
+not.
+
+**So the same question asked with six times the power** — weeks ranked by how
+much the price actually moved, rather than by where they sit in an episode:
+
+| fuel | decile of \|actual\| | n | naive | adl_ecm | + nowcast | gain |
+|---|---|---|---|---|---|---|
+| Diesel | top 10% | 71 | 20.36 | 12.52 | 10.24 | 18.3% |
+| Diesel | next 10% | 71 | 7.46 | 4.89 | 3.67 | 25.1% |
+| Regular Petrol | top 10% | 71 | 14.88 | 10.19 | 8.23 | 19.2% |
+| Regular Petrol | next 10% | 71 | 7.12 | 4.81 | 3.61 | 25.1% |
+
+**18–25% in the fifth of weeks that move most, against 13% on average.** The
+mechanism is not mysterious: the nowcast carries information about how this
+week differs from last, and that is worth nothing in a quiet week and
+everything in a collapse. In a quiet week it confirms what the model already
+assumed; in a shock it is the only thing that knows.
+
+**This cannot be turned into a rule that switches the nowcast on in a crisis.**
+Both the regime and the episode id come from a centred window that sees four
+weeks ahead, so they split results and never choose. At the moment of
+forecasting nobody knows which kind of week it is.
+
 **What has to be true before this ships.** It touches `pipeline/backtest.py`,
 which is production; it puts an undocumented Yahoo endpoint inside the
 Wednesday chain, so the failure path has to be *degrade to plain `adl_ecm`*

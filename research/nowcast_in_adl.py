@@ -103,6 +103,19 @@ def main() -> int:
         x = nowcast_feature(pd.DatetimeIndex(d.index), args.days)
         y = d.d_cost.to_numpy()
 
+        # Position inside a volatility episode, for the onset breakdown. Both
+        # the regime and the episode id come from a CENTRED window and see
+        # four weeks ahead, so this may split results and must never choose a
+        # model in real time — the same rule the backtest already applies to
+        # `hi`.
+        ep = d.crude_episode_id.to_numpy()
+        phase = np.full(len(d), np.nan)
+        seen: dict = {}
+        for i, e in enumerate(ep):
+            if isinstance(e, str) and e:
+                seen[e] = seen.get(e, 0) + 1
+                phase[i] = seen[e]
+
         for t in range(bt.MIN_TRAIN, n):
             b_ecm = bt.fit_adl(d, t + 1, with_ecm=True)
             if b_ecm is None:
@@ -126,6 +139,8 @@ def main() -> int:
                         if np.isfinite(nc) else np.nan)
                 rows.append(dict(
                     fuel=fuel, date=d.index[t], h=h, actual=actual, hi=hi[t],
+                    episode=ep[t] if isinstance(ep[t], str) else None,
+                    phase=phase[t],
                     outcome_known=bool(np.isfinite(actual)),
                     naive=0.0,
                     adl_ecm=e * 1.15 if np.isfinite(e) else np.nan,
@@ -161,6 +176,40 @@ def main() -> int:
                       + "".join(f"{v:>13.3f}" for v in maes)
                       + f"{delta:>11.1f}%")
             print()
+
+    # The onset breakdown: the model's worst weeks are the ones where a
+    # forecast is worth having, so an average that hides them is the wrong
+    # average.
+    print("Crisis weeks by position in the episode — h=2, MAE c/L")
+    print(f"  {'fuel':<16}{'phase':>12} {'n':>4} {'naive':>8} {'adl_ecm':>9}"
+          f" {'+nowcast':>10} {'gain':>7}")
+    bands = (("weeks 1-2", 1, 2), ("weeks 3-4", 3, 4), ("weeks 5+", 5, 999))
+    for fuel in ("Diesel", "Regular Petrol"):
+        for label, lo, hi_ in bands:
+            s = ev[(ev.fuel == fuel) & (ev.h == 2) & ev.hi
+                   & ev.phase.between(lo, hi_)].dropna(subset=methods)
+            if len(s) < 5:
+                continue
+            maes = [np.abs(s[m] - s.actual).mean() for m in methods]
+            print(f"  {fuel:<16}{label:>12} {len(s):>4} {maes[0]:>8.3f}"
+                  f" {maes[1]:>9.3f} {maes[2]:>10.3f}"
+                  f" {(1 - maes[2] / maes[1]) * 100:>6.1f}%")
+    print()
+
+    # And the tail: the weeks the price actually moved most, wherever they sit.
+    print("Largest actual moves — h=2, by decile of |actual|, MAE c/L")
+    for fuel in ("Diesel", "Regular Petrol"):
+        s = ev[(ev.fuel == fuel) & (ev.h == 2)].dropna(subset=methods).copy()
+        s["band"] = pd.qcut(s.actual.abs(), 10, labels=False, duplicates="drop")
+        for band, name in ((9, "top 10%"), (8, "next 10%")):
+            b = s[s.band == band]
+            if b.empty:
+                continue
+            maes = [np.abs(b[m] - b.actual).mean() for m in methods]
+            print(f"  {fuel:<16}{name:>12} {len(b):>4} {maes[0]:>8.3f}"
+                  f" {maes[1]:>9.3f} {maes[2]:>10.3f}"
+                  f" {(1 - maes[2] / maes[1]) * 100:>6.1f}%")
+    print()
 
     print("Weeks in which the nowcast version is closer than plain adl_ecm:")
     for fuel in ("Diesel", "Regular Petrol"):
