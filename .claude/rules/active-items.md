@@ -29,13 +29,20 @@ design and should be trimmed or updated, not left as-is indefinitely.
     happened from anywhere but this laptop.
   - The Power BI refresh stays manual until W9.
 
-- [ ] **Set a budget alert in Cost Management — nothing guards spend right
-  now.** The subscription was upgraded to pay-as-you-go on 3 Sep 2026, which
-  **removed the spending limit**. That limit was the backstop, and it is gone;
-  what remains is the 23:00 NZT auto-pause and manual discipline. F2 is
-  NZ$0.729/hour while resumed (measured — `docs/cost_notes.md`), so a weekly
-  run costs about NZ$1 and a capacity left running costs NZ$17.50/day.
-  Suggested: NZ$20/month with alerts at 50/80/100%.
+- [x] **Budget alert in Cost Management — exists, verified 8 Sep 2026.**
+  `nz-fuel-price-budget`: NZ$20/month, whole subscription, monthly reset,
+  running to 30 Jun 2028, with actual-spend alerts at 50/100/150/200%. Current
+  month NZ$1.14. This replaces the spending limit that the 3 Sep pay-as-you-go
+  upgrade removed; the 23:00 NZT auto-pause is the other guard.
+  - **The alerts go only to `morozov_77@hotmail.com`**, the billing Microsoft
+    Account — not to `andrei@…onmicrosoft.com`, which is the account the
+    project is normally driven from. An alert nobody reads is not a guard, so
+    either that mailbox gets watched or a second contact goes on the budget.
+  - All four thresholds are **Actual**, not Forecasted, so the first warning
+    arrives after NZ$10 is already spent. At NZ$17.50/day for a capacity left
+    running, that is about half a day of drift. A forecasted threshold would
+    warn earlier; not added, because the auto-pause is meant to make that case
+    impossible and adding one would be guarding against the guard.
 
 - [ ] **Publish `nz_fuel_v2` from Desktop at the next opportunity — four
   columns left `forecast_accuracy` on 7 Sep 2026.** `report1_ish` was
