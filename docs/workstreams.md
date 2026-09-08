@@ -751,13 +751,30 @@ remains the closing reconciliation step's job.
 is wasted work).
 **Touches.** `Taskfile.yml`, `QUICKSTART.md`.
 
-## W8 — GitHub Actions — **code landed 7 Sep 2026, waiting on the identity**
+## W8 — GitHub Actions — **landed 8 Sep 2026**
 
-Branch `w8-github-actions`. Everything that is a file in this repository is
-done and verified as far as a paused capacity and an absent service principal
-allow. What is left is state in Azure and Fabric, which cannot be committed:
-`docs/ci_setup.md` is the procedure, and until someone walks it there is no
-identity for the workflow to authenticate as.
+Branch `w8-github-actions`. The files landed 7 Sep 2026; the identity they
+needed was created 8 Sep, and a manual run then went green from end to end —
+OIDC exchange, resume, ingest through the job API, the gate, pause. Both
+schedules are on: the weekly run at 21:00 UTC Wednesday and the watchdog half
+an hour later. `docs/ci_setup.md` is the procedure, annotated afterwards with
+what actually happened.
+
+**The chain past the gate has still never run on a runner**, because the gate
+answered `nothing_new` — MBIE publishes Wednesdays and the newest week was
+eleven days old. That is not a caveat about the code; it is the untested half
+of the environment, and 10 Sep is the first occasion. Tracked in
+`.claude/rules/active-items.md`.
+
+**Two failures taught more than the success, and neither was predicted here.**
+The federated credential rejected the documented subject: GitHub presented
+`repo:AndRayFS@159444042/nz-fuel-price-azure-fabric@1318804218:ref:refs/heads/main`,
+with numeric immutable ids rather than names, so a second credential matching
+that exact string was added. And `task` reports its own exit code, 201, for
+any failed task instead of the command's — which silently disarmed the
+workflow's "exit 2 is fine" branch, so every quiet week would have gone red.
+`task -x` passes the code through. The gate's whole value is which of three
+codes it returns, and a runner had been unable to read them.
 
 **Delivered.** `profiles.yml` moved into the repository (verified: dbt reads
 it with `~/.dbt` removed); `AzureCliCredential` became
@@ -969,6 +986,30 @@ against about NZ$24/month for Pro. Import plus Pro is already the cheapest
 arrangement; the only thing broken about it is where it lives. Whether
 publish-to-web supports DirectQuery at all is a separate open question and
 does not need answering.
+
+**Checked against the APIs, 8 Sep 2026** — before any of this is done in
+the GUI, so the VM session is short:
+
+- **One real workspace exists and it holds no Power BI items at all.**
+  `nz-fuel-price-project` is on the F2 (`isOnDedicatedCapacity: true`,
+  capacity `a87a43af-…`, SKU F2, region Australia East). Both the model and
+  the report are the only two items in My Workspace. So W9 is not a move
+  between two existing workspaces — the destination does not exist yet.
+- **The SPN cannot create that workspace.** Tenant setting
+  `ServicePrincipalAccessGlobalAPIs` ("service principals can create
+  workspaces, connections and deployment pipelines") is **off**, while
+  `ServicePrincipalAccessPermissionAPIs` ("service principals can call Fabric
+  public APIs") is **on**. That is the right shape for W9 — the human creates
+  the workspace and adds the SPN, the SPN then refreshes — but it means the
+  first step cannot be scripted from here. `PublishToWeb` is enabled at
+  tenant level, and the report's public link is registered under
+  `andrei@…onmicrosoft.com`.
+- **No service-side refresh since 26 Aug 2026.** The dataset's refresh
+  history ends there, though the model was republished from Desktop on
+  3 Sep. Worth settling before W9 automates anything: if the weekly update
+  is in practice a *republish from Desktop* rather than a *refresh in the
+  service*, then a refresh API call is not the step being replaced, and W9
+  has to say which of the two it is automating.
 
 **Risks.** Whether publish-to-web survives on a Free licence after the Pro
 trial ends is unresolved and Microsoft's docs point both ways — that is
