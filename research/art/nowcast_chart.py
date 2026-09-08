@@ -1,8 +1,13 @@
 """Two curves: the model's error today, and its error knowing the week in progress.
 
-Sorted by how much the pump price actually moved that fortnight, because that
-is where the difference lives — the average hides it. Reads
-`data/nowcast_results.csv`, written by `research/nowcast_in_adl.py --save`.
+Accumulated week by week through 2026, because that is the year a reader
+remembers: five quiet weeks in January, then the Iran-US episode from 6
+February. Cumulative rather than weekly, because a week-by-week error chart is
+a sawtooth in which nothing is legible — and cumulative hides nothing, since a
+week where the nowcast does worse shows up as the gap closing.
+
+Reads `data/nowcast_results.csv`, written by
+`research/nowcast_in_adl.py --save`.
 
 Run from this directory: it reads `fonts/*.ttf` by relative path and writes
 the PNG beside itself.
@@ -12,6 +17,7 @@ from pathlib import Path as FsPath
 
 import matplotlib
 matplotlib.use("Agg")
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -28,20 +34,16 @@ CARD = "#FFFFFF"
 NOW, WAS = "#B4530A", "#57A6B4"
 
 ROOT = FsPath(__file__).parents[2]
-FUEL, H, BANDS = "Regular Petrol", 2, 10
+FUEL, H, YEAR = "Regular Petrol", 2, 2026
 
 
 def main() -> None:
     d = pd.read_csv(ROOT / "data" / "nowcast_results.csv", parse_dates=["date"])
     d = d[(d.fuel == FUEL) & (d.h == H) & d.outcome_known].dropna(
         subset=["adl_ecm", "adl_ecm_nc", "actual"])
-    d["band"] = pd.qcut(d.actual.abs(), BANDS, labels=False, duplicates="drop")
-
-    g = d.groupby("band").apply(lambda s: pd.Series({
-        "was": np.abs(s.adl_ecm - s.actual).mean(),
-        "now": np.abs(s.adl_ecm_nc - s.actual).mean(),
-        "move": s.actual.abs().mean(),
-    }), include_groups=False)
+    d = d[d.date.dt.year == YEAR].sort_values("date").reset_index(drop=True)
+    d["was"] = (d.adl_ecm - d.actual).abs().cumsum()
+    d["now"] = (d.adl_ecm_nc - d.actual).abs().cumsum()
 
     fig, ax = plt.subplots(figsize=(9.2, 5.4), dpi=200)
     fig.patch.set_facecolor(GROUND)
@@ -53,47 +55,54 @@ def main() -> None:
     ax.grid(axis="y", color=LINE, lw=0.8)
     ax.set_axisbelow(True)
 
-    x = np.arange(1, len(g) + 1)
-    ax.plot(x, g.was, "-o", color=WAS, lw=2.6, ms=6,
-            label="Today's model")
-    ax.plot(x, g.now, "-o", color=NOW, lw=2.6, ms=6,
+    # The episode opens on the first week the volatility mask is on. Drawn as
+    # a marker rather than a shaded span: the episode runs to the end of the
+    # data, so a band would colour four fifths of the chart and say nothing.
+    onset = d.loc[d.hi.idxmax(), "date"] if d.hi.any() else None
+
+    ax.plot(d.date, d.was, color=WAS, lw=2.8, label="Today's model")
+    ax.plot(d.date, d.now, color=NOW, lw=2.8,
             label="Model + the week in progress")
+    ax.fill_between(d.date, d.now, d.was, color=NOW, alpha=0.10, lw=0)
 
-    top = len(g)
-    ax.annotate("", xy=(top, g.now.iloc[-1]), xytext=(top, g.was.iloc[-1]),
+    if onset is not None:
+        ax.axvline(onset, color=MUTED, lw=1.0, ls=(0, (4, 3)))
+        # Left of the line, in January's empty space: to the right the curve
+        # is climbing steeply and runs straight through the text.
+        ax.text(onset - pd.Timedelta(days=5), ax.get_ylim()[1] * 0.10,
+                "crude turns volatile,\n6 Feb", ha="right",
+                fontsize=9.5, color=MUTED, va="bottom")
+
+    gap = d.was.iloc[-1] - d.now.iloc[-1]
+    pct = gap / d.was.iloc[-1] * 100
+    ax.annotate("", xy=(d.date.iloc[-1], d.now.iloc[-1]),
+                xytext=(d.date.iloc[-1], d.was.iloc[-1]),
                 arrowprops=dict(arrowstyle="<->", color=INK, lw=1.2))
-    gain = (1 - g.now.iloc[-1] / g.was.iloc[-1]) * 100
-    # Left of the arrow, not on it: the two lines converge here and a label
-    # sitting between them lands on top of the upper one.
-    ax.text(top - 0.25, (g.now.iloc[-1] + g.was.iloc[-1]) / 2,
-            f"{gain:.0f}%\nless\nerror", ha="right", va="center",
-            fontsize=11.5, color=INK, linespacing=1.35)
+    ax.text(d.date.iloc[-1] - pd.Timedelta(days=6),
+            (d.was.iloc[-1] + d.now.iloc[-1]) / 2,
+            f"{gap:.0f} c/L\nless error\nover the year\n({pct:.0f}%)",
+            ha="right", va="center", fontsize=11, color=INK, linespacing=1.35)
 
-    ax.set_xticks(x)
-    # One decimal, because the lower deciles round to the same integer and a
-    # tick sequence reading 0, 1, 1, 2, 2 is worse than no labels at all.
-    ax.set_xticklabels([f"{v:.1f}" for v in g.move])
-    ax.set_xlabel("How much the pump price actually moved over the fortnight, "
-                  "c/L  (weeks grouped into tenths)", color=MUTED, labelpad=9)
-    ax.set_ylabel("Average forecast error, c/L", color=MUTED, labelpad=9)
+    ax.xaxis.set_major_locator(mdates.MonthLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b"))
+    ax.set_ylabel("Forecast error piled up since January, c/L",
+                  color=MUTED, labelpad=9)
     ax.tick_params(colors=MUTED, length=0)
-
-    ax.set_title("In a quiet week it changes nothing.\n"
-                 "In the weeks that move, it takes a fifth off the error.",
-                 fontfamily=DISPLAY, fontsize=17, color=INK,
-                 loc="left", pad=16)
+    ax.set_title("Through the quiet weeks the two are the same line.\n"
+                 "The 2026 crisis is where they part.",
+                 fontfamily=DISPLAY, fontsize=17, color=INK, loc="left", pad=16)
     ax.legend(frameon=False, loc="upper left", fontsize=10.5)
 
     fig.text(0.012, 0.015,
-             f"{FUEL}, two weeks ahead · {len(d)} weeks, 2013-2026 · "
-             "walk-forward, refit every week · NZ Fuel Price Project",
+             f"{FUEL}, two weeks ahead - {len(d)} weeks of {YEAR} - "
+             "walk-forward, refit every week - NZ Fuel Price Project",
              fontsize=8.5, color=MUTED)
 
     fig.tight_layout(rect=(0, 0.035, 1, 1))
-    out = FsPath(__file__).with_name("nowcast_error_by_move.png")
+    out = FsPath(__file__).with_name("nowcast_error_2026.png")
     fig.savefig(out, facecolor=GROUND)
     print(f"-> {out}")
-    print(g.round(2).to_string())
+    print(f"total: was {d.was.iloc[-1]:.1f}, now {d.now.iloc[-1]:.1f} c/L")
 
 
 if __name__ == "__main__":
