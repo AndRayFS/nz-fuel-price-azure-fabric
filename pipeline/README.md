@@ -48,7 +48,7 @@ Runs first, after the ingest and before anything else. Three exit codes:
 
 | code | meaning | what should happen next |
 |---|---|---|
-| 0 | new data, and it landed | run the rest of the chain |
+| 0 | new data, or the same weeks restated, and it landed | run the rest of the chain |
 | 2 | nothing to do — no new week | do not run the chain; nobody need look |
 | 1 | stop and look | do not run the chain; go and read why |
 

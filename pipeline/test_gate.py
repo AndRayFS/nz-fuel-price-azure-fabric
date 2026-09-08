@@ -27,12 +27,14 @@ from gate import NOTHING_TO_DO, PROCEED, STOP, decide
 
 def facts(*, rows_read, bronze_week, bronze_rows, marker_week, marker_rows,
           now, status="Completed", run_started="2026-08-19T04:36:11.3333333",
-          vintage_as_of=None):
+          vintage_as_of=None, fingerprint=None, marker_fingerprint=None):
     return {
         "run": {"id": "r", "status": status, "startTimeUtc": run_started,
                 "failureReason": None},
         "rows_read": rows_read,
         "bronze_week": bronze_week, "bronze_rows": bronze_rows,
+        "bronze_fingerprint": fingerprint,
+        "marker_fingerprint": marker_fingerprint,
         "marker_week": marker_week, "marker_rows": marker_rows,
         "vintage_as_of": vintage_as_of,
         "now": now,
@@ -112,6 +114,44 @@ CASES = [
      facts(rows_read=34950, bronze_week=date(2026, 8, 14), bronze_rows=34950,
            marker_week=None, marker_rows=None, now=AUG19),
      "no_marker_yet", PROCEED),
+
+    # --- the fingerprint, added 8 Sep 2026 -----------------------------------
+    # A row count cannot see a restatement: MBIE's usual revision moves cents
+    # between `Importer cost` and `Importer margin`, which net to zero.
+    ("same week, same rows, values restated — there is something to rebuild",
+     facts(rows_read=34920, bronze_week=date(2026, 8, 7), bronze_rows=34920,
+           marker_week=date(2026, 8, 7), marker_rows=34920, now=AUG19,
+           fingerprint="34920|1234.5|999.5|100", marker_fingerprint="34920|1200.0|980.0|100"),
+     "revised_in_place", PROCEED),
+
+    ("same week, same rows, identical values — genuinely nothing to do",
+     facts(rows_read=34920, bronze_week=date(2026, 8, 7), bronze_rows=34920,
+           marker_week=date(2026, 8, 7), marker_rows=34920, now=AUG19,
+           fingerprint="34920|1234.5|999.5|100", marker_fingerprint="34920|1234.5|999.5|100"),
+     "nothing_new", NOTHING_TO_DO),
+
+    # Only the status column moved: Provisional -> Final with every number
+    # unchanged is still a rebuild, because the training filter reads status.
+    ("same numbers, a week finalised — still a rebuild",
+     facts(rows_read=34920, bronze_week=date(2026, 8, 7), bronze_rows=34920,
+           marker_week=date(2026, 8, 7), marker_rows=34920, now=AUG19,
+           fingerprint="34920|1234.5|999.5|140", marker_fingerprint="34920|1234.5|999.5|100"),
+     "revised_in_place", PROCEED),
+
+    # A marker written before the column existed carries no fingerprint.
+    # "Cannot compare" must not read as "changed".
+    ("a marker from before the fingerprint existed falls back to the old answer",
+     facts(rows_read=34920, bronze_week=date(2026, 8, 7), bronze_rows=34920,
+           marker_week=date(2026, 8, 7), marker_rows=34920, now=AUG19,
+           fingerprint="34920|1234.5|999.5|100", marker_fingerprint=None),
+     "nothing_new", NOTHING_TO_DO),
+
+    # The fingerprint must not rescue a week that should stop the chain.
+    ("a shrunken source still stops, whatever the fingerprint says",
+     facts(rows_read=30000, bronze_week=date(2026, 8, 7), bronze_rows=30000,
+           marker_week=date(2026, 8, 7), marker_rows=34920, now=AUG19,
+           fingerprint="30000|900.0|800.0|90", marker_fingerprint="34920|1234.5|999.5|100"),
+     "source_shrank", STOP),
 ]
 
 

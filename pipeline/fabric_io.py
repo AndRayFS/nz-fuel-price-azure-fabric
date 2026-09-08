@@ -146,6 +146,44 @@ def _call_full(
     raise last  # type: ignore[misc]
 
 
+# The fingerprint of bronze's CONTENT, as opposed to its size.
+#
+# The gate compares row counts, which cannot see a revision: MBIE restates
+# published weeks by moving cents between `Importer cost` and `Importer
+# margin`, and those two move in EXACT OPPOSITION — measured, all twelve
+# groups net to zero (architecture.md). A plain `sum(Value)` would therefore
+# be blind to the most common kind of revision this source produces. Hence a
+# sum of squares alongside it: compensating edits change it.
+#
+# Decimal, never float. `Value` is text in bronze and has to be cast; casting
+# to FLOAT makes the sum depend on summation order, so the same data could
+# fingerprint differently between runs. decimal(38,6) is exact.
+#
+# `Status` is counted separately because a Provisional -> Final transition can
+# leave every number untouched and still be a change worth rebuilding for.
+BRONZE_FINGERPRINT_SQL = """
+select
+    count(*),
+    sum(try_cast(Value as decimal(38,6))),
+    sum(try_cast(Value as decimal(38,6)) * try_cast(Value as decimal(38,6))),
+    sum(case when Status = 'Final' then 1 else 0 end)
+from bronze_lakehouse.mbie.weekly_prices
+"""
+
+
+def bronze_fingerprint(cur) -> str | None:
+    """A short string standing for what bronze currently holds.
+
+    Compared as an opaque token: the gate only ever asks whether it equals the
+    one recorded when the last week was processed.
+    """
+    cur.execute(BRONZE_FINGERPRINT_SQL)
+    row = cur.fetchone()
+    if row is None or row[0] is None:
+        return None
+    return "|".join("" if v is None else str(v) for v in row)
+
+
 def start_ingest() -> str:
     """Start `ingest_mbie_weekly`; returns the run id.
 
