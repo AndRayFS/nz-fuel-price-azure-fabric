@@ -37,12 +37,13 @@ documented there.
 pass-through, the walk-forward test, and the corrections that overturned
 earlier findings. Withdrawn findings are kept in its appendix.
 
-**Half of `models/gold/` is read by nothing.** `lag_correlation`,
-`lag_resolved`, `factor_volatility` and `volatility_config` are still built
-by every weekly `--full-refresh`, but `nz_fuel_v2` holds only
-`forecast_accuracy`, which descends from two seeds. Before changing any of
-those four, read "The T-SQL lag layer" at the end of `architecture.md` —
-the decision to keep, unschedule or delete them is open.
+**`models/gold/` holds one model, `forecast_accuracy`.** The four that used
+to sit beside it — `lag_correlation`, `lag_resolved`, `factor_volatility`,
+`volatility_config` — were deleted on 8 Sep 2026: nothing had read them since
+Report 1 moved to the Python ADL+ECM, and they carried 22 of the project's 65
+tests, any of which could stop a weekly run over data with no consumer. Their
+design is still written up under "The T-SQL lag layer" in `architecture.md`,
+kept as the reasoning any replacement has to answer.
 
 Don't duplicate either file's content here; read them.
 

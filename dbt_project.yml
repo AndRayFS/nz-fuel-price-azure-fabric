@@ -39,8 +39,6 @@ seeds:
     # `variable_mapping` — and both belong in dbo.
 
 vars:
-  volatility_window_weeks: 6
-
   # Monitoring thresholds, in the units the AIP comparison works in:
   # USD/bbl, week-on-week move. A move smaller than the first is noise and
   # is never flagged; ours coming in under the second times Argus's is the

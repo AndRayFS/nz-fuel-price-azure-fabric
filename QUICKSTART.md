@@ -37,7 +37,7 @@ correctly.
 | See compiled SQL before running (check Jinja substituted correctly) | `dbt compile --select <model>` |
 | View compiled file | `cat target/compiled/nz_fuel_price_project/models/<path>/<model>.sql` |
 | Run one model | `dbt run --select <model>` |
-| **Weekly data refresh (IMPORTANT)** | Always use `--full-refresh` — plain `dbt run` has been observed to not reliably pick up new bronze rows for these models. `dbt run --select silver_general silver_fuel lag_correlation lag_resolved factor_volatility --full-refresh` |
+| **Weekly data refresh (IMPORTANT)** | Always use `--full-refresh` — plain `dbt run` has been observed to not reliably pick up new bronze rows for the models downstream of bronze. `dbt run --full-refresh`, which is what `task build` does |
 | Run one model, force full rebuild (needed after changing materialization or column structure) | `dbt run --select <model> --full-refresh` |
 | Run + tests together | `dbt build --select <model>` |
 | Preview output without leaving terminal | `dbt show --select <model> --limit 10` |
@@ -170,7 +170,7 @@ each line is a judgement to make before trusting the week.
 | no `WARN` at all | the outside check agrees and no Final week moved | nothing |
 | `aip_latest_week_out_of_step` → `ingest_behind` | AIP has a week we don't. Run after the ingest, this is the 19 Aug 2026 failure: `Succeeded` on a week-old file | this is the answer to a gate that said `nothing_new` — it says MBIE *has* published, so the CDN served us a stale copy. Re-run `ingest_mbie_weekly`, then step 0b again. Do not refresh Power BI |
 | `aip_latest_week_out_of_step` → `aip_store_behind` | our data moved on, the store didn't: step 1 was skipped, or parsed nothing | re-run step 1 and read stderr. `no report tables parsed` means AIP restyled the PDF — the page-3 layout and the `ROW` regex in `aip_check.py` need fixing. **Our numbers are unaffected**; the check is blind until it is fixed |
-| `aip_latest_week_out_of_step` → `aip_store_empty` | the store holds nothing for that fuel | `git checkout -- seeds/monitoring/aip_singapore_weekly.csv`, reload the seed. Never regenerate the file — see below |
+| `aip_latest_week_out_of_step` → `aip_store_empty` | the store holds nothing for that fuel | the store is a warehouse table now, so there is no file to restore: re-run step 1 and read stderr. If the table itself was lost, `monitoring.aip_singapore_weekly` is the one thing in this project with no upstream — see below |
 | `aip_disagrees_on_the_newest_week` | our `importer_cost` and the Argus quote disagree on the newest week, by more than a damped move or in sign | the gate counts rows and cannot see this: a file of the right size carrying wrong numbers passes it. Read the row in `monitor_aip_gap` and only continue once satisfied |
 | `revisions_rewrote_a_final_week` | MBIE changed a number on a week it had already called Final | published history has moved: `skill_26w` and `forecast_accuracy` for past weeks will no longer match what the report showed. Read the row, then record it in `architecture.md` — this has not happened yet, so the first one is worth writing down |
 
@@ -180,12 +180,14 @@ shows them anyway if you want to look.
 
 ### Failures that are not warnings
 
-- **`seeds/monitoring/aip_singapore_weekly.csv` deleted.** Every dbt command
-  then fails to parse — `depends on a node named 'aip_singapore_weekly' which
-  was not found` — not just the monitoring ones. The whole project is stuck
-  until `git checkout -- seeds/monitoring/aip_singapore_weekly.csv` brings it
-  back. That file is the only copy of the weeks AIP has already deleted from
-  its own site, so it is appended to and never regenerated.
+- **`monitoring.aip_singapore_weekly` lost or truncated.** It stopped being a
+  seed on 7 Sep 2026 and is now a warehouse table that `pipeline/aip_check.py`
+  appends to and never truncates. It holds the only copy of the weeks AIP has
+  already deleted from its own site — Mar–Jun 2026 is gone upstream — so
+  nothing can rebuild it. If it is lost, the recovery is warehouse time travel
+  (30-day retention), not a re-fetch and not `git checkout`. `dbt` will also
+  stop parsing if the source disappears, since `monitor_aip_gap` reads it
+  through `source()`.
 - **AIP or FRED unreachable.** Step 1 prints to stderr and still exits 0:
   cached PDFs are parsed anyway, and if the FX series cannot be fetched the
   store is left untouched rather than half-converted. Either way the store
@@ -209,10 +211,11 @@ shows them anyway if you want to look.
 - `models/monitoring/` — revision and ingest signals, in their own warehouse
   schema; feeds nothing and stops nothing
 - `seeds/periods.csv`, `seeds/variable_mapping.csv`
-- `seeds/monitoring/aip_singapore_weekly.csv` — the only copy of the AIP
-  weeks; append, never regenerate
+- `monitoring.aip_singapore_weekly` — a warehouse table since 7 Sep 2026, not
+  a seed; the only copy of the AIP weeks. `pipeline/aip_check.py` appends and
+  never truncates
 - `snapshots/mbie_revisions.sql`
-- `macros/pivot_variables.sql`, `macros/lag_correlation_series.sql`,
+- `macros/pivot_variables.sql`,
   `macros/generate_schema_name.sql` (custom schemas are used verbatim)
 
 Full design rationale: `docs/architecture.md`
@@ -221,9 +224,6 @@ Source (MBIE) structure and gotchas: `docs/mbie_notes.md`
 
 ## dbt vars (dbt_project.yml)
 
-- `volatility_window_weeks` — rolling window size for the volatility
-  indicator (currently 6). Change here, not in SQL, then
-  `dbt run --select factor_volatility`.
 - `aip_move_threshold_usd` (2) and `aip_damping_ratio` (0.25) — when
   `monitor_aip_gap` raises a flag. Both are USD/bbl week-on-week
   quantities; loosen them here rather than in the model.
