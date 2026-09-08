@@ -3,13 +3,17 @@
 Everything else in W8 is a file in this repository. This is the part that is
 state in Azure and in Fabric, done once, by someone holding the rights.
 
-**Status, 8 Sep 2026: four of five steps are done.** Steps 1, 3 and 5 were
-carried out and are recorded below with what they produced; step 4 waits for a
-run with the capacity awake. **Step 2 needs the Owner account** —
-`andrei@…onmicrosoft.com` holds `Contributor`, which manages resources but
-cannot grant roles, so the attempt returned `AuthorizationFailed` on
-`Microsoft.Authorization/roleDefinitions/write`. Sign in as
-`morozov_77@hotmail.com` for it, as with the billing upgrade on 3 Sep.
+**Status, 8 Sep 2026: every grant is in place.** Steps 1, 3 and 5 were carried
+out and are recorded below with what they produced; step 2 was done by the
+Owner account (`andrei@…onmicrosoft.com` is Contributor and cannot grant
+roles — `AuthorizationFailed` on `Microsoft.Authorization/roleDefinitions/write`
+— so it needs `morozov_77@hotmail.com`, as with the billing upgrade on 3 Sep);
+step 4 turned out not to exist. What remains is the run in step 6.
+
+**Signing back in matters.** `az login` as the Owner replaces the cached
+session, and everything in this project — dbt, the gate, every script — takes
+its token from whoever is signed in. Log back in as the working account
+afterwards, or the next run happens as the wrong identity.
 
 **Three permission planes, and they do not overlap.** This is the thing most
 likely to waste an afternoon: an identity can be perfectly able to drive
@@ -115,19 +119,22 @@ Fabric capacity is currently not active`.
   `nz-fuel-ci` Contributor. Member and Admin are more than the weekly chain
   needs; Viewer cannot start the pipeline.
 
-## 4. The warehouse — **waiting for a run with the capacity awake**
+## 4. The warehouse — **nothing to do, and the earlier instruction was wrong**
 
-Fabric workspace roles reach the item, not the SQL engine inside it. Once, in
-a query window on `analytics_warehouse`:
+This step used to say: create a contained user from the external provider and
+put it in `db_owner`. That is the Azure SQL / Synapse shape, written here from
+memory rather than from a test, and Fabric Warehouse rejects it outright —
+`CREATE USER is not a supported statement type` (tried 8 Sep 2026).
 
-```sql
-create user [nz-fuel-ci] from external provider;
-alter role db_owner add member [nz-fuel-ci];
-```
+Fabric does not have SQL principals per identity at all. `sys.database_principals`
+on `analytics_warehouse` holds four rows — `dbo`, `guest`, `sys`,
+`INFORMATION_SCHEMA` — and no entry even for the human who writes to it daily.
+Access comes from the workspace role granted in step 3: a Contributor can read
+and write the warehouse's data. There is nothing to grant inside the database.
 
-`db_owner` because the chain creates and drops tables on every
-`--full-refresh` and writes `pipeline.processed_weeks`. Narrower grants are
-possible and would need revisiting every time a schema is added.
+If finer control is ever wanted, it is item permissions and T-SQL `GRANT` on
+existing principals, not `CREATE USER`. The check that this actually works is
+the run in step 6, which writes.
 
 ## 5. GitHub — **done 8 Sep 2026**
 
