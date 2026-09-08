@@ -6,6 +6,17 @@ Part 6 on 11 Aug). Links live in `README.md`.
 **Part 7 published 18 Aug 2026:** https://lnkd.in/p/ejjH8i-z — text as drafted
 in `draft_part7.md`.
 
+**Part 8 published:** https://lnkd.in/p/egUBNZZ8 — drafted in `draft_part8.md`.
+Date not recorded here; it went out before Part 9 and this file had still been
+carrying it as unpublished.
+
+**Part 9 published 8 Sep 2026:** https://lnkd.in/p/eNTj-JMQ — the nowcast,
+drafted in `draft_part9.md`. Three departures from the draft, all the author's:
+"my model" rather than "the model", "the PowerBI report" rather than "the
+report", and a backlink to Part 8 above the sign-off. It carries the petrol
+and diesel price chart (`research/art/nowcast_levels_2026.png`) and no
+hashtags.
+
 | Part | Topic | Ends by promising |
 |---|---|---|
 | 1 | Original R lag analysis, MBIE data, 4 shocks | — |

@@ -1524,6 +1524,248 @@ Three caveats that travel with these numbers:
   0.72 against a trailing one), so it sees four weeks ahead. It splits the
   results; it never enters a forecast.
 
+## The week in progress is partly visible — 8 Sep 2026
+
+`pipeline/backtest.py` cannot see the week it is forecasting. `adl_forecast`
+loops `for k in range(j, K + 1)`, so at horizon j every coefficient on a cost
+change it does not yet know is dropped — at h=1 that is `b0`, and crude lands
+on `Importer cost` at lag 0. The model assumes, silently, that the coming
+week's cost does not move.
+
+It does not have to. `Importer cost` is a replacement cost — this week's
+Singapore product spot at this week's FX — and the crude and currency
+underneath it trade daily in public while MBIE publishes weekly, on the
+Wednesday after the week ends. By the time the weekly chain runs, two or three
+trading days of the *next* week already exist.
+
+**Measured** by `research/nowcast_brent.py`: the change from last week's full
+Mon–Fri mean of Brent-in-NZD to this week's mean over its first k trading
+days, against the week's actual `d_cost`. 970 weeks, 2008–2026. RMSE is
+walk-forward — refit every week on everything before it — against the baseline
+the model uses today, which is that cost does not move. Cents per litre.
+
+| fuel | k days | R² (in-sample) | RMSE | baseline | error cut |
+|---|---|---|---|---|---|
+| Diesel | 1 | 0.285 | 5.190 | 6.076 | 14.6% |
+| Diesel | 2 | 0.335 | 4.837 | 5.879 | 17.7% |
+| Diesel | 3 | 0.332 | 4.834 | 5.862 | **17.5%** |
+| Diesel | 5 | 0.344 | 4.790 | 5.862 | 18.3% |
+| Regular Petrol | 1 | 0.476 | 2.690 | 3.714 | 27.6% |
+| Regular Petrol | 2 | 0.513 | 2.591 | 3.695 | 29.9% |
+| Regular Petrol | 3 | 0.545 | 2.503 | 3.688 | **32.1%** |
+| Regular Petrol | 5 | 0.571 | 2.429 | 3.688 | 34.1% |
+
+Premium Petrol tracks Regular to the third decimal and is omitted. **k = 5 is
+not observable** — it is the whole week, and the honest ceiling on what any
+Brent-based reading can do.
+
+**Three days deliver about 95% of that ceiling** — 17.5 against 18.3 for
+diesel, 32.1 against 34.1 for petrol — and Monday alone already delivers four
+fifths of it. So the design question "how many days should we wait for" has a
+boring answer: waiting past Wednesday buys almost nothing, and the choice can
+be made on operational convenience rather than on accuracy.
+
+**Stable across every cut tried.** 2015 onward, 2008 onward, and Final-only
+weeks all land within one percentage point.
+
+**This reproduces the figure the Part 8 draft carried** — "30% (diesel) / 45%
+(petrol) of the current week's cost change" — which until now had no
+specification, no sample and no code anywhere in the repository, only that one
+sentence. In-sample R² at k = 3 is 0.33 diesel and 0.55 petrol, so the diesel
+half was right and the petrol half was understated. The number can now be
+quoted because it can now be recomputed.
+
+**What this is not.** It nowcasts `Importer cost`, not the pump price. Whether
+it improves the published forecast is a different measurement: the gain has to
+pass through `b0`, which is well under 1, so a 17% cut in cost error does not
+become a 17% cut in price error. That test — the nowcast as an input to the
+ADL+ECM, scored against `pred_adl_ecm` and `pred_naive` on the Report 1
+horizons — is the one that decides whether any of this ships.
+
+**Brent is the available benchmark, not the right one.** The target is a
+Singapore *product* quote; Brent is a crude one crack spread away. Dubai, the
+Asian crude MBIE actually publishes, has no free daily source: FRED's series
+is monthly and was two months stale when checked. AIP republishes the exact
+Argus product quote weekly — 0.997 against `Importer cost` on week-on-week
+changes — but on the Sunday of the week that has *ended*, so it cannot reach
+the week in progress. Everything lost between crude and product is already
+inside the numbers above.
+
+**Source risk, stated because it decides deployment.** Both legs come from
+Yahoo's chart endpoint, which is undocumented and carries no stability
+promise. FRED is the documented alternative and is a week behind — on 8 Sep
+its newest Brent was 1 Sep and its newest NZD/USD was 28 Aug — which is
+precisely the failure this method exists to avoid. A measurement can live with
+that dependency; a Wednesday production run cannot, without at minimum a check
+that fails loudly rather than silently.
+
+## The nowcast survives the walk-forward test — 8 Sep 2026
+
+The measurement above nowcasts `Importer cost`, which is not what the report
+publishes. This one puts it inside the model and scores the pump price, by
+`research/nowcast_in_adl.py`. `pipeline/backtest.py` is **imported, not
+reimplemented** — `load`, `fit_adl`, K, MIN_TRAIN, the Final-only training
+filter and the 1.15 retail conversion are identical by construction, so the
+comparison is against the production model rather than a restatement of it.
+
+One term changes. `adl_forecast` sums `b_k * d_cost_{t+j-k}` for `k >= j`;
+with the nowcast it sums from `k >= j - 1`, because `k = j - 1` lands on index
+t+1 — the week in progress. The nowcast regression is refit at every cutoff on
+pairs up to and including t, then applied to week t+1's three-day reading.
+
+**MAE on the pump price, c/L, non-crisis weeks, n = 597:**
+
+| fuel | h | naive | adl_ecm | + nowcast | gain |
+|---|---|---|---|---|---|
+| Diesel | 1 | 1.893 | 1.372 | 1.289 | 6.0% |
+| Diesel | 2 | 3.440 | 2.650 | 2.294 | 13.4% |
+| Diesel | 3 | 4.739 | 3.842 | 3.316 | 13.7% |
+| Regular Petrol | 1 | 1.934 | 1.420 | 1.312 | 7.6% |
+| Regular Petrol | 2 | 3.519 | 2.743 | 2.369 | 13.6% |
+| Regular Petrol | 3 | 4.832 | 3.970 | 3.478 | 12.4% |
+
+It wins in every fuel, every horizon and both regimes, including crisis weeks
+(9–15%). Week by week it is closer than plain `adl_ecm` in 56% of weeks at
+h=1 and 63–64% at h=2 and h=3.
+
+**h=2 gains twice what h=1 does, and that is arithmetic rather than luck.**
+The h-week forecast is cumulative, so the nowcast enters every step inside it:
+at h=1 it contributes `b0` once, at h=2 `b0 + b1`, at h=3 `b0 + b1 + b2`. More
+of the response is recovered the further out the horizon, until accumulating
+error overtakes it — which is what the flattening from h=2 to h=3 is.
+
+**The gain shrinks passing through the model, exactly as predicted.** 17.5%
+(diesel) and 32.1% (petrol) on the cost nowcast become 13.4% and 13.6% on the
+pump price at h=2. Petrol loses much more than diesel, which is consistent
+with the coefficients: the better the cost estimate, the more the ADL's own
+pass-through error dominates what is left.
+
+**Placebo, and this is the check that matters.** Feeding *last* week's reading
+through the same extra term — information already inside `d_cost_t` — makes
+the forecast **worse**, by 1.9–6.7%. A gain there would have meant the extra
+coefficient was helping for structural reasons and the whole result was
+plumbing. It degrades instead, which is what stale data presented as fresh
+should do.
+
+**Days in hand.** Three trading days deliver about 85–90% of what the whole
+week would (h=2: 13.4 against 15.7 diesel, 13.6 against 15.7 petrol). One day
+is on a different sample — 532 weeks rather than 597, because a Monday holiday
+removes the week entirely — so its column is not directly comparable and is
+not quoted here.
+
+**The gain is largest where the model is worst.** Splitting the crisis weeks
+by position inside the volatility episode, h=2, MAE c/L:
+
+| fuel | phase | n | naive | adl_ecm | + nowcast | gain |
+|---|---|---|---|---|---|---|
+| Diesel | weeks 1–2 | 12 | 5.96 | 4.89 | 3.93 | 19.6% |
+| Diesel | weeks 3–4 | 12 | 13.59 | 12.40 | 8.71 | 29.8% |
+| Diesel | weeks 5+ | 86 | 11.20 | 8.22 | 7.31 | 11.1% |
+| Regular Petrol | weeks 1–2 | 12 | 6.17 | 5.22 | 4.17 | 20.1% |
+| Regular Petrol | weeks 3–4 | 12 | 11.46 | 11.81 | 9.36 | 20.7% |
+| Regular Petrol | weeks 5+ | 86 | 6.22 | 4.64 | 4.09 | 11.9% |
+
+The row that matters is petrol in weeks 3–4, where `adl_ecm` **loses to naive**
+— 11.81 against 11.46 — which is the distributed lag still carrying the weights
+of a shock that has already landed. The nowcast takes it to 9.36, below naive.
+It is not only adding accuracy; it repairs the one regime where the model
+currently earns nothing.
+
+**n = 12 in those bands, and that has to travel with the number.** Six
+episodes reach the forecast sample, two weeks each. The 29.8% is one or two
+weeks away from being noise. The direction is trustworthy, the magnitude is
+not.
+
+**So the same question asked with six times the power** — weeks ranked by how
+much the price actually moved, rather than by where they sit in an episode:
+
+| fuel | decile of \|actual\| | n | naive | adl_ecm | + nowcast | gain |
+|---|---|---|---|---|---|---|
+| Diesel | top 10% | 71 | 20.36 | 12.52 | 10.24 | 18.3% |
+| Diesel | next 10% | 71 | 7.46 | 4.89 | 3.67 | 25.1% |
+| Regular Petrol | top 10% | 71 | 14.88 | 10.19 | 8.23 | 19.2% |
+| Regular Petrol | next 10% | 71 | 7.12 | 4.81 | 3.61 | 25.1% |
+
+**18–25% in the fifth of weeks that move most, against 13% on average.** The
+mechanism is not mysterious: the nowcast carries information about how this
+week differs from last, and that is worth nothing in a quiet week and
+everything in a collapse. In a quiet week it confirms what the model already
+assumed; in a shock it is the only thing that knows.
+
+**This cannot be turned into a rule that switches the nowcast on in a crisis.**
+Both the regime and the episode id come from a centred window that sees four
+weeks ahead, so they split results and never choose. At the moment of
+forecasting nobody knows which kind of week it is.
+
+**What has to be true before this ships.** It touches `pipeline/backtest.py`,
+which is production; it puts an undocumented Yahoo endpoint inside the
+Wednesday chain, so the failure path has to be *degrade to plain `adl_ecm`*
+rather than fail the run; Report 1 gains a predictor and the semantic model
+needs republishing; and the confidence-tier language rules apply to the new
+series as they do to the old ones. None of that is measurement, and none of it
+is done.
+
+## A better crude-to-cost slope made the forecast worse — 8 Sep 2026
+
+The nowcast turns a move in Brent-in-NZD into a move in `Importer cost`
+through one fitted slope: `d_cost = a + b·x`. Over the whole sample b is 1.010
+(petrol) and 1.232 (diesel) — a cent of crude moves landed cost by about a
+cent, more on diesel, which is the crack spread and matches Part 8.
+
+**That slope is not stable, and 2026 is its extreme.** Fitted year by year:
+
+| | 2020 | 2022 | 2024 | 2025 | 2026 |
+|---|---|---|---|---|---|
+| Petrol | 0.75 | 0.97 | 1.05 | 0.84 | **1.33** |
+| Diesel | 0.67 | 1.45 | 1.00 | 1.08 | **2.03** |
+
+Diesel's 2.03 is nearly double the long-run figure. The expanding window the
+backtest actually uses barely registered it — 0.884 at the end of 2021, 1.065
+at the end of 2025, 1.232 now — so through the whole 2026 crisis the nowcast
+was scaling with a slope around 1.1 while the year's real relationship was
+2.0. **It systematically understated the cost move, and the 13% gain was won
+anyway.**
+
+**So a rolling window should help. It does not.** Refitting the slope on the
+last N weeks instead of everything, walk-forward as before, h=2, MAE c/L:
+
+| fuel | window | MAE 2026 | MAE all | slope on 14 Aug 26 |
+|---|---|---|---|---|
+| Petrol | expanding | 5.160 | 2.727 | 1.01 |
+| Petrol | 52w | 6.074 | 2.737 | 1.28 |
+| Petrol | 104w | 5.361 | **2.715** | 1.18 |
+| Petrol | 208w | 5.207 | 2.721 | 1.04 |
+| Diesel | expanding | 13.998 | 3.041 | 1.23 |
+| Diesel | 52w | **15.773** | **2.985** | **1.94** |
+| Diesel | 104w | **13.612** | 3.023 | 1.70 |
+| Diesel | 208w | 13.804 | 3.041 | 1.50 |
+
+**The one-year window on diesel estimates the slope almost exactly right —
+1.94 against the year's actual 2.03 — and produces the worst 2026 forecast in
+the table.** A more accurate view of crude→cost gave a less accurate view of
+the pump price.
+
+**Why, and it is a constraint on any future improvement here.** The nowcast
+does not reach the price directly; it passes through the ADL's own
+coefficients, which describe cost→pump and are themselves fitted on the whole
+history and themselves wrong in a crisis. Doubling the input doubles the
+transmission error with it. The two halves cannot be re-estimated
+independently: a sharper `b` fed into an unchanged pass-through overshoots.
+The same logic caps every "just make the nowcast better" idea until the ADL
+side is addressed too.
+
+**Decision: keep the expanding window.** 104 weeks is fractionally better in
+places — 2.715 against 2.727 on petrol overall, 13.6 against 14.0 on diesel in
+2026 — but those are tenths of a percent, inside the noise of choosing a
+window at all, and they cost a tuned parameter that would have to be explained
+and maintained. `research/nowcast_in_adl.py --nc-window N` reproduces every
+row above.
+
+**What this leaves on the record.** The slope ranges 0.67 to 2.03, the method
+runs with a stale one, and it still works. That is a limitation and a margin
+at the same time: the mechanism does not depend on the coefficient being
+right, which is a better property than it sounds.
+
 ## Checks that have repeatedly changed the answer
 
 Five questions, each of which has overturned at least one finding in this
