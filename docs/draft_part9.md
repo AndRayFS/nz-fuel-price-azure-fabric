@@ -31,48 +31,40 @@ shows March, where neither version came close.
 absolute errors through 2026: one line through the quiet weeks, parting from 6
 February. Optional second image if one is not enough.
 
-## The draft, ~1,500 characters
+## The draft, ~1,300 characters
 
-В моей модели прогноза цен на топливо была дыра, о которой я знал с самого
-начала.
+MBIE publishes fuel prices once a week, on Wednesdays, for the week that ended
+on Sunday. The model forecasts one, two or three weeks ahead — and the first
+of those weeks is already under way, with no data for it yet.
 
-MBIE публикует данные раз в неделю, по средам. Модель прогнозирует на две
-недели вперёд — но первая из этих двух недель **уже идёт**, и данных по ней
-ещё нет.
+Something about it is knowable anyway. MBIE's importer cost tracks Singapore
+fuel prices and the exchange rate. Those quotes are paid data, but crude and
+currency trade every day while MBIE waits for Wednesday.
 
-При этом кое-что о ней известно. Затраты импортёра в статистике MBIE привязаны
-к цене топлива в Сингапуре и к курсу доллара. Сингапурские котировки платные,
-зато нефть и валюта торгуются каждый день, пока MBIE ждёт среды. К моменту
-прогноза три торговых дня новой недели уже прошли.
+✅ I took the week's first three days from Brent, converted them to NZ dollars,
+and gave them to the model.
 
-Я взял эти три дня по Brent, перевёл в новозеландские доллары и добавил в
-модель.
+✅ Average error fell 13% two weeks ahead, 12% at three, 7% at one. Across 707
+weeks since 2013, refit every week on data up to that week only.
 
-✅ Средняя ошибка прогноза на две недели упала на 13%. Проверено на 707
-неделях с 2013 года: модель переобучалась заново каждую неделю, только на
-данных до этой недели.
+✅ Largest in a crisis: when the price moves 5–20 c/L over a fortnight, the
+model used to miss two thirds of the move, now about half.
 
-✅ Заметнее всего в кризис. Когда цена ходит на 5–20 центов за две недели,
-модель промахивалась примерно на две трети движения — теперь примерно на
-половину.
+Not a silver bullet, and the charts show why:
 
-Но это не серебряная пуля, и графики показывают ограничения лучше, чем я мог
-бы их описать.
+⚠️ In calm weeks it changes nothing — sometimes tenths of a cent worse.
 
-⚠️ В спокойные недели разницы нет. Местами даже чуть хуже — на десятые доли
-цента.
+⚠️ Nothing saw March 2026 coming. Petrol rose 95 c/L, diesel nearly 200. The
+corrected model turned a week earlier and ran 6–7 c/L closer; both were still
+far behind.
 
-⚠️ Марта 2026-го не предвидела ни одна версия. Цена ушла вверх на 95 центов по
-бензину и почти на 200 по дизелю. Поправка развернулась на неделю раньше и
-держалась на 6–7 центов ближе к факту, но обе модели остались далеко позади.
+⚠️ In the six sharpest weeks of the year the gain nearly vanishes.
 
-⚠️ В шести самых резких неделях года выигрыш почти исчезает.
+Not a prediction of the future — information that already exists, arriving
+earlier than the report.
 
-Так что это не предсказание будущего. Это использование информации, которая
-уже существует — просто приходит раньше отчёта.
-
-В сам отчёт пока не внедрено: сначала должна отработать перестроенная
-еженедельная загрузка. Про неё следующий пост.
+Not in the report yet: the rebuilt weekly pipeline has to prove itself first.
+That is the next post.
 
 NZ Fuel Price Project — Part 9
 
@@ -88,6 +80,15 @@ NZ Fuel Price Project — Part 9
   without the bucket doing the work.
 - **13%, not 13.9%**, and no second decimal anywhere: rounding down is the
   cheapest defence against a reader who recomputes.
+- **All three horizons are quoted, not just the best one.** The post names
+  one, two and three weeks, so giving only the two-week figure — the largest
+  of the three — would read as picking. One week gains least (7-8%) because
+  the forecast is cumulative: the correction enters once at h=1 and twice at
+  h=2, so more of the response is recovered the further out the horizon runs,
+  until accumulated error overtakes it at three weeks.
+- **"The week's first three days" says three inside the sentence.** An earlier
+  cut removed the line that introduced them and left "those three days"
+  pointing at nothing.
 - **No point-forecast language**, per the house rule. "Использование
   информации, которая уже существует" is the whole claim.
 - Numbers: `docs/research.md`, "The week in progress is partly visible" and
