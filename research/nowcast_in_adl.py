@@ -90,6 +90,12 @@ def main() -> int:
                          "d_cost_t, so a gain here would mean the extra term "
                          "is helping for some reason other than new "
                          "information, and the whole result is plumbing.")
+    ap.add_argument("--nc-window", type=int, default=0,
+                    help="weeks of history the nowcast regression may use; "
+                         "0 = expanding, everything up to the cutoff. The "
+                         "crude-to-cost slope is not stable — 2.03 on diesel "
+                         "in 2026 against 1.23 over the whole sample — so an "
+                         "expanding fit is still carrying 2014 in 2026.")
     ap.add_argument("--save", action="store_true",
                     help="write the per-week results to data/ for the chart")
     args = ap.parse_args()
@@ -127,11 +133,12 @@ def main() -> int:
             nc = np.nan
             src = t if args.placebo else t + 1
             if t + 1 < n and np.isfinite(x[src]):
-                ok = (np.isfinite(x[:t + 1]) & np.isfinite(y[:t + 1])
-                      & is_final[:t + 1])
+                lo = max(0, t + 1 - args.nc_window) if args.nc_window else 0
+                xs, ys, fs = x[lo:t + 1], y[lo:t + 1], is_final[lo:t + 1]
+                ok = np.isfinite(xs) & np.isfinite(ys) & fs
                 if ok.sum() >= NC_MIN_TRAIN:
-                    A = np.column_stack([np.ones(ok.sum()), x[:t + 1][ok]])
-                    g = np.linalg.lstsq(A, y[:t + 1][ok], rcond=None)[0]
+                    A = np.column_stack([np.ones(ok.sum()), xs[ok]])
+                    g = np.linalg.lstsq(A, ys[ok], rcond=None)[0]
                     nc = g[0] + g[1] * x[src]
 
             for h in bt.HORIZONS:

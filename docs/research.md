@@ -1705,6 +1705,67 @@ needs republishing; and the confidence-tier language rules apply to the new
 series as they do to the old ones. None of that is measurement, and none of it
 is done.
 
+## A better crude-to-cost slope made the forecast worse — 8 Sep 2026
+
+The nowcast turns a move in Brent-in-NZD into a move in `Importer cost`
+through one fitted slope: `d_cost = a + b·x`. Over the whole sample b is 1.010
+(petrol) and 1.232 (diesel) — a cent of crude moves landed cost by about a
+cent, more on diesel, which is the crack spread and matches Part 8.
+
+**That slope is not stable, and 2026 is its extreme.** Fitted year by year:
+
+| | 2020 | 2022 | 2024 | 2025 | 2026 |
+|---|---|---|---|---|---|
+| Petrol | 0.75 | 0.97 | 1.05 | 0.84 | **1.33** |
+| Diesel | 0.67 | 1.45 | 1.00 | 1.08 | **2.03** |
+
+Diesel's 2.03 is nearly double the long-run figure. The expanding window the
+backtest actually uses barely registered it — 0.884 at the end of 2021, 1.065
+at the end of 2025, 1.232 now — so through the whole 2026 crisis the nowcast
+was scaling with a slope around 1.1 while the year's real relationship was
+2.0. **It systematically understated the cost move, and the 13% gain was won
+anyway.**
+
+**So a rolling window should help. It does not.** Refitting the slope on the
+last N weeks instead of everything, walk-forward as before, h=2, MAE c/L:
+
+| fuel | window | MAE 2026 | MAE all | slope on 14 Aug 26 |
+|---|---|---|---|---|
+| Petrol | expanding | 5.160 | 2.727 | 1.01 |
+| Petrol | 52w | 6.074 | 2.737 | 1.28 |
+| Petrol | 104w | 5.361 | **2.715** | 1.18 |
+| Petrol | 208w | 5.207 | 2.721 | 1.04 |
+| Diesel | expanding | 13.998 | 3.041 | 1.23 |
+| Diesel | 52w | **15.773** | **2.985** | **1.94** |
+| Diesel | 104w | **13.612** | 3.023 | 1.70 |
+| Diesel | 208w | 13.804 | 3.041 | 1.50 |
+
+**The one-year window on diesel estimates the slope almost exactly right —
+1.94 against the year's actual 2.03 — and produces the worst 2026 forecast in
+the table.** A more accurate view of crude→cost gave a less accurate view of
+the pump price.
+
+**Why, and it is a constraint on any future improvement here.** The nowcast
+does not reach the price directly; it passes through the ADL's own
+coefficients, which describe cost→pump and are themselves fitted on the whole
+history and themselves wrong in a crisis. Doubling the input doubles the
+transmission error with it. The two halves cannot be re-estimated
+independently: a sharper `b` fed into an unchanged pass-through overshoots.
+The same logic caps every "just make the nowcast better" idea until the ADL
+side is addressed too.
+
+**Decision: keep the expanding window.** 104 weeks is fractionally better in
+places — 2.715 against 2.727 on petrol overall, 13.6 against 14.0 on diesel in
+2026 — but those are tenths of a percent, inside the noise of choosing a
+window at all, and they cost a tuned parameter that would have to be explained
+and maintained. `research/nowcast_in_adl.py --nc-window N` reproduces every
+row above.
+
+**What this leaves on the record.** The slope ranges 0.67 to 2.03, the method
+runs with a stale one, and it still works. That is a limitation and a margin
+at the same time: the mechanism does not depend on the coefficient being
+right, which is a better property than it sounds.
+
 ## Checks that have repeatedly changed the answer
 
 Five questions, each of which has overturned at least one finding in this
