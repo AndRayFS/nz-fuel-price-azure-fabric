@@ -19,18 +19,15 @@ design and should be trimmed or updated, not left as-is indefinitely.
     against 29 Aug 2026 and will need the same treatment again.
   Method and expectations: `docs/mbie_notes.md`, "A standing prediction".
 
-- [ ] **One grant left before the workflow can run: the ARM role on the
-  capacity.** Four of five setup steps were done 8 Sep 2026 — the Entra app
-  (`3f465111-2a96-4c64-84f6-88dea76c6562`) with its federated credential, the
-  Fabric workspace role, the three repository secrets — and the tenant switch
-  turned out to be on already. What is left needs the **Owner** account
-  `morozov_77@hotmail.com`: `andrei@…onmicrosoft.com` is Contributor and
-  cannot grant roles (`AuthorizationFailed` on `roleDefinitions/write`).
-  Commands: `docs/ci_setup.md` step 2.
-  - Then step 4, one SQL statement, on a run with the capacity awake.
-  - Then one manual run with `skip_ingest` on a week already loaded — roughly
-    NZ$0.06, and it proves every grant at once. Turn both schedules on only
-    after it passes.
+- [ ] **The chain past the gate has never run in CI.** Every grant is in
+  place and a full manual run went green on 8 Sep 2026 — but the gate answered
+  `nothing_new`, so everything after it was skipped. The first real exercise of
+  `aip`, `snapshot`, `build`, `test`, `panel`, `flags`, `backtest`, `report`
+  and `close` on a runner is the Wednesday publication, 10 Sep 2026. Watch that
+  run rather than assuming it.
+  - `flags` and `backtest` now write to the database from CI, which has never
+    happened from anywhere but this laptop.
+  - The Power BI refresh stays manual until W9.
 
 - [ ] **Set a budget alert in Cost Management — nothing guards spend right
   now.** The subscription was upgraded to pay-as-you-go on 3 Sep 2026, which

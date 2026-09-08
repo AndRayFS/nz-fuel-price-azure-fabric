@@ -152,6 +152,27 @@ the authentication is the OIDC exchange. The subscription id is already
 public in this repository. They are secrets only because that is where
 workflow inputs live.
 
+## 6. Proving it works, cheaply — **done 8 Sep 2026, and both schedules are on**
+
+The proving run went green end to end on the second attempt, and the two
+failures before it were worth more than the success:
+
+- **The subject GitHub actually presents carries numeric ids.** Not
+  `repo:AndRayFS/nz-fuel-price-azure-fabric:ref:refs/heads/main` as documented,
+  but `repo:AndRayFS@159444042/nz-fuel-price-azure-fabric@1318804218:ref:refs/heads/main`.
+  A second federated credential was added for that exact string; the
+  documented one is kept in case the format reverts.
+- **`task` reports its own exit code, 201, not the command's.** The gate's
+  three codes are the entire point of the step, and the workflow's "exit 2 is
+  fine" branch could therefore never fire — every quiet week would have gone
+  red. Fixed with `task -x`, which passes the code through.
+
+What the green run exercised: OIDC exchange, resume through the ARM role,
+`ingest_mbie_weekly` started and polled through the job API, a Fabric API read
+and a warehouse query from the gate, and pause. What it did NOT exercise is
+everything after the gate — it answered `nothing_new`, correctly, because MBIE
+publishes on Wednesdays. First real run of the chain proper: 10 Sep 2026.
+
 ## 6. Proving it works, cheaply
 
 Run the workflow by hand with **skip_ingest = true** on a week that is already
