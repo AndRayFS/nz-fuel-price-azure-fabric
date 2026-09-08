@@ -1054,7 +1054,7 @@ trial appears to be tracked inside Power BI rather than in Entra. Check the
 public link the day after the trial ends; fall back to Pro (~NZ$24/mo) or
 PDF if it breaks.
 
-## The T-SQL lag layer — built, still scheduled, read by nothing
+## The T-SQL lag layer — deleted 8 Sep 2026, design kept
 
 The four models documented below — `lag_correlation`, `lag_resolved`,
 `factor_volatility` and `volatility_config` — were this project's first
@@ -1063,12 +1063,14 @@ T-SQL. They fed the first Report 1: `resolved_lag` and `resolved_slope` drove
 the forecast, `factor_volatility` against `calm_baseline` drove the "is a crisis
 still happening" indicator.
 
-**Nothing reads them today.** The published model `nz_fuel_v2` holds one table,
-`forecast_accuracy`, built from two seeds written by `backtest.py` and
-`build_period_flags.py`; no `ref()` in it reaches silver or any model below.
-Checked 3 Sep 2026 across `models/`, `research/`, `pipeline/` and the `.tmdl` —
-the only consumers left are the scratch queries in `analyses/`, which are not
-scheduled. Every weekly `dbt run --full-refresh` still builds all four.
+**Nothing read them by the end.** The published model `nz_fuel_v2` holds one
+table, `forecast_accuracy`, built from what `backtest.py` and
+`build_period_flags.py` write; no `ref()` in it reached silver or any model
+below. Checked twice — 3 Sep 2026 across `models/`, `research/`, `pipeline/`
+and the `.tmdl`, and again on 8 Sep before deleting. The second check found
+`lag_correlation` read only by `lag_resolved`, its own sibling, and the four
+mentioned in `analyses/` only in comments. Until 8 Sep every weekly
+`dbt run --full-refresh` built all four.
 
 Three measurements retired them, in this order, all recorded in
 `docs/research.md`: single-best-lag is weakly identified, because the lag
@@ -1079,13 +1081,34 @@ formula behind "the price won't move" at one and two weeks. Report 1 was rebuilt
 on the Python ADL+ECM, and these four were left running without a consumer
 rather than deliberately retired.
 
-**The decision is open and should be taken deliberately rather than by
-neglect:** keep, drop from the weekly schedule, or delete. Deleting is cheap —
-`periods.csv` survives either way, `export_panel.py` reads it — and the one
-thing with no replacement is `factor_volatility`, the only volatility signal in
-this project that can be computed **live**. `crude_vol_regime`, which replaced
-it, uses a centred window and can therefore only split the past. Nothing in
-Report 1's spec asks for a live indicator today.
+**Decided 8 Sep 2026: deleted**, along with `macros/lag_correlation_series.sql`,
+whose only caller was `lag_correlation`, and the `volatility_window_weeks` var.
+`periods.csv` survives — `export_panel.py` reads it.
+
+The argument was not cost. All four rebuild in about 14 seconds, roughly a
+third of a cent of F2 per week; that is not worth a decision. It was that they
+carried **22 of the project's 65 data tests**. `dbt test` is step 4 of the
+weekly chain and any failure outside `monitoring` stops it, so a third of the
+test suite could halt the publication of a report that does not depend on a
+single one of those tables. Unscheduling would have kept that liability in a
+worse form — a model nobody builds is a model nobody notices breaking, and
+"left running without a consumer" is the state that produced this section in
+the first place.
+
+**What was given up, stated precisely.** Not the volatility signal —
+`crude_vol_regime` in `build_period_flags.py` measures the same thing better:
+log changes rather than percentage changes, so it does not drift with the
+level; a 9-week window with hysteresis (enter at p92, stay to p85, discard runs
+under four weeks) rather than one number compared against a threshold, so a
+single quiet week cannot split an episode; and full-sample percentiles rather
+than `calm_baseline`, which was derived from hand-drawn `calm` periods and so
+was mildly circular. What was given up is the *trailing* computation:
+`factor_volatility`'s window ended on the current week, while
+`crude_vol_regime`'s is centred and marks its own last four weeks
+`crude_vol_window_full = False`. A live indicator therefore needs a trailing
+re-derivation — which `build_period_flags.py` already prescribes in a comment,
+and which is `center=False` on the same log-change series. Nothing in Report 1's
+spec asks for one.
 
 What follows is the design of those four. It is kept because it is the
 reasoning any replacement would have to answer, not because it describes
