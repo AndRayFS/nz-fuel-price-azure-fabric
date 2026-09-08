@@ -141,6 +141,11 @@ def main() -> int:
                         if np.isfinite(nc) else np.nan)
                 rows.append(dict(
                     fuel=fuel, date=d.index[t], h=h, actual=actual, hi=hi[t],
+                    # The level the forecast is about, and the week it lands
+                    # on. A chart of prices has to plot a call against the
+                    # week it was a call FOR, not the week it was made.
+                    price_now=retail[t],
+                    target_date=d.index[t + h] if t + h < n else pd.NaT,
                     episode=ep[t] if isinstance(ep[t], str) else None,
                     phase=phase[t],
                     outcome_known=bool(np.isfinite(actual)),
