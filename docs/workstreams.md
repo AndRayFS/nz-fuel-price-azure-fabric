@@ -1064,6 +1064,12 @@ decision about whether the six period definitions — drawn around New
 Zealand events — mean anything on the American side. The *method*
 transfers; the wiring does not come free.
 
+**Since 8 Sep 2026 there is no wiring at all**: `lag_correlation` and the
+macro under it were deleted (`architecture.md`, "The T-SQL lag layer"). That
+does not change this item's difficulty much, since its own paragraph already
+said the T-SQL would not carry over — but a US lag now starts from
+`research/adl_*.py` and the panel, not from a gold model.
+
 Distinct from the existing EIA item in the research backlog below, which
 is about *Brent as a daily crude benchmark* and was revised downward on
 13 Aug in favour of a Singapore refined-product quote. This is retail, not
@@ -1203,7 +1209,12 @@ item overlaps a branch, the branch is named.
    is inflated by about 70%, consistently across all three fuels — see "The
    forecast measure multiplies a change by a slope fitted on levels" in
    `docs/research.md`.
-   The `basis` dimension itself is still not built.
+   The `basis` dimension itself is still not built — and **as written this
+   item is now void**: `lag_correlation` was deleted on 8 Sep 2026, so there
+   is no relation to add a third dimension to. What survives is the question,
+   not the vehicle: levels and changes give different lags and very different
+   slopes, and whichever tool answers it next will have to compute both. In
+   the Python contour that is a loop over two bases, not a new column.
 5. **Customs / Stats NZ overseas merchandise trade** — monthly petroleum
    import value *and* quantity from Customs entries, which divide out to
    the price actually paid at the border. That is the one thing MBIE's
