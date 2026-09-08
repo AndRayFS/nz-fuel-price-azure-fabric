@@ -60,7 +60,8 @@ ran every step after the gate on unchanged data.
 
 ```bash
 task weekly                        # the gate first, then the rest
-python pipeline/gate.py; echo "gate said $?"    # just the verdict
+task -x gate; echo "gate said $?"  # -x, or task reports 201 instead of the code
+python pipeline/gate.py --json     # the verdict and the numbers behind it
 ```
 
 Exit 2 is not an error and must not be reported as one. What separates it from

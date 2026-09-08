@@ -113,7 +113,12 @@ tasks:
 # --- the gate ----------------------------------------------------------------
 
   gate:
-    desc: "Freshness gate — the only step allowed to stop the run (0 go / 2 nothing to do / 1 look)"
+    # Call it as `task -x gate` when the exit code matters to the caller: task
+    # otherwise reports 201 for any failed task instead of passing the
+    # command's code through, and this task's whole point is which code it
+    # returns. Inside `weekly` that does not matter — any non-zero stops the
+    # chain, which is the intent — but CI needs to tell 2 from 1.
+    desc: "Freshness gate — the only step allowed to stop the run (0 go / 2 nothing to do / 1 look). Use `task -x gate` if you need the code"
     deps: [env]
     silent: true
     cmds:
