@@ -1,17 +1,17 @@
 # Part 9 draft — the week the model could not see
 
-Status: **drafted 8 Sep 2026**, not published. Russian first, at the owner's
-request; the series is published in English, so a translation is still owed.
+Status: **published 8 Sep 2026** — https://lnkd.in/p/eNTj-JMQ. Drafted in
+Russian at the owner's request, then shortened and translated; the English
+text below is what went out, apart from three edits made at posting time:
+"my model" for "the model", "the PowerBI report" for "the report", and a
+backlink to Part 8 above the sign-off. One image attached, the petrol and
+diesel price chart. No hashtags, against the house style's 2-3.
 
-Ordering, both of which are the owner's call:
-
-- **Part 8 has not gone out yet** (Part 7 published 18 Aug). This is Part 9
-  and cannot precede it.
-- **`draft_part8.md` says Part 9 should not be written until the nowcast is
-  implemented in `pipeline/backtest.py`.** It is measured and validated, not
-  implemented — deployment waits on the rebuilt weekly load settling. The
-  draft below therefore says plainly that it is not in the report, which
-  meets the spirit of that condition but not its letter.
+Both ordering questions resolved at posting time. Part 8 went out first and
+Part 9 links back to it. The condition in `draft_part8.md` — that Part 9 wait
+until the nowcast is implemented in `pipeline/backtest.py` — was relaxed
+deliberately: it is measured and validated but not implemented, and the post
+says so in its own body rather than implying a live feature.
 
 Numbers: `docs/research.md`, "The week in progress is partly visible" and
 "The nowcast survives the walk-forward test". Chart:
