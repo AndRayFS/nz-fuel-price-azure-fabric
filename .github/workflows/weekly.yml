@@ -7,13 +7,11 @@ name: Weekly load
 # drift costs nothing here, and a second schedule to correct it would be one
 # more thing to keep right.
 #
-# THE SCHEDULE IS OFF until the identity in docs/ci_setup.md exists and one
-# manual run has gone green. Until then every cron firing would fail at
-# azure/login, and a workflow that is red every week teaches everyone to stop
-# reading red. Uncomment the two lines below as the last step of that setup.
+# Scheduled since 8 Sep 2026, after a manual run went green end to end:
+# OIDC exchange, resume, ingest through the job API, the gate, and pause.
 on:
-  # schedule:
-  #   - cron: '0 21 * * 3'
+  schedule:
+    - cron: '0 21 * * 3'
   workflow_dispatch:
     inputs:
       skip_ingest:

@@ -12,12 +12,10 @@ name: Pause capacity (watchdog)
 # mid-chain: a late pause costs cents, a pause through a running load costs the
 # week's data.
 #
-# The schedule is off for the same reason weekly.yml's is: no identity yet.
-# Turn both on together — a watchdog without the run it guards is pointless,
-# and the run without the watchdog is the expensive half.
+# Scheduled since 8 Sep 2026, together with the run it guards.
 on:
-  # schedule:
-  #   - cron: '30 21 * * 3'
+  schedule:
+    - cron: '30 21 * * 3'
   workflow_dispatch:
 
 concurrency:
