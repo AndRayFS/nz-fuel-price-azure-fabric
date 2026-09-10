@@ -1,0 +1,97 @@
+name: FRED reachability probe
+
+# ONE-OFF, DISPOSABLE — delete this file once it has answered.
+#
+# On 10 Sep 2026 `aip_check.py` failed twice on a runner with "The read
+# operation timed out" fetching https://fred.stlouisfed.org/graph/fredgraph.csv,
+# while the same URL answers this laptop in about a second. So the FX half of
+# the AIP cross-check produced nothing, silently, and the store did not advance.
+#
+# Nothing about that tells us whether FRED is unreachable from GitHub egress or
+# whether only the graph host is. This measures it before any work is spent
+# moving to a source that might be just as unreachable:
+#
+#   1. fredgraph.csv          — reproduce the failure, or fail to reproduce it
+#   2. api.stlouisfed.org     — the candidate, with the real key
+#   3. Yahoo                  — the fallback if FRED is unreachable entirely
+#
+# Costs nothing: no Azure login, no capacity, no warehouse. Public endpoints
+# only. The key is read from a secret and never printed — only what it returned.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # curl first, for the network-level breakdown: a DNS or TLS time tells a
+      # blocked host apart from a slow one, which a Python traceback cannot.
+      - name: Reach each host, and time the stages
+        run: |
+          probe () {
+            printf '\n=== %s\n' "$1"
+            curl -sS -o /dev/null --max-time 45 \
+              -w 'http %{http_code}  dns %{time_namelookup}s  connect %{time_connect}s  tls %{time_appconnect}s  total %{time_total}s\n' \
+              "$2" || echo "curl gave up, exit $?"
+          }
+          probe "fredgraph.csv — the one that times out from CI" \
+                "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DEXUSAL"
+          probe "api.stlouisfed.org, no key — a 400 still proves it is reachable" \
+                "https://api.stlouisfed.org/fred/series/observations?series_id=DEXUSAL&file_type=json"
+          probe "Yahoo — the fallback candidate" \
+                "https://query1.finance.yahoo.com/v8/finance/chart/AUDUSD=X?range=1mo&interval=1d"
+
+      # Then the real code path. `aip_check._get` uses urllib with a 60s
+      # timeout and a custom User-Agent; curl succeeding proves nothing about
+      # urllib if the block is on the agent rather than the address.
+      - name: Fetch the series the way the pipeline does
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json, os, sys, time, urllib.error, urllib.request
+
+          UA = {"User-Agent": "nz-fuel-price-project ingest check"}
+
+          def get(label, url, secret=""):
+              # `secret` is spliced in here and never anywhere it could be
+              # printed: the label and any error text are what reach the log.
+              print(f"\n=== {label}")
+              t = time.time()
+              try:
+                  req = urllib.request.Request(url + secret, headers=UA)
+                  with urllib.request.urlopen(req, timeout=60) as r:
+                      body = r.read()
+                  print(f"  HTTP {r.status}, {len(body)} bytes, {time.time()-t:.1f}s")
+                  return body
+              except urllib.error.HTTPError as exc:
+                  print(f"  HTTP {exc.code} after {time.time()-t:.1f}s — reachable, refused")
+              except Exception as exc:
+                  print(f"  {type(exc).__name__}: {exc} after {time.time()-t:.1f}s")
+              return None
+
+          get("fredgraph.csv via urllib",
+              "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DEXUSAL")
+
+          key = os.environ.get("FRED_API_KEY", "")
+          if not key:
+              print("\n=== FRED API: no FRED_API_KEY in the environment")
+              sys.exit(0)
+
+          body = get(
+              "FRED API with the key",
+              "https://api.stlouisfed.org/fred/series/observations"
+              "?series_id=DEXUSAL&file_type=json&observation_start=2026-08-01"
+              "&api_key=",
+              key,
+          )
+          if body:
+              obs = json.loads(body)["observations"]
+              real = [o for o in obs if o["value"] != "."]
+              print(f"  {len(obs)} observations, {len(real)} with a value")
+              print(f"  series reaches {obs[-1]['date']}, "
+                    f"last real value {real[-1]['date']} = {real[-1]['value']}")
+          PY
