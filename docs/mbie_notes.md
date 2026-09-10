@@ -137,6 +137,40 @@ regressing a weekly-*average* target on a point-in-time *spot* factor for
 its entire life. **That reading is wrong, and it was settled by measurement
 rather than by reading the wording harder.**
 
+### Daily crude and FX: two sources, and only one of them is fresh
+
+Added 8 Sep 2026, when the nowcast work needed the *current* week rather than
+a historical ruler. Both facts below are measured, not read off documentation.
+
+**FRED is a week behind, not "a few days".** On Tuesday 8 Sep 2026
+`DCOILBRENTEU` ended at 1 Sep and `DEXUSNZ` (NZD/USD) at 28 Aug — seven and
+eleven days. The values arrive in batches (25, 26, 27, 28 Aug, then 1 Sep),
+which is EIA's weekly publication rhythm rather than an outage. Fine for
+history; useless for a week in progress, which is the one thing the nowcast
+needs.
+
+**Yahoo's chart endpoint is same-day.** `BZ=F` (Brent) and `NZDUSD=X` both
+carried 8 Sep on 8 Sep. Measured against FRED over 2,896 shared days since
+2015: levels r = 0.9948, mean difference −0.09 USD (sd 2.36); daily changes
+r = 0.856; **weekly Mon–Fri mean changes r = 0.934 over 609 weeks**, and the
+weekly change is what the nowcast consumes.
+
+Three caveats that travel with it. `BZ=F` is the **front-month future**, not
+Dated Brent spot, and it rolls monthly — on levels the basis is worth a couple
+of dollars, on changes it mostly cancels. That endpoint returns history from
+2007 rather than FRED's 1987. And it is **undocumented**: it is what Yahoo's
+own site calls, with no terms and no stability promise, which is acceptable
+for a measurement and is an open question for anything that would run every
+Wednesday (`docs/research.md`, "The week in progress is partly visible").
+
+**stooq was tried and refused** — it answers with a JavaScript proof-of-work
+challenge, the same shape of wall as mbie.govt.nz. investing.com was not
+tried: Yahoo already answered, and its terms forbid scraping.
+
+Used by `research/nowcast_brent.py` and `research/nowcast_in_adl.py`, cached
+under `data/`. `research/fetch_brent.py` still reads FRED and should stay that
+way: its job is long history, where a week of lag costs nothing.
+
 ### How it was settled — daily Brent as a ruler
 
 Daily Brent (FRED `DCOILBRENTEU`, free, no key; 5,650 rows from 2004-04-23,
