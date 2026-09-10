@@ -19,12 +19,159 @@ design and should be trimmed or updated, not left as-is indefinitely.
     against 29 Aug 2026 and will need the same treatment again.
   Method and expectations: `docs/mbie_notes.md`, "A standing prediction".
 
-- [ ] **The chain past the gate has never run in CI.** Every grant is in
-  place and a full manual run went green on 8 Sep 2026 — but the gate answered
-  `nothing_new`, so everything after it was skipped. The first real exercise of
+- [ ] **The chain past the gate has never run in CI — still true after
+  10 Sep 2026.** Every grant is in place and a full manual run went green on
+  8 Sep 2026, but the gate answered `nothing_new` and everything after it was
+  skipped. The 10 Sep publication was meant to be the first real exercise of
   `aip`, `snapshot`, `build`, `test`, `panel`, `flags`, `backtest`, `report`
-  and `close` on a runner is the Wednesday publication, 10 Sep 2026. Watch that
-  run rather than assuming it.
+  and `close` on a runner. **It was not**, for two separate reasons, both
+  worth keeping:
+  - **The schedule misfired.** `Weekly load` fired 110 minutes late (slot
+    21:00 UTC, run `34414150430` created 22:50:13 UTC) and the watchdog's
+    21:30 slot had still produced no run at 23:04 UTC — 94 minutes, less
+    than the delay the load itself turned out to have, so whether it was
+    lost or merely late is not established. Nothing alerted either way; it
+    was noticed by hand. This is what W16 in `docs/workstreams.md` now exists to fix.
+  - **The gate then refused, and was right to.** Verdict
+    `ingest_did_not_land`: the Copy activity reported reading **35040** rows
+    while bronze held **35010** — exactly the marker's `ingest_rows_read`
+    from the previous week — with `bronze_week` still `2026-08-28`, equal to
+    `last_processed_week`. So the source did grow by what looks like one
+    week (+30 rows), and bronze did not receive it. Steps after the gate were
+    skipped and `capacity-pause` ran; the capacity was verified `Paused`
+    afterwards, so nothing was left billing.
+
+    **The source was checked directly and is not the problem.** The file was
+    downloaded through Chrome on 10 Sep 2026 at 11:06 NZT — Imperva still
+    refuses every non-browser client, so this cannot be scripted — with a
+    `?cb=` cache-buster to reach origin rather than the week-behind edge.
+    2,883,540 bytes, **35040 data rows**, 1168 weeks, 2004-04-23 through
+    **2026-09-04**, a uniform 30 rows per week. So the Copy activity's
+    reported `rows_read` is corroborated exactly: MBIE did publish week
+    2026-09-04, and the activity did read the whole file.
+
+    **What bronze holds is the file minus exactly its newest week.**
+    35040 − 30 = 35010, which is bronze's count to the row, and bronze's
+    newest week is `2026-08-28`, the one before. Bronze is therefore not a
+    partial write that happened to stop somewhere — it is precisely the
+    previous week's state, which is the signature of reading a **stale
+    snapshot**, not of a failed load. The ingest reported finished at
+    22:52:33 UTC and the gate queried at 22:52:54, 21 seconds later; a
+    Lakehouse SQL analytics endpoint is known to serve stale metadata for a
+    period after a write, and `refresh_sql_endpoint_metadata` exists for
+    exactly that.
+
+    **Read on 10 Sep 2026 by waking the capacity. Half settled.** Bronze
+    still read 35010 rows and week `2026-08-28` at **25 minutes** after the
+    write — the copy activity finished at 22:52:28 UTC and the re-read was
+    at 23:17 UTC. Twenty-five minutes is not long enough to distinguish a
+    stuck endpoint sync from a slow one, so the *reason* remains open. The
+    copy activity's own detail, however, says the write itself succeeded in
+    full:
+
+    ```
+    status        Succeeded        errors        []
+    dataRead      2883540          rowsRead      35040
+    dataWritten   345981           rowsCopied    35040
+    filesWritten  1                sink          bronze_lakehouse.mbie.weekly_prices
+    ```
+
+    `dataRead` is byte-for-byte the file downloaded through Chrome, so the
+    source read is independently confirmed by two routes, and `rowsCopied`
+    says all 35040 rows were written to the right table. **So the load did
+    land in the Lakehouse table; what is behind is the SQL analytics
+    endpoint**, which both the gate at 26 seconds and the re-read at 25
+    minutes saw in its pre-write state.
+
+    **Root cause, settled 10 Sep 2026. Nothing broke — automation removed a
+    delay a human used to supply.**
+
+    The Delta commit is independently confirmed: `_delta_log/…022.json` and
+    `…023.json` are timestamped 22:52:25 and 22:52:26 UTC, and the parquet
+    beside them is 345,981 bytes, matching the activity's `dataWritten` to
+    the byte. The data was in the Lakehouse table from that second. What
+    lags is only the SQL analytics endpoint: stale at 21 minutes, fresh by
+    52.
+
+    **The loader has not changed at all.** Sink configuration is identical
+    across every run back to 13 Aug — `tableActionOption: OverwriteSchema`,
+    `partitionOption: None`, `applyVOrder: false` — so the 27 Aug
+    `updateDefinition` did not alter it, and `OverwriteSchema` is not new.
+    `rowsRead` equals `rowsCopied` in every run and climbs by exactly 30 a
+    week: 34920, 34950, 34980, 35010, 35040. The cache-buster reaches origin
+    as designed.
+
+    **What changed is when the gate is asked.** From `pipeline.processed_weeks`,
+    against the copy time of the same week:
+
+    | week | copy finished | gate succeeded | gap |
+    |---|---|---|---|
+    | 2026-08-21 | 22:03:50 | 22:53:29 | **50 min** |
+    | 2026-08-28 | 05:24:39 | 05:55:40 | **31 min** |
+    | 2026-09-04 | 22:52:26 | — (failed) | **26 sec** |
+
+    Every successful week was gated half an hour to an hour after the
+    ingest, by a human working inside a long capacity session. CI asks at 26
+    seconds and pauses the capacity about a minute later, so the endpoint's
+    background sync never gets the window it used to get for free. The 3 Sep
+    occurrence fits exactly: the first attempt failed, and the retry 31
+    minutes later succeeded.
+
+    **Consequence.** The fix is not in the loader and not in the gate's
+    logic — the gate reported correctly on what it was given. Between the
+    ingest and the gate the chain has to make the endpoint current, and
+    `refresh_sql_endpoint_metadata` forces that sync rather than waiting for
+    it. Simply waiting also works but bills the capacity for the wait —
+    roughly 30 minutes a week, about NZ$0.36, some NZ$19 a year — and is
+    hostage to a duration nothing documents.
+
+    **Measured 10 Sep 2026 with a disposable probe, and the fix is
+    confirmed.** A copy pipeline identical to the production one — same HTTP
+    source, same `LakehouseTableSink`, same `OverwriteSchema` — was pointed
+    at `bronze_lakehouse.probe.sync_probe` with an extra `probe_stamp`
+    column carrying `@utcnow()`, so two otherwise identical runs could be
+    told apart. Production data was never touched; both the probe pipeline
+    and the probe table were deleted afterwards.
+
+    | | |
+    |---|---|
+    | new table written 00:15:33 | invisible to T-SQL at 19 s, 1.5 min, 3.7 min, **8 min** |
+    | `refreshMetadata` at 00:23:53 | Succeeded in **7 s**; table visible at 00:24:12 |
+    | same table overwritten 00:25:17 | endpoint still served the **previous** stamp 8 s later |
+    | `refreshMetadata` at 00:25:37 | Succeeded in **6 s**; new stamp visible at 00:25:48 |
+
+    So both shapes reproduce — a table that does not appear at all, and a
+    table whose contents are a version behind — and one forced refresh cures
+    either in under ten seconds. Eight minutes was not the ceiling; nothing
+    says what is.
+
+    **Written 10 Sep 2026 on branch `fix/endpoint-sync-in-ingest`, and not
+    yet run.** `run_ingest.py` calls `fabric_io.refresh_sql_endpoint()` as its
+    last act; `task sync-endpoint` and `--sync-only` cover the `skip_ingest`
+    path, and `weekly.yml` calls that task when the copy is skipped. Syntax
+    checks pass and `task --list` parses, but **nothing has executed yet**.
+    (The venv is one level above the dbt project, `$PWD/../.venv`, exactly as
+    `Taskfile.yml` documents — looking for `.venv` inside the project and
+    concluding there is none is a mistake worth not repeating.)
+
+    **The fix.** Force the sync between `ingest` and `gate`:
+    `POST /v1/workspaces/{ws}/sqlEndpoints/{id}/refreshMetadata?preview=true`
+    — asynchronous, poll the `Location` header to `Succeeded`. The endpoint
+    id for `bronze_lakehouse` is `a2abcf3b-c492-42ca-aa16-3bac2db77a37`.
+    Note the MCP server runs with `FABRIC_MCP_READONLY`, so this call cannot
+    go through it and belongs in `fabric_io.py` beside the other REST calls.
+    Six seconds a week against roughly NZ$19 a year of waiting, and it does
+    not depend on a duration nobody documents.
+
+    **`snapshots/mbie_revisions.sql` needs it as much as the gate does.**
+    Those two are the only readers of `source('bronze', …)`; everything after
+    the snapshot is warehouse-internal and cannot see this. A gate that
+    passed on a stale endpoint would hand the same stale rows to
+    `dbt snapshot`, which would record nothing and stay green.
+
+    **Bronze is current as of 10 Sep 2026 11:44 NZT**: 35040 rows, newest
+    week `2026-09-04`. The week is no longer stuck; the chain has not been
+    re-run.
   - `flags` and `backtest` now write to the database from CI, which has never
     happened from anywhere but this laptop.
   - The Power BI refresh stays manual until W9.

@@ -69,6 +69,7 @@ the gate unless the gate says go — the ordering and the dependency live in
 
 | task | step | what it is |
 |---|---|---|
+| `sync-endpoint` | — | only when the copy is skipped; `ingest` already does it |
 | `gate` | 0b | **the gate.** Nothing after it runs unless it exits 0 |
 | `aip` | 1 | collect the AIP weeks, straight into `monitoring.aip_singapore_weekly` |
 | `snapshot` | 2 | revision history |
