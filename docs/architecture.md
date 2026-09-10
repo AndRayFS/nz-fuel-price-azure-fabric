@@ -376,6 +376,60 @@ run is the first that will evaluate the new form, and the number to read off it
 is `rowsRead` — 35,010 on a normal week, or 34,980 if the query string stopped
 reaching origin.
 
+## A copy that has landed is not a copy that can be read — 10 Sep 2026
+
+Bronze is a Lakehouse: the copy activity writes Delta files into OneLake. No
+T-SQL reaches those files directly. Everything that reads bronze — the gate,
+and `snapshots/mbie_revisions.sql`, which are the only two — goes through the
+**SQL analytics endpoint**, a separate catalogue that is synchronised from the
+Delta layer asynchronously. The two can disagree, T-SQL cannot tell you which
+version it is serving, and nothing documents how long the gap lasts.
+
+**Measured with a disposable probe**, a copy pipeline identical to the
+production one (same HTTP source, same `LakehouseTableSink`, same
+`OverwriteSchema`) writing to `probe.sync_probe` with an extra column carrying
+`@utcnow()`, so two otherwise identical runs could be told apart:
+
+| | |
+|---|---|
+| new table written | invisible to `INFORMATION_SCHEMA` at 19 s, 1.5 min, 3.7 min, **8 min** |
+| `refreshMetadata` | Succeeded in **7 s**, table visible immediately after |
+| existing table overwritten | endpoint still served the **previous** version 8 s later |
+| `refreshMetadata` | Succeeded in **6 s**, new version visible immediately after |
+
+Eight minutes is where the measurement stopped, not a ceiling.
+
+**This is why the weekly run of 10 Sep 2026 failed**, and why the run of
+3 Sep 2026 failed before it. The gate reported `ingest_did_not_land` — the
+copy read 35,040 rows while bronze held 35,010 — and it was reporting
+correctly on what it had been given. The load itself was fine: the Delta
+commit is timestamped 22:52:25 UTC and the parquet beside it matches the
+activity's `dataWritten` to the byte.
+
+**Why it worked for months before that.** Nothing changed in the loader —
+sink configuration is identical across every run back to 13 Aug, and
+`rowsRead` equals `rowsCopied` in all of them. What changed is who asks and
+how soon. The ingest used to be a person clicking Run in the portal and then
+going to say so; whatever they did next took minutes, and the endpoint caught
+up inside that gap. CI asks 26 seconds later. The gate did not start failing
+because something broke — it started failing because the pause a human had
+been supplying for free was removed, and the gate is the only thing that ever
+checked.
+
+**The fix belongs to the ingest, not beside it.** `run_ingest.py` now calls
+`fabric_io.refresh_sql_endpoint()` as its last act, because the ingest's
+contract is that bronze holds the file *and can be read*, and until that call
+only the first half is true. `POST
+/v1/workspaces/{ws}/sqlEndpoints/{id}/refreshMetadata?preview=true`,
+asynchronous, polled to `Succeeded` — note that the `Location` it returns
+points at a regional host rather than `api.fabric.microsoft.com`, so it needs
+its own poller. Both readers of bronze sit behind it. `task sync-endpoint`
+exposes the same call for the path where the copy is deliberately skipped.
+
+Waiting instead of forcing would also work and was rejected: it bills capacity
+for an interval nobody documents — roughly 30 minutes a week, some NZ$19 a
+year — to avoid a call that takes six seconds.
+
 ## The freshness gate, and the check it could not be — 22 Aug 2026
 
 W3 specified an independent read: download `weekly-table.csv` here, compare

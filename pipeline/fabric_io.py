@@ -38,6 +38,7 @@ SQL_COPT_SS_ACCESS_TOKEN = 1256
 WORKSPACE_ID = "bc2e3801-9a54-4154-9f46-2a9dc442cad7"   # nz-fuel-price-project
 PIPELINE_ID = "9584c5ac-340b-48bd-a05c-885e4ac31df6"    # ingest_mbie_weekly
 COPY_ACTIVITY = "Copy_MBIE_weekly_data"
+SQL_ENDPOINT_ID = "a2abcf3b-c492-42ca-aa16-3bac2db77a37"  # bronze_lakehouse
 
 FABRIC_API = "https://api.fabric.microsoft.com"
 FABRIC_SCOPE = "https://api.fabric.microsoft.com/.default"
@@ -182,6 +183,67 @@ def bronze_fingerprint(cur) -> str | None:
     if row is None or row[0] is None:
         return None
     return "|".join("" if v is None else str(v) for v in row)
+
+
+def _operation_status(url: str) -> str:
+    """One poll of a long-running operation, by absolute URL.
+
+    `_call` and `_call_full` prefix `FABRIC_API`, which is wrong here: the
+    `Location` handed back by `refreshMetadata` points at a regional host
+    (`wabi-…-redirect.analysis.windows.net`), not at `api.fabric.microsoft.com`.
+    """
+    req = urllib.request.Request(
+        url, method="GET", headers={"Authorization": f"Bearer {_api_token()}"}
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            return json.loads(resp.read() or b"{}").get("status", "Unknown")
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode(errors="replace")[:500]
+        raise RuntimeError(f"operation poll {exc.code}: {detail}") from exc
+
+
+def refresh_sql_endpoint(timeout_seconds: int = 300) -> None:
+    """Make the SQL analytics endpoint show what is already in the Lakehouse.
+
+    A Lakehouse write and the T-SQL view over it are only eventually
+    consistent, and nothing in T-SQL says which version you are reading. On
+    10 Sep 2026 a table written at 00:15:33 was still invisible to
+    `INFORMATION_SCHEMA` eight minutes later, and an overwrite of an existing
+    table was still serving the previous version eight seconds after the copy
+    reported Succeeded. Both were cured by this call in six to seven seconds.
+
+    That is why it belongs at the end of the ingest rather than beside it: the
+    ingest's contract is that bronze holds the file *and can be read*, and
+    until this runs only the first half is true. Both readers of bronze — the
+    gate and `snapshots/mbie_revisions.sql` — sit behind it.
+
+    Measured cost is seconds. Waiting instead means paying for capacity for an
+    interval nothing documents; 8 minutes was where the measurement stopped,
+    not a ceiling.
+    """
+    _, headers = _call_full(
+        "POST",
+        f"/v1/workspaces/{WORKSPACE_ID}/sqlEndpoints/{SQL_ENDPOINT_ID}"
+        "/refreshMetadata?preview=true",
+        {},
+    )
+    operation = headers.get("location")
+    if not operation:
+        raise RuntimeError("refreshMetadata answered without a Location to poll")
+
+    deadline = time.time() + timeout_seconds
+    while time.time() < deadline:
+        status = _operation_status(operation)
+        if status == "Succeeded":
+            return
+        if status in {"Failed", "Undetermined"}:
+            raise RuntimeError(f"endpoint metadata refresh ended as {status}")
+        time.sleep(2)
+
+    raise RuntimeError(
+        f"endpoint metadata refresh still running after {timeout_seconds}s"
+    )
 
 
 def start_ingest() -> str:
