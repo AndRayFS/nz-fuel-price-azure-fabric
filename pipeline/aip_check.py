@@ -55,6 +55,10 @@ missing and never revisits one already there, which is why `add_usd` refuses
 to price a week on an FX window it cannot justify: a wrong rate would not be
 corrected on the next run, it would simply stay.
 
+Needs `FRED_API_KEY` in the environment — free from
+fredaccount.stlouisfed.org/apikeys, and in Actions it is a repository secret
+of that name. Without it nothing is priced and the store is left alone.
+
 Usage:
     python pipeline/aip_check.py            # fetch, parse, append to the table
     python pipeline/aip_check.py --no-fetch # re-parse the cached PDFs only
@@ -64,8 +68,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -99,7 +105,17 @@ create table {SCHEMA}.{TABLE} (
 
 API = "https://aip.com.au/wp-json/wp/v2/media"
 LITRES_PER_BBL = 158.987
-FX_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DEXUSAL"
+# FRED's API, not its graph host. `fredgraph.csv?id=DEXUSAL` served this
+# laptop in a second and timed out twice from a GitHub runner on 10 Sep 2026,
+# and a probe workflow the same day showed why that is not a network problem:
+# from the same runner curl fetched the CSV in 2.9 s while urllib timed out at
+# 60, and the API answered urllib in 0.2 s. So the graph host dislikes
+# something about the request rather than the address, and the API does not.
+# (Yahoo was measured in the same probe as the fallback and returned HTTP 429
+# from GitHub egress, so it is not one.)
+FX_API = "https://api.stlouisfed.org/fred/series/observations"
+FX_SERIES = "DEXUSAL"
+FX_KEY_VAR = "FRED_API_KEY"
 # A Mon-Fri week holds five business days, and US holidays remove at most two
 # of them, never three -- so a window this short means the series is ragged
 # there, not that the week was quiet.
@@ -182,6 +198,55 @@ def parse() -> pd.DataFrame:
     return pd.DataFrame(rows).drop_duplicates(["week", "fuel"]).sort_values(["fuel", "week"])
 
 
+def _fx_series(earliest_week: pd.Timestamp) -> pd.DataFrame:
+    """DEXUSAL from the FRED API, from a week before the oldest parsed week.
+
+    Returns date/usd_per_aud with the holiday rows still in it, carrying NaN:
+    a row exists for every day the series covers, whether or not it has a
+    value, and that distinction is what tells "the series has not reached this
+    week yet" apart from "this week had a public holiday in it".
+
+    The key is required rather than optional. There is no keyless route worth
+    falling back to -- the graph host is the one that fails from CI -- and a
+    silent fallback to a source we know breaks there is the shape of failure
+    this whole change exists to remove.
+    """
+    key = os.environ.get(FX_KEY_VAR, "").strip()
+    if not key:
+        raise RuntimeError(
+            f"{FX_KEY_VAR} is not set; the FRED API needs one "
+            f"(free, from fredaccount.stlouisfed.org/apikeys)"
+        )
+
+    # Ask only for what the parsed reports can use. Nothing before the oldest
+    # week is ever read, and the week itself needs the Monday four days back.
+    start = (pd.Timestamp(earliest_week) - pd.Timedelta(days=7)).date()
+    query = urllib.parse.urlencode(
+        {
+            "series_id": FX_SERIES,
+            "file_type": "json",
+            "observation_start": str(start),
+            "api_key": key,
+        }
+    )
+    # The key is in the query string, so anything that carries the URL out of
+    # here -- an exception message, a traceback -- carries the key with it.
+    # Actions would mask it; a local run would not.
+    try:
+        payload = json.loads(_get(f"{FX_API}?{query}"))
+    except Exception as exc:
+        raise RuntimeError(
+            f"FRED API: {str(exc).replace(key, '<key>')}"
+        ) from None
+
+    fx = pd.DataFrame(payload["observations"])[["date", "value"]]
+    fx.columns = ["date", "usd_per_aud"]
+    fx["date"] = pd.to_datetime(fx["date"])
+    # "." is FRED's no-quote marker, on US holidays and market closures.
+    fx["usd_per_aud"] = pd.to_numeric(fx["usd_per_aud"], errors="coerce")
+    return fx
+
+
 def add_usd(df: pd.DataFrame) -> pd.DataFrame:
     """AU cents/litre -> USD/bbl, on the Mon-Fri mean rate of the stamped week.
 
@@ -202,10 +267,7 @@ def add_usd(df: pd.DataFrame) -> pd.DataFrame:
     nothing -- every report carries two weeks, so the next run picks the week
     up once the series has caught up.
     """
-    raw = _get(FX_URL).decode()
-    fx = pd.read_csv(pd.io.common.StringIO(raw), na_values=".")
-    fx.columns = ["date", "usd_per_aud"]
-    fx["date"] = pd.to_datetime(fx["date"])
+    fx = _fx_series(df["week"].min())
 
     # Holidays are published as "." rows, so the frame BEFORE dropna is what
     # says how far the series reaches, and the one after is what can be
