@@ -44,7 +44,9 @@ design and should be trimmed or updated, not left as-is indefinitely.
     - **Not yet exercised by a real weekly run.** Verified from a runner over
       synthetic weeks (probe run 34434860722) and locally on the cached PDFs,
       but `task aip` itself has not gone through since the change. The store's
-      newest week is still **30 Aug 2026** and the next scheduled run should
+      newest week is **2026-08-28** — read from the warehouse, not inferred
+      from the newest cached PDF, whose 30 Aug filename is its publication
+      date and carries the week to Friday 28 Aug. The next scheduled run should
       close that by itself: CI re-downloads every report on the AIP site each
       time and `append_new` inserts whatever is missing, so 6 Sep and 13 Sep
       come in together. Delete `.github/workflows/fred-probe.yml` once that
