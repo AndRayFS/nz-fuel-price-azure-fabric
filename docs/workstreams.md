@@ -1,6 +1,6 @@
-# Workstreams — plan of record, 23 Aug 2026
+# Workstreams — plan of record, 23 Aug 2026, last updated 10 Sep 2026
 
-Twelve pieces of work, grouped by what they are about rather than by when
+Fifteen pieces of work, grouped by what they are about rather than by when
 they happen. Each is meant to be one branch. Every entry states what
 exists today, what the branch delivers, what it risks, and which files it
 touches — the last so that parallel branches can be sequenced without
@@ -1025,6 +1025,120 @@ refresh left manual.
 
 ---
 
+## W16 — A trigger with an SLA, and something that notices a missing week
+
+**Now.** The weekly chain is started by GitHub's own `schedule` trigger,
+`cron: '0 21 * * 3'` in `weekly.yml`, and guarded by a second cron half an
+hour later in `pause-capacity.yml`. Three weaknesses showed up together on
+the first real firing, 10 Sep 2026.
+
+- **GitHub does not promise to run a schedule.** Its documentation states
+  that scheduled workflows may be delayed under load and may not run at all;
+  there is no SLA and no documented upper bound on the delay. That is stated
+  behaviour, not an inference from one bad morning.
+- **On 10 Sep 2026 the first scheduled firing did not happen.** At 22:04 UTC
+  — 64 minutes past the `weekly` slot, 34 past the watchdog's —
+  `gh run list --event schedule` returned nothing at all: not a delayed run,
+  not a queued one, no run object in either workflow. Configuration was ruled
+  out first: both workflows `active`, both on `main`, pushed 8 Sep 05:55 UTC,
+  local `HEAD` equal to `origin/main`. Whether that firing was late or lost
+  was still unresolved when this was written.
+- **Nothing would have said so.** The miss was noticed because a human
+  happened to open the Actions tab. No alert exists for a week that does not
+  arrive, and none of the four lines of capacity defence addresses it — they
+  all guard against a capacity left awake, which is the opposite failure.
+
+**The scheduling infrastructure already exists, and it is Logic Apps.**
+Verified 10 Sep 2026: `nz-fuel-price-rg` holds `auto-pause-fabric-capacity`
+(`Microsoft.Logic/workflows`, Enabled, Recurrence daily 23:00:01) and
+`auto-resume-fabric-capacity` (same type, **Disabled** — auto-resume was
+turned off deliberately and W16 does not revive it, since it would wake the
+capacity on days with nothing to do). Both recurrences carry
+`timeZone: New Zealand Standard Time` rather than UTC, so they hold a local
+wall-clock time across daylight saving. Moving the trigger there therefore
+also retires the "21:00 UTC is 09:00 NZST and 10:00 NZDT" drift that
+`weekly.yml` currently accepts in a comment.
+
+**Target, and the order matters.**
+
+1. **Notice that the run did not happen.** A Logic App on a recurrence after
+   the publication window closes, asking whether a `Weekly load` run exists
+   for this week and reached a conclusion, and sending mail if not.
+
+   **Scope, stated so it does not drift.** This watches the *process*, not
+   the data. Its whole question is whether the chain ran — it says nothing
+   about what MBIE published, and it must not learn to. That question is
+   already answered one stage later, by the gate, which is where the
+   comparison lives and where a quiet week is a legitimate outcome rather
+   than an alert. A monitor that also judged the data would duplicate the
+   gate in a second place, and the two would eventually disagree.
+
+   Keeping the check on the GitHub side follows from that scope rather than
+   from cost: the process's own liveness is recorded on the process's own
+   side. That it is also free, where reading `pipeline.processed_weeks`
+   would wake the capacity weekly to ask a question, is a convenience and
+   not the argument.
+
+2. **Move the clock, not the compute.** A second Logic App calls
+   `POST /repos/AndRayFS/nz-fuel-price-azure-fabric/actions/workflows/weekly.yml/dispatches`.
+   `weekly.yml` already declares `workflow_dispatch`, so nothing in the chain
+   changes: the OIDC federation, the grants and the 8 Sep green run all stay
+   as they are, and only the thing holding the stopwatch is replaced by one
+   with an SLA.
+3. **Couple the watchdog to the run instead of to the clock.**
+   `pause-capacity.yml` gains
+   `on: workflow_run: workflows: ["Weekly load"], types: [completed]`, which
+   fires server-side on any conclusion — success, failure, cancellation,
+   timeout — and therefore survives the runner dying, which the `always()`
+   step does not. Today the two crons race: if the load is delayed past
+   21:30 UTC the watchdog fires *first*, finds no `in_progress` run and a
+   capacity still asleep, exits **green** having guarded nothing, and does
+   not fire again for a week. One late cron entry stays as belt and braces,
+   and both remaining cron minutes move off `:00` and `:30`, which is where
+   every default-written schedule on the platform lands.
+
+**Why not move the whole chain to Azure.** Considered and rejected on cost
+and fit, 10 Sep 2026.
+
+- **Functions does not fit the runtime.** The job budgets 45 minutes
+  (`timeout-minutes: 45`); the Consumption plan caps execution far below
+  that, and the plans that do not are an order of magnitude past a NZ$20
+  monthly budget. Packaging `dbt-core` plus the adapter into a deployment
+  artefact and shelling out to `dbt` also works against the service's shape.
+- **Container Apps Jobs fits the shape but reverses a decision.** Cron-driven
+  containers handle tens of minutes natively and would cost cents a week —
+  but they need an image, therefore a registry, therefore Docker, and
+  "Python venv, not Docker" is a stated choice in `CLAUDE.md`. Not worth
+  reversing to fix a clock that can be fixed without touching the runner.
+- **Actions is free here.** The repository is public, so the minutes cost
+  nothing. Every Azure alternative is a strict increase over the current
+  NZ$1.14/month against a NZ$20 budget, bought with a reliability gain
+  measured, so far, on one observation.
+- **Fabric's own scheduler is circular** — it lives on the capacity the
+  chain exists to wake.
+
+**Risks.** Calling the GitHub API needs a token with `actions:write`, and
+that is a new secret where OIDC had removed the need for one. A PAT that
+quietly expires produces exactly the silent non-run being fixed here, so the
+credential has to be either a GitHub App or a monitored expiry — the second
+reason the notification lands before the trigger, not after. Mail from a
+Logic App needs a connection authorised as some mailbox, and the budget
+alerts already went to a mailbox nobody watches
+(`.claude/rules/active-items.md`), so the destination is a decision, not a
+detail. Azure prices and service limits quoted above are order-of-magnitude
+from general knowledge and were not checked against current pricing.
+
+**Depends on.** Nothing outstanding — W16 edits what W8 built, and W8 landed
+8 Sep 2026, so this is unblocked and can start immediately. Listing a landed
+branch as a dependency would be exactly the preference-dressed-as-sequencing
+this document warns against below.
+**Touches.** `.github/workflows/weekly.yml`,
+`.github/workflows/pause-capacity.yml`, the two Logic Apps in
+`nz-fuel-price-rg`, `.claude/rules/active-items.md`,
+`docs/architecture.md`, `docs/cost_notes.md`.
+
+---
+
 # Track 3 — Analysis
 
 ## W10 — The one-week model
@@ -1245,7 +1359,7 @@ but real, empirically observed error, which beats inventing a number.
 ```
 W1 status ──┐
 W3 gate ────┼─→ W5 split ─→ W7 chain ─→ W8 Actions
-W6 env ─────┘                              │
+W6 env ─────┘                              ├─→ (W16 replaces its clock, W8 having landed)
                                            └─→ (W9 completes unattended operation)
 W2 monitoring   ─ independent
 W4 vintage      ─ independent
@@ -1265,7 +1379,7 @@ and is unaffected by the 27 Aug credit expiry. It can start immediately and
 run alongside everything else. W6 is likewise free-standing and needs
 nothing but a text editor.
 
-**Twelve entries is not twelve equal branches.** W10-W12 are analysis rather
+**Fifteen entries is not fifteen equal branches.** W10-W12 are analysis rather
 than engineering and do not need the same branch discipline, and W12 is
 explicitly backlog. Realistically this is about seven branches of structural
 work. W4 was in this sentence as "small" until 23 Aug; the redesign from a
@@ -1282,7 +1396,9 @@ side file to a whole-chain mode makes it an ordinary branch.
 | `models/silver/_silver__models.yml` | W1 |
 | `QUICKSTART.md` | W2, W3, W5, W7 |
 | `pipeline/aip_check.py` | W2 |
-| `.claude/rules/active-items.md` | W9 |
+| `.claude/rules/active-items.md` | W9, W16 |
+| `.github/workflows/weekly.yml` | W16 |
+| `.github/workflows/pause-capacity.yml` | W16 |
 
 `QUICKSTART.md` is wanted by four branches; leave its rewrite to whichever
 lands last rather than editing it in each. `export_panel.py` was wanted by
@@ -1324,3 +1440,31 @@ script rather than change it.
    thinking about the gate. The cost is that the gate always needs live
    capacity — accepted, and it was unavoidable anyway once the independent MBIE
    read proved impossible. (W3)
+7. ~~Was the scheduled firing of 10 Sep 2026 delayed or dropped outright?~~
+   **Answered 10 Sep 2026: both schedules were delayed, by nearly the same
+   amount, and neither was dropped.**
+
+   | schedule | slot (UTC) | fired (UTC) | late |
+   |---|---|---|---|
+   | `Weekly load` | 21:00 | 22:50:13 | 110 min |
+   | `Pause capacity (watchdog)` | 21:30 | 23:22:54 | 113 min |
+
+   **The delay was common-mode, not independent jitter.** The designed
+   30-minute gap between the two arrived as 33 minutes: order preserved,
+   spacing preserved, the guard still landing after the thing it guards. The
+   watchdog then behaved exactly as written — `no weekly run in flight`,
+   `capacity is Paused`, nothing done, green.
+
+   This is evidence **against** the reading recorded here earlier, that the
+   race in W16 step 3 was live with an 80-minute window. That argument
+   assumed the two schedules drift independently; on the one observation
+   available they drifted together, and the 3-minute spread is the only sign
+   they are not locked. One observation is not a guarantee — the coupling in
+   step 3 is still worth having precisely because it does not depend on this
+   coincidence holding — but step 3's **urgency drops**, because the race is
+   not what went wrong.
+
+   What did go wrong is what steps 1 and 2 address, and both are confirmed
+   by the same morning: a trigger 110 minutes late, and a run that then
+   **failed at the gate** with nothing but a human refreshing the page to
+   notice. (W16)
