@@ -75,6 +75,13 @@ jobs:
         if: ${{ !inputs.skip_ingest }}
         run: task ingest
 
+      # `task ingest` already does this as its last act. This covers the other
+      # path: the file landed on an earlier run, so the copy is skipped, but
+      # the endpoint may still be serving what bronze held before it.
+      - name: Make the SQL endpoint current
+        if: ${{ inputs.skip_ingest }}
+        run: task sync-endpoint
+
       # The gate exits 2 when there is no new week. That is not a failure, and
       # a red run every quiet week would train everyone to ignore red runs — so
       # it is caught here and ends the job green, with the reason in the log.
