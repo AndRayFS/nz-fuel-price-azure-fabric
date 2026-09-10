@@ -105,6 +105,13 @@ tasks:
         az resource invoke-action --ids "{{.CAPACITY_ID}}" --action suspend >/dev/null
         echo "capacity paused"
 
+  deps:
+    # `dbt_packages/` is gitignored, so this is a setup step on any fresh
+    # checkout, CI included. It needs no capacity and no warehouse.
+    desc: "Install the dbt packages named in packages.yml"
+    cmds:
+      - '"{{.DBT}}" deps'
+
   ingest:
     desc: "Start ingest_mbie_weekly and wait for it (step 0) — replaces the portal click"
     cmds:
