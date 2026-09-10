@@ -147,8 +147,11 @@ Notes:
 - **Brent is not part of this chain** (since 7 Sep 2026). Nothing in the
   weekly recompute reads it, so it is fetched on demand instead:
   `python research/fetch_brent.py` writes `data/brent_daily.csv` from FRED
-  (`DCOILBRENTEU`, no key). FRED runs a few days behind, so the newest week is
-  an average of whatever days exist.
+  (`DCOILBRENTEU`, no key). **FRED is a week behind** — measured 8 Sep 2026,
+  newest quote 1 Sep — so the newest week is an average of whatever days exist
+  and may be empty. For the *current* week use Yahoo instead, via
+  `research/nowcast_brent.py`; both sources and what separates them are in
+  `docs/mbie_notes.md`, "Daily crude and FX".
 
 **What is left to automate is the machine, not the sequence.** The eleven
 steps are one command since W7, and the two that needed a human *judgement*
