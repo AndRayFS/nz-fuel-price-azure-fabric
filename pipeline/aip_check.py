@@ -43,9 +43,17 @@ and its warn-level tests, so it runs in the warehouse, over data everyone can
 see, instead of against a CSV on one laptop. This script therefore always
 exits 0: a discrepancy is a signal, and signals do not stop the weekly run.
 
-The store it writes is `seeds/monitoring/aip_singapore_weekly.csv`, which is
-loaded with `dbt seed`. That file is the only copy of the weeks AIP has
-already deleted -- append to it, never regenerate it.
+The store it writes is the warehouse table `monitoring.aip_singapore_weekly`,
+through `warehouse_write.append_new`. It used to be a seed CSV committed to
+git and loaded by `dbt seed`; that route is gone (`seeds/monitoring/` with it),
+because it made git the transport for data nobody writes by hand and made
+every CI run a bot commit -- see `warehouse_write`'s own docstring.
+
+That table is the only copy of the weeks AIP has already deleted, so it is
+appended to and never regenerated. `append_new` inserts rows whose key is
+missing and never revisits one already there, which is why `add_usd` refuses
+to price a week on an FX window it cannot justify: a wrong rate would not be
+corrected on the next run, it would simply stay.
 
 Usage:
     python pipeline/aip_check.py            # fetch, parse, append to the table
@@ -92,6 +100,10 @@ create table {SCHEMA}.{TABLE} (
 API = "https://aip.com.au/wp-json/wp/v2/media"
 LITRES_PER_BBL = 158.987
 FX_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DEXUSAL"
+# A Mon-Fri week holds five business days, and US holidays remove at most two
+# of them, never three -- so a window this short means the series is ragged
+# there, not that the week was quiet.
+MIN_FX_DAYS = 3
 
 # The table sits on page 3 of every report seen so far, as
 #   Average:  Last Week (to Friday 14/08/26)  88.5  83.2  142.5
@@ -171,16 +183,65 @@ def parse() -> pd.DataFrame:
 
 
 def add_usd(df: pd.DataFrame) -> pd.DataFrame:
-    """AU cents/litre -> USD/bbl, on the Mon-Fri mean rate of the stamped week."""
+    """AU cents/litre -> USD/bbl, on the Mon-Fri mean rate of the stamped week.
+
+    A week the FX series does not reach is DROPPED, loudly, never converted on
+    whatever window happens to be available. Two reasons, and the second is the
+    binding one:
+
+    FRED's lag is not a constant. On 8 Sep 2026 DEXUSAL ended at 28 Aug; on
+    10 Sep it ended at 4 Sep. So "the last five observations" and "the five
+    days of this week" are the same window only some of the time, and when
+    they are not, the older window is silently substituted -- and two report
+    weeks sharing a frozen rate zero out the FX part of the week-on-week move,
+    which is the only thing `monitor_aip_gap` compares.
+
+    And `warehouse_write.append_new` inserts weeks it does not already hold and
+    never revisits one. A rate computed from the wrong days is therefore not a
+    transient error: it is written into the history permanently. Waiting costs
+    nothing -- every report carries two weeks, so the next run picks the week
+    up once the series has caught up.
+    """
     raw = _get(FX_URL).decode()
     fx = pd.read_csv(pd.io.common.StringIO(raw), na_values=".")
     fx.columns = ["date", "usd_per_aud"]
     fx["date"] = pd.to_datetime(fx["date"])
-    fx = fx.dropna().set_index("date")["usd_per_aud"]
-    rate = [fx.loc[:w].tail(5).mean() for w in df["week"]]
-    df = df.assign(aud_usd=rate)
-    df["product_usd_bbl"] = df["product_aucpl"] / 100 * df["aud_usd"] * LITRES_PER_BBL
-    return df
+
+    # Holidays are published as "." rows, so the frame BEFORE dropna is what
+    # says how far the series reaches, and the one after is what can be
+    # averaged. Reading coverage off the dropped frame would reject a week
+    # whose Friday happened to be a US holiday.
+    covered_to = fx["date"].max()
+    rates = fx.dropna().set_index("date")["usd_per_aud"].sort_index()
+
+    rate: dict[pd.Timestamp, float] = {}
+    for week in pd.to_datetime(df["week"].unique()):
+        if week > covered_to:
+            print(f"  ! FX series stops at {covered_to.date()}, so the week to "
+                  f"{week.date()} is not covered; left for a later run",
+                  file=sys.stderr)
+            continue
+        # The stamp is the Friday, so Mon-Fri is [w-4, w] -- stated as dates
+        # rather than as a count of rows, which is what let an older window in.
+        window = rates.loc[week - pd.Timedelta(days=4):week]
+        if len(window) < MIN_FX_DAYS:
+            print(f"  ! only {len(window)} FX observation(s) in the week to "
+                  f"{week.date()}; left for a later run", file=sys.stderr)
+            continue
+        rate[week] = window.mean()
+
+    if not rate:
+        raise RuntimeError(
+            f"the FX series covers none of the {df['week'].nunique()} parsed "
+            f"weeks; it stops at {covered_to.date()}"
+        )
+
+    print(f"  FX series reaches {covered_to.date()}; priced {len(rate)} of "
+          f"{df['week'].nunique()} weeks")
+    kept = df[df["week"].isin(list(rate))].copy()
+    kept["aud_usd"] = kept["week"].map(rate)
+    kept["product_usd_bbl"] = kept["product_aucpl"] / 100 * kept["aud_usd"] * LITRES_PER_BBL
+    return kept
 
 
 
@@ -203,7 +264,9 @@ def main() -> int:
         priced = add_usd(parsed)
     except Exception as exc:
         # No FRED, no conversion, and half-converted rows are worse than none.
-        print(f"! could not fetch the FX series ({exc}); store left unchanged", file=sys.stderr)
+        # Covers both shapes: the fetch failing, and the series not reaching a
+        # single one of the parsed weeks.
+        print(f"! no FX conversion ({exc}); store left unchanged", file=sys.stderr)
         return 0
 
     priced = priced.drop_duplicates(["week", "fuel"], keep="last")
