@@ -35,6 +35,12 @@ jobs:
 
     env:
       CAPACITY_ID: /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/nz-fuel-price-rg/providers/Microsoft.Fabric/capacities/nzfuelcapacity
+      # Read by `task aip` only. Job-level rather than on that step because
+      # nothing here is capacity-bound or secret-bearing enough to be worth a
+      # narrower scope, and a missing key fails loudly inside `aip_check`
+      # rather than quietly skipping the FX conversion, which is what it used
+      # to do.
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
 
     steps:
       - uses: actions/checkout@v4
