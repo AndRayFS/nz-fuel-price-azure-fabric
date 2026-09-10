@@ -18,7 +18,10 @@
       "Bash(git ls-files:*)",
       "Bash(git rev-parse:*)",
       "Bash(git rev-list:*)",
-      "Bash(git blame:*)"
+      "Bash(git blame:*)",
+      "Bash(task capacity-pause)",
+      "Bash(task capacity-resume)",
+      "Bash(task --list)"
     ]
   }
 }

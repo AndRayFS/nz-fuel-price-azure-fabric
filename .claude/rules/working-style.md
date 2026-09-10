@@ -56,6 +56,21 @@ So the rule is about *quoting*, not about the documents:
   Fabric capacity resumed and therefore money. `headline_results.py` is the
   first kind; anything reading the warehouse is the second.
 
+## Commit messages are English
+
+The repository is English throughout — models, macros, `docs/`, `CLAUDE.md`,
+the rules in this directory, code comments. Commit subjects were English too
+for the first 107 commits, through 23 Aug 2026, and then switched to Russian
+on 27 Aug without a decision behind it; 56 commits are in Russian.
+
+**Write commit subjects and bodies in English from now on.** The history is
+not rewritten — the Russian commits stay as they are, and the split is a
+visible date, not a mess to clean up.
+
+This is about the artefact, not the conversation: discussion here stays in
+Russian. The rule is that anything committed to the repository matches the
+repository.
+
 Critical working rules (verify before asserting, heredoc checks, one
 change at a time, no point-forecast language) live in the root
 `CLAUDE.md` — not repeated here.
