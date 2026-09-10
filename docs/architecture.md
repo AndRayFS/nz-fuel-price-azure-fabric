@@ -813,10 +813,24 @@ frame *before* `dropna`. FRED publishes US holidays as rows valued `"."`, so
 questions, and reading the first off the dropped frame would reject any week
 whose Friday happened to be a holiday.
 
-Four stored weeks change value under the new window — 14 Nov 2025, 2 Jan,
-23 Jan, 20 Feb 2026, each a four-trading-day week where the old expression
-reached into the previous week for a fifth. Up to 0.36%. `append_new` will
-not rewrite them, and they were left alone.
+Four stored weeks changed value under the new window — 14 Nov 2025, 2 Jan,
+23 Jan, 20 Feb 2026. DEXUSAL is a Federal Reserve series and follows the US
+holiday calendar, not an Australian or New Zealand one, so those four weeks
+carry Veterans Day, New Year's Day, Martin Luther King Day and Presidents'
+Day respectively: four quotes published, not five, and the old expression made
+up the fifth from the Friday before. That day then sat in two consecutive
+windows at once, which damps the difference between them — the week-on-week
+move, which is the one quantity this contour exists to measure.
+
+`append_new` never revisits a stored row, so these were corrected by hand on
+10 Sep 2026, six rows in all (the petrol series does not reach back to
+Nov 2025 or 2 Jan 2026). The largest change is +0.363% on 23 Jan, worth about
+0.3 USD/bbl on diesel; two of the four move by under 0.01%. `loaded_at` was
+deliberately not touched — it records when a week was collected, and this was
+a correction, not a collection. The stored rates before the update matched the
+old formula to six decimals, which is what confirms these rows came from it
+rather than from something else. `monitor_aip_gap` was rebuilt afterwards and
+its tests pass.
 
 Verified where it had to be, which was not this laptop: the key exists only
 as a repository secret, so the real `add_usd` was exercised against the real
