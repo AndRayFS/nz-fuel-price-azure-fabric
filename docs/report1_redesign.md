@@ -160,7 +160,9 @@ Model MAE 26w = AVERAGE ( forecast_accuracy[mae_model_26w] )
 
 Naive MAE 26w = AVERAGE ( forecast_accuracy[mae_naive_26w] )
 
-Weeks Model Ahead % =
+-- Renamed from `Weeks Model Ahead %` in Desktop; brought back into pbip/
+-- from the published model on 10 Sep 2026. Same expression.
+26-Week Windows Ahead % =
 DIVIDE (
     CALCULATE ( COUNTROWS ( forecast_accuracy ),
                 forecast_accuracy[skill_26w] > 0 ),

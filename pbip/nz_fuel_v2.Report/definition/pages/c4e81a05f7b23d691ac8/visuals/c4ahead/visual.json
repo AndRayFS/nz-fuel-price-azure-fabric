@@ -22,11 +22,11 @@
                       "Entity": "forecast_accuracy"
                     }
                   },
-                  "Property": "Weeks Model Ahead %"
+                  "Property": "26-Week Windows Ahead %"
                 }
               },
               "queryRef": "forecast_accuracy.Weeks Model Ahead %",
-              "nativeQueryRef": "Weeks Model Ahead %"
+              "nativeQueryRef": "26-Week Windows Ahead %"
             }
           ]
         }

@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "How often the model was closer than that assumption. Weeks without a full 26-week window are excluded.",
+                    "value": "How often the model beat \"no change\", looking back six months from each week.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontStyle": "italic",

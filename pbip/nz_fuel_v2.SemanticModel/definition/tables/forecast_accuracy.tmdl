@@ -17,7 +17,7 @@ table forecast_accuracy
 		lineageTag: 2bbfbe3f-485a-430e-9b54-f0859de1bf83
 
 	/// Share of weeks where the model led naive. Denominator counts only weeks with a full window, so early history is excluded rather than scored as a loss.
-	measure 'Weeks Model Ahead %' =
+	measure '26-Week Windows Ahead %' =
 			
 			DIVIDE(
 			    CALCULATE(

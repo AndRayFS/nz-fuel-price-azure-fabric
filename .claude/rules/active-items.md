@@ -281,15 +281,21 @@ design and should be trimmed or updated, not left as-is indefinitely.
     whose pbip was never saved back. Found while diffing the deployed
     definition, not by anything watching for it.
 
-    **The 10 Sep republish did not close it**, checked afterwards by reading
-    the deployed definition back: the four dead columns are gone (Desktop's
-    "refresh schema" dropped them), but the measure is still
-    `26-Week Windows Ahead %`. So the file Desktop publishes from is its own
-    copy, not the `pbip/` in this repository, and the two have diverged at
-    least on this name. Which one is the source of truth has to be decided
-    in Desktop — either save the pbip back into the repo or open the repo's
-    pbip there. Until then, a change committed to `pbip/` does not reach the
-    published model, and nothing reports that it has not.
+    The 10 Sep republish did not close it on its own: the four dead columns
+    went (Desktop's "refresh schema" dropped them), but the name stayed, so
+    Desktop publishes from its own copy, not from this repository's `pbip/`.
+
+    **Closed the same day by decision: Desktop is the source of truth**
+    (`working-style.md`, "Power BI: Desktop is the last word"). `pbip/` was
+    brought into line by pulling both definitions back from the service with
+    Fabric `getDefinition` — it works on My Workspace and with the capacity
+    paused — and taking what Desktop had changed: the measure name, in the
+    model and in visual `c4ahead`, and two reworded captions under `x3naive`
+    and `x4ahead`. Not taken, deliberately: `.platform` (the service returns
+    a zeroed `logicalId`) and `definition.pbir` (the service's `byConnection`
+    to the published model would replace the `byPath` Desktop needs to open
+    the folder). Files the service does not carry — `diagramLayout.json`,
+    `.pbi/` — were left as they were.
 - [x] **`forecast_accuracy.sql` compiled and ran against the warehouse,
   10 Sep 2026.** `dbt run --select forecast_accuracy --full-refresh` inside
   run 34425310513: `PASS=1 WARN=0 ERROR=0`. The edit that removed three
