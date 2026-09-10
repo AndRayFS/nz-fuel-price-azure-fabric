@@ -51,6 +51,31 @@ design and should be trimmed or updated, not left as-is indefinitely.
       time and `append_new` inserts whatever is missing, so 6 Sep and 13 Sep
       come in together. Delete `.github/workflows/fred-probe.yml` once that
       has happened.
+    - **Week 2026-09-04 was cross-checked by hand instead, and agrees.** Done
+      offline on 10 Sep 2026 with `monitor_aip_gap`'s arithmetic: the AIP
+      side from the week-to-4-Sep reports (now in the local PDF cache) and
+      FRED, our side from the MBIE file downloaded through Chrome that
+      morning. Nothing written to the store.
+
+      | week-on-week, USD/bbl | ours | Argus | ours / Argus |
+      |---|---|---|---|
+      | Diesel | +11.25 | +11.10 | 101% |
+      | Regular Petrol | +9.38 | +9.56 | 98% |
+
+      A flag needs ours under 25% of theirs. The markup held week to week —
+      diesel 14.42 → 14.57, petrol 10.40 → 10.23 USD/bbl — but both now sit
+      above the ranges `architecture.md` records for Oct 2025 – Aug 2026
+      (6.9–13.4 and 7.4–9.6). Worth updating those once a few more weeks
+      confirm it is a level and not a spike.
+
+      The week itself: importer cost jumped (diesel +14.12, petrol
+      +11.61 c/L), pump prices fell about 1.2 c/L, and importer margin took the
+      whole move (−15.09, −12.58) — around the 98th percentile of weekly
+      margin changes by size over all 1168 weeks. Margins are at the 5th–6th
+      percentile of the last five years but the 42nd–46th of the full history,
+      so "a low for recent years", not "a historic low". Provisional; MBIE
+      had already revised 28 Aug between 7 and 10 Sep (petrol importer cost
+      +0.43 c/L).
   - **The federated identity credential is pinned to `refs/heads/main`.** A
     workflow run from any other ref fails at `azure/login` with AADSTS700213
     before reaching the capacity, so a CI change cannot be tested on a branch
@@ -228,15 +253,43 @@ design and should be trimmed or updated, not left as-is indefinitely.
     warn earlier; not added, because the auto-pause is meant to make that case
     impossible and adding one would be guarding against the guard.
 
-- [ ] **Publish `nz_fuel_v2` from Desktop at the next opportunity — four
-  columns left `forecast_accuracy` on 7 Sep 2026.** `report1_ish` was
-  withdrawn from the backtest (`docs/research.md`), so `pred_report1_ish`,
-  `abs_err_report1`, `mae_report1_26w` and `skill_report1_26w` are gone. The
-  `.tmdl` in `pbip/` is already updated; the deployed model still declares
-  them. No visual or measure read any of the four. Whether a refresh of the
-  stale model would actually fail is **untested** — the same situation arose
-  with `flag_data_status` on 27 Aug and the model was republished before any
-  refresh could settle it. Publishing is cheaper than finding out.
+- [x] **`nz_fuel_v2` republished from Desktop, 10 Sep 2026 — and the question
+  it left open is now answered.** Four columns left `forecast_accuracy` on
+  7 Sep (`pred_report1_ish`, `abs_err_report1`, `mae_report1_26w`,
+  `skill_report1_26w`, after `report1_ish` was withdrawn from the backtest).
+  This note used to say that whether a refresh of the stale model would fail
+  was untested. **It fails.** A service refresh was attempted on 10 Sep and
+  ended `Failed` in 16 seconds with
+  `ModelRefresh_ShortMessage_ProcessingError: The 'pred_report1_ish' column
+  does not exist in the rowset`.
+
+  **So the order is not a preference, it is a requirement: republish first,
+  refresh second.** Removing a column from a model's source table breaks the
+  next refresh of the deployed model, whether or not any visual read it — the
+  partition query names every declared column. The same applies to a rename.
+
+  Doing it from Desktop takes about five minutes: open the report, resume the
+  capacity, refresh schema and data, publish, pause the capacity. Verified
+  afterwards from here — capacity `Paused`, and a DAX probe against the model
+  returned 6,390 rows with `max week_date` 2026-09-04, against 6,381 and
+  2026-08-28 before. Delete this note once one more weekly refresh has gone
+  through.
+  - **The deployed model had drifted from git, unrecorded.** Its measure was
+    named `26-Week Windows Ahead %` while `pbip/` has carried
+    `Weeks Model Ahead %` since 16 Aug 2026; the old name appears nowhere in
+    the history, so it was renamed in the service or in a Desktop session
+    whose pbip was never saved back. Found while diffing the deployed
+    definition, not by anything watching for it.
+
+    **The 10 Sep republish did not close it**, checked afterwards by reading
+    the deployed definition back: the four dead columns are gone (Desktop's
+    "refresh schema" dropped them), but the measure is still
+    `26-Week Windows Ahead %`. So the file Desktop publishes from is its own
+    copy, not the `pbip/` in this repository, and the two have diverged at
+    least on this name. Which one is the source of truth has to be decided
+    in Desktop — either save the pbip back into the repo or open the repo's
+    pbip there. Until then, a change committed to `pbip/` does not reach the
+    published model, and nothing reports that it has not.
 - [x] **`forecast_accuracy.sql` compiled and ran against the warehouse,
   10 Sep 2026.** `dbt run --select forecast_accuracy --full-refresh` inside
   run 34425310513: `PASS=1 WARN=0 ERROR=0`. The edit that removed three
