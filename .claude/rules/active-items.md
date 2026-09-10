@@ -285,9 +285,11 @@ design and should be trimmed or updated, not left as-is indefinitely.
     went (Desktop's "refresh schema" dropped them), but the name stayed, so
     Desktop publishes from its own copy, not from this repository's `pbip/`.
 
-    **Closed the same day by decision: Desktop is the source of truth**
-    (`working-style.md`, "Power BI: Desktop is the last word"). `pbip/` was
-    brought into line by pulling both definitions back from the service with
+    **Closed the same day, for this divergence only, by taking Desktop's
+    version** — a call about the situation, not a standing rule; the manual
+    publish step is due to go with automatic refresh, which is its own piece
+    of work. `pbip/` was brought into line by pulling both definitions back
+    from the service with
     Fabric `getDefinition` — it works on My Workspace and with the capacity
     paused — and taking what Desktop had changed: the measure name, in the
     model and in visual `c4ahead`, and two reworded captions under `x3naive`
