@@ -19,8 +19,27 @@ design and should be trimmed or updated, not left as-is indefinitely.
     against 29 Aug 2026 and will need the same treatment again.
   Method and expectations: `docs/mbie_notes.md`, "A standing prediction".
 
-- [ ] **The chain past the gate has never run in CI — still true after
-  10 Sep 2026.** Every grant is in place and a full manual run went green on
+- [ ] **The chain past the gate ran in CI for the first time on 10 Sep 2026
+  and got four steps in.** `aip` passed, `snapshot` failed, everything after
+  it is still unexercised: `build`, `test`, `panel`, `flags`, `backtest`,
+  `report`, `close`. `flags` and `backtest` have still never written to the
+  database from anywhere but this laptop.
+  - **What stopped it:** `dbt_packages/` is gitignored, nothing in the
+    workflow ran `dbt deps`, and every dbt command failed on "expects 1
+    package(s) ... found only 0". Invisible locally, where the directory has
+    been on disk since July. Fixed the same day — `task deps`, called from the
+    workflow next to the other install steps.
+  - **`aip` warned and carried on:** `could not fetch the FX series (The read
+    operation timed out); store left unchanged`, then 18 Diesel and 14 Regular
+    Petrol reports downloaded. Whether the FX timeout is a runner egress
+    problem or the source being slow is not established; it was not fatal.
+  - **The federated identity credential is pinned to `refs/heads/main`.** A
+    workflow run from any other ref fails at `azure/login` with AADSTS700213
+    before reaching the capacity, so a CI change cannot be tested on a branch
+    — it has to be merged first. Verified on run 34424623434, which cost
+    nothing because every step after login was skipped.
+
+- [x] **The chain past the gate had never run in CI — closed 10 Sep 2026.** Every grant is in place and a full manual run went green on
   8 Sep 2026, but the gate answered `nothing_new` and everything after it was
   skipped. The 10 Sep publication was meant to be the first real exercise of
   `aip`, `snapshot`, `build`, `test`, `panel`, `flags`, `backtest`, `report`

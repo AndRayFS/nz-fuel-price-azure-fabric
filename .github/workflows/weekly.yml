@@ -58,6 +58,14 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # `dbt_packages/` is gitignored, so a clean checkout has none and every
+      # dbt command fails on "expects 1 package(s) ... found only 0". Invisible
+      # on this laptop, where the directory has been on disk since July. Found
+      # on 10 Sep 2026, the first run in which anything after the gate executed
+      # on a runner. Needs no warehouse — it only reads packages.yml.
+      - name: Install dbt packages
+        run: task deps
+
       - uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
