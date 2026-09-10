@@ -839,6 +839,35 @@ week-to-week correction, not a data quality problem.
     parse ISO in Fabric (`try_convert(date, '2026-08-21', 103)` is NULL),
     which is why the expression is a `coalesce` of two attempts rather than
     one conversion.
+  - **The same release also cut `Value` to about ten significant digits —
+    noticed only on 10 Sep.** `107.498412698413` arrived as `107.4984127`,
+    across every c/L column of the whole history (string length 15–16 before,
+    8–11 after). Crude and the exchange rate were unaffected only because
+    their values were already short. So "what absorbed it" above holds for
+    `Date` and not for this: `Value` *is* a check column, and the snapshot
+    recorded **15,848 `final_rewritten` versions over 1,041 weeks** at deltas
+    no larger than 5e-8 c/L. `revisions_rewrote_a_final_week` stayed quiet
+    because `revision_noise_threshold_cpl` (0.001) sits far above that, which
+    is exactly what the threshold is for — but it filters the alert, not the
+    table.
+- **10 Sep 2026 — both reverted.** `Date` is back to ISO (`2010-01-08`) and
+  `Value` back to full precision, byte-identical to what the snapshot held
+  before 3 Sep. Another 15,848 versions, the mirror of the first. 15,316 keys
+  now carry three versions — original, truncated, restored — and the
+  truncated one is what an `as_of_vintage` between 3 and 9 Sep would read.
+  Harmless at that size, but worth knowing it is there.
+  - **Not fixed in the snapshot, deliberately.** Checked against the full
+    history on 10 Sep: comparing on `ROUND(TRY_CAST(Value AS float), 4)`
+    instead of `Value` would have kept all six genuine revisions of these two
+    loads, let 2 truncation artefacts through at rounding boundaries, and
+    dropped 3 of the 120 genuine 26 Aug `Taxes` rewrites (those below
+    1e-4 c/L). Four decimal places is the working step; six drops nothing
+    real but lets about 4% of such noise through. Rounding the stored
+    `Value` itself is the wrong fix — `Value` is varchar, T-SQL's default
+    float-to-varchar keeps six significant digits, and the snapshot feeds
+    vintage silver. Introducing a comparison column would itself create one
+    wave of ~35,000 versions, so it is worth doing only if the precision
+    flips again.
 
 ## Related page — fuel stock & shipping (not yet integrated)
 
