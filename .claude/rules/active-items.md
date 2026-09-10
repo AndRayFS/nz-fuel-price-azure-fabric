@@ -30,10 +30,25 @@ design and should be trimmed or updated, not left as-is indefinitely.
     and every dbt command failed on "expects 1 package(s) ... found only 0".
     Invisible locally, where the directory has been on disk since July. Fixed
     the same day — `task deps`, beside the other install steps.
-  - **`aip` warned and carried on:** `could not fetch the FX series (The read
-    operation timed out); store left unchanged`, then 18 Diesel and 14 Regular
-    Petrol reports downloaded. Whether the FX timeout is a runner egress
-    problem or the source being slow is not established; it was not fatal.
+  - **`aip` warned and carried on, and that was a whole component producing
+    nothing.** `could not fetch the FX series (The read operation timed out);
+    store left unchanged`, then 18 Diesel and 14 Regular Petrol reports
+    downloaded and thrown away with the runner. **Settled and fixed the same
+    day** — measured from a runner, `fredgraph.csv` times out under urllib
+    while curl fetches it in 2.9 s and the FRED API answers urllib in 0.2 s;
+    Yahoo, the fallback we would have reached for, returns HTTP 429 from
+    GitHub egress. `aip_check.py` now uses the API with `FRED_API_KEY`, and
+    prices each week on its own Mon–Fri rather than on the last five rows of
+    whatever the series happens to hold. Written up in `docs/architecture.md`,
+    "The FX half, and two ways it was wrong".
+    - **Not yet exercised by a real weekly run.** Verified from a runner over
+      synthetic weeks (probe run 34434860722) and locally on the cached PDFs,
+      but `task aip` itself has not gone through since the change. The store's
+      newest week is still **30 Aug 2026** and the next scheduled run should
+      close that by itself: CI re-downloads every report on the AIP site each
+      time and `append_new` inserts whatever is missing, so 6 Sep and 13 Sep
+      come in together. Delete `.github/workflows/fred-probe.yml` once that
+      has happened.
   - **The federated identity credential is pinned to `refs/heads/main`.** A
     workflow run from any other ref fails at `azure/login` with AADSTS700213
     before reaching the capacity, so a CI change cannot be tested on a branch

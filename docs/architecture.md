@@ -753,6 +753,78 @@ PDFs to be parsed, and a FRED failure leaves the store untouched rather than
 half-converted. Simulated both; both exit 0 and the seed came back
 byte-identical.
 
+### The FX half, and two ways it was wrong — 10 Sep 2026
+
+The first CI run of the chain past the gate produced no AIP data at all. The
+step went green, as designed, on `could not fetch the FX series (The read
+operation timed out); store left unchanged` — the graceful degradation above,
+working exactly as written, and degrading the project's only outside opinion
+on the ingest to nothing. Worth stating plainly: exiting 0 is right, but a
+component that has produced nothing for two consecutive runs is not a footnote.
+
+**The source was in the wrong place.** `aip_check.py` fetched DEXUSAL from
+`fred.stlouisfed.org/graph/fredgraph.csv?id=DEXUSAL`, which answers this
+laptop in about a second and timed out twice at 60 s from a GitHub runner.
+Measured from a runner rather than guessed at (probe workflow, run
+34434535269):
+
+| | |
+|---|---|
+| `fredgraph.csv` via curl | HTTP 200 in 2.9 s |
+| `fredgraph.csv` via urllib | read timeout at 60 s |
+| `api.stlouisfed.org`, no key | HTTP 400 in 0.18 s |
+| `api.stlouisfed.org`, keyed | HTTP 200 in 0.2 s |
+| Yahoo, the fallback candidate | HTTP 429 |
+
+So nothing is blocked and FRED is reachable from CI in full: what fails is
+that one host under that one client. Why is unresolved and deliberately not
+chased — the answer would not change what to do. Note the last row: Yahoo,
+which we would have moved to had FRED been unreachable, is the one that
+actually refuses GitHub egress. The measurement was worth its minute; the
+guess it replaced would have been wrong.
+
+The fetch now goes through the FRED API with a key, held as the repository
+secret `FRED_API_KEY` and required rather than optional. There is no fallback
+to the graph host, because a silent fallback to the thing known to fail in CI
+is the failure shape this change exists to remove.
+
+**And the window was chosen by counting rows.** The conversion took
+`fx.loc[:w].tail(5).mean()` — the last five observations up to the stamped
+Friday. When the series reaches that Friday, those five are Mon–Fri of that
+week. When it does not, the same expression silently returns an older window
+and says nothing. FRED's lag is not a constant: DEXUSAL ended at 28 Aug on
+8 Sep 2026 and at 4 Sep on 10 Sep.
+
+Two consecutive report weeks sharing a frozen rate would zero out the FX part
+of the week-on-week move, which is the only thing `monitor_aip_gap` compares —
+so the failure would land precisely on the quantity the check exists to
+measure. And it would be permanent, not transient: `warehouse_write.append_new`
+inserts weeks the store does not hold and never revisits one, so a rate
+computed from the wrong days is written into the history and stays.
+
+The window is therefore stated as dates, `[w-4, w]`, and a week the series
+does not reach is dropped with a message naming it. Nothing is lost by
+waiting — every AIP report carries two weeks, and the store accumulates, so
+the next run collects the week once FRED has caught up.
+
+One detail that looks like a nicety and is not: coverage is read from the
+frame *before* `dropna`. FRED publishes US holidays as rows valued `"."`, so
+"how far does the series reach" and "what can be averaged" are different
+questions, and reading the first off the dropped frame would reject any week
+whose Friday happened to be a holiday.
+
+Four stored weeks change value under the new window — 14 Nov 2025, 2 Jan,
+23 Jan, 20 Feb 2026, each a four-trading-day week where the old expression
+reached into the previous week for a fifth. Up to 0.36%. `append_new` will
+not rewrite them, and they were left alone.
+
+Verified where it had to be, which was not this laptop: the key exists only
+as a repository secret, so the real `add_usd` was exercised against the real
+API from a runner over synthetic weeks, one of them deliberately beyond any
+coverage. Six priced with six distinct rates, the uncovered one refused by
+name — and the six matched, to five decimals, what the old CSV route computes
+here. Two endpoints, two machines, the same numbers.
+
 ## Observations belong in the warehouse, configuration belongs in git — 23 Aug 2026
 
 Eight CSVs are version-controlled and four of them are rewritten every week.
