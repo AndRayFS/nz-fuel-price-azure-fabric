@@ -10,6 +10,25 @@
   there), methodology discussions, LinkedIn post drafting. Don't assume
   you can drive those directly.
 
+## Power BI: Desktop is the last word
+
+Decided 10 Sep 2026. When `pbip/` and the published `nz_fuel_v2` disagree,
+Desktop's version wins — it is what gets published, and edits made there
+(a renamed measure, a reworded caption) had been drifting away from git
+unrecorded.
+
+So the direction of travel is **Desktop → service → repo**, and nothing
+needs to be carried off the Windows VM by hand: after a publish, pull both
+definitions back with Fabric `getDefinition` (My Workspace
+`0f33a565-993a-4721-ba3e-2b947000f895`, model `221ea91d-…`, report
+`c31bf57c-…`; works with the capacity paused), normalise to LF, and commit
+what changed. Keep the repo's own `.platform` and `definition.pbir` — the
+service returns a zeroed `logicalId` and a `byConnection` reference in
+place of the `byPath` that lets Desktop open the folder.
+
+A change made only in `pbip/` does not reach the report until it is made in
+Desktop too.
+
 ## Browser access
 
 Chrome automation works in this VSCode session once the user types
