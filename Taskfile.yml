@@ -110,6 +110,14 @@ tasks:
     cmds:
       - '"{{.PY}}" pipeline/run_ingest.py'
 
+  sync-endpoint:
+    # Only for the path where the copy is not being run — `ingest` does this
+    # itself as its last act, because a copy that has not been picked up by the
+    # SQL endpoint is not a finished ingest.
+    desc: "Force the bronze SQL analytics endpoint to catch up with the Lakehouse"
+    cmds:
+      - '"{{.PY}}" pipeline/run_ingest.py --sync-only'
+
 # --- the gate ----------------------------------------------------------------
 
   gate:
