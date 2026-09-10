@@ -19,16 +19,17 @@ design and should be trimmed or updated, not left as-is indefinitely.
     against 29 Aug 2026 and will need the same treatment again.
   Method and expectations: `docs/mbie_notes.md`, "A standing prediction".
 
-- [ ] **The chain past the gate ran in CI for the first time on 10 Sep 2026
-  and got four steps in.** `aip` passed, `snapshot` failed, everything after
-  it is still unexercised: `build`, `test`, `panel`, `flags`, `backtest`,
-  `report`, `close`. `flags` and `backtest` have still never written to the
-  database from anywhere but this laptop.
-  - **What stopped it:** `dbt_packages/` is gitignored, nothing in the
-    workflow ran `dbt deps`, and every dbt command failed on "expects 1
-    package(s) ... found only 0". Invisible locally, where the directory has
-    been on disk since July. Fixed the same day — `task deps`, called from the
-    workflow next to the other install steps.
+- [x] **The chain past the gate ran green in CI, end to end, 10 Sep 2026.**
+  Run 34425310513: `aip`, `snapshot`, `build`, `test`, `panel`, `flags`,
+  `backtest`, `report`, `close` all passed, the capacity paused itself, and
+  `close` recorded `2026-09-04` processed at 35,040 bronze rows. `flags` and
+  `backtest` wrote to the database from CI for the first time. Delete this
+  once one more weekly run has gone through unattended.
+  - It took two attempts. The first, 34424785517, stopped at `snapshot`:
+    `dbt_packages/` is gitignored, nothing in the workflow ran `dbt deps`,
+    and every dbt command failed on "expects 1 package(s) ... found only 0".
+    Invisible locally, where the directory has been on disk since July. Fixed
+    the same day — `task deps`, beside the other install steps.
   - **`aip` warned and carried on:** `could not fetch the FX series (The read
     operation timed out); store left unchanged`, then 18 Diesel and 14 Regular
     Petrol reports downloaded. Whether the FX timeout is a runner egress
@@ -219,10 +220,10 @@ design and should be trimmed or updated, not left as-is indefinitely.
   stale model would actually fail is **untested** — the same situation arose
   with `flag_data_status` on 27 Aug and the model was republished before any
   refresh could settle it. Publishing is cheaper than finding out.
-- [ ] **`forecast_accuracy.sql` has not been compiled against the
-  warehouse** — `dbt parse` passes, `dbt compile` needs live capacity and was
-  refused on 7 Sep. The edit removed three expressions and one CTE column;
-  the next weekly run is the first real check.
+- [x] **`forecast_accuracy.sql` compiled and ran against the warehouse,
+  10 Sep 2026.** `dbt run --select forecast_accuracy --full-refresh` inside
+  run 34425310513: `PASS=1 WARN=0 ERROR=0`. The edit that removed three
+  expressions and one CTE column is confirmed good. Delete this note.
 
 - [x] **Republish `nz_fuel_v2` before the next refresh — done 3 Sep 2026**,
   ahead of the week 2026-08-28 refresh. The deployed model had declared
