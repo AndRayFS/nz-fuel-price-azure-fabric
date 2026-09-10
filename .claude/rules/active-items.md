@@ -19,6 +19,18 @@ design and should be trimmed or updated, not left as-is indefinitely.
     against 29 Aug 2026 and will need the same treatment again.
   Method and expectations: `docs/mbie_notes.md`, "A standing prediction".
 
+- [ ] **Next weekly load (~17 Sep 2026) — expect zero `final_rewritten`.**
+  MBIE's 3 Sep release cut `Value` to ~10 significant digits and switched
+  `Date` to DD/MM/YYYY; the 10 Sep release put both back. Each flip wrote
+  15,848 noise versions into the snapshot. If the next load shows
+  `final_rewritten` in the thousands again, the precision is flipping as a
+  habit, and the snapshot should compare on `ROUND(TRY_CAST(Value AS float), 4)`
+  rather than `Value` — measured, and written up, in `docs/mbie_notes.md`
+  under "Known structural changes", 3 and 10 Sep. If it is zero, delete this.
+  Query: `select detected_on, revision_class, count(*) from
+  monitoring.monitor_revisions where detected_on >= '2026-09-15' group by
+  detected_on, revision_class`.
+
 - [x] **The chain past the gate ran green in CI, end to end, 10 Sep 2026.**
   Run 34425310513: `aip`, `snapshot`, `build`, `test`, `panel`, `flags`,
   `backtest`, `report`, `close` all passed, the capacity paused itself, and
