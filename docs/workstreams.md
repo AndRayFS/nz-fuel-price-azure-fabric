@@ -20,7 +20,7 @@ the list of dated obligations. Nothing here restates those.
 | 26 Aug 2026 | MBIE publishes (Wednesday) | **decision: skip this run**, do it 28 Aug |
 | 27 Aug 2026 | Azure trial credit expires | ~NZ$245 lapses regardless |
 | 28 Aug 2026 | F2 starts billing at NZ$0.729/h | every warehouse run costs real money |
-| ~26 Sep 2026 | Power BI Pro trial ends | W9 must be decided before this |
+| ~26 Sep 2026 | Power BI Pro trial ends | check the public link ~27 Sep; W9 is decided on the result, not before |
 
 Skipping the 26 Aug run costs two days of staleness on a report that
 already labels itself a retrospective simulation. Rushing an unattended
@@ -1011,10 +1011,33 @@ the GUI, so the VM session is short:
   service*, then a refresh API call is not the step being replaced, and W9
   has to say which of the two it is automating.
 
-**Risks.** Whether publish-to-web survives on a Free licence after the Pro
-trial ends is unresolved and Microsoft's docs point both ways — that is
-the pre-existing ~27 Sep item, and W9 must be settled before it. Moving a
-report changes its public URL, so the link has to be reissued. Per
+  **Answered 10 Sep 2026: both, for different weeks.** An ordinary week is a
+  service refresh. A republish is needed only when `forecast_accuracy`
+  changes shape: a service refresh that day failed in 16 s on
+  `The 'pred_report1_ish' column does not exist in the rowset`, one of four
+  columns removed on 7 Sep. The new week reached the report through a
+  republish from Desktop instead, which carries the model's data with it;
+  no service refresh has been run since. So W9 automates the refresh; a
+  schema change stays a manual republish, done before the next refresh
+  rather than after it fails.
+
+**When.** After the trial, not before it — corrected 10 Sep 2026; this
+section used to say W9 must be settled before the trial ends, which
+contradicted the plan `architecture.md` and `cost_notes.md` record. The
+target workspace needs Pro, so doing W9 commits the project to about
+NZ$24/month once the trial is over, and doing it early buys nothing but
+that commitment. Meanwhile it is unresolved whether publish-to-web from My
+Workspace survives on a Free licence — Microsoft's docs point both ways —
+so today's free arrangement may simply carry on. The ~27 Sep check in
+`active-items.md` decides it:
+
+| the public link on Free | then |
+|---|---|
+| still works | the free manual refresh stays; W9 becomes a separate question — is automating one weekly step worth NZ$24/month |
+| breaks | Pro is needed regardless, and W9 comes almost free on top of it |
+
+**Risks.** Moving a report changes its public URL, so the link has to be
+reissued. Per
 `CLAUDE.md`, every Power BI behaviour asserted here is to be verified in
 the VM before being relied on.
 
