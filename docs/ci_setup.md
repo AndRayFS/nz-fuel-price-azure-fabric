@@ -8,7 +8,8 @@ out and are recorded below with what they produced; step 2 was done by the
 Owner account (`andrei@…onmicrosoft.com` is Contributor and cannot grant
 roles — `AuthorizationFailed` on `Microsoft.Authorization/roleDefinitions/write`
 — so it needs `morozov_77@hotmail.com`, as with the billing upgrade on 3 Sep);
-step 4 turned out not to exist. What remains is the run in step 6.
+step 4 turned out not to exist. Step 6 has since been run many times over:
+the chain has gone through unattended on a schedule, most recently 16 Sep 2026.
 
 **Signing back in matters.** `az login` as the Owner replaces the cached
 session, and everything in this project — dbt, the gate, every script — takes
@@ -63,7 +64,7 @@ az ad app federated-credential create --id "$APP_ID" --parameters '{
 }'
 ```
 
-## 2. Azure RBAC on the capacity — **NOT DONE, needs the Owner account**
+## 2. Azure RBAC on the capacity — **done 8 Sep 2026 by the Owner account**
 
 `Microsoft.Fabric/capacities/resume/action` and `.../suspend/action` are ARM
 operations (*checked* against `az provider operation show --namespace
@@ -154,8 +155,20 @@ workflow inputs live.
 
 ## 6. Proving it works, cheaply — **done 8 Sep 2026, and both schedules are on**
 
-The proving run went green end to end on the second attempt, and the two
-failures before it were worth more than the success:
+Run the workflow by hand with **skip_ingest = true** on a week that is already
+loaded. The gate then answers `2` (nothing new), the job ends green having
+touched nothing, and the run has still exercised every grant that matters:
+OIDC exchange, resume, a Fabric API call, a warehouse query, and pause.
+
+The two `schedule` blocks — `weekly.yml` and the watchdog in
+`pause-capacity.yml` — are live in this repository and have been since
+8 Sep 2026, switched on once that run was green. They were kept commented out
+until then, so that a repository without the identity behind it did not go red
+every Wednesday. Turning them on is the last step of this document, not the
+first.
+
+**What the proving run found.** It went green end to end on the second
+attempt, and the two failures before it were worth more than the success:
 
 - **The subject GitHub actually presents carries numeric ids.** Not
   `repo:AndRayFS/nz-fuel-price-azure-fabric:ref:refs/heads/main` as documented,
@@ -172,17 +185,6 @@ What the green run exercised: OIDC exchange, resume through the ARM role,
 and a warehouse query from the gate, and pause. What it did NOT exercise is
 everything after the gate — it answered `nothing_new`, correctly, because MBIE
 publishes on Wednesdays. First real run of the chain proper: 10 Sep 2026.
-
-## 6. Proving it works, cheaply
-
-Run the workflow by hand with **skip_ingest = true** on a week that is already
-loaded. The gate then answers `2` (nothing new), the job ends green having
-touched nothing, and the run has still exercised every grant that matters:
-OIDC exchange, resume, a Fabric API call, a warehouse query, and pause.
-
-Once it is green, **turn the schedule on**: uncomment the two `schedule`
-lines at the top of `.github/workflows/weekly.yml`. It ships disabled so that
-a repository without the identity does not go red every Wednesday.
 
 If it fails, the plane is usually readable from the error:
 
