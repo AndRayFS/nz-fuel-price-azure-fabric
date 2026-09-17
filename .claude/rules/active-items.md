@@ -53,16 +53,17 @@ design and should be trimmed or updated, not left as-is indefinitely.
     prices each week on its own Mon–Fri rather than on the last five rows of
     whatever the series happens to hold. Written up in `docs/architecture.md`,
     "The FX half, and two ways it was wrong".
-    - **Not yet exercised by a real weekly run.** Verified from a runner over
-      synthetic weeks (probe run 34434860722) and locally on the cached PDFs,
-      but `task aip` itself has not gone through since the change. The store's
-      newest week is **2026-08-28** — read from the warehouse, not inferred
-      from the newest cached PDF, whose 30 Aug filename is its publication
-      date and carries the week to Friday 28 Aug. The next scheduled run should
-      close that by itself: CI re-downloads every report on the AIP site each
-      time and `append_new` inserts whatever is missing, so 6 Sep and 13 Sep
-      come in together. Delete `.github/workflows/fred-probe.yml` once that
-      has happened.
+    - **Exercised by a real weekly run, 16 Sep 2026 — closed.** Run
+      35162174373: `FX series reaches 2026-09-11; priced 24 of 24 weeks`, and
+      `monitoring.aip_singapore_weekly: appended 4 rows, 37 already there` —
+      the weeks to 4 and 11 Sep, two fuels each. The store had stood at
+      2026-08-28 and closed the gap by itself, exactly as predicted: CI
+      re-downloads every report and `append_new` inserts what is missing.
+      (The prediction named the weeks as 6 and 13 Sep, which are publication
+      Sundays; the weeks themselves end on the Friday.) The FX deferral branch
+      did not fire, having nothing to defer — it stays proven only over
+      synthetic weeks, which is what it is for. `fred-probe.yml` was deleted
+      the following day, after one last use on the node24 action bump.
     - **Week 2026-09-04 was cross-checked by hand instead, and agrees.** Done
       offline on 10 Sep 2026 with `monitor_aip_gap`'s arithmetic: the AIP
       side from the week-to-4-Sep reports (now in the local PDF cache) and
