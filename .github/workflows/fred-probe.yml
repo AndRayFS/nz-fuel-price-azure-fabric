@@ -35,9 +35,9 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
           cache: pip
@@ -46,6 +46,19 @@ jobs:
         run: |
           python -m venv .venv
           .venv/bin/pip install --disable-pip-version-check -r requirements.txt
+
+      # Round three, 17 Sep 2026, and the last use this file will get. The four
+      # actions moved to the node24 majors; the watchdog proved checkout and
+      # azure/login, and this is the only free place left that can prove the
+      # other two before the weekly load meets them — it needs no capacity.
+      - name: Install go-task
+        uses: arduino/setup-task@v3
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prove go-task still parses the Taskfile
+        run: task --list
 
       - name: Price synthetic weeks through the real add_usd
         env:
