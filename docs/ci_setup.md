@@ -193,3 +193,17 @@ If it fails, the plane is usually readable from the error:
 | Fabric API 401 | Fabric | tenant switch or workspace role, step 3 |
 | `Login failed for user '<token-identified principal>'` | SQL | step 4 |
 | `this Fabric capacity is currently not active` | none — timing | the resume returned before the capacity was Active; `task capacity-resume` waits, so this means the wait was skipped |
+
+**A change to CI cannot be tested on a branch.** The credential's subject names
+`refs/heads/main`, so a run from any other ref fails at `azure/login` with
+`AADSTS700213` before it reaches the capacity — verified on run 34424623434,
+which cost nothing because every step after the login was skipped. Workflow
+edits therefore land on `main` and are proven there, which makes it worth
+having something cheap to prove them with.
+
+`pause-capacity.yml` is that something. On a button it runs `checkout` and
+`azure/login`, reads the capacity state and stops when it is already paused —
+no ingest, no warehouse, and nothing woken. It exercises the OIDC exchange and
+the ARM read, which is most of what a workflow edit can break. Used that way
+on 17 Sep 2026 to prove `azure/login@v3` before the weekly load met it: run
+35169892649, 12 seconds.

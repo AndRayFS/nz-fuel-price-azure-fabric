@@ -1070,6 +1070,14 @@ the first real firing, 10 Sep 2026.
   happened to open the Actions tab. No alert exists for a week that does not
   arrive, and none of the four lines of capacity defence addresses it — they
   all guard against a capacity left awake, which is the opposite failure.
+- **It is not one bad morning: the delay is the normal case, and it grew.**
+  The 10 Sep firing eventually arrived 110 minutes past its slot; the 16 Sep
+  one, run 35162174373, arrived 144 minutes past it, at 23:24 UTC against a
+  21:00 slot. Both loads then ran green, and the watchdog stayed behind its
+  own load both times, so nothing was harmed — but two of two firings were
+  over an hour and a half late, which makes 21:00 a label rather than a time.
+  Anything downstream that assumes the week has landed by a given hour is
+  assuming something GitHub has never delivered here.
 
 **The scheduling infrastructure already exists, and it is Logic Apps.**
 Verified 10 Sep 2026: `nz-fuel-price-rg` holds `auto-pause-fabric-capacity`

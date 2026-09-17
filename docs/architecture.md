@@ -430,6 +430,15 @@ Waiting instead of forcing would also work and was rejected: it bills capacity
 for an interval nobody documents — roughly 30 minutes a week, some NZ$19 a
 year — to avoid a call that takes six seconds.
 
+**Confirmed in production, 16 Sep 2026.** Run 35162174373: the ingest logged
+`copy done; making the SQL endpoint current`, and the gate — asking 20 seconds
+afterwards, the interval that had failed twice — read bronze at 35,070 rows,
+week `2026-09-11`, and passed. The contrast is the whole argument: every week
+that had ever succeeded was gated long after its copy, 2026-08-21 at 50
+minutes and 2026-08-28 at 31, both by a human working inside a long session,
+while 2026-09-04 was asked at 26 seconds and refused. Forcing the sync buys
+that interval back for six seconds.
+
 ## The freshness gate, and the check it could not be — 22 Aug 2026
 
 W3 specified an independent read: download `weekly-table.csv` here, compare
