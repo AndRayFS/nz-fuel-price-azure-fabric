@@ -19,17 +19,30 @@ design and should be trimmed or updated, not left as-is indefinitely.
     against 29 Aug 2026 and will need the same treatment again.
   Method and expectations: `docs/mbie_notes.md`, "A standing prediction".
 
-- [ ] **Next weekly load (~17 Sep 2026) — expect zero `final_rewritten`.**
-  MBIE's 3 Sep release cut `Value` to ~10 significant digits and switched
-  `Date` to DD/MM/YYYY; the 10 Sep release put both back. Each flip wrote
-  15,848 noise versions into the snapshot. If the next load shows
-  `final_rewritten` in the thousands again, the precision is flipping as a
-  habit, and the snapshot should compare on `ROUND(TRY_CAST(Value AS float), 4)`
-  rather than `Value` — measured, and written up, in `docs/mbie_notes.md`
-  under "Known structural changes", 3 and 10 Sep. If it is zero, delete this.
-  Query: `select detected_on, revision_class, count(*) from
-  monitoring.monitor_revisions where detected_on >= '2026-09-15' group by
-  detected_on, revision_class`.
+- [x] **The precision flip is a habit, and the snapshot no longer records it —
+  17 Sep 2026.** The 16 Sep load cut `Value` to ~10 significant digits again,
+  the third flip in three publications, and wrote another 15,848
+  `final_rewritten` versions at deltas no larger than 5e-8 c/L. That was the
+  condition this item was watching for, so the fix it named is in:
+  `snapshots/mbie_revisions.sql` now uses strategy `rounded_check`
+  (`macros/snapshot_rounded_check.sql`), which compares `Value` as a number
+  rounded to 4 decimals on **both** sides. Nothing stored changed and no
+  transition wave was written — verified the same day, zero versions from
+  `dbt snapshot` with the rounding in the executed SQL. Measurements and what
+  the rounding gives up: `docs/mbie_notes.md`, "Known structural changes",
+  16 Sep.
+  - **Not yet exercised against a flip.** The proof so far is arithmetic on
+    the two precisions already in the table (8 of 16,034 versions survive),
+    not a load. The next flip is the real test: after the 24 Sep load, expect
+    `final_rewritten` in the single digits rather than the thousands. Delete
+    this once that has happened.
+    Query: `select detected_on, revision_class, count(*) from
+    monitoring.monitor_revisions where detected_on >= '2026-09-18' group by
+    detected_on, revision_class`.
+  - **The six genuine revisions of 16 Sep** were all in week 2026-09-04:
+    `Importer cost` up and `Importer margin` down by the same amount, diesel
+    0.397 and both petrols 0.697 c/L. Those survive the rounding; they are the
+    kind of thing this table exists to catch.
 
 - [ ] **AIP markup sits above the range `architecture.md` records.** From the
   hand cross-check of week 2026-09-04, done offline on 10 Sep 2026: diesel

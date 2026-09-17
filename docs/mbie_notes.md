@@ -868,6 +868,49 @@ week-to-week correction, not a data quality problem.
     vintage silver. Introducing a comparison column would itself create one
     wave of ~35,000 versions, so it is worth doing only if the precision
     flips again.
+- **16 Sep 2026 — `Value` was cut again, and that settles what it is.** The
+  same ~10-significant-digit truncation as 3 Sep, and the same 15,848
+  `final_rewritten` versions at deltas no larger than 5e-8 c/L. Three
+  consecutive publications — cut, restore, cut — so the precision of this
+  column is not stable and no single state of it can be treated as the
+  source's intent. `Date` stayed ISO this time; only `Value` moved.
+  - **Genuine revisions in the same load: six**, all in week 2026-09-04 and
+    all the same shape — `Importer cost` up, `Importer margin` down by the
+    identical amount (diesel 0.397, both petrols 0.697 c/L). Everything else
+    in the 16,034 versions written that day was truncation noise.
+  - **So the snapshot now compares on a rounded value**, which the 10 Sep
+    note above had made conditional on exactly this recurrence. Measured
+    against the two precisions as they sit in the table, 17 Sep 2026: of the
+    16,034 versions that load wrote, rounding to 4 decimals leaves **8** —
+    the six genuine corrections and two values on a rounding boundary.
+    Rounding to 6 leaves **388**: at 5e-8 noise on values in the hundreds, a
+    1e-6 grid puts about a tenth of them within reach of a boundary, and
+    those would flip back and forth indefinitely. 1e-4 is the step that
+    holds.
+  - **What it costs, measured on the real finalisation of 26 Aug 2026:** 526
+    of its 773 versions survive rounding to 6 decimals, 487 survive rounding
+    to 4. The 39 lost are all 2e-5 c/L — MBIE's own recomputation noise, not
+    a price that changed. Every revision at or above 1e-4 c/L is kept.
+  - **The comparison is overridden, and nothing stored changes.** The
+    rounding lives in a custom snapshot strategy,
+    `macros/snapshot_rounded_check.sql`, which is the built-in `check`
+    strategy with one expression replaced: `row_changed` rounds **both** sides
+    before comparing them. `Value` is still stored exactly as MBIE printed
+    it, the archive is not rewritten, and vintages of past dates do not move.
+  - **Which is why the transition costs nothing.** The obvious fix — round
+    `Value` on the way into the snapshot — works for every later week but
+    rewrites all 30,666 of the 31,563 current rows on its first run, because
+    what is stored is full precision and what would arrive is rounded. That
+    wave is one last burst of exactly the noise being removed. Overriding the
+    comparison has no such edge: both sides are rounded from the first run
+    on.
+  - **Verified 17 Sep 2026**, on the state the 16 Sep load left: `dbt
+    snapshot` wrote **zero** versions, and the executed SQL carries
+    `round(try_cast(snapshotted_data.Value as float), 4) !=
+    round(try_cast(source_data.Value as float), 4)` (dbt.log). Zero alone
+    proves little — bronze had not changed since that load — so the
+    measurement that matters is the one above: run against the two precisions
+    as they sit in the table, the expression passes 8 of the 16,034 versions.
 
 ## Related page — fuel stock & shipping (not yet integrated)
 
