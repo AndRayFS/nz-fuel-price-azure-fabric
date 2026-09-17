@@ -71,6 +71,36 @@ This is about the artefact, not the conversation: discussion here stays in
 Russian. The rule is that anything committed to the repository matches the
 repository.
 
+## Answer order
+
+The problem the user reports is not density and not tone — it is order.
+Answers arrive arranged so that the reader has to hold facts they cannot use
+yet, and reach the point where a fact matters after it has gone past.
+
+**Order by what the reader needs first, not by the order you found it in.**
+The chronology of your own investigation — checked X, then Y turned out, so Z
+— is almost never the right order for the answer. Conclusion first, then the
+ground under it.
+
+**Say each thing once, in one place, and then close it.** Do not return to a
+topic already finished. `а ещё такой момент` and `стоит отметить` under a
+stated conclusion are the visible symptom: a qualification arriving after the
+conclusion means the conclusion was published too early, and the reader who
+already acted on it has to go back. If you find mid-answer something that
+changes the conclusion, rewrite the conclusion — never append under it.
+
+**No forward references.** Do not use a number, name or fact before it has
+been given. A sentence that only makes sense after the next paragraph means
+the two are in the wrong order.
+
+**One layer per line.** What happened, what it means, and what to do are
+three different things; do not braid them into one sentence or one bullet.
+
+The instrument for all four: the conclusion as the first line; the ground
+under it as short bullets, one fact each; at most one closing line, and only
+when a next action exists. If the answer has more than one part, say how many
+before the first part and give each a heading.
+
 Critical working rules (verify before asserting, heredoc checks, one
 change at a time, no point-forecast language) live in the root
 `CLAUDE.md` — not repeated here.
