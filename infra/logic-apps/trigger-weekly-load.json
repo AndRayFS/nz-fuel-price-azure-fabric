@@ -3,14 +3,19 @@
   "contentVersion": "1.0.0.0",
   "metadata": {
     "comments": [
-      "Holds the stopwatch for the weekly load. The chain itself stays on GitHub",
-      "Actions: this posts a workflow_dispatch and nothing else, so the OIDC",
-      "federation, the grants and the workflow are untouched by it.",
+      "Holds the stopwatch for the weekly load, and raises the alarm when the",
+      "load does not happen. The chain itself stays on GitHub Actions: this",
+      "posts a workflow_dispatch, waits, asks what became of it, and writes to",
+      "a mailbox if the answer is not 'success'.",
       "",
       "Why it exists: GitHub does not promise to run a schedule, and both real",
       "firings were late — 110 minutes on 10 Sep 2026 and 144 on 16 Sep. A Logic",
       "App recurrence has an SLA and carries a Windows time zone, so 09:07 stays",
-      "09:07 across daylight saving instead of drifting an hour twice a year.",
+      "09:07 across daylight saving.",
+      "",
+      "Why it also watches: weekly.yml has no schedule behind this trigger",
+      "(19 Sep 2026). Nothing else would notice a dispatch that did not happen,",
+      "so the trigger has to notice itself.",
       "",
       "Deploying it is docs/ci_setup.md, step 7. The token is a securestring:",
       "it is not written to the deployment history, the workflow definition",
@@ -21,6 +26,10 @@
     "workflowName": {
       "type": "string",
       "defaultValue": "trigger-weekly-load"
+    },
+    "connectionName": {
+      "type": "string",
+      "defaultValue": "outlook-mail"
     },
     "location": {
       "type": "string",
@@ -37,33 +46,75 @@
         "description": "The federated credential names refs/heads/main, so a dispatch on any other ref fails at azure/login."
       }
     },
+    "alertTo": {
+      "type": "string",
+      "defaultValue": "morozov_77@hotmail.com",
+      "metadata": {
+        "description": "The mailbox that already carries the budget alerts and is read daily."
+      }
+    },
+    "waitMinutes": {
+      "type": "int",
+      "defaultValue": 60,
+      "metadata": {
+        "description": "Longer than weekly.yml's own timeout-minutes: 45, so the run has certainly concluded before it is asked about."
+      }
+    },
     "githubToken": {
       "type": "securestring",
       "metadata": {
-        "description": "Fine-grained PAT on this repository alone, permission Actions: write. Its expiry is a dated item in .claude/rules/active-items.md."
+        "description": "Fine-grained PAT on this repository alone, permission Actions: read and write. Its expiry is a dated item in .claude/rules/active-items.md."
       }
     }
   },
   "resources": [
     {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2016-06-01",
+      "name": "[parameters('connectionName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "[parameters('alertTo')]",
+        "api": {
+          "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'), 'outlook')]"
+        }
+      }
+    },
+    {
       "type": "Microsoft.Logic/workflows",
       "apiVersion": "2019-05-01",
       "name": "[parameters('workflowName')]",
       "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('connectionName'))]"
+      ],
       "properties": {
         "state": "Enabled",
         "definition": {
           "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
           "contentVersion": "1.0.0.0",
           "parameters": {
+            "$connections": {
+              "type": "Object",
+              "defaultValue": {}
+            },
             "githubToken": {
               "type": "securestring"
             },
             "dispatchUri": {
               "type": "string"
             },
+            "runsUri": {
+              "type": "string"
+            },
             "ref": {
               "type": "string"
+            },
+            "alertTo": {
+              "type": "string"
+            },
+            "waitMinutes": {
+              "type": "int"
             }
           },
           "triggers": {
@@ -112,19 +163,153 @@
                   ]
                 }
               }
+            },
+            "Wait_for_the_load_to_finish": {
+              "type": "Wait",
+              "description": "Every outcome of the dispatch leads here, a failed POST included: a token that has expired is exactly the case the alarm exists for, and it must not stop the alarm from being raised.",
+              "runAfter": {
+                "Dispatch_the_weekly_load": [
+                  "Succeeded",
+                  "Failed",
+                  "Skipped",
+                  "TimedOut"
+                ]
+              },
+              "inputs": {
+                "interval": {
+                  "count": "@parameters('waitMinutes')",
+                  "unit": "Minute"
+                }
+              }
+            },
+            "Ask_GitHub_what_happened": {
+              "type": "Http",
+              "runAfter": {
+                "Wait_for_the_load_to_finish": [
+                  "Succeeded"
+                ]
+              },
+              "inputs": {
+                "method": "GET",
+                "uri": "@parameters('runsUri')",
+                "headers": {
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": "Bearer @{parameters('githubToken')}",
+                  "User-Agent": "nz-fuel-price-trigger-weekly-load",
+                  "X-GitHub-Api-Version": "2022-11-28"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            },
+            "Did_the_load_go_through": {
+              "type": "If",
+              "description": "Two questions, not one. A run that concluded 'success' but was created last week means this week's dispatch never produced one, so the age is as load-bearing as the conclusion. first() returns null on an empty list rather than failing, which is why the list is never indexed.",
+              "runAfter": {
+                "Ask_GitHub_what_happened": [
+                  "Succeeded"
+                ]
+              },
+              "expression": {
+                "and": [
+                  {
+                    "equals": [
+                      "@coalesce(first(body('Ask_GitHub_what_happened')?['workflow_runs'])?['conclusion'], 'no run at all')",
+                      "success"
+                    ]
+                  },
+                  {
+                    "greater": [
+                      "@ticks(coalesce(first(body('Ask_GitHub_what_happened')?['workflow_runs'])?['created_at'], '1970-01-01T00:00:00Z'))",
+                      "@ticks(addHours(utcNow(), -3))"
+                    ]
+                  }
+                ]
+              },
+              "actions": {},
+              "else": {
+                "actions": {
+                  "Say_the_load_did_not_go_through": {
+                    "type": "ApiConnection",
+                    "inputs": {
+                      "host": {
+                        "connection": {
+                          "name": "@parameters('$connections')['outlook']['connectionId']"
+                        }
+                      },
+                      "method": "post",
+                      "path": "/v2/Mail",
+                      "body": {
+                        "To": "@parameters('alertTo')",
+                        "Subject": "NZ fuel price: the weekly load did not go through",
+                        "Importance": "Normal",
+                        "Body": "<p>The trigger fired and the load did not reach a good end.</p><p>Newest dispatched run: conclusion <b>@{coalesce(first(body('Ask_GitHub_what_happened')?['workflow_runs'])?['conclusion'], 'no run at all')}</b>, created @{coalesce(first(body('Ask_GitHub_what_happened')?['workflow_runs'])?['created_at'], '—')}.</p><p><a href=\"@{coalesce(first(body('Ask_GitHub_what_happened')?['workflow_runs'])?['html_url'], 'https://github.com/AndRayFS/nz-fuel-price-azure-fabric/actions')}\">Open it in Actions</a></p><p>No run at all, or one older than three hours, means the dispatch never landed — read this Logic App's run history. A conclusion of failure means the chain broke, and the run's own log says where.</p>"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "Say_GitHub_could_not_be_asked": {
+              "type": "ApiConnection",
+              "description": "The alarm shares a credential with the thing it watches, so the case where the question itself cannot be asked gets its own mail rather than silence.",
+              "runAfter": {
+                "Ask_GitHub_what_happened": [
+                  "Failed",
+                  "TimedOut"
+                ]
+              },
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['outlook']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "/v2/Mail",
+                "body": {
+                  "To": "@parameters('alertTo')",
+                  "Subject": "NZ fuel price: cannot tell whether the weekly load ran",
+                  "Importance": "Normal",
+                  "Body": "<p>The dispatch was sent, but GitHub could not be asked what became of it: the call to the runs API did not succeed.</p><p>A 401 there means the fine-grained PAT has expired or been revoked, which also means the dispatch itself did not land. Check the load by hand.</p>"
+                }
+              }
             }
           },
           "outputs": {}
         },
         "parameters": {
+          "$connections": {
+            "value": {
+              "outlook": {
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('connectionName'))]",
+                "connectionName": "[parameters('connectionName')]",
+                "id": "[subscriptionResourceId('Microsoft.Web/locations/managedApis', parameters('location'), 'outlook')]"
+              }
+            }
+          },
           "githubToken": {
             "value": "[parameters('githubToken')]"
           },
           "dispatchUri": {
             "value": "[format('https://api.github.com/repos/{0}/actions/workflows/weekly.yml/dispatches', parameters('repository'))]"
           },
+          "runsUri": {
+            "value": "[format('https://api.github.com/repos/{0}/actions/workflows/weekly.yml/runs?event=workflow_dispatch&per_page=1', parameters('repository'))]"
+          },
           "ref": {
             "value": "[parameters('ref')]"
+          },
+          "alertTo": {
+            "value": "[parameters('alertTo')]"
+          },
+          "waitMinutes": {
+            "value": "[parameters('waitMinutes')]"
           }
         }
       }
@@ -134,6 +319,10 @@
     "workflowName": {
       "type": "string",
       "value": "[parameters('workflowName')]"
+    },
+    "connectionNeedsAuthorising": {
+      "type": "string",
+      "value": "[format('Open {0} in the portal and authorise it as {1} before the first Thursday.', parameters('connectionName'), parameters('alertTo'))]"
     }
   }
 }
