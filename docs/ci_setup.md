@@ -166,9 +166,10 @@ The two `schedule` blocks — `weekly.yml` and the watchdog in
 `pause-capacity.yml` — went live on 8 Sep 2026, switched on once that run was
 green. They were kept commented out until then, so that a repository without
 the identity behind it did not go red every Wednesday. Turning them on is the
-last step of this document, not the first. Both crons still exist, but neither
-starts the load any more: step 7 moved the trigger to a Logic App and left them
-as a backstop and a watchdog.
+last step of this document, not the first. Neither cron starts the load any
+more: step 7 moved the trigger to a Logic App, `weekly.yml`'s schedule is gone
+altogether, and the watchdog's is now belt and braces behind a `workflow_run`
+event.
 
 **What the proving run found.** It went green end to end on the second
 attempt, and the two failures before it were worth more than the success:
@@ -291,15 +292,21 @@ permission and the URL together. If none appears, read the Logic App's run
 history — a 401 is the token, a 404 is the repository or the workflow file
 name, and a 422 is the `ref`.
 
-### What still runs on a cron, and why each one does
+### One trigger, and nothing behind it
 
 | where | when | what it is |
 |---|---|---|
-| `trigger-weekly-load` | Thursday 09:07 NZ | the trigger |
-| `weekly.yml` | Thursday 00:37 UTC | backstop; the `guard` job stands it down if the load already concluded in the last 18 hours |
-| `pause-capacity.yml` | on `workflow_run`, plus Thursday 05:52 UTC | the watchdog, now following the load rather than racing it |
+| `trigger-weekly-load` | Thursday 09:07 NZ | the trigger, and the only one |
+| `weekly.yml` | on dispatch only | no schedule at all |
+| `pause-capacity.yml` | on `workflow_run`, plus Wednesday 23:52 UTC | the watchdog, following the load rather than racing it |
 
-The backstop is the reason this step could land before W16's step 1, the
-missing-run notification. A silent failure of the Logic App does not cost the
-week's load — it costs three hours, and the backstop's job summary says in as
-many words that the Logic App did not dispatch.
+**There is deliberately no second way to start a load.** A backstop cron was
+written first and taken out again on 19 Sep 2026, along with the `guard` job it
+needed: a cron fires every week whether or not the Logic App already did, so
+the pair is not a trigger and a reserve but two schedules that have to be kept
+from colliding. The simpler shape is one clock, and something that says so when
+it fails to strike.
+
+That something is W16's step 1, and it is now load-bearing rather than
+optional: with nothing behind the trigger, a dispatch that does not happen
+costs the week's load, not three hours of it.

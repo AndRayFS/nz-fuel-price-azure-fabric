@@ -364,6 +364,11 @@ measured line above is the whole argument — this adds under 1% to it.
 
 What it does not change is the capacity, which is where the money is. The load
 still resumes F2, runs, and pauses, about NZ$0.06 a week; the trigger only
-decides when. The one new cost is a risk rather than a rate: the backstop cron
-in `weekly.yml` would run a second load if it could not tell that the first had
-happened, which is why it has a guard job instead of a plain schedule.
+decides when.
+
+**The one cost worth naming was designed out rather than paid.** A backstop
+cron in `weekly.yml` would have run a second load every week — NZ$0.06 a week
+to wake F2 and be told there was nothing new — unless it could tell that the
+first load had already happened. It was removed instead, on 19 Sep, so the
+capacity is woken once a week by one trigger, and being told when that trigger
+fails is a job for a notification rather than for a second load.
