@@ -1048,6 +1048,15 @@ replicate across two independent specifications; the size does not yet.
 
 ## The quarter finalised, and it answered the question — 29 Aug 2026
 
+> **Reproduced 19 Sep 2026, unchanged.** `headline_results.py` re-run against
+> a panel exported that morning returns every figure in this section to the
+> digit — diesel 0.850 / 0.902 / 1.087 / 1.073, spread 0.223; half-lives 6.1
+> and 5.5; petrol joint p 0.159 and diesel mean lag 0.81 wk with Δβ₀ +0.114
+> (p 0.0036). No week has finalised since 26 Aug, so the sample is the same
+> one; the value of the re-run is that the cutoff is still read from the data
+> rather than hardcoded, and it still lands where it did. **The numbers in
+> this section, not the 16 Aug ones above it, are the current set.**
+
 On 26 Aug MBIE finalised thirteen weeks, 3 Apr – 26 Jun 2026 — the whole
 June quarter, all six status columns at once. Eight Provisional weeks
 remain. Recomputed offline against the panel exported 27 Aug; the capacity
@@ -1765,6 +1774,77 @@ row above.
 runs with a stale one, and it still works. That is a limitation and a margin
 at the same time: the mechanism does not depend on the coefficient being
 right, which is a better property than it sounds.
+
+## What the record says after a margin compression — 19 Sep 2026
+
+`research/margin_episodes.py`, offline against the panel exported 19 Sep. The
+question is the one a reader can actually check the industry against: the
+margin is crushed, it has been crushed before, what came next.
+
+**The margin's level is not comparable across the series and must be
+normalised.** Its annual mean runs 18.2 c/L in 2004 to 47.0 in 2026 — roughly
+a tripling, for reasons unrelated to any shock. Everything below is therefore
+the *gap* to the margin's own trailing 104-week mean, lagged one week so the
+week being judged never sits in its own benchmark. A raw threshold picks
+2004-2009 almost exclusively and measures the trend instead of the event.
+
+Conditioning on weeks with `gap <= -10 c/L`:
+
+| | petrol | diesel |
+|---|---|---|
+| qualifying weeks | 13 (1.2% of the series) | 28 (2.5%) |
+| distinct episodes | 6 | 4 |
+| scoreable at +26 wk | 9 weeks / 6 episodes | 16 weeks / 4 episodes |
+| back within 5 c/L of normal | **9/9**, median **2 wk** (1-3) | **16/16**, median **4 wk** (1-9) |
+| still `<= -10` four weeks on | 0% | **25%** |
+| pump change at +4 wk, median | **+12.7** | **+19.8** |
+| same, unconditional | +0.6 | +0.3 |
+
+**It always came back, but the speed is the finding, not the fact.** Every
+scoreable week in both fuels returned to within 5 c/L of its norm. Petrol did
+it in one to three weeks without exception. Diesel took one to nine, and a
+quarter of its weeks were still below −10 four weeks later — the Aug 2023
+cluster stayed compressed for about two months. So "the margin recovers" is
+safe; "the margin recovers quickly" is true of petrol and only usually true
+of diesel. At 26 weeks 22% of petrol weeks are compressed again, which is a
+statement about how often these episodes arrive, not about recovery failing.
+
+**The pump was higher four weeks later in 33 of 36 cases**, against an
+unconditional median move of +0.6 and +0.3 c/L — that is, from a randomly
+chosen week the four-week change is a coin flip, and from a compressed week
+it is not. Medians +12.7 (petrol) and +17.5 (diesel).
+
+**The three exceptions say what the other 33 mean.** All three are diesel in
+April 2026 — 3, 10 and 17 Apr, the weeks at and just past the crude peak,
+where the pump fell 22.6, 55.6 and 62.3 c/L over the following month. The
+margin was compressed and the cost then collapsed underneath it. So the
+regularity is not "a squeezed margin pushes prices up". It is: **a squeezed
+margin marks a cost move that has entered the system and not yet reached the
+pump.** If the cost move holds, the price follows it; if the cost move
+reverses first, it does not. That is a weaker claim than the 33/36 looks
+like, and it is the one the data supports.
+
+**Today sits at the deep end of this record.** Petrol's gap is −24.9 and
+diesel's −25.2. Outside 2026 the deepest petrol compression in twenty-two
+years is −12.2 (Jan 2024); today is second only to March 2026 in the entire
+series, and both instances are six months apart in the same episode. For
+petrol the honest sample at this depth is one prior observation.
+
+Three limits that travel with these numbers:
+
+- **Weeks are not independent draws.** Compressions arrive in runs — five
+  consecutive weeks in Aug 2023, seven in Mar-Apr 2026 — so 28 diesel weeks
+  are four episodes. Quantiles describe the shape of the conditional
+  distribution; they are not 28 observations, and the script prints the
+  episode count beside every n for that reason.
+- **Nothing here is causal.** Margin and pump price are both downstream of
+  the same cost shock. "What actually drove pump prices through the 2026
+  crisis" puts margin recovery at 6% of the diesel rise against cost's 78%.
+- **The deep end is almost entirely 2026.** Fifteen weeks sit below −20:
+  four petrol, all from March and September this year, and eleven diesel, of
+  which exactly one — 11 Mar 2022, the fortnight after the invasion of
+  Ukraine — is not from this year's episode. So the deep end carries the same
+  `n = 1` that qualifies every crisis claim in this project.
 
 ## Checks that have repeatedly changed the answer
 
