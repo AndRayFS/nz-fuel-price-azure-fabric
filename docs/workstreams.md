@@ -611,6 +611,24 @@ estimation scripts run against the relocated panel. `export_panel.py` was
 compile-checked only — a real run needs the capacity resumed, and it is due
 next weekly load.
 
+**Three research scripts were broken for twelve days and nothing noticed —
+found 19 Sep 2026.** `6ab239d` (7 Sep) stopped routing derived data through
+git and moved `period_flags` from `seeds/` to `data/` plus the warehouse. The
+path was updated in `pipeline/backtest.py` and missed in
+`research/headline_results.py`, `research/adl_asymmetry.py` and
+`research/procurement_lag.py`, all three of which then failed on
+`FileNotFoundError` at import of the flags. Nothing failed loudly because
+nothing runs them: the weekly chain does not, and CI does not. They were
+found only when a question needed a number recomputed.
+
+The claim above — "all four estimation scripts run against the relocated
+panel" — was true when W5 landed and stopped being true three days later.
+**That is the argument for the research contour getting the same treatment
+the loading contour got**: a named entry point, something that runs it, and
+something that goes red when it stops working. The split gave `research/` a
+boundary; it did not give it a check. Paths fixed the same day; the fix is
+one line in each of the three, and the underlying gap is not fixed.
+
 **Now.** `research/` holds two different kinds of code under one README.
 `export_panel.py`, `build_period_flags.py` and `backtest.py` run every
 week on settled algorithms with no human in the loop — that is production.
@@ -1064,24 +1082,24 @@ week, the watchdog waiting twenty minutes on a running load and then exiting 1.
 The clock could not move on its own. `pause-capacity.yml` therefore took its
 `workflow_run` trigger in the same branch, with one late cron left behind it.
 
-**Step 1 did not come first, and the reason it was ordered first is only half
-answered.** The backstop cron in `weekly.yml` fires about three hours behind the
-Logic App, so an expired token costs a late load rather than a missing one —
-which is the damage the notification was meant to prevent. What it does not do
-is tell anyone: it writes "the Logic App did not dispatch" into a job summary
-nobody is watching either. The notification stays open, and the question of
-which mailbox it reaches stays open with it.
+**Step 1 is now required rather than merely next, and that is a decision, not
+a slip.** A backstop cron was built into `weekly.yml` first — three hours behind
+the Logic App, with a `guard` job that asked GitHub whether a load had already
+concluded in the last eighteen hours and stood the cron down if one had. It was
+taken out again the same day, 19 Sep 2026, on the owner's call, and the argument
+for taking it out is the better one: a cron cannot know whether the Logic App
+fired, so it fires every week regardless, and what looks like a trigger and a
+reserve is really two schedules plus the machinery to keep them from colliding.
+One clock and an alarm is the smaller object than two clocks and an arbiter.
 
-**Two things the plan did not anticipate.**
+The alarm is step 1. Until it exists, a trigger that does not fire costs the
+week's load rather than three hours of it — `weekly.yml` now has no schedule at
+all, and nothing else in the repository would notice. What that buys is that
+every load in the history was asked for by something that meant it.
 
-*The backstop needs a guard.* A second cron that simply ran the chain would wake
-the capacity every week for a load that had already happened. `weekly.yml` gained
-a `guard` job that asks GitHub whether a `Weekly load` concluded in the last
-eighteen hours and stands the backstop down if one did — and only for the
-`schedule` event, since a dispatch is somebody asking for it deliberately.
-
-*The credential runs the other way, and needs no Azure role.* Everything else
-here is an Azure identity held by GitHub; this is a GitHub token held in Azure.
+**One thing the plan did not anticipate: the credential runs the other way, and
+needs no Azure role.** Everything else here is an Azure
+identity held by GitHub; this is a GitHub token held in Azure.
 The Logic App calls `api.github.com` and touches no Azure resource, so it has no
 managed identity and no RBAC — deliberately not the resource-group `Contributor`
 that the two capacity Logic Apps carry.

@@ -21,8 +21,15 @@ name: Pause capacity (watchdog)
 # did not fire again for a week.
 #
 # The one cron that remains is belt and braces, for a `workflow_run` event that
-# never arrives. It sits well behind both ways the load can start, so it is not
-# racing anything: :52 rather than :30, and hours rather than minutes after.
+# never arrives. It sits two hours behind the load's own start rather than half
+# an hour, and on :52, so it is not racing anything: by then the load has either
+# finished or died, and either way the capacity should be asleep. It is still
+# eleven hours ahead of the 23:00 NZT auto-pause, which is the line behind it.
+#
+# This is the only cron left in the repository — `weekly.yml` has none, on
+# purpose (19 Sep 2026). A monitor being late costs nothing; a load being late
+# costs the week, which is why only one of the two is allowed to run on a
+# schedule GitHub does not promise to keep.
 #
 # Scheduled since 8 Sep 2026, together with the run it guards.
 on:
@@ -30,7 +37,7 @@ on:
     workflows: ["Weekly load"]
     types: [completed]
   schedule:
-    - cron: '52 5 * * 4'      # Thursday 05:52 UTC — 17:52 NZST, 18:52 NZDT
+    - cron: '52 23 * * 3'     # Wednesday 23:52 UTC — Thursday 11:52 NZST, 12:52 NZDT
   workflow_dispatch:
 
 concurrency:

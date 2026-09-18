@@ -14,14 +14,12 @@ name: Weekly load
 # local hour drifted by one twice a year; the Logic App recurrence carries
 # `New Zealand Standard Time` and holds 09:07 across daylight saving.
 #
-# The cron below is a backstop, not the trigger. It fires about three hours
-# behind the Logic App, and the `guard` job stands it down if the week has
-# already gone through — so a dead token or a failed recurrence costs a late
-# load rather than a missing one. :37 because every schedule written without
-# thinking lands on the hour.
+# A dispatch is now the only way in — there is no `schedule` here at all, and
+# no second path that could start a load nobody asked for. What that costs is
+# stated plainly: if the Logic App does not fire, no load happens, and nothing
+# in this file would notice. Being told about it is the trigger's own job, in
+# Azure, where the clock is.
 on:
-  schedule:
-    - cron: '37 0 * * 4'      # Thursday 00:37 UTC — 12:37 NZST, 13:37 NZDT
   workflow_dispatch:
     inputs:
       skip_ingest:
@@ -39,47 +37,7 @@ permissions:
                        # warehouse, not to git (7 Sep 2026)
 
 jobs:
-  # Only the backstop cron is guarded. A dispatch always runs, whether it comes
-  # from the Logic App or from a human: asking for the load is an answer about
-  # whether it is wanted.
-  guard:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      actions: read
-    outputs:
-      proceed: ${{ steps.check.outputs.proceed }}
-    steps:
-      - name: Stand down if this week has already gone through
-        id: check
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ "${{ github.event_name }}" != "schedule" ]; then
-            echo "dispatched, not scheduled — running"
-            echo "proceed=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          # A quiet week ends green too, so "success" means the chain reached a
-          # conclusion — which is the question here, not what MBIE published.
-          since=$(date -u -d '18 hours ago' +%Y-%m-%dT%H:%M:%SZ)
-          ran=$(gh run list -R "$GITHUB_REPOSITORY" --workflow weekly.yml \
-                  --status success --limit 20 --json createdAt \
-                  --jq "[.[] | select(.createdAt > \"$since\")] | length")
-          echo "loads concluded since $since: $ran"
-          if [ "$ran" -gt 0 ]; then
-            echo "proceed=false" >> "$GITHUB_OUTPUT"
-            echo "### The load already ran — the backstop cron stood down" >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          echo "proceed=true" >> "$GITHUB_OUTPUT"
-          echo "### No load in the last 18 hours, so the backstop cron is running it" >> "$GITHUB_STEP_SUMMARY"
-          echo "The Logic App \`trigger-weekly-load\` did not dispatch. Check its run" >> "$GITHUB_STEP_SUMMARY"
-          echo "history in \`nz-fuel-price-rg\` — an expired token looks exactly like this." >> "$GITHUB_STEP_SUMMARY"
-
   weekly:
-    needs: guard
-    if: needs.guard.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
 

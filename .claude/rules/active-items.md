@@ -13,13 +13,16 @@ design and should be trimmed or updated, not left as-is indefinitely.
     `gh run list --workflow weekly.yml --limit 5 --json event,createdAt,conclusion,name`
     should show a `workflow_dispatch` at about 21:07 UTC Wednesday, not the
     110 and 144 minutes late that the two scheduled firings were.
-  - **The backstop at 00:37 UTC Thursday should do nothing.** Its `guard` job
-    stands it down once a load has concluded in the previous eighteen hours. If
-    it ran the chain instead, the Logic App did not dispatch — its run history
-    in the resource group says why, and a 401 there means the token.
+  - **Nothing stands behind it.** `weekly.yml` has no schedule any more, so if
+    no run appears, no load happened and no part of the repository will say so.
+    Read the Logic App's run history in the resource group — a 401 there means
+    the token, a 404 the repository or the workflow file name.
   - **The watchdog should appear straight after the load**, triggered by
     `workflow_run` rather than by its own cron. Delete this item once one
     Thursday has gone through that way.
+  - **Until W16 step 1 exists, this check is a human obligation every
+    Thursday.** One command, offline, no capacity: the `gh run list` above. It
+    stops being one the moment the trigger can raise an alarm on itself.
 
 - [ ] **The dispatch token expires, and nothing here watches it.** The Logic
   App authenticates to GitHub with a fine-grained PAT on one repository,
@@ -27,8 +30,9 @@ design and should be trimmed or updated, not left as-is indefinitely.
   OIDC. GitHub's maximum lifetime is a year, so a token created on
   19 Sep 2026 dies around **19 Sep 2027**. *Write the real expiry date into
   this item when the token is created.* An expired token is a silent
-  non-dispatch: the backstop cron three hours later still runs the load, so the
-  symptom is a load that arrives late every week rather than one that fails.
+  non-dispatch, and since the backstop cron was taken out on 19 Sep there is
+  nothing behind it: the symptom is a week with no load at all and no red run
+  anywhere to show for it.
 
 - [ ] **~mid-Oct 2026** — Stats NZ releases the September-quarter CPI, and
   MBIE finalises the thirteen weeks of Jul–Sep 2026. This is the second
