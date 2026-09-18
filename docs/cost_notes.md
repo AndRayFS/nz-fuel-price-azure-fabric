@@ -357,10 +357,14 @@ Sources for the upgrade rules:
 ## A third Logic App, for the weekly trigger (19 Sep 2026)
 
 W16 moved the weekly load's clock from GitHub's scheduler to
-`trigger-weekly-load`, a Consumption Logic App in `nz-fuel-price-rg`. It costs
-nothing worth writing down: **one recurrence and one HTTP action per week**,
-against a pair that already bills 0.0000 for 9 built-in actions per *day*. The
-measured line above is the whole argument — this adds under 1% to it.
+`trigger-weekly-load`, a Consumption Logic App in `nz-fuel-price-rg`, and gave
+it the alarm as well: dispatch, wait, ask GitHub what happened, mail if it did
+not go through. That is **about five action executions a week**, against a pair
+that already bills 0.0000 for 9 built-in actions per *day*. The measured line
+above is the whole argument — this adds a couple of per cent to it.
+
+The hour-long wait costs nothing extra: Consumption bills per action executed,
+not per minute a run is held open.
 
 What it does not change is the capacity, which is where the money is. The load
 still resumes F2, runs, and pauses, about NZ$0.06 a week; the trigger only

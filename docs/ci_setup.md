@@ -214,12 +214,19 @@ the ARM read, which is most of what a workflow edit can break. Used that way
 on 17 Sep 2026 to prove `azure/login@v3` before the weekly load met it: run
 35169892649, 12 seconds.
 
-## 7. Moving the clock off GitHub's scheduler — **the files are here, the two by-hand steps are not done** (19 Sep 2026)
+## 7. Moving the clock off GitHub's scheduler — **the files are here, the three by-hand steps are not done** (19 Sep 2026)
 
-W16, step 2. The chain stays exactly where it is; only the thing holding the
-stopwatch changes, from GitHub's `schedule` trigger to a Logic App recurrence
-that posts a `workflow_dispatch`. Why, in `weekly.yml`'s own header: no SLA on
-one side, a Windows time zone on the other.
+W16, steps 1 and 2. The chain stays exactly where it is; what changes is the
+thing holding the stopwatch, from GitHub's `schedule` trigger to a Logic App
+recurrence that posts a `workflow_dispatch` — and the same Logic App then waits
+an hour, asks GitHub what became of the run, and writes to a mailbox if the
+answer is anything but success. Why the clock moved, in `weekly.yml`'s own
+header: no SLA on one side, a Windows time zone on the other.
+
+**The trigger watches itself because nothing else can.** `weekly.yml` has no
+schedule behind it any more, so a dispatch that never lands produces no run, no
+red, and no trace anywhere in this repository. The alarm is not an extra: it is
+the other half of having one clock.
 
 Nothing in steps 1–5 is touched. The Logic App calls GitHub, not Azure, so it
 needs **no managed identity and no Azure role** — do not give it the resource
@@ -239,21 +246,22 @@ Fine-grained tokens:
 | repository permission | **Actions: Read and write** (Metadata: read comes with it) |
 | expiry | 1 year, the maximum GitHub offers |
 
-One permission on one repository: it can start and cancel workflow runs there
-and read nothing else. A token that expires unnoticed produces exactly the
-silent non-run this step exists to fix, so **the expiry date goes into
-`.claude/rules/active-items.md` as its own item** the moment the token is
-created. That is the whole reason a PAT was acceptable here rather than a
-GitHub App — a GitHub App would need an RS256 JWT, which a Logic App cannot
-sign without adding a Function, and the point of W16 is to move the clock
-without adding compute.
+Read as well as write: the same token starts the run and then asks what became
+of it. One permission on one repository, and nothing else is readable with it.
 
-### 7b. Deploy the Logic App
+A token that expires unnoticed produces exactly the silent non-run this step
+exists to fix, so **the expiry date goes into `.claude/rules/active-items.md`
+as its own item** the moment the token is created. That is the whole reason a
+PAT was acceptable here rather than a GitHub App — a GitHub App would need an
+RS256 JWT, which a Logic App cannot sign without adding a Function, and the
+point of W16 is to move the clock without adding compute.
 
-The definition is `infra/logic-apps/trigger-weekly-load.json` — a Consumption
-workflow with one Recurrence trigger and one HTTP action, in `australiaeast`
-beside the two capacity Logic Apps. *Checked* 19 Sep 2026:
-`az deployment group validate` accepts it.
+### 7b. Deploy the Logic App and its mail connection
+
+`infra/logic-apps/trigger-weekly-load.json` declares two resources: the
+Consumption workflow, and an `outlook` API connection for the mail. Both land
+in `australiaeast`, beside the two capacity Logic Apps. *Checked* 19 Sep 2026:
+`az deployment group validate` accepts both.
 
 ```bash
 read -rs GH_DISPATCH_TOKEN      # paste; never as an argument, never exported
@@ -270,10 +278,28 @@ unset GH_DISPATCH_TOKEN
 
 `githubToken` is a `securestring` in three places at once, which is what keeps
 it out of everything readable afterwards: the deployment history does not store
-its value, a `GET` on the workflow returns it masked, and `secureData` on the
-HTTP action hides the run inputs that carry it.
+its value, a `GET` on the workflow returns it masked, and `secureData` on both
+HTTP actions hides the run inputs that carry it.
 
-### 7c. Prove it for about six cents
+### 7c. Authorise the mail connection, which only the portal can do
+
+The deployment creates the connection but cannot consent on a mailbox's behalf.
+Portal → `nz-fuel-price-rg` → `outlook-mail` → **Edit API connection** →
+Authorize → sign in as `morozov_77@hotmail.com` → Save. The connector's
+authorize endpoint is `login.microsoftonline.com/consumers/...` (*checked*
+against the managed API definition), so it is the consumer Outlook.com sign-in,
+not the work account.
+
+**One line in the template is not verified and this is where to check it.** The
+send-mail operation is written as `path: /v2/Mail`, the documented Send an
+email (V2) shape; the connector's own swagger is not readable from the CLI —
+ARM returns `apiDefinitions: null` and the runtime endpoint answers 404. Open
+the workflow in the designer after deploying: if the two mail actions render as
+**Send an email (V2)** with their fields filled in, the path is right. If either
+shows as an unrecognised operation, take what the designer generates and correct
+the template to match.
+
+### 7d. Prove it for about six cents
 
 Fire the recurrence by hand on a week that is already loaded. The dispatch
 reaches GitHub, the gate answers `2`, and the run ends green having woken the
@@ -287,16 +313,23 @@ az rest --method post \
 gh run list --workflow weekly.yml --event workflow_dispatch --limit 3
 ```
 
-A run appearing within seconds is the whole test: it proves the token, the
-permission and the URL together. If none appears, read the Logic App's run
-history — a 401 is the token, a 404 is the repository or the workflow file
-name, and a 422 is the `ref`.
+A run appearing within seconds is the first half of the test: it proves the
+token, the permission and the URL together. If none appears, read the Logic
+App's run history — a 401 is the token, a 404 is the repository or the workflow
+file name, and a 422 is the `ref`.
+
+The second half arrives an hour later, and it is the half that is easy to
+forget: **no mail means the alarm agrees the load succeeded.** To see the alarm
+actually send, the honest test is a failing load rather than a contrived one —
+or temporarily deploy with `waitMinutes=2`, when the run will still be in
+flight, the conclusion will not be `success`, and the mail should arrive.
 
 ### One trigger, and nothing behind it
 
 | where | when | what it is |
 |---|---|---|
 | `trigger-weekly-load` | Thursday 09:07 NZ | the trigger, and the only one |
+| the same, an hour later | Thursday ~10:07 NZ | asks what became of the run, mails if it did not succeed |
 | `weekly.yml` | on dispatch only | no schedule at all |
 | `pause-capacity.yml` | on `workflow_run`, plus Wednesday 23:52 UTC | the watchdog, following the load rather than racing it |
 
@@ -304,9 +337,16 @@ name, and a 422 is the `ref`.
 written first and taken out again on 19 Sep 2026, along with the `guard` job it
 needed: a cron fires every week whether or not the Logic App already did, so
 the pair is not a trigger and a reserve but two schedules that have to be kept
-from colliding. The simpler shape is one clock, and something that says so when
-it fails to strike.
+from colliding. One clock, and something that says so when it fails to strike.
 
-That something is W16's step 1, and it is now load-bearing rather than
-optional: with nothing behind the trigger, a dispatch that does not happen
-costs the week's load, not three hours of it.
+**What the alarm deliberately does not do** is judge the data. It asks whether
+the chain ran and reached a conclusion, nothing more. Whether the week that
+arrived is any good is the gate's question, one stage later, and a quiet week
+with nothing new is a legitimate `success` here. Two things asking that question
+would eventually disagree.
+
+**Where the alarm is still blind: its own recurrence.** If the Logic App does
+not run at all, nothing sends anything — Azure's SLA is the answer to that, and
+a Monitor alert on the workflow's failed runs would be the belt on top. Not
+added: it costs a metric alert rule per month to guard against the platform
+whose reliability is the reason for moving here in the first place.

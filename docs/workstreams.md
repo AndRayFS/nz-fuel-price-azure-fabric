@@ -1066,14 +1066,17 @@ refresh left manual.
 
 ---
 
-## W16 — A trigger with an SLA, and something that notices a missing week — **steps 2 and 3 landed 19 Sep 2026**
+## W16 — A trigger with an SLA, and something that notices a missing week — **landed 19 Sep 2026**
 
-Branch `w16-move-the-clock`. The trigger is
-`infra/logic-apps/trigger-weekly-load.json`, a Consumption Logic App that posts
-a `workflow_dispatch` at 09:07 Thursday New Zealand time and does nothing else;
-`docs/ci_setup.md` step 7 is the procedure. **Deployed by hand and not yet
-proven** — the template passes `az deployment group validate`, which is not the
-same as having fired.
+Branch `w16-move-the-clock`, all three steps. The whole of it is
+`infra/logic-apps/trigger-weekly-load.json`, one Consumption Logic App that
+posts a `workflow_dispatch` at 09:07 Thursday New Zealand time, waits an hour,
+asks GitHub what became of the run, and mails `morozov_77@hotmail.com` if the
+answer is anything but `success`; `docs/ci_setup.md` step 7 is the procedure.
+**Deployed by hand and not yet proven** — the template passes
+`az deployment group validate`, which is not the same as having fired, and one
+line in it, the mail connector's operation path, could not be verified from the
+CLI at all.
 
 **Step 3 could not wait for its turn.** Moving the load to 09:07 NZ puts it at
 21:07 UTC, inside the watchdog's 21:30 UTC slot — so the race this entry
@@ -1092,10 +1095,22 @@ fired, so it fires every week regardless, and what looks like a trigger and a
 reserve is really two schedules plus the machinery to keep them from colliding.
 One clock and an alarm is the smaller object than two clocks and an arbiter.
 
-The alarm is step 1. Until it exists, a trigger that does not fire costs the
-week's load rather than three hours of it — `weekly.yml` now has no schedule at
-all, and nothing else in the repository would notice. What that buys is that
-every load in the history was asked for by something that meant it.
+The alarm is step 1, and removing the backstop is what made it compulsory:
+`weekly.yml` now has no schedule at all, so a trigger that does not fire costs
+the week's load and leaves nothing in the repository to notice. It was therefore
+built in the same branch, and built into the trigger itself rather than beside
+it — the object that is supposed to strike is the one best placed to report that
+it did not. What the whole arrangement buys is that every load in the history
+was asked for by something that meant it.
+
+**The alarm covers three failures with two mails, and is blind to a fourth.**
+No run at all, a run older than three hours, and a run whose conclusion is not
+`success` are one mail; a runs API that cannot be reached — which is what an
+expired token looks like from the other side — is the second, because the alarm
+shares its credential with the thing it watches. What nothing covers is the
+Logic App's own recurrence failing to fire. That is Azure's SLA, and guarding it
+would mean a Monitor alert rule billed monthly against the platform whose
+reliability was the argument for moving here.
 
 **One thing the plan did not anticipate: the credential runs the other way, and
 needs no Azure role.** Everything else here is an Azure
