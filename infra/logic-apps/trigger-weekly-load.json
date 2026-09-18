@@ -1,0 +1,139 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "comments": [
+      "Holds the stopwatch for the weekly load. The chain itself stays on GitHub",
+      "Actions: this posts a workflow_dispatch and nothing else, so the OIDC",
+      "federation, the grants and the workflow are untouched by it.",
+      "",
+      "Why it exists: GitHub does not promise to run a schedule, and both real",
+      "firings were late — 110 minutes on 10 Sep 2026 and 144 on 16 Sep. A Logic",
+      "App recurrence has an SLA and carries a Windows time zone, so 09:07 stays",
+      "09:07 across daylight saving instead of drifting an hour twice a year.",
+      "",
+      "Deploying it is docs/ci_setup.md, step 7. The token is a securestring:",
+      "it is not written to the deployment history, the workflow definition",
+      "returns it masked, and secureData hides the run inputs that carry it."
+    ]
+  },
+  "parameters": {
+    "workflowName": {
+      "type": "string",
+      "defaultValue": "trigger-weekly-load"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "australiaeast"
+    },
+    "repository": {
+      "type": "string",
+      "defaultValue": "AndRayFS/nz-fuel-price-azure-fabric"
+    },
+    "ref": {
+      "type": "string",
+      "defaultValue": "main",
+      "metadata": {
+        "description": "The federated credential names refs/heads/main, so a dispatch on any other ref fails at azure/login."
+      }
+    },
+    "githubToken": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Fine-grained PAT on this repository alone, permission Actions: write. Its expiry is a dated item in .claude/rules/active-items.md."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2019-05-01",
+      "name": "[parameters('workflowName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "state": "Enabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "githubToken": {
+              "type": "securestring"
+            },
+            "dispatchUri": {
+              "type": "string"
+            },
+            "ref": {
+              "type": "string"
+            }
+          },
+          "triggers": {
+            "Recurrence": {
+              "type": "Recurrence",
+              "recurrence": {
+                "frequency": "Week",
+                "interval": 1,
+                "timeZone": "New Zealand Standard Time",
+                "startTime": "2026-09-24T09:07:00",
+                "schedule": {
+                  "weekDays": [
+                    "Thursday"
+                  ],
+                  "hours": [
+                    9
+                  ],
+                  "minutes": [
+                    7
+                  ]
+                }
+              }
+            }
+          },
+          "actions": {
+            "Dispatch_the_weekly_load": {
+              "type": "Http",
+              "runAfter": {},
+              "inputs": {
+                "method": "POST",
+                "uri": "@parameters('dispatchUri')",
+                "headers": {
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": "Bearer @{parameters('githubToken')}",
+                  "User-Agent": "nz-fuel-price-trigger-weekly-load",
+                  "X-GitHub-Api-Version": "2022-11-28"
+                },
+                "body": {
+                  "ref": "@parameters('ref')"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            }
+          },
+          "outputs": {}
+        },
+        "parameters": {
+          "githubToken": {
+            "value": "[parameters('githubToken')]"
+          },
+          "dispatchUri": {
+            "value": "[format('https://api.github.com/repos/{0}/actions/workflows/weekly.yml/dispatches', parameters('repository'))]"
+          },
+          "ref": {
+            "value": "[parameters('ref')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "workflowName": {
+      "type": "string",
+      "value": "[parameters('workflowName')]"
+    }
+  }
+}

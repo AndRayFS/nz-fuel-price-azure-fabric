@@ -353,3 +353,17 @@ runs, lag experiments, gold rebuilds — is cheapest before that date.
 Sources for the upgrade rules:
 [Upgrade your Azure account](https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/upgrade-azure-subscription),
 [Avoid charges with your Azure free account](https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/avoid-charges-free-account).
+
+## A third Logic App, for the weekly trigger (19 Sep 2026)
+
+W16 moved the weekly load's clock from GitHub's scheduler to
+`trigger-weekly-load`, a Consumption Logic App in `nz-fuel-price-rg`. It costs
+nothing worth writing down: **one recurrence and one HTTP action per week**,
+against a pair that already bills 0.0000 for 9 built-in actions per *day*. The
+measured line above is the whole argument — this adds under 1% to it.
+
+What it does not change is the capacity, which is where the money is. The load
+still resumes F2, runs, and pauses, about NZ$0.06 a week; the trigger only
+decides when. The one new cost is a risk rather than a rate: the backstop cron
+in `weekly.yml` would run a second load if it could not tell that the first had
+happened, which is why it has a guard job instead of a plain schedule.

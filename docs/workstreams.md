@@ -1048,7 +1048,43 @@ refresh left manual.
 
 ---
 
-## W16 — A trigger with an SLA, and something that notices a missing week
+## W16 — A trigger with an SLA, and something that notices a missing week — **steps 2 and 3 landed 19 Sep 2026**
+
+Branch `w16-move-the-clock`. The trigger is
+`infra/logic-apps/trigger-weekly-load.json`, a Consumption Logic App that posts
+a `workflow_dispatch` at 09:07 Thursday New Zealand time and does nothing else;
+`docs/ci_setup.md` step 7 is the procedure. **Deployed by hand and not yet
+proven** — the template passes `az deployment group validate`, which is not the
+same as having fired.
+
+**Step 3 could not wait for its turn.** Moving the load to 09:07 NZ puts it at
+21:07 UTC, inside the watchdog's 21:30 UTC slot — so the race this entry
+describes would have stopped being a race and become a reliable false red every
+week, the watchdog waiting twenty minutes on a running load and then exiting 1.
+The clock could not move on its own. `pause-capacity.yml` therefore took its
+`workflow_run` trigger in the same branch, with one late cron left behind it.
+
+**Step 1 did not come first, and the reason it was ordered first is only half
+answered.** The backstop cron in `weekly.yml` fires about three hours behind the
+Logic App, so an expired token costs a late load rather than a missing one —
+which is the damage the notification was meant to prevent. What it does not do
+is tell anyone: it writes "the Logic App did not dispatch" into a job summary
+nobody is watching either. The notification stays open, and the question of
+which mailbox it reaches stays open with it.
+
+**Two things the plan did not anticipate.**
+
+*The backstop needs a guard.* A second cron that simply ran the chain would wake
+the capacity every week for a load that had already happened. `weekly.yml` gained
+a `guard` job that asks GitHub whether a `Weekly load` concluded in the last
+eighteen hours and stands the backstop down if one did — and only for the
+`schedule` event, since a dispatch is somebody asking for it deliberately.
+
+*The credential runs the other way, and needs no Azure role.* Everything else
+here is an Azure identity held by GitHub; this is a GitHub token held in Azure.
+The Logic App calls `api.github.com` and touches no Azure resource, so it has no
+managed identity and no RBAC — deliberately not the resource-group `Contributor`
+that the two capacity Logic Apps carry.
 
 **Now.** The weekly chain is started by GitHub's own `schedule` trigger,
 `cron: '0 21 * * 3'` in `weekly.yml`, and guarded by a second cron half an
