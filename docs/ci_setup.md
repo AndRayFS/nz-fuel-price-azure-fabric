@@ -10,6 +10,8 @@ roles — `AuthorizationFailed` on `Microsoft.Authorization/roleDefinitions/writ
 — so it needs `morozov_77@hotmail.com`, as with the billing upgrade on 3 Sep);
 step 4 turned out not to exist. Step 6 has since been run many times over:
 the chain has gone through unattended on a schedule, most recently 16 Sep 2026.
+Step 7, which moves the trigger off that schedule, was added on 19 Sep 2026 and
+its two by-hand steps are still outstanding.
 
 **Signing back in matters.** `az login` as the Owner replaces the cached
 session, and everything in this project — dbt, the gate, every script — takes
@@ -161,11 +163,12 @@ touched nothing, and the run has still exercised every grant that matters:
 OIDC exchange, resume, a Fabric API call, a warehouse query, and pause.
 
 The two `schedule` blocks — `weekly.yml` and the watchdog in
-`pause-capacity.yml` — are live in this repository and have been since
-8 Sep 2026, switched on once that run was green. They were kept commented out
-until then, so that a repository without the identity behind it did not go red
-every Wednesday. Turning them on is the last step of this document, not the
-first.
+`pause-capacity.yml` — went live on 8 Sep 2026, switched on once that run was
+green. They were kept commented out until then, so that a repository without
+the identity behind it did not go red every Wednesday. Turning them on is the
+last step of this document, not the first. Both crons still exist, but neither
+starts the load any more: step 7 moved the trigger to a Logic App and left them
+as a backstop and a watchdog.
 
 **What the proving run found.** It went green end to end on the second
 attempt, and the two failures before it were worth more than the success:
@@ -209,3 +212,94 @@ no ingest, no warehouse, and nothing woken. It exercises the OIDC exchange and
 the ARM read, which is most of what a workflow edit can break. Used that way
 on 17 Sep 2026 to prove `azure/login@v3` before the weekly load met it: run
 35169892649, 12 seconds.
+
+## 7. Moving the clock off GitHub's scheduler — **the files are here, the two by-hand steps are not done** (19 Sep 2026)
+
+W16, step 2. The chain stays exactly where it is; only the thing holding the
+stopwatch changes, from GitHub's `schedule` trigger to a Logic App recurrence
+that posts a `workflow_dispatch`. Why, in `weekly.yml`'s own header: no SLA on
+one side, a Windows time zone on the other.
+
+Nothing in steps 1–5 is touched. The Logic App calls GitHub, not Azure, so it
+needs **no managed identity and no Azure role** — do not give it the resource
+group `Contributor` the two capacity Logic Apps carry. The credential goes the
+other way for the first time in this project: a GitHub token held in Azure,
+where everything so far has been an Azure identity held by GitHub.
+
+### 7a. A fine-grained PAT, and its expiry is a dated obligation
+
+github.com → Settings → Developer settings → Personal access tokens →
+Fine-grained tokens:
+
+| field | value |
+|---|---|
+| resource owner | `AndRayFS` |
+| repository access | only `nz-fuel-price-azure-fabric` |
+| repository permission | **Actions: Read and write** (Metadata: read comes with it) |
+| expiry | 1 year, the maximum GitHub offers |
+
+One permission on one repository: it can start and cancel workflow runs there
+and read nothing else. A token that expires unnoticed produces exactly the
+silent non-run this step exists to fix, so **the expiry date goes into
+`.claude/rules/active-items.md` as its own item** the moment the token is
+created. That is the whole reason a PAT was acceptable here rather than a
+GitHub App — a GitHub App would need an RS256 JWT, which a Logic App cannot
+sign without adding a Function, and the point of W16 is to move the clock
+without adding compute.
+
+### 7b. Deploy the Logic App
+
+The definition is `infra/logic-apps/trigger-weekly-load.json` — a Consumption
+workflow with one Recurrence trigger and one HTTP action, in `australiaeast`
+beside the two capacity Logic Apps. *Checked* 19 Sep 2026:
+`az deployment group validate` accepts it.
+
+```bash
+read -rs GH_DISPATCH_TOKEN      # paste; never as an argument, never exported
+export GH_DISPATCH_TOKEN
+
+az deployment group create \
+  --resource-group nz-fuel-price-rg \
+  --name trigger-weekly-load \
+  --template-file infra/logic-apps/trigger-weekly-load.json \
+  --parameters githubToken="$GH_DISPATCH_TOKEN"
+
+unset GH_DISPATCH_TOKEN
+```
+
+`githubToken` is a `securestring` in three places at once, which is what keeps
+it out of everything readable afterwards: the deployment history does not store
+its value, a `GET` on the workflow returns it masked, and `secureData` on the
+HTTP action hides the run inputs that carry it.
+
+### 7c. Prove it for about six cents
+
+Fire the recurrence by hand on a week that is already loaded. The dispatch
+reaches GitHub, the gate answers `2`, and the run ends green having woken the
+capacity for a few minutes — the same cheap proof step 6 uses.
+
+```bash
+LA=/subscriptions/$SUB/resourceGroups/nz-fuel-price-rg/providers/Microsoft.Logic/workflows/trigger-weekly-load
+az rest --method post \
+  --url "https://management.azure.com$LA/triggers/Recurrence/run?api-version=2016-06-01"
+
+gh run list --workflow weekly.yml --event workflow_dispatch --limit 3
+```
+
+A run appearing within seconds is the whole test: it proves the token, the
+permission and the URL together. If none appears, read the Logic App's run
+history — a 401 is the token, a 404 is the repository or the workflow file
+name, and a 422 is the `ref`.
+
+### What still runs on a cron, and why each one does
+
+| where | when | what it is |
+|---|---|---|
+| `trigger-weekly-load` | Thursday 09:07 NZ | the trigger |
+| `weekly.yml` | Thursday 00:37 UTC | backstop; the `guard` job stands it down if the load already concluded in the last 18 hours |
+| `pause-capacity.yml` | on `workflow_run`, plus Thursday 05:52 UTC | the watchdog, now following the load rather than racing it |
+
+The backstop is the reason this step could land before W16's step 1, the
+missing-run notification. A silent failure of the Logic App does not cost the
+week's load — it costs three hours, and the backstop's job summary says in as
+many words that the Logic App did not dispatch.

@@ -7,15 +7,30 @@ name: Pause capacity (watchdog)
 # bills NZ$0.729/hour until the 23:00 NZT auto-pause, which is the fourth line
 # and can be hours away.
 #
-# Half past the hour after the weekly run starts, plus a button. It refuses to
-# act while a weekly run is still going, so a slow ingest is never cut off
-# mid-chain: a late pause costs cents, a pause through a running load costs the
-# week's data.
+# It refuses to act while a weekly run is still going, so a slow ingest is never
+# cut off mid-chain: a late pause costs cents, a pause through a running load
+# costs the week's data.
+#
+# **It follows the load, not the clock — 19 Sep 2026.** `workflow_run` fires
+# server-side on any conclusion of `Weekly load`: success, failure, cancellation
+# or timeout. That is the case this watchdog exists for, and it now cannot be
+# missed. The two crons used to race instead: the load and the watchdog were
+# half an hour apart, so a load delayed past the watchdog's slot — which is what
+# happened on both real firings — meant the watchdog ran first, found nothing in
+# flight and a capacity still asleep, exited green having guarded nothing, and
+# did not fire again for a week.
+#
+# The one cron that remains is belt and braces, for a `workflow_run` event that
+# never arrives. It sits well behind both ways the load can start, so it is not
+# racing anything: :52 rather than :30, and hours rather than minutes after.
 #
 # Scheduled since 8 Sep 2026, together with the run it guards.
 on:
+  workflow_run:
+    workflows: ["Weekly load"]
+    types: [completed]
   schedule:
-    - cron: '30 21 * * 3'
+    - cron: '52 5 * * 4'      # Thursday 05:52 UTC — 17:52 NZST, 18:52 NZDT
   workflow_dispatch:
 
 concurrency:

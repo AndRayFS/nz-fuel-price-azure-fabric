@@ -3,6 +3,33 @@
 Check dates against today before relying on this file — it goes stale by
 design and should be trimmed or updated, not left as-is indefinitely.
 
+- [ ] **~24 Sep 2026 — the first load a Logic App starts, and it has never
+  fired.** W16 step 2 moved the trigger off GitHub's scheduler to
+  `trigger-weekly-load` in `nz-fuel-price-rg`, recurrence 09:07 Thursday NZ.
+  Two things have to happen by hand before that can work — the fine-grained
+  PAT and the deployment, both in `docs/ci_setup.md` step 7 — and neither is
+  done at the time of writing.
+  - **After the load, three runs tell the whole story.**
+    `gh run list --workflow weekly.yml --limit 5 --json event,createdAt,conclusion,name`
+    should show a `workflow_dispatch` at about 21:07 UTC Wednesday, not the
+    110 and 144 minutes late that the two scheduled firings were.
+  - **The backstop at 00:37 UTC Thursday should do nothing.** Its `guard` job
+    stands it down once a load has concluded in the previous eighteen hours. If
+    it ran the chain instead, the Logic App did not dispatch — its run history
+    in the resource group says why, and a 401 there means the token.
+  - **The watchdog should appear straight after the load**, triggered by
+    `workflow_run` rather than by its own cron. Delete this item once one
+    Thursday has gone through that way.
+
+- [ ] **The dispatch token expires, and nothing here watches it.** The Logic
+  App authenticates to GitHub with a fine-grained PAT on one repository,
+  permission Actions: write — the one credential in this project that is not
+  OIDC. GitHub's maximum lifetime is a year, so a token created on
+  19 Sep 2026 dies around **19 Sep 2027**. *Write the real expiry date into
+  this item when the token is created.* An expired token is a silent
+  non-dispatch: the backstop cron three hours later still runs the load, so the
+  symptom is a load that arrives late every week rather than one that fails.
+
 - [ ] **~mid-Oct 2026** — Stats NZ releases the September-quarter CPI, and
   MBIE finalises the thirteen weeks of Jul–Sep 2026. This is the second
   observation of an event the project has now seen once, and the first it

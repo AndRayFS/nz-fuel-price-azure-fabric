@@ -1,17 +1,27 @@
 
 name: Weekly load
 
-# MBIE publishes on Wednesdays. Cron is UTC and New Zealand observes daylight
-# saving, so the local hour drifts by one twice a year: 21:00 UTC Wednesday is
-# 09:00 Thursday NZST and 10:00 Thursday NZDT. That is deliberate — an hour of
-# drift costs nothing here, and a second schedule to correct it would be one
-# more thing to keep right.
+# The clock is in Azure; the chain is here. `trigger-weekly-load`, a Logic App
+# in `nz-fuel-price-rg` defined by `infra/logic-apps/trigger-weekly-load.json`,
+# posts a `workflow_dispatch` at 09:07 Thursday New Zealand time. Nothing about
+# the run itself changed with it: same workflow, same OIDC federation, same
+# grants.
 #
-# Scheduled since 8 Sep 2026, after a manual run went green end to end:
-# OIDC exchange, resume, ingest through the job API, the gate, and pause.
+# Two things GitHub's `schedule` could not do. It carries no SLA — the
+# documentation says a scheduled workflow may be delayed or not run at all, and
+# both real firings were late, by 110 minutes on 10 Sep 2026 and by 144 on
+# 16 Sep, which made 21:00 a label rather than a time. And cron is UTC, so the
+# local hour drifted by one twice a year; the Logic App recurrence carries
+# `New Zealand Standard Time` and holds 09:07 across daylight saving.
+#
+# The cron below is a backstop, not the trigger. It fires about three hours
+# behind the Logic App, and the `guard` job stands it down if the week has
+# already gone through — so a dead token or a failed recurrence costs a late
+# load rather than a missing one. :37 because every schedule written without
+# thinking lands on the hour.
 on:
   schedule:
-    - cron: '0 21 * * 3'
+    - cron: '37 0 * * 4'      # Thursday 00:37 UTC — 12:37 NZST, 13:37 NZDT
   workflow_dispatch:
     inputs:
       skip_ingest:
@@ -29,7 +39,47 @@ permissions:
                        # warehouse, not to git (7 Sep 2026)
 
 jobs:
+  # Only the backstop cron is guarded. A dispatch always runs, whether it comes
+  # from the Logic App or from a human: asking for the load is an answer about
+  # whether it is wanted.
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
+    steps:
+      - name: Stand down if this week has already gone through
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "dispatched, not scheduled — running"
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # A quiet week ends green too, so "success" means the chain reached a
+          # conclusion — which is the question here, not what MBIE published.
+          since=$(date -u -d '18 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+          ran=$(gh run list -R "$GITHUB_REPOSITORY" --workflow weekly.yml \
+                  --status success --limit 20 --json createdAt \
+                  --jq "[.[] | select(.createdAt > \"$since\")] | length")
+          echo "loads concluded since $since: $ran"
+          if [ "$ran" -gt 0 ]; then
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            echo "### The load already ran — the backstop cron stood down" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "proceed=true" >> "$GITHUB_OUTPUT"
+          echo "### No load in the last 18 hours, so the backstop cron is running it" >> "$GITHUB_STEP_SUMMARY"
+          echo "The Logic App \`trigger-weekly-load\` did not dispatch. Check its run" >> "$GITHUB_STEP_SUMMARY"
+          echo "history in \`nz-fuel-price-rg\` — an expired token looks exactly like this." >> "$GITHUB_STEP_SUMMARY"
+
   weekly:
+    needs: guard
+    if: needs.guard.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
