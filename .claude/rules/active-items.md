@@ -92,8 +92,11 @@ design and should be trimmed or updated, not left as-is indefinitely.
   upgrade removed; the 23:00 NZT auto-pause is the other guard.
   - **The alerts go only to `morozov_77@hotmail.com`**, the billing Microsoft
     Account — not to `andrei@…onmicrosoft.com`, which is the account the
-    project is normally driven from. An alert nobody reads is not a guard, so
-    either that mailbox gets watched or a second contact goes on the budget.
+    project is normally driven from. **That is fine: the owner reads that
+    mailbox daily** (stated 19 Sep 2026). This note used to say an alert nobody
+    reads is not a guard and ask for a second contact; the premise was wrong,
+    not the principle. No second contact is needed, and the same mailbox is now
+    the destination for the weekly load's own alarm.
   - All four thresholds are **Actual**, not Forecasted, so the first warning
     arrives after NZ$10 is already spent. At NZ$17.50/day for a capacity left
     running, that is about half a day of drift. A forecasted threshold would
