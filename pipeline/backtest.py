@@ -32,7 +32,7 @@ K is fixed at 6 rather than reselected each week: it is the stable region
 for the normal regime. This is a mild look-ahead (K was chosen on the full
 sample) and is noted rather than hidden.
 
-REGIME SPLIT IS EX POST ONLY. `crude_vol_9w` in seeds/period_flags.csv is a
+REGIME SPLIT IS EX POST ONLY. `crude_vol_9w` in data/period_flags.csv is a
 CENTRED window — verified here, correlation 0.9925 against a centred
 recomputation versus 0.72 trailing — so it sees four weeks ahead and must
 never enter a forecast. It is used only to split the results afterwards.

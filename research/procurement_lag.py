@@ -64,7 +64,7 @@ import statsmodels.api as sm
 
 ROOT = Path(__file__).parents[1]
 PANEL = ROOT / "data" / "panel_weekly.csv"
-FLAGS = ROOT / "seeds" / "period_flags.csv"
+FLAGS = ROOT / "data" / "period_flags.csv"
 K = 6
 ECM_WINDOW = 104
 START = "2010-01-01"
