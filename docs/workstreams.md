@@ -1207,11 +1207,13 @@ that is a new secret where OIDC had removed the need for one. A PAT that
 quietly expires produces exactly the silent non-run being fixed here, so the
 credential has to be either a GitHub App or a monitored expiry — the second
 reason the notification lands before the trigger, not after. Mail from a
-Logic App needs a connection authorised as some mailbox, and the budget
-alerts already went to a mailbox nobody watches
-(`.claude/rules/active-items.md`), so the destination is a decision, not a
-detail. Azure prices and service limits quoted above are order-of-magnitude
-from general knowledge and were not checked against current pricing.
+Logic App needs a connection authorised as some mailbox. This entry used to add
+that the destination was an open decision, because the budget alerts go to a
+mailbox nobody watches — **that premise was wrong and the decision is made**:
+`morozov_77@hotmail.com` is read daily by the owner (19 Sep 2026), it already
+receives the budget alerts, and the load's alarm goes to the same place. Azure
+prices and service limits quoted above are order-of-magnitude from general
+knowledge and were not checked against current pricing.
 
 **Depends on.** Nothing outstanding — W16 edits what W8 built, and W8 landed
 8 Sep 2026, so this is unblocked and can start immediately. Listing a landed
