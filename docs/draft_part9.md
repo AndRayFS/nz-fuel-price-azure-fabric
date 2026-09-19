@@ -5,7 +5,13 @@ Russian at the owner's request, then shortened and translated; the English
 text below is what went out, apart from three edits made at posting time:
 "my model" for "the model", "the PowerBI report" for "the report", and a
 backlink to Part 8 above the sign-off. One image attached, the petrol and
-diesel price chart. No hashtags, against the house style's 2-3.
+diesel price chart.
+
+**Correction, 19 Sep 2026:** this note used to read "no hashtags, against the
+house style's 2-3". Wrong — the published post carries
+`#Forecasting #NewZealand #DataAnalytics`. They were added at posting time and
+never came back into the draft, so the file recorded their absence as a
+deliberate choice. They are the standing set for the series.
 
 Both ordering questions resolved at posting time. Part 8 went out first and
 Part 9 links back to it. The condition in `draft_part8.md` — that Part 9 wait
