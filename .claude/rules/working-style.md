@@ -56,6 +56,59 @@ So the rule is about *quoting*, not about the documents:
   Fabric capacity resumed and therefore money. `headline_results.py` is the
   first kind; anything reading the warehouse is the second.
 
+## Two sessions, one repository
+
+**A branch belongs to the checkout, not to the session.** Two Claude Code
+sessions opened on this directory are on the same branch at the same moment,
+whatever each of them was asked to do, because `HEAD` is one file on disk and
+both are reading it. A session that believes it is "on the research branch"
+while another is "on the load branch" is mistaken: there is one branch, and
+both are committing to it.
+
+*Measured, 19 Sep 2026.* A session automating the weekly load and a session
+doing research ran here at the same time. `git worktree list` showed one
+worktree; four research commits landed on `w16-move-the-clock`, and one commit
+swept the other session's unstaged files in with `git add -A`. Nothing was
+lost, and nothing about the interleaving was visible until the reflog was read.
+
+**One line of work, one worktree.** This is the only fix that actually
+separates two sessions; everything below is damage control for when they share
+one anyway.
+
+```bash
+git worktree add ../nz-fuel-research -b w17-margin-episodes
+```
+
+A fresh worktree is a real checkout and is missing everything git does not
+carry, which in this repository is most of what a script needs:
+
+| missing | why | what to do |
+|---|---|---|
+| `.venv/` | never committed, and it lives *above* the project on this machine | pass `VENV=/Users/Ray/nz-fuel-price-project/.venv` to `task`, or build one |
+| `dbt_packages/` | gitignored | `task deps` once |
+| `data/` | gitignored on purpose — derived data lives in the warehouse | symlink or copy from the main checkout; regenerating `panel_weekly.csv` costs a warehouse read |
+| `.dbt/` | holds the profile, not committed | copy it |
+
+Remove it with `git worktree remove ../nz-fuel-research` when the branch is
+merged, or it will quietly keep a stale checkout alive.
+
+**Stage by name, never `git add -A` or `git add .`.** Those two cannot tell
+your work from someone else's, and in a shared checkout they will eventually
+sweep in a file you have never read. Name the paths you changed, and read
+`git status --short` before every commit rather than after.
+
+**Changes you did not make are not yours to handle.** If unexpected edits or
+untracked files appear mid-session: do not commit them, do not revert them, do
+not stash them — stashing is worse than committing, because it removes them
+from another session's working tree with no trace it can see. Say what turned
+up and carry on with your own files.
+
+**Do not rewrite history you did not write in this session.** `amend`, `reset`
+and `rebase` all assume nobody else is standing on the commit. Read `git log`
+first; if anything newer than your own last commit is there, the branch has
+moved under you and rewriting it will take someone else's work with it. A
+commit that turns out to be wrong is corrected by another commit.
+
 ## Commit messages are English
 
 The repository is English throughout — models, macros, `docs/`, `CLAUDE.md`,
