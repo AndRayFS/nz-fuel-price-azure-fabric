@@ -1073,10 +1073,13 @@ Branch `w16-move-the-clock`, all three steps. The whole of it is
 posts a `workflow_dispatch` at 09:07 Thursday New Zealand time, waits an hour,
 asks GitHub what became of the run, and mails `morozov_77@hotmail.com` if the
 answer is anything but `success`; `docs/ci_setup.md` step 7 is the procedure.
-**Deployed by hand and not yet proven** — the template passes
-`az deployment group validate`, which is not the same as having fired, and one
-line in it, the mail connector's operation path, could not be verified from the
-CLI at all.
+**Deployed and proven the same day.** A hand-fired recurrence produced run
+35423341610 — `workflow_dispatch`, green in 3.5 minutes, gate `2`, capacity
+back to `Paused` — and behind it run 35423507593, the watchdog, triggered by
+`workflow_run` for the first time. The one line that could not be read from the
+CLI, the mail connector's operation path, was checked in the designer instead.
+Two things remain unobserved and are tracked in `.claude/rules/active-items.md`:
+the recurrence firing on its own, and the alarm sending a mail.
 
 **Step 3 could not wait for its turn.** Moving the load to 09:07 NZ puts it at
 21:07 UTC, inside the watchdog's 21:30 UTC slot — so the race this entry
@@ -1218,10 +1221,12 @@ and fit, 10 Sep 2026.
   chain exists to wake.
 
 **Risks.** Calling the GitHub API needs a token with `actions:write`, and
-that is a new secret where OIDC had removed the need for one. A PAT that
-quietly expires produces exactly the silent non-run being fixed here, so the
-credential has to be either a GitHub App or a monitored expiry — the second
-reason the notification lands before the trigger, not after. Mail from a
+that is a new secret where OIDC had removed the need for one. This entry
+required "either a GitHub App or a monitored expiry", on the reasoning that a
+PAT expiring unnoticed reproduces the silent non-run. **Neither was taken, and
+the third answer is better**: the token has no expiry at all (19 Sep 2026), so
+there is no date to monitor and no scheduled outage. An App was not available
+without adding compute to sign its JWT, which W16 exists to avoid. Mail from a
 Logic App needs a connection authorised as some mailbox. This entry used to add
 that the destination was an open decision, because the budget alerts go to a
 mailbox nobody watches — **that premise was wrong and the decision is made**:

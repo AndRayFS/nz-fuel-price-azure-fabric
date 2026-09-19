@@ -214,7 +214,14 @@ the ARM read, which is most of what a workflow edit can break. Used that way
 on 17 Sep 2026 to prove `azure/login@v3` before the weekly load met it: run
 35169892649, 12 seconds.
 
-## 7. Moving the clock off GitHub's scheduler — **the files are here, the three by-hand steps are not done** (19 Sep 2026)
+## 7. Moving the clock off GitHub's scheduler — **done 19 Sep 2026, and proven the same hour**
+
+**Status.** All three by-hand steps below were carried out on 19 Sep 2026 and
+a hand-fired recurrence went green end to end: run 35423341610,
+`workflow_dispatch`, 3.5 minutes, gate `2`, capacity back to `Paused` — and
+behind it run 35423507593, the watchdog, triggered by `workflow_run` for the
+first time. What has still never happened is the recurrence firing on its own,
+and the alarm sending anything.
 
 W16, steps 1 and 2. The chain stays exactly where it is; what changes is the
 thing holding the stopwatch, from GitHub's `schedule` trigger to a Logic App
@@ -244,17 +251,23 @@ Fine-grained tokens:
 | resource owner | `AndRayFS` |
 | repository access | only `nz-fuel-price-azure-fabric` |
 | repository permission | **Actions: Read and write** (Metadata: read comes with it) |
-| expiry | 1 year, the maximum GitHub offers |
+| expiry | **No expiration** |
 
 Read as well as write: the same token starts the run and then asks what became
 of it. One permission on one repository, and nothing else is readable with it.
 
-A token that expires unnoticed produces exactly the silent non-run this step
-exists to fix, so **the expiry date goes into `.claude/rules/active-items.md`
-as its own item** the moment the token is created. That is the whole reason a
-PAT was acceptable here rather than a GitHub App — a GitHub App would need an
-RS256 JWT, which a Logic App cannot sign without adding a Function, and the
-point of W16 is to move the clock without adding compute.
+**No expiration, deliberately.** This document first said the opposite — a
+year, with the date carried as a dated obligation. A token that expires
+unnoticed produces exactly the silent non-run this step exists to remove, and
+with `weekly.yml`'s backstop cron gone there is nothing behind it, so an expiry
+is a scheduled outage with a calendar date on it. What it would buy is rotation
+hygiene on a credential whose whole power is starting and cancelling runs in
+one public repository with no secrets in it. The reflex replaces the date: if
+it leaks, revoke and redeploy. See `.claude/rules/active-items.md`.
+
+A PAT rather than a GitHub App for a different reason: an App needs an RS256
+JWT, which a Logic App cannot sign without adding a Function, and the point of
+W16 is to move the clock without adding compute.
 
 ### 7b. Deploy the Logic App and its mail connection
 
@@ -290,14 +303,15 @@ authorize endpoint is `login.microsoftonline.com/consumers/...` (*checked*
 against the managed API definition), so it is the consumer Outlook.com sign-in,
 not the work account.
 
-**One line in the template is not verified and this is where to check it.** The
-send-mail operation is written as `path: /v2/Mail`, the documented Send an
-email (V2) shape; the connector's own swagger is not readable from the CLI —
-ARM returns `apiDefinitions: null` and the runtime endpoint answers 404. Open
-the workflow in the designer after deploying: if the two mail actions render as
-**Send an email (V2)** with their fields filled in, the path is right. If either
-shows as an unrecognised operation, take what the designer generates and correct
-the template to match.
+**One line in the template could not be verified from here, and this is where
+it was checked.** The send-mail operation is written as `path: /v2/Mail`. The
+connector's swagger is not readable from the CLI — ARM returns
+`apiDefinitions: null`, its `apiOperations` list names `SendEmailV2` but no
+path, and the runtime endpoint answers 404. *Checked* 19 Sep 2026 the only way
+left: both mail actions render as **Send an email (V2)** with their fields
+filled in, in the designer. Worth repeating after any connector change — if
+either ever shows as an unrecognised operation, take what the designer
+generates and correct the template to match.
 
 ### 7d. Prove it for about six cents
 
