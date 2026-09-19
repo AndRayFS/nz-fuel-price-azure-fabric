@@ -1,4 +1,4 @@
-# Workstreams — plan of record, 23 Aug 2026, last updated 10 Sep 2026
+# Workstreams — plan of record, 23 Aug 2026, last updated 19 Sep 2026
 
 Fifteen pieces of work, grouped by what they are about rather than by when
 they happen. Each is meant to be one branch. Every entry states what
@@ -494,93 +494,169 @@ reads the six status columns in the panel or in `silver_fuel`.
 
 # Track 2 — Getting off the laptop
 
-## W15 — Walk the chain together, node by node
+## W15 — Draw the chain as it runs, and give research a contour of its own
 
-**Now.** Thirteen steps, of which seven serve the data, five serve the
-platform and one serves the report. Nobody has been through them asking, of
-each node in turn, the three questions that matter: what does it compute or
-check, who reads the result, and what breaks if it goes.
+**Rewritten 19 Sep 2026.** The entry this replaces was written on 23 Aug,
+before W5, W7, W8 and W16, and it was two things at once: a pair of
+current/target BPMN diagrams, and a walk of the chain producing a keep/thin/
+remove verdict per node. The target half has been overtaken — W7 declared the
+chain in `Taskfile.yml`, W8 put it on a runner, W16 moved the clock into a
+Logic App, and a target diagram that differs from the current one only in
+what has already been built is a complaint with no subject. The audit half
+was never done and is now a by-product rather than the deliverable: drawing a
+node honestly already forces the three questions, and what the drawing cannot
+answer is worth a line in the branch's notes, not a separate ceremony.
 
-The 27 Aug run is the argument for doing it. It spent most of its time on
-scaffolding rather than data, and two of the things it turned up answered
-"nobody" to the second question — a date constant nobody read (W14) and a
-column carried all the way into the semantic model with no measure and no
-visual behind it. Neither changed a number in the report. Both cost a
-session. There is no reason to think they are the last two, and no list
-saying which nodes have been audited.
+**What stays exactly as it was:** real `.bpmn` files, not pictures of BPMN.
+A hand-drawn SVG is cheaper and immediately wrong in the way that matters —
+only its author can change it. BPMN 2.0 XML opens in Camunda Modeler and
+bpmn.io, so the owner can re-lay-out and re-scope without going through
+whoever drew it first. The repo already runs this pattern: `pbip/` round-trips
+through Power BI Desktop, is stored as text, and has a `.gitattributes` rule
+keeping the diffs readable. `.bpmn` gets the same treatment. Two practical
+notes carried over: the semantic half (process, lanes, tasks, gateways,
+sequence flows) can be authored as XML directly and only the `BPMNDiagram`
+coordinates are tedious, so a mechanical first layout is the expected starting
+point rather than a defect; and dragging boxes rewrites every coordinate in
+the DI section, so keep a re-layout and a semantic change in separate commits
+or the diff says nothing.
 
-A diagram of the chain now exists, labelled with what each node computes and
-with what a person would have to do there by hand if the script were removed.
-That is the artefact to walk, and the human column is the useful lens: a node
-whose human equivalent nobody can state is a node nobody understands.
+**Target.** Two diagrams, one branch, `docs/bpmn/`:
 
-**Target.** One pass through the chain with the owner, out loud, producing a
-short verdict per node: keep, thin, or remove. Not a refactor — a decision
-list. Anything marked remove becomes its own small branch, the way W14 did.
+| file | what it draws |
+|---|---|
+| `load_current.bpmn` | the weekly load as it runs today, after W16 |
+| `research_current.bpmn` | the estimation loop, and the one door data comes through |
 
-**Four BPMN diagrams, drawn as a set.** Ad-hoc boxes were tried first and were
-not enough: the notation has to carry who acts, not only what happens. BPMN
-does, and this chain needs exactly that — lanes separate the human from the
-script from the platform, and the gate is literally an exclusive gateway with
-three outcomes rather than a box with an arrow out of it.
+### 1. `load_current.bpmn` — the load as it is
 
-| # | diagram | what it settles |
+Four lanes, because the notation has to carry *who acts*, and this chain has
+four actors that fail in different ways:
+
+- **Azure** — `trigger-weekly-load`, recurrence 09:07 Thursday NZ, posting
+  `workflow_dispatch`; then its own hour-long wait, the runs API read, and the
+  two mails. `auto-pause-fabric-capacity` at 23:00:01 NZT is in this lane too.
+- **GitHub Actions** — `weekly.yml`: checkout, Python 3.12, venv from
+  `requirements.txt`, `task deps`, the OIDC login, then the chain; and
+  `pause-capacity.yml` behind it on `workflow_run: completed`.
+- **Fabric** — the capacity as an ARM resource (resume, pause), the
+  `ingest_mbie_weekly` pipeline, the SQL analytics endpoint whose metadata has
+  to be made current before bronze can be read, and the warehouse.
+- **The human** — reading the monitoring WARNs, refreshing the Power BI
+  dataset, republishing from Desktop when `forecast_accuracy` changed shape,
+  and, until the recurrence has fired on its own, the Thursday check.
+
+The gate is an exclusive gateway with three outgoing flows and not a task with
+one arrow out: `0` continues, `2` ends the process green with nothing done,
+`1` ends it as an error. Anything that draws the gate as a step is drawing a
+different chain from the one that runs.
+
+Three things the drawing has to get right, because they are where the chain's
+behaviour actually lives and none of them is obvious from `Taskfile.yml`:
+
+- **`flags` before `backtest`.** The centred nine-week window moves the last
+  four weeks' regime values every time a week lands.
+- **`pause-capacity` is coupled to the run, not to the clock** — plus one late
+  cron behind it — and the workflow's own `always()` pause sits inside the
+  runner lane, where a cancelled runner kills it.
+- **`data/` on the runner is an ephemeral store, destroyed with the runner.**
+  In BPMN that is a data object, not a data store, and drawing it correctly is
+  what sets up the second diagram.
+
+### 2. `research_current.bpmn` — the contour that is currently an orphan
+
+**The question this half exists to answer.** `research/` is the only part of
+the project with no drawn contour, no stated entry point and no statement of
+what it costs to run.
+
+**How data reaches research today, stated so the diagram has something to
+draw.**
+
+| what research reads | who writes it | costs capacity? |
 |---|---|---|
-| 1 | weekly load, as it is | the thirteen steps, three of them human, and where the chain leaves the warehouse |
-| 2 | research, as it is | the estimation loop that is deliberately offline, and where it touches the weekly chain |
-| 3 | weekly load, as intended | after W5, W7 and W8: no seed round-trip, chain declared once, ingest triggered by the workflow, one human step left until W9 |
-| 4 | research, as intended | open — it may be that research should not be drawn as a process at all, see below |
+| `data/panel_weekly.csv` | `pipeline/export_panel.py`, step 5 of the chain | **yes** — a warehouse read |
+| `data/period_flags.csv` | `pipeline/build_period_flags.py`, from the panel | no, given the panel |
+| `data/backtest_results.csv` | `pipeline/backtest.py`, from panel + flags | no, given the panel |
+| `data/brent_daily.csv`, the FX series | `research/fetch_brent.py` (FRED), Yahoo | no — public endpoints |
 
-**The pair is the point, not the pictures.** The difference between 1 and 3 is
-the work list, stated in a form that can be pointed at. A target diagram with
-no current one beside it is a wish; a current one with no target is a
-complaint.
+Every one of those files is a by-product of the weekly chain, kept on the
+laptop. The chain also rebuilds all three on a GitHub runner that is then
+destroyed with them, so the copies research estimates against go stale every
+week the chain runs, silently, and nothing in the repository says so.
 
-**Why research gets its own pair.** `export_panel.py`, `build_period_flags.py`
-and `backtest.py` run every week on settled algorithms — production — while
-`adl_*.py` and the twenty-specification loops are exploration, and both live
-under `research/`. That is W5, and drawing the two processes separately is the
-cheapest way to see the boundary it has to cut. Diagram 4 is marked open
-because a research process may not be a process: a loop whose whole value is
-that its shape changes every time resists being frozen into a flow, and drawing one
-anyway would invent a discipline nobody asked for. Decide that in the session
-rather than before it.
+**Decided 19 Sep 2026: the warehouse is the single source of truth, and
+research reads it directly.** Not the pipeline's leftover CSVs, and not a
+handover from CI.
 
-**Decided: real `.bpmn` files, not drawings of BPMN.** A hand-drawn SVG is
-cheaper and immediately wrong in the way that matters — only its author can
-change it. BPMN 2.0 XML opens in any editor (Camunda Modeler, bpmn.io), so the
-owner can re-lay-out and re-scope without going through whoever drew it first.
-The repo already runs this pattern: `pbip/` round-trips through Power BI
-Desktop, is stored as text, and has a `.gitattributes` rule keeping the diffs
-readable. `.bpmn` gets the same treatment.
+- **The loader is not to know that research exists.** `export_panel.py`,
+  `build_period_flags.py` and `backtest.py` run for the chain's own reasons —
+  the flags feed the backtest, the backtest writes `forecast_history`, and
+  `forecast_accuracy` is what Report 1 reads. That they leave CSVs on disk
+  is incidental, and research building on that accident is what made the
+  coupling invisible in the first place. Teaching `weekly.yml` to publish an
+  artifact would have made it explicit and permanent instead of removing it:
+  a step in the load that exists only for the other contour. Rejected on
+  that ground, not on cost.
+- **Research gets its own read path.** Its own query or small module under
+  `research/`, pulling silver and the derived tables out of the warehouse and
+  joining them to the external series it needs — FRED, Yahoo, AIP — which is
+  work no pipeline step does and none should.
+- **Waking the capacity for that is accepted.** It is minutes of F2 against
+  a NZ$20 budget, once per session rather than once per script, and it buys
+  the property the estimation loops depend on: after the pull, twenty
+  specifications run offline.
+- **Nothing new goes into git.** The pull caches under `data/`, gitignored
+  with everything else derived, and `architecture.md`'s "Observations belong
+  in the warehouse, configuration belongs in git" is the rule this decision
+  follows rather than bends.
 
-Two practical notes. The first draft can be authored as XML directly — the
-semantic half (process, lanes, tasks, gateways, sequence flows) is
-straightforward, and only the `BPMNDiagram` layout coordinates are tedious;
-they exist to be dragged, so a mechanical first layout is the expected
-starting point rather than a defect. And the diff behaviour is worth knowing
-before the first re-layout: a semantic change reads clearly, while dragging
-boxes rewrites every coordinate in the DI section and produces a large diff
-that says nothing. Keep the two kinds of edit in separate commits.
+**What the branch still has to settle, now that the direction is fixed.**
 
-Files live in `docs/bpmn/`: `load_current.bpmn`, `research_current.bpmn`,
-`load_target.bpmn`, and `research_target.bpmn` if the session decides the
-fourth should exist at all.
+- **What research reads, named.** Silver is obvious; `period_flags` and
+  `forecast_history` are less so — both became warehouse tables when the
+  seeds went, so research can pull the flags instead of waiting for a local
+  file to be rebuilt from a panel.
+- **One refresh command, not one per script.** The capacity should wake once
+  for a research session. What that command covers and how a script says its
+  cache is too old are the design questions; both are small.
+- **Provenance travels with the pull.** `vintage.py` moves the warehouse to a
+  past date, and nothing in a CSV says which one it stood on — so a result
+  computed on a vintage warehouse is indistinguishable from one computed on
+  today's. The reader should stamp what it pulled — the newest week and
+  `pipeline.warehouse_vintage` — beside the cache, out of git with it.
+- **Who `export_panel.py` is for.** Its docstring is written for a research
+  reader ("Everything downstream of this runs offline against the CSV"), and
+  after this branch that is no longer true: it exports for the flags and the
+  backtest. Same for `research/README.md`, which says everything here runs
+  offline — it runs offline *after a pull*, which is a different claim.
 
-**Why it goes before W7 and W8.** W7 declares the chain once and W8 runs it
-unattended. Declaring a chain nobody has audited freezes whatever is in it,
-and automating it means the waste runs on a schedule and bills for it. The
-cheapest moment to drop a step is before it is written into `Taskfile.yml`.
+**Two stale things already found while reading for this entry**, listed
+because they are what the walk is for and each is a one-line branch of its
+own, not part of this one:
 
-**Risks.** The obvious one is that the pass turns into a redesign. It should
-not: the output is a verdict per node and nothing else. The other is that
-"remove" is easy to say about a node whose only consumer is a person looking
-at a table occasionally — `data_status` was defended on exactly that ground
-before the check showed no code reads it. Ask for the consumer by name.
+- `export_panel.py`'s `QUERY` comment still reasons from "this CSV is
+  committed and rewritten weekly". It has been gitignored since W5.
+- `vintage.py`'s chain runs `dbt seed --select period_flags forecast_history`,
+  but neither is a seed any more — both are warehouse tables written by
+  `warehouse_write.py` and declared in `models/sources.yml`. It selects
+  nothing.
 
-**Depends on.** Nothing.
-**Blocks.** W7 and W8, in judgement rather than mechanically.
-**Touches.** `docs/workstreams.md`, and whatever branches the verdicts spawn.
+**Risks.** The old entry's risk was that the pass turns into a redesign; the
+new one is the opposite — that the research half turns into infrastructure.
+It should not: the deliverable is two `.bpmn` files and one read path, and
+the read path is a query with a cache, not a service. The second risk is real
+and belongs in the drawing — after this there are two query paths onto the
+same silver, dbt's and research's, so a shape change in silver can break the
+second one at a distance, with nothing in the weekly run to notice. That is
+the price of the loader not knowing about research, and it is the right price.
+
+**Depends on.** Nothing. W5, W7, W8 and W16 have all landed; this draws what
+they built.
+**Blocks.** Nothing mechanically. It informs W9, which is the last human step
+in diagram 1.
+**Touches.** `docs/bpmn/` (new), `.gitattributes`, `docs/workstreams.md`,
+`research/` (the read path and its README), `pipeline/export_panel.py`
+(docstring only). Deliberately **not** `.github/workflows/weekly.yml`.
 
 
 ## W5 — Split `pipeline/` from `research/` — **landed 7 Sep 2026**
@@ -1248,14 +1324,28 @@ this document warns against below.
 
 # Track 3 — Analysis
 
-## W10 — The one-week model
+## W10 — The one-week model — **landed 8 Sep 2026**
 
-**Now.** The next methodological piece, and the owner's stated priority
-regardless of the infrastructure work. It needs no Fabric compute at all:
-estimation runs offline against `data/panel_weekly.csv`, so it is
-unaffected by the 27 Aug credit expiry and can happen at any time.
+Branch `w10-nowcast`, merged as `0e14d11`; this entry was left saying "next"
+for eleven days after the work was published, and that is what it was
+corrected from on 19 Sep 2026.
 
-**Depends on.** Nothing. Runs in parallel with everything in Tracks 1–2.
+The week in progress turned out to be partly observable. `adl_forecast` drops
+`b0` at h=1 by construction — the model cannot see a cost change that has not
+been published — and three trading days of Brent-in-NZD recover part of it.
+Measured first (`research/nowcast_brent.py`), then put through the same
+walk-forward test as everything else rather than judged on fit
+(`research/nowcast_in_adl.py`). Both results are in `docs/research.md`, "The
+week in progress is partly visible" and "The nowcast survives the walk-forward
+test". Published as Part 9 on 8 Sep 2026.
+
+**Two things it deliberately did not do.** It did not reach Report 1:
+`pipeline/backtest.py` still writes `pred_naive`, `pred_adl` and
+`pred_adl_ecm`, and no nowcast term is in any of them. And the edge it
+measured is not yet safe to promote — the series behind it is Yahoo's
+front-month futures, which came apart from spot by 20% during the Hormuz
+backwardation (`docs/research.md`, 19 Sep 2026). Re-measuring on spot is the
+first thing any promotion has to do.
 
 ## W11 — Apply the Report 1 redesign
 
@@ -1346,6 +1436,24 @@ item overlaps a branch, the branch is named.
    cap-induced transitions as artifacts. This still supersedes the cruder
    "downgrade when `resolved_lag >= 3`" idea, but on a measured basis
    rather than a mechanism that turned out not to be there.
+
+   **The historical half is now on the record — 19 Sep 2026.**
+   `research/margin_episodes.py`, branch `w17-margin-episodes`, published as
+   Part 10 and merged into `main` the same evening as `7752269`. It answers the
+   question a reader can check the industry against — the margin is crushed,
+   what happened last time — and the answer is that on comparable data there
+   is no last time: normalised against the margin's own trailing 104-week mean
+   and restricted to weeks whose whole benchmark window sits inside the
+   import era, the record starts 29 Mar 2024, leaving 129 weeks and exactly
+   one episode per fuel, the one still running. `docs/research.md`, "What the
+   record says after a margin compression", including the two versions of it
+   that were withdrawn for using eras this project had already ruled out.
+
+   **What is still open is the asymmetry half**, and it has moved to item 0's
+   form: not whether there is asymmetry — four attempts, none survived
+   (`docs/research.md`, "Rockets and feathers, fourth attempt") — but at which
+   step of the chain it arises, which needs the external product-price series
+   of item 2.
 2. **A daily benchmark — partially DONE 15 Aug 2026; the third reason is
    now closed.** The open question was what MBIE's weekly crude number
    *is*: a weekly average or a single-day snapshot. Daily Brent
@@ -1430,12 +1538,17 @@ item overlaps a branch, the branch is named.
    is inflated by about 70%, consistently across all three fuels — see "The
    forecast measure multiplies a change by a slope fitted on levels" in
    `docs/research.md`.
-   The `basis` dimension itself is still not built — and **as written this
-   item is now void**: `lag_correlation` was deleted on 8 Sep 2026, so there
-   is no relation to add a third dimension to. What survives is the question,
-   not the vehicle: levels and changes give different lags and very different
-   slopes, and whichever tool answers it next will have to compute both. In
-   the Python contour that is a loop over two bases, not a new column.
+   **Closed 19 Sep 2026 — nothing is pending here.** The vehicle went first:
+   `lag_correlation` was deleted on 8 Sep 2026, so there is no relation to add
+   a third dimension to. The question went with it, because the Python contour
+   did not inherit the choice — it made it. Everything that now feeds Report 1
+   is fitted on changes: `research/README.md` states the rule, `adl_baseline`,
+   `adl_ecm` and `pipeline/backtest.py` all model `d_net` on `d_cost`, and the
+   one place levels survived was the measure this item flagged, which is gone
+   with the layer it belonged to. What is worth keeping is the measurement,
+   not the task: on changes the peak is about five times better separated
+   while `r` falls by roughly 0.23, and a slope fitted on levels was inflated
+   by about 70%.
 5. **Customs / Stats NZ overseas merchandise trade** — monthly petroleum
    import value *and* quantity from Customs entries, which divide out to
    the price actually paid at the border. That is the one thing MBIE's
@@ -1453,11 +1566,16 @@ item overlaps a branch, the branch is named.
 **Long-term goal:** an additive forecast — current price + crude's
 estimated contribution + margin's estimated contribution + known/announced
 tax changes (looked up, not modeled, since these are deterministic) +
-eventually currency — plus turning the current qualitative Strong/
-Moderate/Weak tiers into real probability/confidence intervals. The
-backtest error spread already on record (0.4–7.3%, varying with lag
-length) is a practical starting point for that — not rigorous statistics,
-but real, empirically observed error, which beats inventing a number.
+eventually currency — with an interval around it rather than a bare number.
+
+*The second half of this paragraph used to read "turning the current
+qualitative Strong/Moderate/Weak tiers into real probability/confidence
+intervals". Corrected 19 Sep 2026: those tiers were computed from
+`resolved_r` in the T-SQL lag layer, which was deleted on 8 Sep, and the
+report that showed them was retired on 23 Aug. There is nothing to turn —
+the interval would be built from scratch, and the material for it is the
+walk-forward record `pipeline/backtest.py` already writes, per fuel and per
+horizon, rather than the 0.4–7.3% spread this paragraph used to cite.*
 
 ---
 
@@ -1481,9 +1599,10 @@ as sequencing.
 
 **The three tracks are a grouping, not an order.** Reading them top to
 bottom suggests infrastructure comes before analysis, which is wrong on the
-facts: W10 is the stated priority, needs no capacity, no CI and no cleanup,
-and is unaffected by the 27 Aug credit expiry. It can start immediately and
-run alongside everything else. W6 is likewise free-standing and needs
+facts: W10 was the stated priority, needed no capacity, no CI and no cleanup,
+was unaffected by the 27 Aug credit expiry — and landed on 8 Sep 2026, in
+parallel with the infrastructure work rather than after it. The analysis
+still on this list can be read the same way. W6 is likewise free-standing and needs
 nothing but a text editor.
 
 **Fifteen entries is not fifteen equal branches.** W10-W12 are analysis rather
