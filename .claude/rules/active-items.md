@@ -14,13 +14,16 @@ design and should be trimmed or updated, not left as-is indefinitely.
   35423507593, the watchdog, **triggered by `workflow_run` for the first
   time**. Token, `Actions` permission, dispatch URL, OIDC exchange and ARM
   role all hold together on a live run.
-  - **The alarm's judgement was exercised; its voice was not.** An hour after
-    the dispatch, run `08584118121261199683681875057CU01` asked GitHub, found
-    the run, and evaluated both halves of the condition — conclusion and age —
-    on live data, then skipped both mail actions. Silence was the correct
-    answer and it was reached correctly. **What has never executed is either
-    `Send an email (V2)` action**, so the mailbox end of the path is still
-    unproven.
+  - **Both halves of the alarm are now proven, on the same day.** Its
+    judgement: run `08584118121261199683681875057CU01` evaluated conclusion
+    and age against the live run and correctly skipped both mails. Its voice:
+    a redeploy that went out with an empty token produced a `401` on the
+    dispatch and the second mail, "cannot tell whether the load ran", arrived
+    in the mailbox — so the connector, `/v2/Mail` and the address all work,
+    and the branch exercised was the one a dead credential would take. The
+    slip that caused it is worth knowing: `read -rs` swallows the next line of
+    a pasted block. `docs/ci_setup.md` step 7d has the two habits that prevent
+    it.
   - **The recurrence has never fired on its own** — 24 Sep is the first.
     Check on the 25th:
     `gh run list --workflow weekly.yml --limit 5 --json event,createdAt,conclusion`
