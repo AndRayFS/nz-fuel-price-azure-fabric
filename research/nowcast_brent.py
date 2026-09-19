@@ -34,6 +34,30 @@ Argus product quote weekly, but on the Sunday of the week that has ENDED, so
 it cannot reach the week in progress. Whatever is lost between crude and
 product is inside every number below.
 
+WHICH BRENT: `BZ=F` IS FRONT-MONTH FUTURES, AND THAT IS NOT WHAT MBIE BUYS.
+Measured 19 Sep 2026 against FRED's `DCOILBRENTEU` (Europe Brent spot FOB) on
+4,714 common days: correlation 0.9964, median annual divergence 0.0-1.3%. They
+are interchangeable in calm markets and they are not interchangeable now. From
+1 to 15 Sep 2026 the gap widened monotonically 0.5% -> 20.3%, ending at spot
+130.80 against futures 108.75 — backwardation from the Hormuz closure, where
+buyers bid physical cargoes far above paper.
+
+MBIE's `Importer cost` is built on physical cargoes. For week 2026-09-11 MBIE
+publishes Dubai 109.0; FRED gives 111.8 and Yahoo 102.8, against a historical
+median Dubai-minus-Brent spread of -1.8 to -2.0. **Spot matches, futures do
+not**, and the error is in the direction that matters: the futures series
+understates the cost the pump has to absorb, exactly during the episode a
+nowcast is for.
+
+So: nothing here ships on this series without re-measuring on spot first. The
+walk-forward result in docs/research.md was scored on 2010-2026 where the two
+series agree; it is not evidence about a backwardated market.
+
+Also verified 19 Sep: the Yahoo reading of 98.77 for 2026-09-18 is wrong.
+TradingEconomics and Convex both put that close at 103.2-103.9, a -1.5% day
+rather than -5.8%. A front-month roll in steep backwardation produces exactly
+that kind of phantom gap, so treat single-day moves near a roll as suspect.
+
 Usage:  python research/nowcast_brent.py [--from 2015] [--final-only]
 Reads `data/panel_weekly.csv`; fetches daily Brent and NZD/USD and caches
 them under `data/`. Offline apart from that fetch; no warehouse, no capacity.

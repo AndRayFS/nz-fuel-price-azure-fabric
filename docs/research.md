@@ -1714,6 +1714,45 @@ needs republishing; and the confidence-tier language rules apply to the new
 series as they do to the old ones. None of that is measurement, and none of it
 is done.
 
+## The nowcast's Brent is futures, and in this market that is the wrong price — 19 Sep 2026
+
+`research/nowcast_brent.py` fetches Yahoo `BZ=F`, front-month Brent futures.
+FRED's `DCOILBRENTEU` is Europe Brent spot FOB. On 4,714 common days the two
+correlate at 0.9964 with a median annual divergence of 0.0-1.3%, which is why
+nobody looked.
+
+They have come apart. From 1 to 15 Sep 2026 the gap widened monotonically
+0.5% -> 20.3%: spot 130.80 against futures 108.75 on 15 Sep. That is
+backwardation from the Hormuz closure — buyers bidding for physical cargoes
+they can load now, over paper barrels they cannot.
+
+**MBIE's `Importer cost` is built on physical cargoes, so spot is the right
+series and futures is the wrong one.** For week 2026-09-11 MBIE publishes
+Dubai at 109.0; FRED gives 111.8 and Yahoo 102.8, against a historical median
+Dubai-minus-Brent spread of -1.8 to -2.0. Spot lands where the spread says it
+should and futures is 8 c/bbl out on the other side.
+
+The direction of the error is the bad one: **the futures series understates
+the cost the pump must absorb, and understates it most exactly when a nowcast
+would earn its keep.** The walk-forward result above was scored over
+2010-2026, almost all of it a market where the two series agree, so it is not
+evidence about a backwardated one. Condition on shipping, recorded here and
+in the script: re-measure on spot first, or measure how much of the edge
+survives on futures.
+
+**A separate and smaller finding: one Yahoo point is simply wrong.** Its close
+for 2026-09-18 is 98.77; TradingEconomics and Convex both put that day at
+103.2-103.9, a -1.5% move rather than -5.8%. A front-month roll in steep
+backwardation produces exactly that phantom gap. Nothing in this file rested
+on it, but a -5.8% day was briefly taken for a real one on 19 Sep, which is
+the second time this week a series has been quoted without asking what it
+measures.
+
+**Nothing in production is affected.** `pipeline/backtest.py` reads
+`importer_cost` from the MBIE panel and never touches Yahoo; the weekly chain
+and CI contain no reference to it. The exposure is confined to the nowcast,
+which is research.
+
 ## A better crude-to-cost slope made the forecast worse — 8 Sep 2026
 
 The nowcast turns a move in Brent-in-NZD into a move in `Importer cost`
