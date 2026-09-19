@@ -276,10 +276,14 @@ Consumption workflow, and an `outlook` API connection for the mail. Both land
 in `australiaeast`, beside the two capacity Logic Apps. *Checked* 19 Sep 2026:
 `az deployment group validate` accepts both.
 
-```bash
-read -rs GH_DISPATCH_TOKEN      # paste; never as an argument, never exported
-export GH_DISPATCH_TOKEN
+One line for the read, deliberately — see 7d for what happens when this is
+pasted as a block:
 
+```bash
+read -rs GH_DISPATCH_TOKEN && export GH_DISPATCH_TOKEN && echo "${#GH_DISPATCH_TOKEN} chars, ${GH_DISPATCH_TOKEN:0:11}"
+```
+
+```bash
 az deployment group create \
   --resource-group nz-fuel-price-rg \
   --name trigger-weekly-load \
@@ -333,10 +337,44 @@ App's run history — a 401 is the token, a 404 is the repository or the workflo
 file name, and a 422 is the `ref`.
 
 The second half arrives an hour later, and it is the half that is easy to
-forget: **no mail means the alarm agrees the load succeeded.** To see the alarm
-actually send, the honest test is a failing load rather than a contrived one —
-or temporarily deploy with `waitMinutes=2`, when the run will still be in
-flight, the conclusion will not be `success`, and the mail should arrive.
+forget: **no mail means the alarm agrees the load succeeded.** *Checked*
+19 Sep 2026 on run `08584118121261199683681875057CU01`: the condition was
+evaluated against the live run, both halves of it, and both mail actions were
+skipped.
+
+**The mail itself was proven by an accident, and the accident was a better
+test than the one planned.** The plan was to redeploy with `waitMinutes=2` so
+the check would catch a load still in flight. What happened instead: the
+redeploy went out with an *empty* token, the dispatch came back `Unauthorized`,
+and the second mail — "cannot tell whether the load ran" — arrived in the
+mailbox. That exercised the connector, the `/v2/Mail` path and the mailbox end
+to end, on the branch that matters most: a credential that has stopped working.
+It also exercised, for the first time, `Wait_for_the_load_to_finish` running
+after a *failed* dispatch, which is the whole reason its `runAfter` lists
+`Failed` — and it cost nothing, because no load ever started.
+
+**How the token went missing, because it will happen again.** `read -rs`
+prints no prompt and echoes nothing, so pasting the whole three-line block at
+once feeds the *second line* to it: `GH_DISPATCH_TOKEN` ended up holding the
+literal string `export GH_DISPATCH_TOKEN`, 24 characters. Two deployments went
+out that way before anyone looked. Two habits prevent it:
+
+```bash
+# one line, so there is no next line to swallow
+read -rs GH_DISPATCH_TOKEN && export GH_DISPATCH_TOKEN && echo "${#GH_DISPATCH_TOKEN} chars, ${GH_DISPATCH_TOKEN:0:11}"
+# expect: 93 chars, github_pat_
+
+# and ask GitHub before asking Azure — this separates a bad token from a bad template
+curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: Bearer $GH_DISPATCH_TOKEN" \
+  https://api.github.com/repos/AndRayFS/nz-fuel-price-azure-fabric/actions/workflows/weekly.yml
+# 200 = good; 401 = token; 404 = the token does not cover this repository
+```
+
+Restored the same hour and verified rather than assumed: `waitMinutes` back to
+60, and a second hand-fired recurrence produced run 35427381482, green, with
+the watchdog 35427530147 behind it on `workflow_run` and the capacity back to
+`Paused`. A masked `githubToken` reads as `{}` whatever it holds, so a live
+dispatch is the only proof the deployed token works.
 
 ### One trigger, and nothing behind it
 
