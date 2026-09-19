@@ -10,12 +10,25 @@ in `draft_part7.md`.
 Date not recorded here; it went out before Part 9 and this file had still been
 carrying it as unpublished.
 
+**Part 10 published 19 Sep 2026:** https://lnkd.in/p/e_6iddd2 — the margin,
+drafted in `docs/draft_part10.md`. It carries the margin pipe
+(`research/art/margin_pipe_2026.png`), the hashtags
+`#FuelPrices #NewZealand #DataAnalytics`, and no links in the first comment.
+`#Forecasting` was dropped for this post alone: its argument is that the
+near-term rise has already happened and that crude cannot be called, so the
+tag would have promised the one thing the text declines to do.
+
 **Part 9 published 8 Sep 2026:** https://lnkd.in/p/eNTj-JMQ — the nowcast,
 drafted in `draft_part9.md`. Three departures from the draft, all the author's:
 "my model" rather than "the model", "the PowerBI report" rather than "the
 report", and a backlink to Part 8 above the sign-off. It carries the petrol
-and diesel price chart (`research/art/nowcast_levels_2026.png`) and no
-hashtags.
+and diesel price chart (`research/art/nowcast_levels_2026.png`) and the
+hashtags `#Forecasting #NewZealand #DataAnalytics`.
+
+*(This paragraph used to end "and no hashtags", and so did `draft_part9.md`.
+Both were wrong: the tags were added at posting time and never came back into
+the drafts, so two files recorded their absence as a decision. Corrected
+19 Sep 2026.)*
 
 | Part | Topic | Ends by promising |
 |---|---|---|
@@ -26,10 +39,23 @@ hashtags.
 | 5 | Report 1 live, confidence framing, 9am–11pm window | "a look at what all this actually cost in Microsoft Fabric" |
 | 6 | Costs: 98.5%/1.5% split, USD/NZD error, pause savings | **"back to the data: new sources, and extending the methodology"** |
 | 7 | Backtest: the published formula lost to "no change"; the report gets its own scorecard | **"everyone says prices follow oil — crude +10.1%, diesel's landed cost +61.4%"** |
-| 8 | *(drafted, unpublished)* Anatomy of a litre: six layers, and which of them actually move — animated 2020–2026 | **"the model is blind to the week in progress, and that week carries a quarter of the effect"** |
+| 8 | Anatomy of a litre: six layers, and which of them actually move — animated 2020–2026 | **"the model is blind to the week in progress, and that week carries a quarter of the effect"** |
+| 9 | The nowcast: three days of Brent for the week MBIE has not published yet | "the rebuilt weekly pipeline has to prove itself first — that is the next post" |
+| 10 | The margin: 29 c/L of cost that has reached the importer and not the pump | — |
 
 Each post opens by referring back to the previous one and closes by naming
 the next.
+
+**Part 10 keeps the opening and drops the closing, deliberately.** It opens
+on Part 9 — specifically on the promise Part 9 closed with — so the backward
+reference is there and is doing more work than usual: it explains why this
+post is not the one that was announced. Prices moved first and the data was
+more interesting than the plumbing.
+
+It does not close by naming the next post, because Part 9 already named it.
+The pipeline was promised once and is deferred, not replaced, and announcing
+the same post twice would read as a series that cannot get to it. It keeps
+its place, one behind.
 
 ## Published corrections
 

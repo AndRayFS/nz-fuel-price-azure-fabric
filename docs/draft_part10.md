@@ -1,6 +1,6 @@
 # Part 10 draft — the rise that already happened
 
-Status: **published 19 Sep 2026** — URL not yet recorded here. Drafted in
+Status: **published 19 Sep 2026** — https://lnkd.in/p/e_6iddd2. Drafted in
 Russian at the owner's request, then translated and cut to house length. One
 image attached, the margin pipe; hashtags
 `#FuelPrices #NewZealand #DataAnalytics`; no links in the first comment, for
