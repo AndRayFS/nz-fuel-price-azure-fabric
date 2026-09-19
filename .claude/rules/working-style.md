@@ -67,9 +67,15 @@ both are committing to it.
 
 *Measured, 19 Sep 2026.* A session automating the weekly load and a session
 doing research ran here at the same time. `git worktree list` showed one
-worktree; four research commits landed on `w16-move-the-clock`, and one commit
+worktree; three research commits landed on `w16-move-the-clock`, and one commit
 swept the other session's unstaged files in with `git add -A`. Nothing was
 lost, and nothing about the interleaving was visible until the reflog was read.
+
+Separating them afterwards did not need a rewrite, and that is the point of the
+last rule below: a second worktree, `git cherry-pick` of one session's commits
+onto a fresh branch from `main`, and the mixed branch left standing for the
+other session to do the same. *Checked* the same day — the rebuilt branch
+differed from the mixed one by exactly the other session's files.
 
 **One line of work, one worktree.** This is the only fix that actually
 separates two sessions; everything below is damage control for when they share
