@@ -21,6 +21,25 @@ did — the absolute threshold put almost every deep week in 2026 and found one
 pre-2022 precedent in twenty-two years. On the relative measure 2005, 2007,
 2008 and 2009 all qualify, and today is no longer close to unique.
 
+TWO ERA FILTERS, BOTH FROM RULES THIS PROJECT ALREADY WROTE DOWN, AND BOTH
+MISSED BY THE FIRST TWO VERSIONS OF THIS SCRIPT.
+
+First, 2010+. `docs/mbie_notes.md` measures that MBIE's own components do not
+sum to the published total before 2010 — the 95th percentile of the residual
+is 4.4-4.6 c/L against margins of 3-10 — and concludes: "Use 2010+ for
+anything that relies on the identity." The importer margin IS that identity.
+Twelve of eighteen petrol weeks the relative measure selected were pre-2010.
+
+Second, the benchmark window has to sit inside one era too, which is the part
+no rule stated because nobody had built a trailing benchmark before. Marsden
+Point closed on 1 Apr 2022 and the retail source changed on 1 Jan 2022, so a
+compressed week in Mar 2022 is judged against a two-year mean drawn 0-9% from
+its own era. The first week whose whole 104-week window is import-era and
+Datamine-sourced is 29 Mar 2024. Weeks before it are dropped rather than
+compared against a benchmark from an industry that no longer exists.
+
+What survives is small and the script says so rather than padding it.
+
 THE CONDITIONING SET IS WEEKS, NOT EPISODES, and that is a real limitation
 rather than a choice. Compressions arrive in runs, so a couple of dozen weeks
 are a handful of independent events. Quantiles below are over weeks; read them
@@ -49,7 +68,10 @@ import pandas as pd
 
 ROOT = Path(__file__).parents[1]
 PANEL = ROOT / "data" / "panel_weekly.csv"
+FLAGS = ROOT / "data" / "period_flags.csv"
 FUELS = ("Regular Petrol", "Diesel")
+IDENTITY_FROM = "2010-01-01"   # mbie_notes.md, "Use 2010+ for the identity"
+CLEAN_ERA = {"supply_chain": "import_only", "data_regime": "datamine"}
 
 NORM_WINDOW = 104       # trailing weeks defining "normal", as in the ECM work
 NORM_MIN = 52           # start reporting once half a window exists
@@ -60,6 +82,11 @@ EPISODE_GAP_DAYS = 182  # runs this far apart count as separate episodes
 
 def load() -> pd.DataFrame:
     p = pd.read_csv(PANEL, parse_dates=["Date"])
+    f = pd.read_csv(FLAGS, parse_dates=["week_date"]).rename(
+        columns={"week_date": "Date"})
+    keep = ["Date", "fuel", *CLEAN_ERA]
+    p = p.merge(f[keep], left_on=["Date", "Fuel"], right_on=["Date", "fuel"],
+                how="left")
     return p.sort_values(["Fuel", "Date"])
 
 
@@ -75,6 +102,15 @@ def with_gap(d: pd.DataFrame) -> pd.DataFrame:
         d.importer_margin.rolling(NORM_WINDOW, min_periods=NORM_MIN).mean().shift(1)
     )
     d["gap"] = 100.0 * (d.importer_margin - d["norm"]) / d["norm"]
+    # Usable only if the identity holds for the week AND every week of its
+    # benchmark comes from the same era. `rolling(...).min()` over a boolean
+    # is "all of them", shifted like the norm it describes.
+    era = np.ones(len(d), dtype=float)
+    for col, want in CLEAN_ERA.items():
+        era *= (d[col] == want).to_numpy(dtype=float)
+    d["era_ok"] = pd.Series(era, index=d.index).rolling(
+        NORM_WINDOW, min_periods=NORM_WINDOW).min().shift(1) == 1.0
+    d["usable"] = d.era_ok & (d.Date >= IDENTITY_FROM) & d.gap.notna()
     return d
 
 
@@ -99,12 +135,16 @@ def weeks_to_recover(d: pd.DataFrame, i: int, limit: int = 78) -> float:
 
 def report(fuel: str, d: pd.DataFrame, threshold: float) -> None:
     d = with_gap(d)
-    base = d.dropna(subset=["gap"])
+    allgap = d.dropna(subset=["gap"])
+    base = d[d.usable]
     cur = d.iloc[-1]
 
     print(f"\n{'=' * 78}")
-    print(f"{fuel} — n={len(base)} weeks carry a trailing norm "
-          f"({base.Date.min().date()} to {base.Date.max().date()})")
+    first = base.Date.min()
+    print(f"{fuel} — {len(allgap)} weeks carry a trailing norm, "
+          f"{len(base)} of them usable")
+    print(f"  usable from {first.date()}: 2010+ for the identity, and the "
+          f"whole 104-week benchmark inside the import/Datamine era")
     print(f"TODAY {cur.Date.date()}: margin {cur.importer_margin:.1f}, "
           f"norm {cur['norm']:.1f}, gap {cur.gap:+.1f}% of norm")
 
@@ -117,8 +157,14 @@ def report(fuel: str, d: pd.DataFrame, threshold: float) -> None:
     print(f"of those, {len(done)} are old enough to score at +{max(HORIZONS)} weeks "
           f"({episode_count(done.Date)} episodes)")
 
-    if not len(done):
-        print("  nothing scoreable at this threshold")
+    # A quartile over two observations is decoration, not a statistic. The
+    # era filters leave this sample small on purpose, and printing a spread
+    # anyway is how a reader ends up quoting one.
+    MIN_FOR_QUANTILES = 6
+    if len(done) < MIN_FOR_QUANTILES:
+        print(f"  too few scoreable weeks ({len(done)}) for a distribution — "
+              f"individual weeks only")
+        listing(d, sel)
         return
 
     print(f"\n  {'horizon':<9}{'gap closes by (pp of norm)':^30}{'still':>8}   "
@@ -156,8 +202,12 @@ def report(fuel: str, d: pd.DataFrame, threshold: float) -> None:
           + (f", median {np.median(got):.0f} wk, range {min(got):.0f}-{max(got):.0f}"
              if got else ""))
 
-    # The individual weeks, because with n this small the table above is a
-    # summary of something a reader should be able to see in full.
+    listing(d, sel)
+
+
+def listing(d: pd.DataFrame, sel: pd.DataFrame) -> None:
+    """The individual weeks, because with n this small any table above is a
+    summary of something a reader should be able to see in full."""
     print(f"\n  every qualifying week:")
     print(f"  {'week':<12}{'margin':>8}{'norm':>7}{'gap':>7}"
           + "".join(f"{'gap+' + str(k):>9}" for k in (4, 13))

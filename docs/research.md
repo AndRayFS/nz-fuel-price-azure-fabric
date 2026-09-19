@@ -1820,86 +1820,92 @@ right, which is a better property than it sounds.
 question is the one a reader can actually check the industry against: the
 margin is crushed, it has been crushed before, what came next.
 
-> **Corrected the same day, and the correction weakens the headline.** The
-> first version of this section measured the benchmark in relative terms and
-> the depth in cents, which reintroduces exactly the trend the benchmark
-> removes. It reported "the pump was higher four weeks later in 33 of 36
-> cases". On the corrected measure it is **27 of 38**, and the episodes that
-> break it are not a footnote — see below. Everything about the margin's own
-> recovery survived and strengthened.
+**The answer is that on usable data it has not been crushed before, and the
+date that makes that true is 29 March 2024.** Two earlier versions of this
+section got further than that by using data this project already ruled out.
+Both are withdrawn; what they claimed and why it failed is at the end.
 
-**The margin's level is not comparable across the series.** Its annual mean
-runs 18.2 c/L in 2004 to 47.0 in 2026, roughly a tripling, for reasons
-unrelated to any shock. So the benchmark is the margin's own trailing
-104-week mean, lagged one week so the week being judged never sits in its own
-benchmark — and the depth is measured **as a share of that norm, not in
-cents**. A gap of −10 c/L is −76% of a 2007 norm of 13.5 and −26% of a 2026
-norm of 39: the same cents are a different event. The absolute version put
-almost every deep week in 2026 and found one pre-2022 precedent in
-twenty-two years; on the relative measure 2005, 2007, 2008, 2009, 2022 and
-2023 all qualify.
+**The margin's level is not comparable across the series**, so the benchmark
+is its own trailing 104-week mean, lagged a week, and the depth is a share of
+that mean rather than a number of cents. Its annual mean runs 15.6 c/L in 2010
+to 38.6 in 2026 for petrol, so −10 c/L is a different event in each decade.
 
-Conditioning on weeks with `gap <= -40%` of norm:
+**Two era filters, both from rules already written down here.**
+
+- **2010+, for the identity.** `mbie_notes.md` measures that MBIE's published
+  components do not sum to the published total before 2010 — the 95th
+  percentile of the residual is 4.4–4.6 c/L against margins of 3–10 — and
+  concludes "use 2010+ for anything that relies on the identity". The importer
+  margin *is* that identity. Twelve of the eighteen petrol weeks the previous
+  version selected were pre-2010.
+- **The benchmark window must sit inside one era too.** This is the part no
+  rule stated, because nothing here had built a trailing benchmark before.
+  Marsden Point closed 1 Apr 2022 and the retail source changed from Envisory
+  to Datamine on 1 Jan 2022, so a compressed week in March 2022 is judged
+  against a two-year mean drawn **0–9%** from its own era. The 2023 weeks are
+  66–67% clean. Only from **29 Mar 2024** is a full 104-week window entirely
+  import-era and Datamine-sourced.
+
+What is left is 129 weeks. Within them, at `gap <= -40%`:
 
 | | petrol | diesel |
 |---|---|---|
-| today | **−64.1%** (0.4th pctile) | **−54.6%** (1.2nd) |
-| qualifying weeks | 18 (1.6% of the series) | 24 (2.1%) |
-| distinct episodes | 4 | 6 |
-| scoreable at +26 wk | 14 weeks | 15 weeks |
-| back within 15% of norm | **14/14**, median **2 wk** (1-4) | **15/15**, median **3 wk** (1-8) |
-| still `<= -40%` four weeks on | 0% | 13% |
-| pump change at +4 wk, median | +3.1 | +17.4 |
-| same, unconditional | +0.6 | +0.3 |
+| today | **−64.1%** | **−54.6%** |
+| qualifying weeks | 6 | 11 |
+| distinct episodes | **1** | **1** |
+| years they fall in | 2026 only | 2026 only |
+| scoreable at +26 wk | 2 | 2 |
 
-**The margin's recovery is the robust half, and it got stronger under the
-correction.** Twenty-nine of twenty-nine scoreable weeks returned to within
-15% of their norm — petrol in one to four weeks, diesel in one to eight. Not
-one episode in twenty-two years failed to recover. Whatever else is uncertain
-here, a crushed importer margin is a temporary state with a measured duration.
+**There is no prior episode. For either fuel, the only compression on
+comparable data is the one still running.** The script prints the individual
+weeks and refuses to print a distribution below six scoreable observations,
+because a quartile over two is decoration and decoration gets quoted.
 
-**The pump's direction is the fragile half. It was higher four weeks later in
-27 of 38 cases** — a real tilt against an unconditional four-week move of
-+0.6 and +0.3 c/L, which is a coin flip, but nothing like a rule.
+**What the six and eleven weeks do show**, as a description of the current
+episode rather than a base rate: three pinches, in March, in late July and
+now. Diesel's late-July week (−71.6%) was deeper than today's, petrol's
+(−45.7%) was not. Two of them have run long enough to see what followed, and
+they followed differently:
 
-**The eleven failures are informative, and they are where crude turned.** For
-petrol the split is clean: outside 2008-09, eight qualifying weeks and **8/8**
-higher a month later, median +6.9 c/L; inside the 2008-09 oil collapse,
-**2/8**, median **−17.4**. October 2008 has margin at −74% of norm and the
-pump 20 to 31 c/L *lower* four weeks on. Diesel's failures are April 2026 —
-3, 10 Apr at and just past the crude peak, the pump then falling 22.6 and
-55.6 c/L.
+| diesel | 24 Jul → 21 Aug | 3 Apr → 1 May |
+|---|---|---|
+| importer cost | 187.5 → 187.7 | 296.3 → 196.3 |
+| pump price | 249.5 → **267.4** | 352.7 → **330.2** |
+| margin | 13.5 → 29.6 | −1.8 → 75.7 |
 
-So the regularity is not "a squeezed margin pushes prices up". It is:
-**a squeezed margin marks a cost move that has entered the system and not yet
-reached the pump.** If the cost move holds, the price follows. If the cost
-move reverses first — Oct 2008, Apr 2026 — it does not, and the margin
-recovers by the cost falling rather than the price rising. The compression
-tells you the pump is out of equilibrium; it does not tell you which way
-equilibrium will be restored, and a post that quotes the 27 without the 11 is
-selling a coin flip as a forecast.
+In July the cost stood still and the margin was rebuilt by the pump rising
+18 c/L. In April the cost fell 100 c/L and the pump fell with it — though not
+before rising 28 c/L over the first fortnight, because a margin of −1.8 has to
+be repaired whatever crude then does. **So the compression marks a cost move
+that has not reached the pump; it does not say which side closes the gap.**
 
-**Today is deep but not unprecedented**, which is a change from what the
-absolute measure suggested. Petrol at −64% sits in the 0.4th percentile of
-1,117 weeks; 2007 reached −76% and March 2026 −101%. Diesel at −55% is in the
-1.2nd; 2008 reached −69% and March 2026 −127%. There are four petrol episodes
-and six diesel episodes to compare against, spread across twenty-one years,
-rather than the one the first version found.
+**A warning about the unconditional comparison in this window.** Over these
+129 weeks the median four-week pump move is **−1.0 to −1.2 c/L**, not the
++0.3 of the full series: the window is dominated by one crash and one
+recovery. Any "conditional versus unconditional" claim computed inside it is
+comparing a crisis against itself.
 
-Three limits that travel with these numbers:
+### What the two withdrawn versions claimed, and why they failed
 
-- **Weeks are not independent draws.** Compressions arrive in runs — four
-  consecutive weeks in Oct 2008, seven in Mar-Apr 2026 — so 24 diesel weeks
-  are six episodes. Quantiles describe the shape of the conditional
-  distribution, not that many observations; the script prints the episode
-  count beside every n for that reason.
-- **Nothing here is causal.** Margin and pump price are both downstream of the
-  same cost shock. "What actually drove pump prices through the 2026 crisis"
-  puts margin recovery at 6% of the diesel rise against cost's 78%.
-- **The norm is trailing and therefore lags a genuine level shift.** If the
-  competitive level of the margin steps up permanently, the first two years
-  of that read as a compression. Nothing in the record forces that reading,
-  but the measure cannot distinguish it.
+Kept because both were published here during the day and the second was cited
+by a LinkedIn post before it was corrected.
+
+1. **Absolute depth against a relative benchmark** — "the pump was higher four
+   weeks later in 33 of 36 cases". Measuring the benchmark in relative terms
+   and the deviation in cents puts the trend straight back in: −10 c/L is −76%
+   of a 2007 norm and −26% of a 2026 one. It selected 2022 and 2026 almost
+   exclusively, both periods of rising crude, and found one pre-2022 precedent
+   in twenty-two years.
+2. **Relative depth, no era filter** — "27 of 38". Correct on its own terms
+   and still wrong, because two thirds of the petrol sample sat in years whose
+   published components do not reconcile, and the 2022 weeks were compared
+   against a benchmark from the refining era.
+
+Each correction cut the sample and weakened the claim, which is the direction
+corrections usually run when the first version was found rather than
+constructed. The surviving statement is smaller than either: **today is deep,
+it is the deepest reading of the only episode on comparable data, and there is
+nothing to compare it to.**
 
 ## Checks that have repeatedly changed the answer
 
