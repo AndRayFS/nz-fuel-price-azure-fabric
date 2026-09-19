@@ -3,6 +3,48 @@
 Check dates against today before relying on this file — it goes stale by
 design and should be trimmed or updated, not left as-is indefinitely.
 
+- [ ] **~24 Sep 2026 — the first load a Logic App starts, and it has never
+  fired.** W16 moved the trigger off GitHub's scheduler to
+  `trigger-weekly-load` in `nz-fuel-price-rg`, recurrence 09:07 Thursday NZ.
+  Three things have to happen by hand before that can work — the fine-grained
+  PAT, the deployment, and authorising the mail connection as the mailbox, all
+  in `docs/ci_setup.md` step 7 — and none is done at the time of writing.
+  - **After the load, three runs tell the whole story.**
+    `gh run list --workflow weekly.yml --limit 5 --json event,createdAt,conclusion,name`
+    should show a `workflow_dispatch` at about 21:07 UTC Wednesday, not the
+    110 and 144 minutes late that the two scheduled firings were.
+  - **Nothing stands behind it.** `weekly.yml` has no schedule any more, so if
+    no run appears, no load happened and no part of the repository will say so.
+    Read the Logic App's run history in the resource group — a 401 there means
+    the token, a 404 the repository or the workflow file name.
+  - **The watchdog should appear straight after the load**, triggered by
+    `workflow_run` rather than by its own cron. Delete this item once one
+    Thursday has gone through that way.
+  - **The alarm is in the same Logic App, and it has never sent anything.** An
+    hour after the dispatch it asks GitHub what became of the run and mails
+    `morozov_77@hotmail.com` if the answer is not `success`. Silence on a good
+    week is the expected outcome, which makes it indistinguishable from an
+    alarm that does not work — so until one mail has actually arrived, check by
+    hand each Thursday with the `gh run list` above.
+  - **One line in the template is unverified**: the mail connector's operation
+    path, `/v2/Mail`. It could not be read from the CLI. `docs/ci_setup.md`
+    step 7c says how to confirm it in the designer, which takes a minute and
+    has to happen before the first Thursday.
+
+- [ ] **The dispatch token expires, and the date is the only warning.** The
+  Logic App authenticates to GitHub with a fine-grained PAT on one repository,
+  permission Actions: read and write — the one credential in this project that
+  is not OIDC. GitHub's maximum lifetime is a year, so a token created on
+  19 Sep 2026 dies around **19 Sep 2027**. *Write the real expiry date into
+  this item when the token is created.*
+
+  An expired token stops the dispatch, and with the backstop cron taken out on
+  19 Sep there is nothing behind it — the week simply does not load, and no red
+  run appears anywhere. The alarm catches it an hour later, by the back door:
+  the same token cannot read the runs API either, so the "cannot tell whether
+  the load ran" mail arrives. That is a symptom, not a warning, and the date
+  above is what makes it a warning.
+
 - [ ] **~mid-Oct 2026** — Stats NZ releases the September-quarter CPI, and
   MBIE finalises the thirteen weeks of Jul–Sep 2026. This is the second
   observation of an event the project has now seen once, and the first it
@@ -61,8 +103,11 @@ design and should be trimmed or updated, not left as-is indefinitely.
   upgrade removed; the 23:00 NZT auto-pause is the other guard.
   - **The alerts go only to `morozov_77@hotmail.com`**, the billing Microsoft
     Account — not to `andrei@…onmicrosoft.com`, which is the account the
-    project is normally driven from. An alert nobody reads is not a guard, so
-    either that mailbox gets watched or a second contact goes on the budget.
+    project is normally driven from. **That is fine: the owner reads that
+    mailbox daily** (stated 19 Sep 2026). This note used to say an alert nobody
+    reads is not a guard and ask for a second contact; the premise was wrong,
+    not the principle. No second contact is needed, and the same mailbox is now
+    the destination for the weekly load's own alarm.
   - All four thresholds are **Actual**, not Forecasted, so the first warning
     arrives after NZ$10 is already spent. At NZ$17.50/day for a capacity left
     running, that is about half a day of drift. A forecasted threshold would

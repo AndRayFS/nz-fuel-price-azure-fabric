@@ -1,17 +1,25 @@
 
 name: Weekly load
 
-# MBIE publishes on Wednesdays. Cron is UTC and New Zealand observes daylight
-# saving, so the local hour drifts by one twice a year: 21:00 UTC Wednesday is
-# 09:00 Thursday NZST and 10:00 Thursday NZDT. That is deliberate — an hour of
-# drift costs nothing here, and a second schedule to correct it would be one
-# more thing to keep right.
+# The clock is in Azure; the chain is here. `trigger-weekly-load`, a Logic App
+# in `nz-fuel-price-rg` defined by `infra/logic-apps/trigger-weekly-load.json`,
+# posts a `workflow_dispatch` at 09:07 Thursday New Zealand time. Nothing about
+# the run itself changed with it: same workflow, same OIDC federation, same
+# grants.
 #
-# Scheduled since 8 Sep 2026, after a manual run went green end to end:
-# OIDC exchange, resume, ingest through the job API, the gate, and pause.
+# Two things GitHub's `schedule` could not do. It carries no SLA — the
+# documentation says a scheduled workflow may be delayed or not run at all, and
+# both real firings were late, by 110 minutes on 10 Sep 2026 and by 144 on
+# 16 Sep, which made 21:00 a label rather than a time. And cron is UTC, so the
+# local hour drifted by one twice a year; the Logic App recurrence carries
+# `New Zealand Standard Time` and holds 09:07 across daylight saving.
+#
+# A dispatch is now the only way in — there is no `schedule` here at all, and
+# no second path that could start a load nobody asked for. What that costs is
+# stated plainly: if the Logic App does not fire, no load happens, and nothing
+# in this file would notice. Being told about it is the trigger's own job, in
+# Azure, where the clock is.
 on:
-  schedule:
-    - cron: '0 21 * * 3'
   workflow_dispatch:
     inputs:
       skip_ingest:

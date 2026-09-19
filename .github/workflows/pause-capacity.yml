@@ -7,15 +7,37 @@ name: Pause capacity (watchdog)
 # bills NZ$0.729/hour until the 23:00 NZT auto-pause, which is the fourth line
 # and can be hours away.
 #
-# Half past the hour after the weekly run starts, plus a button. It refuses to
-# act while a weekly run is still going, so a slow ingest is never cut off
-# mid-chain: a late pause costs cents, a pause through a running load costs the
-# week's data.
+# It refuses to act while a weekly run is still going, so a slow ingest is never
+# cut off mid-chain: a late pause costs cents, a pause through a running load
+# costs the week's data.
+#
+# **It follows the load, not the clock — 19 Sep 2026.** `workflow_run` fires
+# server-side on any conclusion of `Weekly load`: success, failure, cancellation
+# or timeout. That is the case this watchdog exists for, and it now cannot be
+# missed. The two crons used to race instead: the load and the watchdog were
+# half an hour apart, so a load delayed past the watchdog's slot — which is what
+# happened on both real firings — meant the watchdog ran first, found nothing in
+# flight and a capacity still asleep, exited green having guarded nothing, and
+# did not fire again for a week.
+#
+# The one cron that remains is belt and braces, for a `workflow_run` event that
+# never arrives. It sits two hours behind the load's own start rather than half
+# an hour, and on :52, so it is not racing anything: by then the load has either
+# finished or died, and either way the capacity should be asleep. It is still
+# eleven hours ahead of the 23:00 NZT auto-pause, which is the line behind it.
+#
+# This is the only cron left in the repository — `weekly.yml` has none, on
+# purpose (19 Sep 2026). A monitor being late costs nothing; a load being late
+# costs the week, which is why only one of the two is allowed to run on a
+# schedule GitHub does not promise to keep.
 #
 # Scheduled since 8 Sep 2026, together with the run it guards.
 on:
+  workflow_run:
+    workflows: ["Weekly load"]
+    types: [completed]
   schedule:
-    - cron: '30 21 * * 3'
+    - cron: '52 23 * * 3'     # Wednesday 23:52 UTC — Thursday 11:52 NZST, 12:52 NZDT
   workflow_dispatch:
 
 concurrency:
