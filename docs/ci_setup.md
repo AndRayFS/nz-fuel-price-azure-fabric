@@ -10,6 +10,8 @@ roles — `AuthorizationFailed` on `Microsoft.Authorization/roleDefinitions/writ
 — so it needs `morozov_77@hotmail.com`, as with the billing upgrade on 3 Sep);
 step 4 turned out not to exist. Step 6 has since been run many times over:
 the chain has gone through unattended on a schedule, most recently 16 Sep 2026.
+Step 7, which moves the trigger off that schedule, was added on 19 Sep 2026 and
+its two by-hand steps are still outstanding.
 
 **Signing back in matters.** `az login` as the Owner replaces the cached
 session, and everything in this project — dbt, the gate, every script — takes
@@ -161,11 +163,13 @@ touched nothing, and the run has still exercised every grant that matters:
 OIDC exchange, resume, a Fabric API call, a warehouse query, and pause.
 
 The two `schedule` blocks — `weekly.yml` and the watchdog in
-`pause-capacity.yml` — are live in this repository and have been since
-8 Sep 2026, switched on once that run was green. They were kept commented out
-until then, so that a repository without the identity behind it did not go red
-every Wednesday. Turning them on is the last step of this document, not the
-first.
+`pause-capacity.yml` — went live on 8 Sep 2026, switched on once that run was
+green. They were kept commented out until then, so that a repository without
+the identity behind it did not go red every Wednesday. Turning them on is the
+last step of this document, not the first. Neither cron starts the load any
+more: step 7 moved the trigger to a Logic App, `weekly.yml`'s schedule is gone
+altogether, and the watchdog's is now belt and braces behind a `workflow_run`
+event.
 
 **What the proving run found.** It went green end to end on the second
 attempt, and the two failures before it were worth more than the success:
@@ -209,3 +213,140 @@ no ingest, no warehouse, and nothing woken. It exercises the OIDC exchange and
 the ARM read, which is most of what a workflow edit can break. Used that way
 on 17 Sep 2026 to prove `azure/login@v3` before the weekly load met it: run
 35169892649, 12 seconds.
+
+## 7. Moving the clock off GitHub's scheduler — **the files are here, the three by-hand steps are not done** (19 Sep 2026)
+
+W16, steps 1 and 2. The chain stays exactly where it is; what changes is the
+thing holding the stopwatch, from GitHub's `schedule` trigger to a Logic App
+recurrence that posts a `workflow_dispatch` — and the same Logic App then waits
+an hour, asks GitHub what became of the run, and writes to a mailbox if the
+answer is anything but success. Why the clock moved, in `weekly.yml`'s own
+header: no SLA on one side, a Windows time zone on the other.
+
+**The trigger watches itself because nothing else can.** `weekly.yml` has no
+schedule behind it any more, so a dispatch that never lands produces no run, no
+red, and no trace anywhere in this repository. The alarm is not an extra: it is
+the other half of having one clock.
+
+Nothing in steps 1–5 is touched. The Logic App calls GitHub, not Azure, so it
+needs **no managed identity and no Azure role** — do not give it the resource
+group `Contributor` the two capacity Logic Apps carry. The credential goes the
+other way for the first time in this project: a GitHub token held in Azure,
+where everything so far has been an Azure identity held by GitHub.
+
+### 7a. A fine-grained PAT, and its expiry is a dated obligation
+
+github.com → Settings → Developer settings → Personal access tokens →
+Fine-grained tokens:
+
+| field | value |
+|---|---|
+| resource owner | `AndRayFS` |
+| repository access | only `nz-fuel-price-azure-fabric` |
+| repository permission | **Actions: Read and write** (Metadata: read comes with it) |
+| expiry | 1 year, the maximum GitHub offers |
+
+Read as well as write: the same token starts the run and then asks what became
+of it. One permission on one repository, and nothing else is readable with it.
+
+A token that expires unnoticed produces exactly the silent non-run this step
+exists to fix, so **the expiry date goes into `.claude/rules/active-items.md`
+as its own item** the moment the token is created. That is the whole reason a
+PAT was acceptable here rather than a GitHub App — a GitHub App would need an
+RS256 JWT, which a Logic App cannot sign without adding a Function, and the
+point of W16 is to move the clock without adding compute.
+
+### 7b. Deploy the Logic App and its mail connection
+
+`infra/logic-apps/trigger-weekly-load.json` declares two resources: the
+Consumption workflow, and an `outlook` API connection for the mail. Both land
+in `australiaeast`, beside the two capacity Logic Apps. *Checked* 19 Sep 2026:
+`az deployment group validate` accepts both.
+
+```bash
+read -rs GH_DISPATCH_TOKEN      # paste; never as an argument, never exported
+export GH_DISPATCH_TOKEN
+
+az deployment group create \
+  --resource-group nz-fuel-price-rg \
+  --name trigger-weekly-load \
+  --template-file infra/logic-apps/trigger-weekly-load.json \
+  --parameters githubToken="$GH_DISPATCH_TOKEN"
+
+unset GH_DISPATCH_TOKEN
+```
+
+`githubToken` is a `securestring` in three places at once, which is what keeps
+it out of everything readable afterwards: the deployment history does not store
+its value, a `GET` on the workflow returns it masked, and `secureData` on both
+HTTP actions hides the run inputs that carry it.
+
+### 7c. Authorise the mail connection, which only the portal can do
+
+The deployment creates the connection but cannot consent on a mailbox's behalf.
+Portal → `nz-fuel-price-rg` → `outlook-mail` → **Edit API connection** →
+Authorize → sign in as `morozov_77@hotmail.com` → Save. The connector's
+authorize endpoint is `login.microsoftonline.com/consumers/...` (*checked*
+against the managed API definition), so it is the consumer Outlook.com sign-in,
+not the work account.
+
+**One line in the template is not verified and this is where to check it.** The
+send-mail operation is written as `path: /v2/Mail`, the documented Send an
+email (V2) shape; the connector's own swagger is not readable from the CLI —
+ARM returns `apiDefinitions: null` and the runtime endpoint answers 404. Open
+the workflow in the designer after deploying: if the two mail actions render as
+**Send an email (V2)** with their fields filled in, the path is right. If either
+shows as an unrecognised operation, take what the designer generates and correct
+the template to match.
+
+### 7d. Prove it for about six cents
+
+Fire the recurrence by hand on a week that is already loaded. The dispatch
+reaches GitHub, the gate answers `2`, and the run ends green having woken the
+capacity for a few minutes — the same cheap proof step 6 uses.
+
+```bash
+LA=/subscriptions/$SUB/resourceGroups/nz-fuel-price-rg/providers/Microsoft.Logic/workflows/trigger-weekly-load
+az rest --method post \
+  --url "https://management.azure.com$LA/triggers/Recurrence/run?api-version=2016-06-01"
+
+gh run list --workflow weekly.yml --event workflow_dispatch --limit 3
+```
+
+A run appearing within seconds is the first half of the test: it proves the
+token, the permission and the URL together. If none appears, read the Logic
+App's run history — a 401 is the token, a 404 is the repository or the workflow
+file name, and a 422 is the `ref`.
+
+The second half arrives an hour later, and it is the half that is easy to
+forget: **no mail means the alarm agrees the load succeeded.** To see the alarm
+actually send, the honest test is a failing load rather than a contrived one —
+or temporarily deploy with `waitMinutes=2`, when the run will still be in
+flight, the conclusion will not be `success`, and the mail should arrive.
+
+### One trigger, and nothing behind it
+
+| where | when | what it is |
+|---|---|---|
+| `trigger-weekly-load` | Thursday 09:07 NZ | the trigger, and the only one |
+| the same, an hour later | Thursday ~10:07 NZ | asks what became of the run, mails if it did not succeed |
+| `weekly.yml` | on dispatch only | no schedule at all |
+| `pause-capacity.yml` | on `workflow_run`, plus Wednesday 23:52 UTC | the watchdog, following the load rather than racing it |
+
+**There is deliberately no second way to start a load.** A backstop cron was
+written first and taken out again on 19 Sep 2026, along with the `guard` job it
+needed: a cron fires every week whether or not the Logic App already did, so
+the pair is not a trigger and a reserve but two schedules that have to be kept
+from colliding. One clock, and something that says so when it fails to strike.
+
+**What the alarm deliberately does not do** is judge the data. It asks whether
+the chain ran and reached a conclusion, nothing more. Whether the week that
+arrived is any good is the gate's question, one stage later, and a quiet week
+with nothing new is a legitimate `success` here. Two things asking that question
+would eventually disagree.
+
+**Where the alarm is still blind: its own recurrence.** If the Logic App does
+not run at all, nothing sends anything — Azure's SLA is the answer to that, and
+a Monitor alert on the workflow's failed runs would be the belt on top. Not
+added: it costs a metric alert rule per month to guard against the platform
+whose reliability is the reason for moving here in the first place.

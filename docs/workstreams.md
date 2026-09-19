@@ -611,6 +611,24 @@ estimation scripts run against the relocated panel. `export_panel.py` was
 compile-checked only — a real run needs the capacity resumed, and it is due
 next weekly load.
 
+**Three research scripts were broken for twelve days and nothing noticed —
+found 19 Sep 2026.** `6ab239d` (7 Sep) stopped routing derived data through
+git and moved `period_flags` from `seeds/` to `data/` plus the warehouse. The
+path was updated in `pipeline/backtest.py` and missed in
+`research/headline_results.py`, `research/adl_asymmetry.py` and
+`research/procurement_lag.py`, all three of which then failed on
+`FileNotFoundError` at import of the flags. Nothing failed loudly because
+nothing runs them: the weekly chain does not, and CI does not. They were
+found only when a question needed a number recomputed.
+
+The claim above — "all four estimation scripts run against the relocated
+panel" — was true when W5 landed and stopped being true three days later.
+**That is the argument for the research contour getting the same treatment
+the loading contour got**: a named entry point, something that runs it, and
+something that goes red when it stops working. The split gave `research/` a
+boundary; it did not give it a check. Paths fixed the same day; the fix is
+one line in each of the three, and the underlying gap is not fixed.
+
 **Now.** `research/` holds two different kinds of code under one README.
 `export_panel.py`, `build_period_flags.py` and `backtest.py` run every
 week on settled algorithms with no human in the loop — that is production.
@@ -1048,7 +1066,58 @@ refresh left manual.
 
 ---
 
-## W16 — A trigger with an SLA, and something that notices a missing week
+## W16 — A trigger with an SLA, and something that notices a missing week — **landed 19 Sep 2026**
+
+Branch `w16-move-the-clock`, all three steps. The whole of it is
+`infra/logic-apps/trigger-weekly-load.json`, one Consumption Logic App that
+posts a `workflow_dispatch` at 09:07 Thursday New Zealand time, waits an hour,
+asks GitHub what became of the run, and mails `morozov_77@hotmail.com` if the
+answer is anything but `success`; `docs/ci_setup.md` step 7 is the procedure.
+**Deployed by hand and not yet proven** — the template passes
+`az deployment group validate`, which is not the same as having fired, and one
+line in it, the mail connector's operation path, could not be verified from the
+CLI at all.
+
+**Step 3 could not wait for its turn.** Moving the load to 09:07 NZ puts it at
+21:07 UTC, inside the watchdog's 21:30 UTC slot — so the race this entry
+describes would have stopped being a race and become a reliable false red every
+week, the watchdog waiting twenty minutes on a running load and then exiting 1.
+The clock could not move on its own. `pause-capacity.yml` therefore took its
+`workflow_run` trigger in the same branch, with one late cron left behind it.
+
+**Step 1 is now required rather than merely next, and that is a decision, not
+a slip.** A backstop cron was built into `weekly.yml` first — three hours behind
+the Logic App, with a `guard` job that asked GitHub whether a load had already
+concluded in the last eighteen hours and stood the cron down if one had. It was
+taken out again the same day, 19 Sep 2026, on the owner's call, and the argument
+for taking it out is the better one: a cron cannot know whether the Logic App
+fired, so it fires every week regardless, and what looks like a trigger and a
+reserve is really two schedules plus the machinery to keep them from colliding.
+One clock and an alarm is the smaller object than two clocks and an arbiter.
+
+The alarm is step 1, and removing the backstop is what made it compulsory:
+`weekly.yml` now has no schedule at all, so a trigger that does not fire costs
+the week's load and leaves nothing in the repository to notice. It was therefore
+built in the same branch, and built into the trigger itself rather than beside
+it — the object that is supposed to strike is the one best placed to report that
+it did not. What the whole arrangement buys is that every load in the history
+was asked for by something that meant it.
+
+**The alarm covers three failures with two mails, and is blind to a fourth.**
+No run at all, a run older than three hours, and a run whose conclusion is not
+`success` are one mail; a runs API that cannot be reached — which is what an
+expired token looks like from the other side — is the second, because the alarm
+shares its credential with the thing it watches. What nothing covers is the
+Logic App's own recurrence failing to fire. That is Azure's SLA, and guarding it
+would mean a Monitor alert rule billed monthly against the platform whose
+reliability was the argument for moving here.
+
+**One thing the plan did not anticipate: the credential runs the other way, and
+needs no Azure role.** Everything else here is an Azure
+identity held by GitHub; this is a GitHub token held in Azure.
+The Logic App calls `api.github.com` and touches no Azure resource, so it has no
+managed identity and no RBAC — deliberately not the resource-group `Contributor`
+that the two capacity Logic Apps carry.
 
 **Now.** The weekly chain is started by GitHub's own `schedule` trigger,
 `cron: '0 21 * * 3'` in `weekly.yml`, and guarded by a second cron half an
@@ -1153,11 +1222,13 @@ that is a new secret where OIDC had removed the need for one. A PAT that
 quietly expires produces exactly the silent non-run being fixed here, so the
 credential has to be either a GitHub App or a monitored expiry — the second
 reason the notification lands before the trigger, not after. Mail from a
-Logic App needs a connection authorised as some mailbox, and the budget
-alerts already went to a mailbox nobody watches
-(`.claude/rules/active-items.md`), so the destination is a decision, not a
-detail. Azure prices and service limits quoted above are order-of-magnitude
-from general knowledge and were not checked against current pricing.
+Logic App needs a connection authorised as some mailbox. This entry used to add
+that the destination was an open decision, because the budget alerts go to a
+mailbox nobody watches — **that premise was wrong and the decision is made**:
+`morozov_77@hotmail.com` is read daily by the owner (19 Sep 2026), it already
+receives the budget alerts, and the load's alarm goes to the same place. Azure
+prices and service limits quoted above are order-of-magnitude from general
+knowledge and were not checked against current pricing.
 
 **Depends on.** Nothing outstanding — W16 edits what W8 built, and W8 landed
 8 Sep 2026, so this is unblocked and can start immediately. Listing a landed
