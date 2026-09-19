@@ -3,47 +3,50 @@
 Check dates against today before relying on this file — it goes stale by
 design and should be trimmed or updated, not left as-is indefinitely.
 
-- [ ] **~24 Sep 2026 — the first load a Logic App starts, and it has never
-  fired.** W16 moved the trigger off GitHub's scheduler to
-  `trigger-weekly-load` in `nz-fuel-price-rg`, recurrence 09:07 Thursday NZ.
-  Three things have to happen by hand before that can work — the fine-grained
-  PAT, the deployment, and authorising the mail connection as the mailbox, all
-  in `docs/ci_setup.md` step 7 — and none is done at the time of writing.
-  - **After the load, three runs tell the whole story.**
-    `gh run list --workflow weekly.yml --limit 5 --json event,createdAt,conclusion,name`
-    should show a `workflow_dispatch` at about 21:07 UTC Wednesday, not the
-    110 and 144 minutes late that the two scheduled firings were.
+- [x] **The trigger moved to a Logic App and was proven the same day —
+  19 Sep 2026.** `trigger-weekly-load` in `nz-fuel-price-rg` is deployed and
+  `Enabled`, recurrence 09:07 Thursday NZ; the `outlook-mail` connection is
+  `Connected` as `morozov_77@hotmail.com`; both mail actions render as **Send
+  an email (V2)** in the designer, which was the only way the `/v2/Mail` path
+  could be checked — ARM does not serve the connector's swagger. A hand-fired
+  recurrence produced run 35423341610: `workflow_dispatch`, green in
+  3.5 minutes, gate `2`, capacity back to `Paused`. It also produced run
+  35423507593, the watchdog, **triggered by `workflow_run` for the first
+  time**. Token, `Actions` permission, dispatch URL, OIDC exchange and ARM
+  role all hold together on a live run.
+  - **Two things have still never happened.** The recurrence has never fired
+    on its own — 24 Sep is the first — and the alarm has never sent a mail,
+    because the only run it has seen succeeded. Check both on the 25th:
+    `gh run list --workflow weekly.yml --limit 5 --json event,createdAt,conclusion`
+    should show a `workflow_dispatch` created within a minute or two of
+    21:07 UTC Wednesday, not the 110 and 144 minutes late that the two
+    scheduled firings were.
   - **Nothing stands behind it.** `weekly.yml` has no schedule any more, so if
-    no run appears, no load happened and no part of the repository will say so.
-    Read the Logic App's run history in the resource group — a 401 there means
-    the token, a 404 the repository or the workflow file name.
-  - **The watchdog should appear straight after the load**, triggered by
-    `workflow_run` rather than by its own cron. Delete this item once one
-    Thursday has gone through that way.
-  - **The alarm is in the same Logic App, and it has never sent anything.** An
-    hour after the dispatch it asks GitHub what became of the run and mails
-    `morozov_77@hotmail.com` if the answer is not `success`. Silence on a good
-    week is the expected outcome, which makes it indistinguishable from an
-    alarm that does not work — so until one mail has actually arrived, check by
-    hand each Thursday with the `gh run list` above.
-  - **One line in the template is unverified**: the mail connector's operation
-    path, `/v2/Mail`. It could not be read from the CLI. `docs/ci_setup.md`
-    step 7c says how to confirm it in the designer, which takes a minute and
-    has to happen before the first Thursday.
+    no run appears, no load happened. The alarm is the only thing that will
+    say so, and until one mail has actually arrived, silence is ambiguous —
+    check by hand each Thursday, and read the Logic App's run history in the
+    resource group when in doubt. Delete this item once one Thursday has gone
+    through on its own.
 
-- [ ] **The dispatch token expires, and the date is the only warning.** The
-  Logic App authenticates to GitHub with a fine-grained PAT on one repository,
-  permission Actions: read and write — the one credential in this project that
-  is not OIDC. GitHub's maximum lifetime is a year, so a token created on
-  19 Sep 2026 dies around **19 Sep 2027**. *Write the real expiry date into
-  this item when the token is created.*
+- [x] **The dispatch token does not expire, and that was the choice —
+  19 Sep 2026.** The Logic App authenticates to GitHub with a fine-grained PAT
+  called `nz-fuel-dispatch`, scoped to this repository alone, permissions
+  `Actions: read and write` plus the compulsory `Metadata: read`. It is set to
+  **No expiration**, so there is no date on this item and nothing to renew.
 
-  An expired token stops the dispatch, and with the backstop cron taken out on
-  19 Sep there is nothing behind it — the week simply does not load, and no red
-  run appears anywhere. The alarm catches it an hour later, by the back door:
-  the same token cannot read the runs API either, so the "cannot tell whether
-  the load ran" mail arrives. That is a symptom, not a warning, and the date
-  above is what makes it a warning.
+  That is deliberate, and it is the opposite of what the plan assumed. An
+  expiring token produces exactly the failure W16 exists to remove: the trigger
+  quietly stops, and with the backstop cron gone the week simply does not load.
+  A credential that cannot die of old age removes that failure entirely, and
+  what it costs is bounded — one public repository with no secrets in it, one
+  permission, and the worst it buys an attacker is starting and cancelling
+  workflow runs, wasting capacity that the watchdog, the `always()` pause and
+  the 23:00 NZT auto-pause all close behind them.
+
+  **The standing obligation is therefore not a date but a reflex: if the token
+  ever leaks, revoke it on GitHub and redeploy the Logic App with a new one.**
+  It lives in exactly one place, as a `securestring` parameter on the workflow
+  — in no file, no repository and no conversation.
 
 - [ ] **~mid-Oct 2026** — Stats NZ releases the September-quarter CPI, and
   MBIE finalises the thirteen weeks of Jul–Sep 2026. This is the second
