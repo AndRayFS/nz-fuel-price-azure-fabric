@@ -1,4 +1,4 @@
-"""Build `seeds/period_flags.csv` — several independent regime axes, one row
+"""Build `data/period_flags.csv` — several independent regime axes, one row
 per (week, fuel).
 
 Replaces the single `period_type` axis of `seeds/periods.csv`, which mixes a

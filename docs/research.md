@@ -1048,6 +1048,15 @@ replicate across two independent specifications; the size does not yet.
 
 ## The quarter finalised, and it answered the question — 29 Aug 2026
 
+> **Reproduced 19 Sep 2026, unchanged.** `headline_results.py` re-run against
+> a panel exported that morning returns every figure in this section to the
+> digit — diesel 0.850 / 0.902 / 1.087 / 1.073, spread 0.223; half-lives 6.1
+> and 5.5; petrol joint p 0.159 and diesel mean lag 0.81 wk with Δβ₀ +0.114
+> (p 0.0036). No week has finalised since 26 Aug, so the sample is the same
+> one; the value of the re-run is that the cutoff is still read from the data
+> rather than hardcoded, and it still lands where it did. **The numbers in
+> this section, not the 16 Aug ones above it, are the current set.**
+
 On 26 Aug MBIE finalised thirteen weeks, 3 Apr – 26 Jun 2026 — the whole
 June quarter, all six status columns at once. Eight Provisional weeks
 remain. Recomputed offline against the panel exported 27 Aug; the capacity
@@ -1705,6 +1714,45 @@ needs republishing; and the confidence-tier language rules apply to the new
 series as they do to the old ones. None of that is measurement, and none of it
 is done.
 
+## The nowcast's Brent is futures, and in this market that is the wrong price — 19 Sep 2026
+
+`research/nowcast_brent.py` fetches Yahoo `BZ=F`, front-month Brent futures.
+FRED's `DCOILBRENTEU` is Europe Brent spot FOB. On 4,714 common days the two
+correlate at 0.9964 with a median annual divergence of 0.0-1.3%, which is why
+nobody looked.
+
+They have come apart. From 1 to 15 Sep 2026 the gap widened monotonically
+0.5% -> 20.3%: spot 130.80 against futures 108.75 on 15 Sep. That is
+backwardation from the Hormuz closure — buyers bidding for physical cargoes
+they can load now, over paper barrels they cannot.
+
+**MBIE's `Importer cost` is built on physical cargoes, so spot is the right
+series and futures is the wrong one.** For week 2026-09-11 MBIE publishes
+Dubai at 109.0; FRED gives 111.8 and Yahoo 102.8, against a historical median
+Dubai-minus-Brent spread of -1.8 to -2.0. Spot lands where the spread says it
+should and futures is 8 c/bbl out on the other side.
+
+The direction of the error is the bad one: **the futures series understates
+the cost the pump must absorb, and understates it most exactly when a nowcast
+would earn its keep.** The walk-forward result above was scored over
+2010-2026, almost all of it a market where the two series agree, so it is not
+evidence about a backwardated one. Condition on shipping, recorded here and
+in the script: re-measure on spot first, or measure how much of the edge
+survives on futures.
+
+**A separate and smaller finding: one Yahoo point is simply wrong.** Its close
+for 2026-09-18 is 98.77; TradingEconomics and Convex both put that day at
+103.2-103.9, a -1.5% move rather than -5.8%. A front-month roll in steep
+backwardation produces exactly that phantom gap. Nothing in this file rested
+on it, but a -5.8% day was briefly taken for a real one on 19 Sep, which is
+the second time this week a series has been quoted without asking what it
+measures.
+
+**Nothing in production is affected.** `pipeline/backtest.py` reads
+`importer_cost` from the MBIE panel and never touches Yahoo; the weekly chain
+and CI contain no reference to it. The exposure is confined to the nowcast,
+which is research.
+
 ## A better crude-to-cost slope made the forecast worse — 8 Sep 2026
 
 The nowcast turns a move in Brent-in-NZD into a move in `Importer cost`
@@ -1765,6 +1813,99 @@ row above.
 runs with a stale one, and it still works. That is a limitation and a margin
 at the same time: the mechanism does not depend on the coefficient being
 right, which is a better property than it sounds.
+
+## What the record says after a margin compression — 19 Sep 2026
+
+`research/margin_episodes.py`, offline against the panel exported 19 Sep. The
+question is the one a reader can actually check the industry against: the
+margin is crushed, it has been crushed before, what came next.
+
+**The answer is that on usable data it has not been crushed before, and the
+date that makes that true is 29 March 2024.** Two earlier versions of this
+section got further than that by using data this project already ruled out.
+Both are withdrawn; what they claimed and why it failed is at the end.
+
+**The margin's level is not comparable across the series**, so the benchmark
+is its own trailing 104-week mean, lagged a week, and the depth is a share of
+that mean rather than a number of cents. Its annual mean runs 15.6 c/L in 2010
+to 38.6 in 2026 for petrol, so −10 c/L is a different event in each decade.
+
+**Two era filters, both from rules already written down here.**
+
+- **2010+, for the identity.** `mbie_notes.md` measures that MBIE's published
+  components do not sum to the published total before 2010 — the 95th
+  percentile of the residual is 4.4–4.6 c/L against margins of 3–10 — and
+  concludes "use 2010+ for anything that relies on the identity". The importer
+  margin *is* that identity. Twelve of the eighteen petrol weeks the previous
+  version selected were pre-2010.
+- **The benchmark window must sit inside one era too.** This is the part no
+  rule stated, because nothing here had built a trailing benchmark before.
+  Marsden Point closed 1 Apr 2022 and the retail source changed from Envisory
+  to Datamine on 1 Jan 2022, so a compressed week in March 2022 is judged
+  against a two-year mean drawn **0–9%** from its own era. The 2023 weeks are
+  66–67% clean. Only from **29 Mar 2024** is a full 104-week window entirely
+  import-era and Datamine-sourced.
+
+What is left is 129 weeks. Within them, at `gap <= -40%`:
+
+| | petrol | diesel |
+|---|---|---|
+| today | **−64.1%** | **−54.6%** |
+| qualifying weeks | 6 | 11 |
+| distinct episodes | **1** | **1** |
+| years they fall in | 2026 only | 2026 only |
+| scoreable at +26 wk | 2 | 2 |
+
+**There is no prior episode. For either fuel, the only compression on
+comparable data is the one still running.** The script prints the individual
+weeks and refuses to print a distribution below six scoreable observations,
+because a quartile over two is decoration and decoration gets quoted.
+
+**What the six and eleven weeks do show**, as a description of the current
+episode rather than a base rate: three pinches, in March, in late July and
+now. Diesel's late-July week (−71.6%) was deeper than today's, petrol's
+(−45.7%) was not. Two of them have run long enough to see what followed, and
+they followed differently:
+
+| diesel | 24 Jul → 21 Aug | 3 Apr → 1 May |
+|---|---|---|
+| importer cost | 187.5 → 187.7 | 296.3 → 196.3 |
+| pump price | 249.5 → **267.4** | 352.7 → **330.2** |
+| margin | 13.5 → 29.6 | −1.8 → 75.7 |
+
+In July the cost stood still and the margin was rebuilt by the pump rising
+18 c/L. In April the cost fell 100 c/L and the pump fell with it — though not
+before rising 28 c/L over the first fortnight, because a margin of −1.8 has to
+be repaired whatever crude then does. **So the compression marks a cost move
+that has not reached the pump; it does not say which side closes the gap.**
+
+**A warning about the unconditional comparison in this window.** Over these
+129 weeks the median four-week pump move is **−1.0 to −1.2 c/L**, not the
++0.3 of the full series: the window is dominated by one crash and one
+recovery. Any "conditional versus unconditional" claim computed inside it is
+comparing a crisis against itself.
+
+### What the two withdrawn versions claimed, and why they failed
+
+Kept because both were published here during the day and the second was cited
+by a LinkedIn post before it was corrected.
+
+1. **Absolute depth against a relative benchmark** — "the pump was higher four
+   weeks later in 33 of 36 cases". Measuring the benchmark in relative terms
+   and the deviation in cents puts the trend straight back in: −10 c/L is −76%
+   of a 2007 norm and −26% of a 2026 one. It selected 2022 and 2026 almost
+   exclusively, both periods of rising crude, and found one pre-2022 precedent
+   in twenty-two years.
+2. **Relative depth, no era filter** — "27 of 38". Correct on its own terms
+   and still wrong, because two thirds of the petrol sample sat in years whose
+   published components do not reconcile, and the 2022 weeks were compared
+   against a benchmark from the refining era.
+
+Each correction cut the sample and weakened the claim, which is the direction
+corrections usually run when the first version was found rather than
+constructed. The surviving statement is smaller than either: **today is deep,
+it is the deepest reading of the only episode on comparable data, and there is
+nothing to compare it to.**
 
 ## Checks that have repeatedly changed the answer
 
