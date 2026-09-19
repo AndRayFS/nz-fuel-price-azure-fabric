@@ -14,9 +14,15 @@ design and should be trimmed or updated, not left as-is indefinitely.
   35423507593, the watchdog, **triggered by `workflow_run` for the first
   time**. Token, `Actions` permission, dispatch URL, OIDC exchange and ARM
   role all hold together on a live run.
-  - **Two things have still never happened.** The recurrence has never fired
-    on its own — 24 Sep is the first — and the alarm has never sent a mail,
-    because the only run it has seen succeeded. Check both on the 25th:
+  - **The alarm's judgement was exercised; its voice was not.** An hour after
+    the dispatch, run `08584118121261199683681875057CU01` asked GitHub, found
+    the run, and evaluated both halves of the condition — conclusion and age —
+    on live data, then skipped both mail actions. Silence was the correct
+    answer and it was reached correctly. **What has never executed is either
+    `Send an email (V2)` action**, so the mailbox end of the path is still
+    unproven.
+  - **The recurrence has never fired on its own** — 24 Sep is the first.
+    Check on the 25th:
     `gh run list --workflow weekly.yml --limit 5 --json event,createdAt,conclusion`
     should show a `workflow_dispatch` created within a minute or two of
     21:07 UTC Wednesday, not the 110 and 144 minutes late that the two
