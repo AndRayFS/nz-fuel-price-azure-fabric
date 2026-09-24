@@ -340,7 +340,26 @@ missing costs, the residual `Importer margin` is overstated by the same
 amount** — which is a documented, publisher-acknowledged reason for
 diesel's margin to look extreme, independent of any behaviour.
 
+**It landed on 23 Sep 2026.** MBIE changed its methodology to include those
+costs as a "fuel market adjustment" — 70% of the physical-over-benchmark
+differential, the Commerce Commission's estimate of the traders' risk
+premium — applied to every fuel from 27 Feb 2026, and revised `Importer cost`, `Importer margin` and `Importer margin trend` to
+match: cost up, margin down by the same amount. Through the conflict diesel's
+margin now sits far lower than anything the next section quotes.
+Measurements: "Known structural changes", 23 Sep 2026.
+
 ### MBIE's own findings, and where they agree with this project
+
+> **24 Sep 2026 — the data no longer says this.** After MBIE's 23 Sep cost
+> adjustment the lowest margins are **diesel −51.3 c/L on 3 Apr and regular
+> petrol −10.1 on 13 Mar**. Diesel was below zero for six weeks running,
+> 6 Mar – 10 Apr, and petrol on 13 and 20 Mar. The first-week fall is diesel
+> 41.9 → −12.3 and petrol 37.6 → 11.3. Diesel's record is 95.3 c/L in the
+> week of 29 May; 24 Apr now reads 89.8. Still true: these are the first
+> negative margins since the series began. The bullets below are what MBIE's
+> restart page said on 16 Aug, and they matched the data as it then stood;
+> they stay as that record. Whether MBIE has since updated the restart page
+> itself was not checked.
 
 Their restart analysis reports numbers this project derived independently.
 They match exactly, which is a useful check on the pipeline:
@@ -388,6 +407,13 @@ Consequences, which matter most for anything computed on changes:
   change-based ones.
 
 ## How `Importer cost` is actually built — and why that matters
+
+> **Changed 23 Sep 2026** (methodology dated 16 Sep). From 27 Feb 2026 the
+> purchase cost also carries a "fuel market adjustment": 70% of the fuel
+> differential, physical delivery price minus benchmark, from a new daily
+> Argus input. So from that date `Importer cost` is no longer only this
+> week's Singapore spot at this week's exchange rate, and a third input moves
+> weekly. See "Known structural changes", 23 Sep 2026.
 
 Read from the primary source on 13 Aug 2026: MBIE's *Weekly fuel monitoring
 methodology*, https://www.mbie.govt.nz/dmsdocument/30707-weekly-fuel-price-monitoring-methodology
@@ -587,8 +613,10 @@ asymmetric:
 
 - For a **collapse**, the full-history yardstick is *conservative* — the
   drift means a low 2026 value must beat the genuinely low 2004–2008 era
-  to rank extreme. March 2026's diesel (−12.4) and petrol (−0.3) minima
-  have **zero** weeks below them in 22 years. Safe to quote.
+  to rank extreme. The 2026 minima — diesel −51.3 on 3 Apr and petrol
+  −10.1 on 13 Mar since MBIE's 23 Sep adjustment, −12.4 and −0.3 before
+  it — have **zero** weeks below them in 22 years on either data. Safe to
+  quote.
 - For a **normal-looking level**, it is misleading. Diesel's pre-crisis
   42.4 reads as the 84th percentile of 22 years but the **33rd** of the
   last three; petrol's 37.6 as the 90th versus the **48th**. An earlier
@@ -724,6 +752,11 @@ rebuilt after the fact rather than computed live. Checked, 29 Aug 2026:
 `Importer cost` on those weeks did not change in a single row. MBIE let its
 own backfill stand. Question closed.
 
+**Reopened 24 Sep 2026.** It held for one release. MBIE's 23 Sep methodology
+change rewrote `Importer cost` on every one of those weeks, and on the
+live-published weeks either side of them, outside any finalisation — see
+"Known structural changes", 23 Sep 2026.
+
 ## `Importer margin trend` — excluded from revision tracking
 
 A full diff between two snapshots (17 Jul vs 24 Jul) returned **7,010** changed
@@ -803,6 +836,9 @@ week-to-week correction, not a data quality problem.
     only the quarterly factor moved, which it did for every week of the
     quarter alike. The reconstruction stands as MBIE published it. See
     "What a finalisation actually does" above.
+  - **Reopened 24 Sep 2026.** MBIE's cost adjustment rewrote every one of
+    these weeks and the live-published weeks either side of them, so the
+    reconstruction did not stand as published. See the 23 Sep entry below.
 - **3 Sep 2026 — the `Date` column changed format, across the whole file.**
   Every week back to 23 Apr 2004 arrived as `28/08/2026` where the week
   before it had been `2026-08-21`. Nothing else moved: same seven columns,
@@ -911,6 +947,64 @@ week-to-week correction, not a data quality problem.
     proves little — bronze had not changed since that load — so the
     measurement that matters is the one above: run against the two precisions
     as they sit in the table, the expression passes 8 of the 16,034 versions.
+- **23 Sep 2026 — MBIE added a "fuel market adjustment" to `Importer cost`
+  from 27 Feb 2026, Final weeks included.** Announced on the weekly fuel price
+  monitoring page the same day: additional costs the Commerce Commission
+  identified with importers, applied to all fuels from 27 Feb 2026, with
+  `Importer cost`, `Importer margin` and `Importer margin trend` revised. It
+  reached this project in the 24 Sep load.
+  - **What the methodology says, read 24 Sep 2026** (document dated
+    16 Sep 2026, seven pages). A new subsection under the cost to purchase
+    fuel: the conflict raised physical purchase costs beyond what refined
+    product benchmarks show — a risk premium traders charged in anticipation
+    of further rises. The Commerce Commission, after consulting importers,
+    estimated it at about 70% of the fuel differential, the physical delivery
+    price minus the benchmark price, and MBIE adds exactly that to the base
+    purchase cost from 27 Feb 2026. The data-sources annex gains one row,
+    `Product differential`, Argus Media, daily. Nothing else changed in
+    substance: the formula, the Singapore base quotes, shipping, FX,
+    wharfage, taxes, the adjustment factor and the Provisional/Final rule
+    read as before, reworded.
+  - **What it does not say:** an end date, whether the 70% will be
+    revisited, or whether a negative differential gives a negative
+    adjustment. The one negative Final week (diesel 26 Jun, −0.09 c/L)
+    suggests it is not floored at zero.
+  - **What moved, measured from the snapshot on 24 Sep:** every week from
+    27 Feb (`2026w09`) to 11 Sep (`2026w37`), all three fuels — eighteen Final
+    weeks (108 `final_rewritten` versions) and eleven Provisional (66
+    `provisional_revised`). Retail, board price, taxes, GST, ETS, the exchange
+    rate and every status are untouched. The shape is the one the six genuine
+    revisions of 16 Sep showed on a single week: cost up, margin down by the
+    identical amount, so the identity still closes and the pump price does not
+    move.
+  - **Size, in c/L of `Importer cost`:** diesel from −0.09 (26 Jun) to
+    **+49.4 (3 Apr)**, petrol from +0.09 (27 Feb) to **+12.8 (20 Mar)**,
+    identical for both petrols. Largest in the weeks of the sharpest cost and
+    positive in every Final week but one. July–September: petrol +0.7 to +9.0,
+    diesel −0.04 to +7.1. `Dubai crude price` for 11 Sep moved too, +2 USD/bbl
+    (+3 NZD) — the ordinary newest-week correction, not the adjustment.
+  - **Where it sits against the pause.** It covers the backfilled window of
+    18 Mar – 1 Jul and runs past it at both ends, into weeks MBIE published
+    live: 27 Feb – 13 Mar before, July–September after. So it is not a
+    correction of the backfill, and the note above that the reconstruction
+    stands as published held for exactly one release.
+  - **It is not a finalisation.** No status changed and no adjustment factor
+    moved; Q3 still finalises in mid-October. Final weeks can therefore be
+    rewritten outside a finalisation, by a methodology change, with nothing
+    in the file to say so — the reason was on MBIE's web page. Here it surfaced
+    as `revisions_rewrote_a_final_week` warning on 108 rows.
+  - **What it did downstream.** Research figures that include 2026 moved
+    (`research.md`, "MBIE added a cost to the crisis"); anything that stops at
+    2025 cannot move and did not. Anything that sets `Importer cost` against
+    an outside price — `monitor_aip_gap`, and the AIP markup ranges in
+    `architecture.md` — now compares against a cost that carries the
+    adjustment from 27 Feb 2026. The minima and records quoted in this file
+    are updated above.
+  - **Truncation noise: two versions** at no more than 4e-8 c/L
+    (`Price excluding tax`, Premium 95R, weeks `2010w32` and `2013w40`) — the
+    rounding-boundary artefacts the 16 Sep entry predicted. Most likely the
+    precision moved again and the rounded comparison held it to two; not
+    checked against bronze.
 
 ## Related page — fuel stock & shipping (not yet integrated)
 

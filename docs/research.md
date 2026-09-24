@@ -616,6 +616,13 @@ import era the residual is zero.
 
 ## What a litre is actually made of, in cents
 
+> **24 Sep 2026:** the same week now reads diesel cost 177.2 (65.9%), margin
+> 41.0 (15.2%), total 268.9; petrol cost 127.3 (42.3%), margin 43.9 (14.6%),
+> total 300.8. Two revisions moved it: the 26 Aug factor shift (retail and
+> GST) and MBIE's 23 Sep cost adjustment (cost up, margin down). The claims
+> stand — two-thirds of a diesel litre is the commodity, and petrol's price is
+> 43% tax.
+
 Accounting only — no fitting. Uses `adjusted_retail_price`, which is where
 MBIE's identity closes (`mbie_notes.md`). Week of 7 Aug 2026:
 
@@ -636,6 +643,22 @@ tax and therefore structurally damped. This is a cleaner explanation for
 with the cost-side finding above.
 
 ## What actually drove pump prices through the 2026 crisis — it is not margin
+
+> **Recomputed 24 Sep 2026, and the conclusion strengthens.** MBIE's 23 Sep
+> adjustment raised `Importer cost` from 27 Feb 2026 and lowered the margin by
+> the same amount (`mbie_notes.md`). Between the same two weeks diesel's
+> 81.7 c/L rise in adjusted retail is now **cost +70.1 (86%), margin −1.0
+> (−1%)**, taxes, GST and ETS +12.5 (15%) — the margin contributed nothing
+> net. Petrol's 47.9: cost +33.6 (70%), margin +6.4 (13%), taxes +7.9 (17%).
+> The total sits 1.8 below the table's 83.5 because the 26 Aug factor shift
+> reached 7 Aug through adjusted retail, not board price. Diesel's margin now
+> ranks 83rd percentile before the crisis, 0.2nd at the crude peak (−28.9 c/L,
+> not 2.7) and 82nd on 7 Aug — back to slightly *below* where it started;
+> petrol 91st, 0.1st and 97th. Cost per unit of crude rose 50% for diesel
+> (0.900 → 1.353), not 46%, and its landed cost 65%, not 61%. The April
+> extreme is now 308.5 c/L against crude 170 on 17 Apr, a ratio of 1.81, and
+> the caveat below is stronger than written: MBIE has now revised that window
+> a second time.
 
 **Corrected 14 Aug 2026, and the correction reverses the conclusion.** The
 first version of this section used 6 Mar 2026 as the pre-crisis baseline
@@ -1048,6 +1071,12 @@ replicate across two independent specifications; the size does not yet.
 
 ## The quarter finalised, and it answered the question — 29 Aug 2026
 
+> **Superseded in part, 24 Sep 2026.** MBIE rewrote `Importer cost` on every
+> week from 27 Feb 2026, Final weeks included. Diesel's figures below moved
+> again and its Δβ₀ contrast is no longer significant; the recommended
+> quotation did not move. Read "MBIE added a cost to the crisis" below before
+> quoting anything here.
+
 > **Reproduced 19 Sep 2026, unchanged.** `headline_results.py` re-run against
 > a panel exported that morning returns every figure in this section to the
 > digit — diesel 0.850 / 0.902 / 1.087 / 1.073, spread 0.223; half-lives 6.1
@@ -1108,6 +1137,10 @@ the only test this rule has ever had, and it passed.
 
 ### The regime speed effect survives in diesel and not in petrol
 
+> **24 Sep 2026:** on MBIE's revised cost data diesel's Δβ₀ is +0.050
+> (p 0.25) — no longer significant. Petrol's effect stays absent. See "MBIE
+> added a cost to the crisis" below.
+
 `period_labelling.md` leads with "both fuels pass cost through roughly twice
 as fast in high-volatility weeks (joint p < 0.0001)". Half of that is gone:
 
@@ -1145,6 +1178,78 @@ stretch — noise.
 against naive 7.42 (22% skill), h=2 11.27 against 13.37 (16%), both well
 below the crisis-week average. `report1_ish` returned 15.18 at h=1, twice
 naive's error.
+
+## MBIE added a cost to the crisis, and diesel moved again — 24 Sep 2026
+
+On 23 Sep 2026 MBIE changed its methodology: a "fuel market adjustment" of 70%
+of the fuel differential — the physical delivery price over the benchmark
+quote — added to the purchase cost of every fuel from 27 Feb 2026, the share
+the Commerce Commission estimated as traders' risk premium (`mbie_notes.md`,
+"Known structural changes"). It reached this project in the 24 Sep load as a rewrite of `Importer cost` and
+`Importer margin` on every week from 27 Feb to 11 Sep, eighteen of them Final.
+Cost went up and margin down by the identical amount, so the pump price and
+`d_net` did not move; `d_cost` did. The largest change is diesel's 3 Apr week,
++49.4 c/L, which takes that week's margin from −1.8 to −51.3.
+
+No status changed, so the Final sample is the one of 29 Aug and 19 Sep —
+through 26 Jun, twelve later weeks excluded. **Every movement below is the
+revision; none of it is sample composition.** On 29 Aug it was the other way
+round. Re-run offline against the panel exported 24 Sep:
+
+| Final only | 29 Aug, reproduced 19 Sep | 24 Sep |
+|---|---|---|
+| diesel pass-through, K=3 / 6 / 9 / 12 | 0.850 / 0.902 / 1.087 / 1.073 | **0.711 / 0.802 / 0.988 / 0.996** |
+| diesel spread K=3..12 | 0.223 | **0.285** |
+| petrol spread K=3..12 | 0.069 | 0.098 |
+| half-life, diesel / petrol | 5.5 / 6.1 wk | **4.0** / 5.9 wk |
+| diesel, mean lag normal → high (K=4) | 1.55 → 0.81 wk, joint p 0.0001 | 1.51 → 0.31 wk, joint p <0.0001 |
+| diesel, Δβ₀ | +0.114 (p 0.0036) | **+0.050 (p 0.25)** |
+| petrol, joint p for the regime block | 0.159 | 0.45 |
+
+- **Diesel's pass-through including 2026 is below one at every K**, where on
+  29 Aug it was above one from K=9. The short end fell most: at K=3 the pump
+  follows 71% of a cost move within three weeks, against 85%. The revised
+  crisis cost swings are larger and the pump path is the same, so a smaller
+  share of each swing reaches the pump inside the window.
+- **Less stable, not more**: the spread widens from 0.223 to 0.285.
+- **Error correction is faster**: diesel's half-life 5.5 → 4.0 weeks
+  (g −0.161, t −4.32), outside every band this file has quoted. Petrol barely
+  moves.
+- **Diesel's Δβ₀ is no longer significant.** It became significant for the
+  first time on 29 Aug and has lost it on a revision alone, with no week
+  added. The joint block strengthens and the high-volatility mean lag drops to
+  0.31 weeks, but a mean lag that moves from 0.81 to 0.31 on revised inputs
+  is the ratio's known fragility (above), not a measured speed; it is not
+  quoted. Petrol's regime effect stays absent.
+
+**What did not move: the figure this file recommends quoting.** Diesel on
+Final data excluding 2026 is 0.930 / 1.006 / 1.020 / 1.012, spread 0.082,
+half-life 6.49 — identical, as it has to be: the adjustment starts on 27 Feb
+2026 and cannot reach a sample cut at 31 Dec 2025. The 29 Aug paragraph prints
+K=12 as 1.013; the 16 Aug table and this run give 1.012 (1.01248), so that
+digit was a slip, not a movement. **That is the rule's second test and its
+second pass, from a different cause**: on 29 Aug the fragile numbers moved
+because weeks entered the sample, on 24 Sep because the source rewrote them.
+
+**The backtest's non-crisis accuracy did not move either.** The weekly run's
+own printout gives h=2 non-crisis MAE of 2.796 (adl) against 3.519 (naive) for
+petrol and 2.669 against 3.440 for diesel — the 16 Aug figures to the third
+decimal. Crisis weeks were not compared here.
+
+**The Final filter does not protect against this.** It keeps out weeks MBIE
+has not finished; it does nothing about weeks MBIE finishes and then changes.
+`Final` is a statement about the CPI adjustment factor (`mbie_notes.md`, "What
+a finalisation actually does"), not a promise about `Importer cost`, and this
+rewrite came outside any finalisation. From 27 Feb 2026 `Importer cost` also
+carries 70% of a physical premium that the Singapore spot quote does not
+contain, from a new daily Argus input — a definition change inside the
+sample, and one more reason the numbers to quote are the ones that stop at
+2025.
+
+Three other sections carry figures this revision changed, and each has a
+dated note with the recomputed values: "What a litre is actually made of",
+"What actually drove pump prices through the 2026 crisis" and "What the record
+says after a margin compression".
 
 ## The diesel instability is Provisional data, not the crisis - 16 Aug 2026
 
@@ -1816,6 +1921,23 @@ right, which is a better property than it sounds.
 
 ## What the record says after a margin compression — 19 Sep 2026
 
+> **Recomputed 24 Sep 2026 — the finding holds, several figures under it do
+> not.** MBIE's 23 Sep adjustment lowered the margin on every week from
+> 27 Feb 2026 (`mbie_notes.md`), and one week was added. Still one episode per
+> fuel, all in 2026, nothing comparable before; usable weeks 129 → 130;
+> qualifying weeks 6 → 7 for petrol and 11 → 14 for diesel. The 11 Sep
+> reading — "today" below — is now −86.9% for petrol and −68.2% for diesel,
+> not −64.1% and −54.6%; the new week, 18 Sep, reads −98.1% and −107.9%.
+> Diesel's late-July week is −78.5%, not −71.6%: still deeper than 11 Sep, no
+> longer deeper than 18 Sep. In the diesel table, July–August becomes cost
+> 191.3 → 190.8 and margin 9.7 → 26.4 (pump unchanged); April–May becomes
+> cost 345.7 → 201.8 and margin −51.3 → 70.3 — the cost fell 144 c/L, not
+> 100, and the margin to be repaired was −51.3. Petrol's 2026 annual mean
+> margin is 35.0, not 38.6. **The closing sentence no longer holds**: the
+> deepest readings of the episode are 3 Apr for diesel (−217%) and 13 Mar for
+> petrol (−127%); 18 Sep is the deepest since April for diesel and since March
+> for petrol.
+
 `research/margin_episodes.py`, offline against the panel exported 19 Sep. The
 question is the one a reader can actually check the industry against: the
 margin is crushed, it has been crushed before, what came next.
@@ -1909,7 +2031,7 @@ nothing to compare it to.**
 
 ## Checks that have repeatedly changed the answer
 
-Five questions, each of which has overturned at least one finding in this
+Six questions, each of which has overturned at least one finding in this
 project. Run them before writing anything down, not after:
 
 1. **Is the spread comparable?** Correlation collapses when a series barely
@@ -1947,6 +2069,16 @@ project. Run them before writing anything down, not after:
    documentation word is a hypothesis, not a measurement, and here one
    external series settled in a single query what re-reading the PDF could
    not (`docs/mbie_notes.md`).
+6. **Did the source rewrite the history under the result?** `Final` in MBIE's
+   file is a statement about the CPI adjustment factor, not a promise about
+   the other columns. On 23 Sep 2026 MBIE added a cost adjustment to every
+   week from 27 Feb 2026, eighteen Final weeks among them, and diesel's
+   pass-through, its half-life and a regime contrast that had just become
+   significant all moved with no new week in the sample. Before quoting a
+   figure that includes recent weeks, look for a
+   `revisions_rewrote_a_final_week` warning in the weekly runs since the date
+   it was measured — the run log is free to read, and that day it fired on
+   108 rows.
 
 # Appendix — withdrawn
 

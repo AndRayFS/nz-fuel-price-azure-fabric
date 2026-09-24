@@ -2,9 +2,10 @@
 
 The baseline models only *changes*, so it has no way to express the pull
 back toward a normal markup. That pull is real and was watched happening:
-diesel's margin hit an all-time low of -12.4 c/L on 13 Mar 2026 and then
-recovered while costs were falling. A changes-only model sees price rising
-without cost rising and books it as noise.
+diesel's margin hit an all-time low of -51.3 c/L on 3 Apr 2026 (-12.4 on
+13 Mar before MBIE's 23 Sep 2026 cost adjustment) and then recovered while
+costs were falling. A changes-only model sees price rising without cost
+rising and books it as noise.
 
     d_net_t = a + sum_k b_k d_cost_{t-k} + g * dev_{t-1} + e_t
 

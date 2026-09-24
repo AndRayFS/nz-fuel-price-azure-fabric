@@ -8,9 +8,10 @@ denominator to test that against.
 
 NORMALISATION IS NOT OPTIONAL, AND IT HAS TO GO ALL THE WAY. The margin's
 level is not comparable across the series — the annual mean runs 18 c/L in
-2004 to 47 in 2026, roughly a tripling, for reasons that have nothing to do
-with any shock. So the benchmark is the margin's own trailing 104-week mean,
-lagged one week so the norm never contains the week being judged.
+2004 to 46 in 2025 for diesel and 13.5 to 40 for petrol, two and a half to
+three times, for reasons that have nothing to do with any shock. So the
+benchmark is the margin's own trailing 104-week mean, lagged one week so the
+norm never contains the week being judged.
 
 The depth is then measured **as a share of that norm, not in cents**, and the
 first version of this script got that wrong. A gap of −10 c/L is −76% of a
@@ -49,8 +50,9 @@ draws. The episode count is printed next to every n for exactly this reason.
 WHAT IS DELIBERATELY NOT CLAIMED. That a compression *causes* the pump price
 to rise. Both are downstream of the same cost shock, and the decomposition in
 docs/research.md ("What actually drove pump prices through the 2026 crisis")
-shows margin recovery contributing 6% of the 2026 diesel rise against cost's
-78%. The compression is a marker of a cost shock already in the system and not
+shows the margin contributing nothing net to the 2026 diesel rise: −1%
+against cost's 86% on MBIE's 23 Sep 2026 revision, 6% against 78% before it.
+The compression is a marker of a cost shock already in the system and not
 yet in the price. That is enough for what it is used for, and it is less than
 it looks like.
 
@@ -95,7 +97,7 @@ def with_gap(d: pd.DataFrame) -> pd.DataFrame:
     that mean. `shift(1)` keeps the week out of its own benchmark — without it
     a deep week drags the norm toward itself and the gap is understated
     exactly where it matters most. Percent, not cents: see the module
-    docstring. The margin does go negative (diesel reached −12.4 c/L in March
+    docstring. The margin does go negative (diesel reached −51.3 c/L on 3 Apr
     2026), so gaps below −100% are real and not a defect."""
     d = d.copy().reset_index(drop=True)
     d["norm"] = (
