@@ -10,6 +10,22 @@ in `draft_part7.md`.
 Date not recorded here; it went out before Part 9 and this file had still been
 carrying it as unpublished.
 
+**Part 11 published 24 Sep 2026:** https://lnkd.in/p/eYUVXDe5 — two castles,
+drafted in `docs/draft_part11.md`. It carries the pencil diptych
+(`docs/images/castle2_layout.png`, 1080 x 1350; the generated source was
+scratch and is not kept), the hashtags `#DataEngineering #NewZealand #DataAnalytics`, a
+backlink to Part 10 above the sign-off, and Part 2's link in the body rather
+than the first comment — the post is about that diagram, so the backlink is
+load bearing.
+
+**It departs from the house style on purpose, and the departures are not a new
+norm.** No emoji-marked bullets, no obligatory honest-limitation line, three
+numbers in the whole post, and a closing question to the reader instead of a
+promise. The reasons are in the draft under "Deliberate departures". It also
+carries a credit line for the illustration — `Drawings: AI, with apologies to
+Disney and Studio Ghibli` — because both castles are recognisably their
+originals and saying so first is cheaper than being told.
+
 **Part 10 published 19 Sep 2026:** https://lnkd.in/p/e_6iddd2 — the margin,
 drafted in `docs/draft_part10.md`. It carries the margin pipe
 (`research/art/margin_pipe_2026.png`), the hashtags
@@ -42,6 +58,7 @@ the drafts, so two files recorded their absence as a decision. Corrected
 | 8 | Anatomy of a litre: six layers, and which of them actually move — animated 2020–2026 | **"the model is blind to the week in progress, and that week carries a quarter of the effect"** |
 | 9 | The nowcast: three days of Brent for the week MBIE has not published yet | "the rebuilt weekly pipeline has to prove itself first — that is the next post" |
 | 10 | The margin: 29 c/L of cost that has reached the importer and not the pump | — |
+| 11 | Two castles: the architecture diagram eight weeks on, and what a refactor found under it | "how I built this — and what survived the refactor — in the next post" |
 
 Each post opens by referring back to the previous one and closes by naming
 the next.
@@ -76,6 +93,27 @@ learning-in-public and the reversal is the story.
   dead `app.fabric.microsoft.com` embed code was left live on purpose,
   since the comment explains it. Full detail in `cost_notes.md` and
   `architecture.md`.
+- **24 Sep 2026, Parts 7, 8 and 10 — MBIE revised the numbers under them.**
+  On 23 Sep MBIE added a cost adjustment to `Importer cost` from 27 Feb 2026
+  and lowered `Importer margin` by the same amount (`mbie_notes.md`, "Known
+  structural changes"). Each post was accurate on the data published when it
+  went out, so the post bodies stand as written; this records which figures
+  the revised data no longer carries.
+  - **Part 7:** diesel's landed cost "+61.4%" (27 Feb → 7 Aug) is +65.4%.
+    Crude's +10.1% is unchanged.
+  - **Part 8:** the March margin layer, "−2.2, −12.4, +2.7, +17.7" by week
+    with a low of −12.4 on 13 Mar and three weeks below zero, now reads
+    −12.3, −35.1, −28.9, −23.5, with a low of −51.3 on 3 Apr and six weeks
+    below zero in a row, 6 Mar – 10 Apr. All still in 2026.
+  - **Part 10:** "costs fell about 100 c/L" in April is about 144 (345.7 →
+    201.8, 3 Apr → 1 May), and July–August's "187.5 to 187.7" is 191.3 to
+    190.8. The argument is untouched: cost still flat in July–August while
+    the pump rose 18 c/L, the margin still below zero in April and at its
+    22-year high afterwards.
+  - The 14 Aug audit of Part 1 below quotes the pre-revision minimum
+    (−12.4, 13 Mar) and decomposition (margin 6% against cost 78%); revised,
+    they are −51.3 on 3 Apr and −1% against 86%. Part 1's own claim, that
+    margins briefly fell to zero or below, holds more strongly than before.
 
 The reversal itself is queued as Part 7 material.
 
