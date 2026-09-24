@@ -440,5 +440,9 @@ before the load was started by hand.
 
 - **The mail comes from GitHub, not from the Logic App**, so it goes to the
   GitHub account's notification address rather than to the Outlook mailbox.
-  *Not yet proven.* After the merge, one dispatch should produce it:
-  `gh workflow run pause-capacity.yml -f since=2099-01-01T00:00:00Z`.
+  *Proven* 24 Sep 2026 by one dispatch with a future `since`,
+  `gh workflow run pause-capacity.yml -f since=2099-01-01T00:00:00Z`: run
+  35965802808, 22 seconds, `missed-load` failed on an empty list as intended,
+  `pause` found the capacity already `Paused`, and the mail "Pause capacity
+  (watchdog) / missed-load — Failed" arrived. Repeat it after any change to
+  the job or to the account's notification settings.
