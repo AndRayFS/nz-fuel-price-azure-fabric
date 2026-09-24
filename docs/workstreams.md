@@ -1,6 +1,6 @@
-# Workstreams — plan of record, 23 Aug 2026, last updated 19 Sep 2026
+# Workstreams — plan of record, 23 Aug 2026, last updated 24 Sep 2026
 
-Fifteen pieces of work, grouped by what they are about rather than by when
+Sixteen pieces of work, grouped by what they are about rather than by when
 they happen. Each is meant to be one branch. Every entry states what
 exists today, what the branch delivers, what it risks, and which files it
 touches — the last so that parallel branches can be sequenced without
@@ -489,6 +489,87 @@ reads the six status columns in the panel or in `silver_fuel`.
 `seeds/_seeds__models.yml`, `models/gold/forecast_accuracy.sql`,
 `pbip/nz_fuel_v2.SemanticModel/.../forecast_accuracy.tmdl`,
 `docs/period_labelling.md`, `.claude/rules/active-items.md`.
+
+---
+
+## W18 — Remove the AIP comparison
+
+Proposed 24 Sep 2026, after that day's weekly run brought no AIP data. Not
+started. It takes out the AIP half of W2; the revision half stays.
+
+**Now.** `pipeline/aip_check.py` fetches AIP's weekly PDFs, prices them
+through FRED and appends to `monitoring.aip_singapore_weekly`;
+`monitor_aip_gap` sets the Argus quote against `importer_cost`; seven of the
+43 tests in the weekly `dbt test` are about it. Four things argue it out:
+
+- **It is not consulted where it was meant to be.** `gate.py` leaves it the
+  one question the gate cannot answer — has MBIE not published yet, or did
+  the CDN serve last week's file — but `task aip` and the tests run only
+  after the gate has let a new week through. On the week it would explain,
+  it does not run.
+- **It is unreliable where it does run.** Of three CI runs past the gate it
+  wrote to its store once: on 10 Sep FRED timed out, on 24 Sep AIP's media
+  API answered with something that was not JSON.
+- **The comparison is weaker since 23 Sep.** `Importer cost` now carries a
+  fuel market adjustment that Argus's benchmark does not see (`mbie_notes.md`,
+  "Known structural changes"). The level no longer matches the ranges
+  recorded under the old methodology, and in September the gap moved 1–5
+  USD/bbl a week, against the ~±0.5 the design took for granted (measured
+  offline on 24 Sep).
+- **Nothing reads it.** `/load-review` does not look at it; its warnings
+  stay in the run log.
+
+What goes with it is the project's only view of MBIE's numbers from outside:
+a new week carrying wrong values would pass the gate and show first in
+Report 1.
+
+**Target.** Removed from code, CI, tests and dbt config the way the four
+gold models went on 8 Sep 2026: the reasoning stays written up in
+`architecture.md`, and nothing that runs still refers to it.
+
+- Keep `monitoring.aip_singapore_weekly`. It is the only copy of weeks AIP
+  has deleted and costs nothing to leave; only its `monitoring_store` source
+  and the source tests go.
+- Drop `monitoring.monitor_aip_gap` from the warehouse. It is derived, and
+  dbt stops managing it once the model is gone.
+- Delete the `FRED_API_KEY` repository secret, and only once `weekly.yml`
+  no longer names it.
+
+**Risks.** The references are spread across code, workflow, dbt config and
+prose, and a missed one fails at different times: a `ref`, `source` or `var`
+fails `dbt parse` at once, a leftover step in `weekly.yml` fails only on a
+run past the gate, and prose simply goes stale.
+
+**Verification.**
+
+1. `grep -rni aip` over `pipeline/ models/ tests/ macros/ .github/`,
+   `Taskfile.yml`, `dbt_project.yml` and `requirements.*` returns nothing;
+   what remains under `docs/` is history or the write-up.
+2. `dbt parse`, then `dbt build` and `dbt test`: green, with 36 tests where
+   there were 43. A warehouse run, so the capacity has to be up.
+3. A clean install from `requirements.txt` without `pypdf`.
+4. The first weekly run past the gate after the merge goes green with no
+   `task aip` in its log. The secret is deleted after that, not before.
+
+**Depends on.** The 1 Oct 2026 run, the first the Logic App recurrence fires
+on its own (W16). Changing `weekly.yml` before it would put two unknowns into
+one run.
+
+**Touches.** Deleted: `pipeline/aip_check.py`,
+`models/monitoring/monitor_aip_gap.sql`,
+`tests/monitoring/aip_disagrees_on_the_newest_week.sql`,
+`tests/monitoring/aip_latest_week_out_of_step.sql`. Edited:
+`pipeline/warehouse_write.py` (`append_new` has no other caller),
+`pipeline/gate.py` and `pipeline/README.md` (prose), `Taskfile.yml` (the
+`aip` task and its place in `weekly`), `.github/workflows/weekly.yml`
+(`task aip`, `FRED_API_KEY`), `requirements.in` and `requirements.txt`
+(`pypdf`), `dbt_project.yml` (`aip_move_threshold_usd`,
+`aip_damping_ratio`), `models/monitoring/_monitoring__models.yml`,
+`models/sources.yml` (`monitoring_store`), `macros/mbie_date.sql` (a
+comment), `docs/architecture.md`, `docs/mbie_notes.md`, `QUICKSTART.md`,
+`README.md`, `research/README.md`, and `.claude/rules/active-items.md`,
+where the AIP markup item goes with it. Outside git: the secret, the
+`monitor_aip_gap` table, the local `data/.aip_cache`.
 
 ---
 
@@ -1587,6 +1668,7 @@ W3 gate ────┼─→ W5 split ─→ W7 chain ─→ W8 Actions
 W6 env ─────┘                              ├─→ (W16 replaces its clock, W8 having landed)
                                            └─→ (W9 completes unattended operation)
 W2 monitoring   ─ independent
+W18 AIP removed ─ after W16's first unattended run, 1 Oct
 W4 vintage      ─ independent
 W10 model       ─ independent
 W11 report      ─ interacts with W9
@@ -1605,7 +1687,7 @@ parallel with the infrastructure work rather than after it. The analysis
 still on this list can be read the same way. W6 is likewise free-standing and needs
 nothing but a text editor.
 
-**Fifteen entries is not fifteen equal branches.** W10-W12 are analysis rather
+**Sixteen entries is not sixteen equal branches.** W10-W12 are analysis rather
 than engineering and do not need the same branch discipline, and W12 is
 explicitly backlog. Realistically this is about seven branches of structural
 work. W4 was in this sentence as "small" until 23 Aug; the redesign from a
@@ -1620,10 +1702,10 @@ side file to a whole-chain mode makes it an ordinary branch.
 | `models/silver/silver_fuel.sql` | W1 |
 | `models/silver/silver_general.sql` | W1 |
 | `models/silver/_silver__models.yml` | W1 |
-| `QUICKSTART.md` | W2, W3, W5, W7 |
-| `pipeline/aip_check.py` | W2 |
-| `.claude/rules/active-items.md` | W9, W16 |
-| `.github/workflows/weekly.yml` | W16 |
+| `QUICKSTART.md` | W2, W3, W5, W7, W18 |
+| `pipeline/aip_check.py` | W2, W18 (deletes it) |
+| `.claude/rules/active-items.md` | W9, W16, W18 |
+| `.github/workflows/weekly.yml` | W16, W18 |
 | `.github/workflows/pause-capacity.yml` | W16 |
 
 `QUICKSTART.md` is wanted by four branches; leave its rewrite to whichever
