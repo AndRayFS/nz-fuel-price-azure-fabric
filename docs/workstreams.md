@@ -687,23 +687,23 @@ estimation scripts run against the relocated panel. `export_panel.py` was
 compile-checked only — a real run needs the capacity resumed, and it is due
 next weekly load.
 
-**Three research scripts were broken for twelve days and nothing noticed —
-found 19 Sep 2026.** `6ab239d` (7 Sep) stopped routing derived data through
+**A path change reached `pipeline/` and missed three scripts in `research/` —
+fixed 19 Sep 2026.** `6ab239d` (7 Sep) stopped routing derived data through
 git and moved `period_flags` from `seeds/` to `data/` plus the warehouse. The
-path was updated in `pipeline/backtest.py` and missed in
+path was updated in `pipeline/backtest.py` and not in
 `research/headline_results.py`, `research/adl_asymmetry.py` and
 `research/procurement_lag.py`, all three of which then failed on
-`FileNotFoundError` at import of the flags. Nothing failed loudly because
-nothing runs them: the weekly chain does not, and CI does not. They were
-found only when a question needed a number recomputed.
+`FileNotFoundError` at import of the flags. Found on the first run after the
+change, when a question needed a number recomputed; the fix is one line in
+each.
 
-The claim above — "all four estimation scripts run against the relocated
-panel" — was true when W5 landed and stopped being true three days later.
-**That is the argument for the research contour getting the same treatment
-the loading contour got**: a named entry point, something that runs it, and
-something that goes red when it stops working. The split gave `research/` a
-boundary; it did not give it a check. Paths fixed the same day; the fix is
-one line in each of the three, and the underlying gap is not fixed.
+**The twelve days between the change and the fix are not evidence about the
+research contour, and an earlier version of this entry read them that way.**
+Nobody ran those scripts in between because the owner was ill and the
+project's attention was on the weekly load; research resumed afterwards and
+the paths were fixed the same day it did. The claim above — "all four
+estimation scripts run against the relocated panel" — simply needed updating,
+which is what a claim in a plan document does.
 
 **Now.** `research/` holds two different kinds of code under one README.
 `export_panel.py`, `build_period_flags.py` and `backtest.py` run every
