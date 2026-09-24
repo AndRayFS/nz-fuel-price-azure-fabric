@@ -130,6 +130,23 @@ This is about the artefact, not the conversation: discussion here stays in
 Russian. The rule is that anything committed to the repository matches the
 repository.
 
+## Russian terminology — the words, not the calques
+
+Conversation here is in Russian, and it uses the words the owner uses rather
+than literal translations of the English identifiers.
+
+- **The Fabric Warehouse is «база» or «БД», never «склад».** Asked for on
+  27 Aug 2026 and again on 20 Sep 2026.
+
+English is unaffected: identifiers, `docs/`, code comments and commit
+subjects stay as they are. «Склад» is a calque that reads as translated
+rather than written.
+
+This lives here rather than only in memory because a rule in this file is
+loaded as an instruction every session, while a memory index line is
+background context that may never be recalled. When another term comes up,
+add it to this list.
+
 ## Answer order
 
 The problem the user reports is not density and not tone — it is order.
