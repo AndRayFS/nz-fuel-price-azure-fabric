@@ -24,18 +24,15 @@ design and should be trimmed or updated, not left as-is indefinitely.
     slip that caused it is worth knowing: `read -rs` swallows the next line of
     a pasted block. `docs/ci_setup.md` step 7d has the two habits that prevent
     it.
-  - **The recurrence has never fired on its own** — 24 Sep is the first.
-    Check on the 25th:
+  - **The recurrence has still never fired on its own; 1 Oct is the first
+    real firing.** 24 Sep was skipped — Logic Apps may skip the first weekly
+    recurrence when the start time is less than seven days out — and a
+    Thursday with no load is now reported by `missed-load`; both in
+    `docs/ci_setup.md` 7e. Check on 1 Oct:
     `gh run list --workflow weekly.yml --limit 5 --json event,createdAt,conclusion`
     should show a `workflow_dispatch` created within a minute or two of
-    21:07 UTC Wednesday, not the 110 and 144 minutes late that the two
-    scheduled firings were.
-  - **Nothing stands behind it.** `weekly.yml` has no schedule any more, so if
-    no run appears, no load happened. The alarm is the only thing that will
-    say so, and until one mail has actually arrived, silence is ambiguous —
-    check by hand each Thursday, and read the Logic App's run history in the
-    resource group when in doubt. Delete this item once one Thursday has gone
-    through on its own.
+    20:07 UTC Wednesday — not 21:07, NZ is on daylight time from 27 Sep.
+    Delete this item once that has happened.
 
 - [x] **The dispatch token does not expire, and that was the choice —
   19 Sep 2026.** The Logic App authenticates to GitHub with a fine-grained PAT
