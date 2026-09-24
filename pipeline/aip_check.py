@@ -71,6 +71,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -104,6 +105,16 @@ create table {SCHEMA}.{TABLE} (
 """
 
 API = "https://aip.com.au/wp-json/wp/v2/media"
+HEADERS = {"User-Agent": "nz-fuel-price-project ingest check"}
+# The listing is the one request nothing stands behind: a runner starts with an
+# empty cache, so when it fails, nothing is parsed that week. On 24 Sep 2026 it
+# answered a runner with something that was not JSON; 85 minutes later five
+# runners on five addresses got JSON from it through urllib and curl alike
+# (probe run 35963265612). Whatever it was, it was not a block on runners, and
+# a fault that passes is worth two more tries a minute apart -- a few cents of
+# running capacity, and only when it happens.
+LISTING_ATTEMPTS = 3
+LISTING_PAUSE_S = 60
 LITRES_PER_BBL = 158.987
 # FRED's API, not its graph host. `fredgraph.csv?id=DEXUSAL` served this
 # laptop in a second and timed out twice from a GitHub runner on 10 Sep 2026,
@@ -130,24 +141,53 @@ REPORTS = {"Diesel": "Weekly-Diesel-Prices-Report", "Regular Petrol": "Weekly-Pe
 
 
 def _get(url: str) -> bytes:
-    req = urllib.request.Request(url, headers={"User-Agent": "nz-fuel-price-project ingest check"})
+    req = urllib.request.Request(url, headers=HEADERS)
     with urllib.request.urlopen(req, timeout=60) as r:
         return r.read()
+
+
+def _get_listing(url: str) -> list:
+    """The media API's list of reports, or an error that says what came instead.
+
+    `json.loads` alone reports a body that is not JSON as `Expecting value:
+    line 1 column 1 (char 0)`, and that is all the 24 Sep 2026 run left behind
+    -- not whether it was an empty body, an HTML page or an error notice.
+    Status, type and the first bytes are what tell those apart.
+    """
+    req = urllib.request.Request(url, headers=HEADERS)
+    with urllib.request.urlopen(req, timeout=60) as r:
+        status, ctype, body = r.status, r.headers.get("Content-Type"), r.read()
+    try:
+        listing = json.loads(body)
+    except ValueError:
+        listing = None
+    if not isinstance(listing, list):
+        raise ValueError(f"HTTP {status}, {ctype}, {len(body)} bytes, not a JSON list: {body[:200]!r}")
+    return listing
 
 
 def fetch_pdfs() -> None:
     """Download any report we do not already hold. Never deletes.
 
-    Network failures are reported and stepped over: whatever is already in the
-    cache still parses, and a week we could not reach today comes back in the
-    next report, which carries two weeks.
+    Network failures are reported and stepped over, and a week we could not
+    reach today comes back in the next report, which carries two weeks. What
+    is already in the cache still parses -- on this laptop. A runner starts
+    with an empty cache every time, so there a listing that fails for good
+    leaves nothing to parse that week; hence the retries.
     """
     CACHE.mkdir(parents=True, exist_ok=True)
     for fuel, slug in REPORTS.items():
-        try:
-            listing = json.loads(_get(f"{API}?search={slug}&per_page=100&_fields=source_url"))
-        except Exception as exc:
-            print(f"  ! {fuel}: could not reach the AIP media API: {exc}", file=sys.stderr)
+        listing = None
+        for attempt in range(1, LISTING_ATTEMPTS + 1):
+            try:
+                listing = _get_listing(f"{API}?search={slug}&per_page=100&_fields=source_url")
+                break
+            except Exception as exc:
+                print(f"  ! {fuel}: AIP media API, attempt {attempt} of {LISTING_ATTEMPTS}: {exc}",
+                      file=sys.stderr)
+                if attempt < LISTING_ATTEMPTS:
+                    time.sleep(LISTING_PAUSE_S)
+        if listing is None:
             continue
         new = 0
         for item in listing:
@@ -168,8 +208,10 @@ def parse() -> pd.DataFrame:
     from pypdf import PdfReader
 
     rows = []
+    pdfs = 0
     for fuel, slug in REPORTS.items():
         for pdf in sorted(CACHE.glob(f"{slug}*.pdf")):
+            pdfs += 1
             try:
                 text = PdfReader(pdf).pages[2].extract_text()
             except Exception as exc:  # a re-styled PDF must fail loudly, not silently
@@ -193,7 +235,16 @@ def parse() -> pd.DataFrame:
         # with the data, and must not take the weekly recompute down with it.
         # The store simply stops advancing, which
         # `tests/monitoring/aip_latest_week_out_of_step.sql` then warns about.
-        print("  ! no report tables parsed - the PDF layout has probably changed", file=sys.stderr)
+        #
+        # An empty cache ends here too, and it needs looking for somewhere else.
+        # On 24 Sep 2026 a runner with nothing cached was reported as a layout
+        # change, which sent the reader to the PDF when the fault was the fetch.
+        if pdfs:
+            print(f"  ! {pdfs} cached reports, no tables parsed - the PDF layout has probably changed",
+                  file=sys.stderr)
+        else:
+            print("  ! no cached reports to parse - nothing was fetched, and a runner starts with an empty cache",
+                  file=sys.stderr)
         return pd.DataFrame(columns=["week", "fuel", "tapis_aucpl", "brent_aucpl", "product_aucpl"])
     return pd.DataFrame(rows).drop_duplicates(["week", "fuel"]).sort_values(["fuel", "week"])
 
