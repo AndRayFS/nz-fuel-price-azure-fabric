@@ -220,8 +220,9 @@ on 17 Sep 2026 to prove `azure/login@v3` before the weekly load met it: run
 a hand-fired recurrence went green end to end: run 35423341610,
 `workflow_dispatch`, 3.5 minutes, gate `2`, capacity back to `Paused` — and
 behind it run 35423507593, the watchdog, triggered by `workflow_run` for the
-first time. What has still never happened is the recurrence firing on its own,
-and the alarm sending anything.
+first time. What has still never happened is the recurrence firing on its own
+— the first one, on 24 Sep, was skipped, see 7e — and the alarm sending
+anything.
 
 W16, steps 1 and 2. The chain stays exactly where it is; what changes is the
 thing holding the stopwatch, from GitHub's `schedule` trigger to a Logic App
@@ -376,6 +377,29 @@ the watchdog 35427530147 behind it on `workflow_run` and the capacity back to
 `Paused`. A masked `githubToken` reads as `{}` whatever it holds, so a live
 dispatch is the only proof the deployed token works.
 
+### 7e. The first Thursday did not fire, and nothing said so — 24 Sep 2026
+
+The Logic App was last deployed on 19 Sep at 06:39 UTC with `startTime`
+`2026-09-24T09:07:00`, New Zealand time. On 24 Sep it did not fire: no trigger
+history after 19 Sep, and `nextExecutionTime` already set to
+`2026-09-30T20:07:00Z`, the Thursday after. No dispatch meant no run, and no
+run meant no mail. The missing week was found by hand and loaded with
+`gh workflow run weekly.yml` at 04:43 UTC (run 35956879448).
+
+**The cause is documented behaviour, not an outage.** Microsoft's page on
+schedules for recurring triggers says a `Week` recurrence given a future start
+date should be set up at least seven days ahead, or the first recurrence may be
+skipped. This one was set up 4.6 days ahead. The other suspect, `startTime`
+landing exactly on the scheduled slot, is ruled out by the same page: its own
+Saturday example has the start time equal to the first run.
+
+**The rule, therefore: `startTime` in the past, or at least seven days after
+the deployment.** The template's `2026-09-24T09:07:00` is now in the past, so
+every redeploy from here on is safe as it stands. Do not move it forward.
+
+**What it exposed is the blind spot at the end of this section**, and that is
+now closed by a check that does not live in Azure at all.
+
 ### One trigger, and nothing behind it
 
 | where | when | what it is |
@@ -384,6 +408,7 @@ dispatch is the only proof the deployed token works.
 | the same, an hour later | Thursday ~10:07 NZ | asks what became of the run, mails if it did not succeed |
 | `weekly.yml` | on dispatch only | no schedule at all |
 | `pause-capacity.yml` | on `workflow_run`, plus Wednesday 23:52 UTC | the watchdog, following the load rather than racing it |
+| the same, job `missed-load` | its cron only, Wednesday 23:52 UTC | fails, and GitHub mails, if no `Weekly load` has succeeded or is running since Wednesday 18:00 UTC |
 
 **There is deliberately no second way to start a load.** A backstop cron was
 written first and taken out again on 19 Sep 2026, along with the `guard` job it
@@ -397,8 +422,23 @@ arrived is any good is the gate's question, one stage later, and a quiet week
 with nothing new is a legitimate `success` here. Two things asking that question
 would eventually disagree.
 
-**Where the alarm is still blind: its own recurrence.** If the Logic App does
-not run at all, nothing sends anything — Azure's SLA is the answer to that, and
-a Monitor alert on the workflow's failed runs would be the belt on top. Not
-added: it costs a metric alert rule per month to guard against the platform
-whose reliability is the reason for moving here in the first place.
+**Where the alarm was blind: its own recurrence — closed 24 Sep 2026.** If
+the Logic App does not run at all, nothing inside it can say so. This file used
+to answer that with Azure's SLA and, as a belt, a Monitor alert on the
+workflow's failed runs. The first Thursday showed both were the wrong answer:
+the platform behaved exactly as documented (7e), and a recurrence that does not
+fire leaves no failed run for an alert to count.
+
+The check that catches it has to sit outside the Logic App, so it is the
+`missed-load` job in `pause-capacity.yml`, on GitHub's cron: no `Weekly load`
+that succeeded or is still running since Wednesday 18:00 UTC, and the job
+fails. That cron is often hours late, which costs nothing here. *Checked*
+24 Sep 2026 against the live API, by running the step's script locally: it
+passes on this week's run, fails when given a time in the future, and run
+against the day as it happened it would have failed at 01:40 UTC — three hours
+before the load was started by hand.
+
+- **The mail comes from GitHub, not from the Logic App**, so it goes to the
+  GitHub account's notification address rather than to the Outlook mailbox.
+  *Not yet proven.* After the merge, one dispatch should produce it:
+  `gh workflow run pause-capacity.yml -f since=2099-01-01T00:00:00Z`.

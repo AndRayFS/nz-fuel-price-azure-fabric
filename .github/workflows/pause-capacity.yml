@@ -31,6 +31,18 @@ name: Pause capacity (watchdog)
 # costs the week, which is why only one of the two is allowed to run on a
 # schedule GitHub does not promise to keep.
 #
+# **It also says when there was no load at all — 24 Sep 2026.** The Logic App
+# that starts the load is the same thing that mails when the load fails, so the
+# one failure it cannot report is its own recurrence not firing. That happened
+# on the very first Thursday: Logic Apps skips the first weekly recurrence when
+# the start time is less than seven days after the deployment
+# (`docs/ci_setup.md`, 7e). Nothing was dispatched, nothing was mailed, and the
+# missing week was found by hand. The `missed-load` job below runs on this
+# workflow's cron and fails when no `Weekly load` has succeeded, or is still
+# going, since Wednesday 18:00 UTC; GitHub mails the failure. It lives here
+# because the check has to sit outside the thing it checks, and a monitor that
+# runs late still says the right thing.
+#
 # Scheduled since 8 Sep 2026, together with the run it guards.
 on:
   workflow_run:
@@ -39,6 +51,11 @@ on:
   schedule:
     - cron: '52 23 * * 3'     # Wednesday 23:52 UTC — Thursday 11:52 NZST, 12:52 NZDT
   workflow_dispatch:
+    inputs:
+      since:
+        description: "Missed-load check: count weekly runs created at or after this UTC time. Empty means Wednesday 18:00 UTC this week; a time in the future proves the alarm fires."
+        required: false
+        default: ""
 
 concurrency:
   group: fabric-capacity
@@ -87,3 +104,37 @@ jobs:
             az resource invoke-action --ids "$CAPACITY_ID" --action suspend >/dev/null
             echo "### Watchdog paused a capacity the weekly run left awake" >> "$GITHUB_STEP_SUMMARY"
           fi
+
+  # The alarm for the one failure the Logic App cannot report — see the header.
+  # On the cron and by hand only: on `workflow_run` a load has just happened.
+  missed-load:
+    if: github.event_name != 'workflow_run'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SINCE: ${{ inputs.since }}
+
+    steps:
+      - name: Fail if no weekly load has run since Wednesday
+        run: |
+          if [ -z "$SINCE" ]; then
+            # This week's Wednesday, 18:00 UTC: before the trigger's slot in
+            # either season (20:07 UTC under NZDT, 21:07 under NZST), and long
+            # after the previous week's run. %u is 1 on Monday, 3 on Wednesday.
+            back=$(( ( $(date -u +%u) + 4 ) % 7 ))
+            SINCE="$(date -u -d "-${back} days" +%F)T18:00:00Z"
+          fi
+          runs=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/weekly.yml/runs?per_page=20" \
+            --jq "[.workflow_runs[] | select(.created_at >= \"${SINCE}\") | {id, event, status, conclusion, created_at}]")
+          echo "weekly load runs created since ${SINCE}:"
+          jq -r '.[] | "  \(.id)  \(.event)  \(.status)/\(.conclusion)  \(.created_at)"' <<<"$runs"
+          alive=$(jq '[.[] | select(.conclusion == "success" or .status != "completed")] | length' <<<"$runs")
+          [ "$alive" -gt 0 ] && { echo "a weekly load ran — nothing to report"; exit 0; }
+          {
+            echo "### No weekly load has succeeded since ${SINCE}"
+            echo "Either the Logic App did not dispatch, or every run since then failed."
+            echo "Read its run history in nz-fuel-price-rg, then \`gh workflow run weekly.yml\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 1
