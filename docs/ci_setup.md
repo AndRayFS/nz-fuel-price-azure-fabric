@@ -220,9 +220,15 @@ on 17 Sep 2026 to prove `azure/login@v3` before the weekly load met it: run
 a hand-fired recurrence went green end to end: run 35423341610,
 `workflow_dispatch`, 3.5 minutes, gate `2`, capacity back to `Paused` — and
 behind it run 35423507593, the watchdog, triggered by `workflow_run` for the
-first time. What has still never happened is the recurrence firing on its own
-— the first one, on 24 Sep, was skipped, see 7e — and the alarm sending
-anything.
+first time. The first scheduled Thursday, 24 Sep, was skipped (7e); the mail
+was proven by accident the same day as the rest (7d).
+
+**The recurrence fired on its own for the first time on 30 Sep 2026 at
+20:07:00 UTC** — Thursday 1 Oct, 09:07 NZDT, so the daylight-saving shift held.
+The dispatch reached GitHub in 2 seconds: run 36770365654, green in 11.5
+minutes with a new week, the watchdog 36771694485 behind it on `workflow_run`,
+the capacity back to `Paused`. An hour later the Logic App's run
+`08584108080653282344561551075CU19` asked GitHub and skipped both mails.
 
 W16, steps 1 and 2. The chain stays exactly where it is; what changes is the
 thing holding the stopwatch, from GitHub's `schedule` trigger to a Logic App
