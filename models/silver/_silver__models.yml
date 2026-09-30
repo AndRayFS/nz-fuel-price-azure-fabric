@@ -92,6 +92,7 @@ models:
                 values: ['Provisional', 'Final']
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - Week
-            - Fuel
+          arguments:
+            combination_of_columns:
+              - Week
+              - Fuel
