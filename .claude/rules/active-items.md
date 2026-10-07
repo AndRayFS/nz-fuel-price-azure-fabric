@@ -64,15 +64,26 @@ design and should be trimmed or updated, not left as-is indefinitely.
     0.397 and both petrols 0.697 c/L. Those survive the rounding; they are the
     kind of thing this table exists to catch.
 
-- [ ] **AIP markup sits above the range `architecture.md` records.** From the
-  hand cross-check of week 2026-09-04, done offline on 10 Sep 2026: diesel
-  14.42 → 14.57 and petrol 10.40 → 10.23 USD/bbl over MBIE's importer cost,
-  against the Oct 2025 – Aug 2026 ranges of 6.9–13.4 and 7.4–9.6. The markup
-  held week to week, so this is not a one-week spike, but two weeks is not a
-  level either. Both sides now have weeks to 4 and 11 Sep in the store, so
-  `monitor_aip_gap` can answer it — a warehouse read, therefore not free. If
-  the newer weeks agree, update the ranges in `architecture.md` rather than
-  leave the comparison anchored to a year that has ended.
+- [x] **AIP markup above the range `architecture.md` records — explained
+  8 Oct 2026: it is MBIE's fuel market adjustment, not the market.** The
+  hand cross-check of 10 Sep (diesel 14.42 → 14.57, petrol 10.40 → 10.23
+  USD/bbl, weeks 28 Aug → 4 Sep) was made before the 16 Sep revision and the
+  23 Sep adjustment; `monitor_aip_gap`, read 8 Oct, has the same weeks at
+  16.62 → 17.53 and 12.32 → 14.59. In `Importer cost` terms the difference is
+  diesel 2.3 and 3.2, petrol 2.0 and 4.7 c/L — 2.8 and 4.0 for 4 Sep net of the
+  16 Sep revision — inside the adjustment's measured Jul–Sep size of −0.04 to
+  +7.1 (diesel) and +0.7 to +9.0 (petrol): `docs/mbie_notes.md`, "Known
+  structural changes", 23 Sep. Two things follow.
+  - **The ranges in `architecture.md` stay as they are.** 6.9–13.4 and
+    7.4–9.6 were measured under the old methodology. From 27 Feb 2026
+    MBIE − Argus is the old markup plus the adjustment, and a new range would
+    be a range of that sum.
+  - **After 11 Sep the adjustment cannot be separated.** MBIE publishes only
+    the sum, the snapshot holds unadjusted values only up to 11 Sep, and the
+    product differential is paid Argus data. The climb to ~24 USD/bbl on both
+    fuels by 2 Oct is probably the adjustment and cannot be shown to be. That
+    is W18's third argument; the unflagged diesel week of 2 Oct (ours +1.01
+    against Argus −2.02 USD/bbl) is an instance of it.
 
 - [x] **Budget alert in Cost Management — exists, verified 8 Sep 2026.**
   `nz-fuel-price-budget`: NZ$20/month, whole subscription, monthly reset,
