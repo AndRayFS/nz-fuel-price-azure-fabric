@@ -113,14 +113,14 @@ carry.
   every week, which is the "consuming time and resources" in the post.
 - **"Three places."** The warehouse; `data/*.csv` on the laptop; and
   `seeds/period_flags.csv` and `seeds/forecast_history.csv` in git until
-  `6ab239d` on 7 Sep 2026. The two seeds that remain — `periods.csv` and
+  `ef55681` on 7 Sep 2026. The two seeds that remain — `periods.csv` and
   `variable_mapping.csv` — are configuration, which is what makes rule 2
   something the project already half-follows.
 - **"The day after a load quietly brought in week-old data."** The incident is
   19 Aug 2026: `ingest_mbie_weekly` read the previous week's file from a CDN
   edge cache, reported `Succeeded`, and all 60 tests passed on it
   (`architecture.md`). `research/aip_check.py` was committed the next day,
-  `5ef030d`, 20 Aug.
+  `9dcb595`, 20 Aug.
 - **"It read an exported CSV and ran only after the data had already been
   loaded."** That script sat at step 4b, after the panel export, and read
   `data/panel_weekly.csv`. It also exited non-zero, so at that point it could
@@ -150,7 +150,7 @@ Each was checked against the repository rather than against memory.
 
 - **Git was not a leftover, it was a leg of the journey.** "CSV files were left
   in the repository" became "the Python scripts wrote CSVs, I committed them,
-  and dbt loaded them into the database" — which is what `6ab239d`'s commit
+  and dbt loaded them into the database" — which is what `ef55681`'s commit
   message describes.
 - **The leaking had a direction, and it was the other one.** "Changes made for
   research began affecting the regular data pipeline" was reversed: the

@@ -769,7 +769,7 @@ compile-checked only — a real run needs the capacity resumed, and it is due
 next weekly load.
 
 **A path change reached `pipeline/` and missed three scripts in `research/` —
-fixed 19 Sep 2026.** `6ab239d` (7 Sep) stopped routing derived data through
+fixed 19 Sep 2026.** `ef55681` (7 Sep) stopped routing derived data through
 git and moved `period_flags` from `seeds/` to `data/` plus the warehouse. The
 path was updated in `pipeline/backtest.py` and not in
 `research/headline_results.py`, `research/adl_asymmetry.py` and
@@ -1407,7 +1407,7 @@ this document warns against below.
 
 ## W10 — The one-week model — **landed 8 Sep 2026**
 
-Branch `w10-nowcast`, merged as `0e14d11`; this entry was left saying "next"
+Branch `w10-nowcast`, merged as `3979de1`; this entry was left saying "next"
 for eleven days after the work was published, and that is what it was
 corrected from on 19 Sep 2026.
 
@@ -1520,7 +1520,7 @@ item overlaps a branch, the branch is named.
 
    **The historical half is now on the record — 19 Sep 2026.**
    `research/margin_episodes.py`, branch `w17-margin-episodes`, published as
-   Part 10 and merged into `main` the same evening as `7752269`. It answers the
+   Part 10 and merged into `main` the same evening as `132ecdd`. It answers the
    question a reader can check the industry against — the margin is crushed,
    what happened last time — and the answer is that on comparable data there
    is no last time: normalised against the margin's own trailing 104-week mean
