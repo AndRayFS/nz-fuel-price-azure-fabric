@@ -81,6 +81,7 @@ the gate unless the gate says go — the ordering and the dependency live in
 | `report` | 8 | rebuild the table Report 1 reads |
 | `close` | 9 | record the week as processed |
 | `refresh` | 10 | refresh Report 1's semantic model through the `refresh_report_1` pipeline |
+| `publish` | 11 | archive the report's data, dated, to the public Blob container `nzfueldata/data` |
 
 **A failed run resumes by name** — `task report`, not the whole chain again.
 `task --list` prints this table from the file itself; `task offline` runs just
@@ -93,7 +94,9 @@ is written into the file rather than remembered.
 The Power BI refresh is part of the chain since 15 Oct 2026 — the last step,
 after `close`, so a failed refresh never makes the gate rebuild a week. Rerun
 it alone with `task refresh`. Why it goes through a pipeline:
-`docs/architecture.md`, "Refreshing Report 1 from the chain".
+`docs/architecture.md`, "Refreshing Report 1 from the chain". The public
+archive follows it, since 16 Oct 2026; after a failed refresh, run
+`task refresh` and then `task publish`.
 
 Notes:
 

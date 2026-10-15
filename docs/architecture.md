@@ -421,6 +421,44 @@ credentials) and run `task refresh` alone. Tracked in
 shape (W9 in `workstreams.md`, answered 10 Sep). A refresh against a changed
 table fails, and with it the run.
 
+### The public archive — 16 Oct 2026
+
+Publish-to-web serves the report but cannot export from it, so the data goes
+out separately. `task publish` (`pipeline/publish_data.py`), the step after
+`task refresh`, zips three tables and a README and uploads them to the
+storage account `nzfueldata`, container `data`, anonymous read on blobs only:
+
+| blob | what it is |
+|---|---|
+| `<YYYY-MM-DD>/nz-fuel-<YYYY-MM-DD>.zip` | this load's archive, named by the New Zealand date of the load; never rewritten by a later one |
+| `latest/nz-fuel-latest.zip` | the same bytes, overwritten each load, `Cache-Control: no-cache` — the link the README gives |
+
+Inside: `weekly_prices.csv` (silver_fuel joined to silver_general, every
+week since 2004), `forecasts.csv` (`forecast_accuracy`), `margin.csv`
+(`margin_compression`), and a README stating the source, the licence and the
+caveats. 569 KB on 16 Oct, about 2 MB unpacked.
+
+**The dated archives are the record of what the report showed.** The tables
+under it are rebuilt every load, and the warehouse keeps no versions of
+them; the vintage machinery can reconstruct a past state, but with today's
+code. An archive is the state as it was, with the code of the day.
+
+**Why Blob, under the chain's own identity.** It is the same stack, it serves
+while the capacity is paused, and it needs no credential beyond the one the
+chain already holds: `nz-fuel-ci` has Storage Blob Data Contributor on the
+`data` container and nowhere else in the account. The upload is a REST `PUT`
+with an Entra token for `https://storage.azure.com`, not the storage SDK, so
+nothing was added to `requirements.txt`. GitHub Releases were considered and
+dropped: they would have needed `contents: write` on a job that also holds the
+warehouse credentials, and they are made for versions of software.
+
+**Order and failure.** The dated blob is written before `latest`, so a
+failure between the two leaves the record complete and only the convenience
+link a week old. A failed upload fails the run — the week is loaded, closed
+and refreshed by then, and `task publish` alone repairs it. After a failed
+refresh, run `task refresh` then `task publish`: the archive should not
+describe a load the report does not show.
+
 ## The ingest read a week-old file and reported success — 19 Aug 2026
 
 MBIE published week `2026w33` (14 Aug) at 01:01 UTC on 19 Aug. Two

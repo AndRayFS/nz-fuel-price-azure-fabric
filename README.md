@@ -11,6 +11,14 @@ proper pipeline and extends it.
 
 **Companion posts:** [Part 1](https://www.linkedin.com/posts/andreimor_watching-the-news-about-the-latest-escalation-ugcPost-7485572175953920001-Uzat/) · [Part 2](https://www.linkedin.com/posts/andreimor_tree-ugcPost-7487295986630025216-b4Rj/) · [Part 3](https://www.linkedin.com/posts/andreimor_registration-costs-first-sql-ugcPost-7488350666168377346-Xctc/) · [Part 4 (dbt)](https://www.linkedin.com/posts/andreimor_microsoftfabric-dbt-dataengineering-share-7489268212065366017-QKU2/) · [Part 5 (Power BI)](https://www.linkedin.com/posts/andreimor_fuel-report-ugcPost-7491290122466971648-Qazx/) · [Part 6 (costs)](https://lnkd.in/p/euh-jsWq) · [Part 7 (backtest)](https://lnkd.in/p/ejjH8i-z) · [Part 8 (what a litre is made of)](https://lnkd.in/p/egUBNZZ8) · [Part 9 (the week in progress)](https://lnkd.in/p/eNTj-JMQ) · [Part 10 (the margin)](https://lnkd.in/p/e_6iddd2) · [Part 11 (two castles)](https://lnkd.in/p/eYUVXDe5)
 
+**The data behind Report 1:** [nz-fuel-latest.zip](https://nzfueldata.blob.core.windows.net/data/latest/nz-fuel-latest.zip)
+— MBIE's weekly series, the model's forecasts with their errors, and the
+importer margin against its own norm, with a README on sources and caveats.
+Every weekly load also leaves a dated copy that is never rewritten,
+`https://nzfueldata.blob.core.windows.net/data/<YYYY-MM-DD>/nz-fuel-<YYYY-MM-DD>.zip`,
+so what the report showed on a given date stays readable. Source data: MBIE,
+Weekly fuel price monitoring, CC BY 4.0.
+
 ## Architecture
 
 ```

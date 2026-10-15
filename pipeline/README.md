@@ -21,6 +21,7 @@ of the weekly chain.
 | `mark_processed.py` | closes the run by recording which week was processed |
 | `run_ingest.py` | starts `ingest_mbie_weekly` and waits for it |
 | `run_refresh.py` | starts `refresh_report_1`, which refreshes Report 1's model, and waits for it |
+| `publish_data.py` | zips the report's data with a README and uploads it, dated, to the public Blob container |
 | `fabric_io.py` | the warehouse connection and the Fabric REST calls both need |
 | `test_gate.py` | replays the gate's decision against the runs that happened |
 | `vintage.py` | puts the whole system on a past date, and brings it back |
@@ -99,12 +100,14 @@ vintages start at 6 August. A date means the state as that day *ended*.
 ```bash
 python pipeline/gate.py            # after the ingest, before everything else
 python pipeline/mark_processed.py  # after forecast_accuracy is rebuilt
-python pipeline/run_refresh.py     # last: Report 1's model, once the week is closed
+python pipeline/run_refresh.py     # Report 1's model, once the week is closed
+python pipeline/publish_data.py    # last: the dated public archive; --no-upload to look first
 python pipeline/test_gate.py       # no capacity, no network, no dependencies
 ```
 
-`gate.py`, `mark_processed.py`, `run_refresh.py` and `vintage.py` need the
-Fabric capacity up and an `az login`. `test_gate.py` needs neither.
+`gate.py`, `mark_processed.py`, `run_refresh.py`, `publish_data.py` and
+`vintage.py` need the Fabric capacity up and an `az login`; `publish_data.py`
+also needs Storage Blob Data Contributor on `nzfueldata/data` to upload. `test_gate.py` needs neither.
 
 ## State
 
