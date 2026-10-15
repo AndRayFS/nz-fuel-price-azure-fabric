@@ -23,6 +23,23 @@ design and should be trimmed or updated, not left as-is indefinitely.
   It lives in exactly one place, as a `securestring` parameter on the workflow
   — in no file, no repository and no conversation.
 
+- [ ] **22 Oct 2026 — the first load that refreshes Report 1 by itself.**
+  `task refresh` was proven on 15 Oct from this laptop, started by the user.
+  In CI the service principal starts `refresh_report_1`, and whether the
+  pipeline's connection `pbi-api-andrei` (OAuth, the user's token) holds in
+  that case has not been observed; the ingest's connection is in the same
+  position and has always worked. Check that run's log for `Report 1's model
+  refreshed`, and the model's refresh history for a `ViaEnhancedApi` row at
+  about 09:10 NZDT. If it failed on the connection, the week is still loaded
+  and closed: fix the access and run `task refresh` alone. Delete this item
+  once it has passed.
+  - **Standing, once that has passed: the connection's token can lapse**, and
+    its lifetime is not documented anywhere this project has looked. The
+    symptom is a red run failing in `task refresh` with the week already
+    loaded. Fix: Fabric → Settings → Manage connections and gateways →
+    `pbi-api-andrei` → Edit credentials → sign in, then `task refresh`.
+    `docs/architecture.md`, "Refreshing Report 1 from the chain".
+
 - [ ] **~mid-Oct 2026** — Stats NZ releases the September-quarter CPI, and
   MBIE finalises the thirteen weeks of Jul–Sep 2026. This is the second
   observation of an event the project has now seen once, and the first it
