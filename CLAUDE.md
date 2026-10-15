@@ -72,6 +72,7 @@ split with claude.ai chat) and `.claude/rules/active-items.md`
 
 `/load-review` (`.claude/skills/load-review/`) fixes the *shape* of that
 answer — what arrived, whether anything in it is an outlier, how far it
-diverged from the forecast — and deliberately leaves the source of the
-numbers open. It also records which predictors belong in such a review:
+diverged from the forecast — and, since 15 Oct 2026, the source of the
+numbers too: queries against the warehouse, never a local export or a
+script. It also records which predictors belong in such a review:
 only the two Report 1 actually plots, `pred_adl_ecm` and `pred_naive`.
