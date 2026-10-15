@@ -238,13 +238,11 @@ readable — fine here, the source is public MBIE data.
 relief. Free viewers on capacity-backed workspaces start at **F64**. The
 capacity was paying for compute, never for sharing.
 
-**Open, and the reason not to over-claim in public yet:** the account is 46
-days from the end of a Power BI Pro trial (~26 Sep 2026), and it is
-unresolved whether publish-to-web from My Workspace survives on a Free
-licence. Graph shows `POWER_BI_STANDARD` / `BI_AZURE_P0` and no Pro SKU in
-the tenant, so the trial looks like it is tracked inside Power BI rather
-than Entra. Microsoft's docs point both ways. Check the link the day after
-the trial ends.
+**Settled 8 Oct 2026: it survives the end of the Pro trial.** The trial
+ended ~26 Sep 2026; on 8 Oct the public link still rendered with data, on
+an account whose only licence is `POWER_BI_STANDARD` (Graph). Serving
+Report 1 stays at NZ$0, and Pro (~NZ$24/mo) is no longer a cost this
+arrangement needs — only W9 would buy it.
 
 **Corrected in public, 11 Aug 2026.** Correction comments were published on
 both Part 5 and Part 6 the same day, stating the verified result and the

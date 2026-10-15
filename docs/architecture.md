@@ -298,7 +298,66 @@ model — which is the whole point of the My Workspace arrangement described
 above. Scheduled refresh is now technically possible, but it would have to
 fire inside the window when the capacity happens to be running (it
 auto-pauses at 23:00 NZT and is resumed by hand), so it is left disabled
-rather than half-working.
+rather than half-working. What it actually does inside such a window was
+measured on 8–9 Oct 2026, below.
+
+### Scheduled refresh starts late, not never — 8–9 Oct 2026
+
+The question was whether a scheduled refresh in My Workspace can stand in for
+the manual step, given a capacity that is only up while something holds it up.
+It can. What it cannot do is start on time.
+
+**8 Oct, read wrongly at the time.** Two scheduled slots, 12:30 and 13:00
+NZDT, each with the capacity `Active` for several minutes beforehand. Both
+entered the refresh history at the slot second with status `Unknown` and stayed
+there — 10 minutes for the first before the capacity was paused under it,
+8 min 13 s for the second — and both were cancelled by hand. At 12:35 no query
+from Power BI was running in the warehouse (`sys.dm_exec_requests`), and the
+cloud connection was healthy (`GET /gateways/{g}/datasources/{d}/status`
+→ 200). A refresh through the REST API, two and a half minutes after the
+second was cancelled, completed in 7 s. That looked like a broken scheduler.
+
+**What Microsoft documents**, in *Configure scheduled refresh*: "The target is
+to initiate the refresh within 15 minutes of the scheduled time slot, but a
+delay of up to one hour can occur if the service can't allocate the required
+resources sooner. Refresh can begin as early as five minutes before the
+scheduled refresh time." The history row is written at the slot; the work
+begins when the shared capacity has room for it.
+
+**9 Oct, the test.** Capacity resumed at 08:28:25 NZDT, slot 08:30:00,
+`Completed` at 08:38:16 — 8 min 16 s after the slot, three seconds longer
+than the 8 Oct refresh that was cancelled. One observation; the documented
+bound is an hour.
+
+**How a refresh of this model behaves against each capacity state** — all
+seen in its own refresh history and the capacity's activity log, not read:
+
+| capacity when the refresh starts | outcome |
+|---|---|
+| `Active`, on demand or API | `Completed` in 4–20 s (17 Sep, 24 Sep, 1 Oct, 8 Oct, 9 Oct); one exception on 24 Sep, started 27 s after a resume and cancelled after 82 s |
+| `Active`, scheduled | starts late, within the documented hour; 8 min 16 s the one time it was allowed to finish |
+| `Pausing` | `Failed` in 3 s with `CapacityNotActive` (8 Oct) |
+| `Paused` | sits in progress until cancelled (17 Sep, 24 Sep, after 2–4 min); never seen to fail on its own |
+
+**Documented limits that bear on automating it** (*Data refresh in Power BI*):
+shared capacity allows eight scheduled refreshes a day, and REST API refreshes
+count toward the same eight while **Refresh now** in the UI does not; a refresh
+must finish within two hours; cancellation is documented only for Premium, PPU
+and Embedded — in My Workspace the UI cancel of the 13:00 slot landed late, and
+`DELETE /refreshes/{id}` answered 429 first and 409 once the cancel had
+landed; and the schedule is switched off after four consecutive failures.
+
+**What it means for automation — not decided.** A scheduled refresh is the
+one free way to take the human out: a slot just after the weekly load, and the
+capacity held up from five minutes before the slot until the refresh ends —
+up to an hour, about NZ$0.73 a week. Three weaknesses come with it. The runner
+cannot see the result, because the service principal cannot reach My
+Workspace, so it would have to hold the capacity for the whole hour blind. A
+failure is reported only by email to the model owner,
+`andrei@…onmicrosoft.com`, whose mailbox nobody has checked. And the slot
+fires on quiet weeks too: harmless with the capacity up, a failure if it is
+paused, and four such failures turn the schedule off. The paid alternative is
+W9 in `workstreams.md`.
 
 ## The ingest read a week-old file and reported success — 19 Aug 2026
 
@@ -1192,16 +1251,20 @@ publish-to-web requires **import** mode (DirectQuery and live connections
 are unsupported), model and report in the **same** workspace, and no
 report-level DAX measures.
 
-**Still open:** the account is 46 days from the end of a Power BI Pro trial
-(ends ~26 Sep 2026). Whether publish-to-web from My Workspace survives on a
-Free licence is unresolved — Microsoft's docs point both ways (the
-publish-to-web page lists My Workspace as needing only "a Microsoft Power
-BI license", while the licence-comparison page says Free users cannot use
-sharing features). Graph reports the assigned licence as
-`POWER_BI_STANDARD` / `BI_AZURE_P0` with no Pro SKU in the tenant, so the
-trial appears to be tracked inside Power BI rather than in Entra. Check the
-public link the day after the trial ends; fall back to Pro (~NZ$24/mo) or
-PDF if it breaks.
+**The arrangement survives a Free licence — settled 8 Oct 2026.** The Power
+BI Pro trial ended ~26 Sep 2026, and on 8 Oct the public link still rendered
+with data (checked by the owner) while Graph reported the account's only
+licence as `POWER_BI_STANDARD`. The model also refreshed in the service on
+Free: an on-demand refresh on 1 Oct 2026 completed, after the trial had
+ended. So no licence cost stands between Report 1 and My Workspace:
+serving and publishing it are free, and refreshing it costs only the minutes
+of capacity the refresh reads from. Pro is not needed to keep it alive.
+
+Microsoft's docs pointed both ways before this was tried — the
+publish-to-web page lists My Workspace as needing only "a Microsoft Power BI
+license", while the licence-comparison page says Free users cannot use
+sharing features. The first one held. What Pro would still buy is a
+workspace a service principal can reach, which is W9 in `workstreams.md`.
 
 ## The T-SQL lag layer — deleted 8 Sep 2026, design kept
 

@@ -102,11 +102,3 @@ design and should be trimmed or updated, not left as-is indefinitely.
     running, that is about half a day of drift. A forecasted threshold would
     warn earlier; not added, because the auto-pause is meant to make that case
     impossible and adding one would be guarding against the guard.
-
-- [ ] **~27 Sep 2026** — the Power BI Pro trial ends ~26 Sep. The day
-  after, open Report 1's public link and check it still renders with data.
-  Report 1 is now served via Publish to web from **My Workspace** and costs
-  nothing, but it is unresolved whether that survives on a Free licence —
-  Microsoft's docs point both ways. If it breaks: Pro (~NZ$24/mo), or back
-  to PDF. Details in `docs/architecture.md` (Stack question) and
-  `docs/cost_notes.md`.

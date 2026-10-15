@@ -20,7 +20,7 @@ the list of dated obligations. Nothing here restates those.
 | 26 Aug 2026 | MBIE publishes (Wednesday) | **decision: skip this run**, do it 28 Aug |
 | 27 Aug 2026 | Azure trial credit expires | ~NZ$245 lapses regardless |
 | 28 Aug 2026 | F2 starts billing at NZ$0.729/h | every warehouse run costs real money |
-| ~26 Sep 2026 | Power BI Pro trial ends | check the public link ~27 Sep; W9 is decided on the result, not before |
+| ~26 Sep 2026 | Power BI Pro trial ends | **done** — the public link still renders on Free (checked 8 Oct); W9 is optional, not forced |
 
 Skipping the 26 Aug run costs two days of staleness on a report that
 already labels itself a retrospective simulation. Rushing an unattended
@@ -1210,6 +1210,14 @@ so today's free arrangement may simply carry on. The ~27 Sep check in
 |---|---|
 | still works | the free manual refresh stays; W9 becomes a separate question — is automating one weekly step worth NZ$24/month |
 | breaks | Pro is needed regardless, and W9 comes almost free on top of it |
+
+**Answered 8 Oct 2026: the first row.** The link still renders on Free, so
+nothing forces W9. Nor is it the only way left to automate the refresh: a
+scheduled refresh in My Workspace works if the capacity is held up for it —
+up to an hour a week, about NZ$3/month, with no way for the runner to see the
+result (`architecture.md`, "Scheduled refresh starts late, not never",
+measured 9 Oct). W9 is the NZ$24/month version of the same step, with an API
+call the runner can check.
 
 **Risks.** Moving a report changes its public URL, so the link has to be
 reissued. Per
