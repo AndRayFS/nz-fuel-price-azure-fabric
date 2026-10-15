@@ -140,6 +140,7 @@ jobs:
           task backtest
           task report
           task close
+          task refresh
 
       # always(), because `defer` inside task does not survive the runner being
       # cancelled or timing out. The 23:00 NZT auto-pause and the pause-capacity
@@ -147,10 +148,3 @@ jobs:
       - name: Pause the capacity
         if: always()
         run: task capacity-pause
-
-      - name: Say what is still manual
-        if: always()
-        run: |
-          echo "The Power BI dataset is not refreshed by this workflow — the" >> "$GITHUB_STEP_SUMMARY"
-          echo "report lives in My Workspace, where service principals cannot" >> "$GITHUB_STEP_SUMMARY"
-          echo "reach it. That is W9." >> "$GITHUB_STEP_SUMMARY"

@@ -1134,7 +1134,16 @@ objections that ruled out a Fabric notebook apply here.
 **Touches.** `.github/workflows/`, `profiles.yml`, `pipeline/*`,
 `docs/cost_notes.md`.
 
-## W9 — Power BI workspace and licence
+## W9 — Power BI workspace and licence — **landed 15 Oct 2026, by another route**
+
+**Landed without moving anything.** Branch `w9-refresh-from-pipeline`. The
+refresh is the chain's last step, `task refresh`, and the report stays in My
+Workspace on Free. A Fabric pipeline, `refresh_report_1`, calls the refresh
+through a connection signed in as the model's owner, so the service principal
+never has to reach My Workspace — it only starts the pipeline. The target
+below, a Pro workspace at NZ$24/month, is no longer needed for this.
+Measurements and the routes that failed: `architecture.md`, "Refreshing
+Report 1 from the chain". The section below is the plan as it stood.
 
 **Now.** Both semantic models and both reports live in **My Workspace**.
 Microsoft's own documentation is unambiguous: "My Workspace isn't supported
@@ -1218,6 +1227,9 @@ up to an hour a week, about NZ$3/month, with no way for the runner to see the
 result (`architecture.md`, "Scheduled refresh starts late, not never",
 measured 9 Oct). W9 is the NZ$24/month version of the same step, with an API
 call the runner can check.
+
+**Answered again 15 Oct 2026: neither.** A pipeline in the existing workspace
+gives the runner a checkable refresh for free — see the top of this entry.
 
 **Risks.** Moving a report changes its public URL, so the link has to be
 reissued. Per

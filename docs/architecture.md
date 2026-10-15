@@ -299,7 +299,9 @@ above. Scheduled refresh is now technically possible, but it would have to
 fire inside the window when the capacity happens to be running (it
 auto-pauses at 23:00 NZT and is resumed by hand), so it is left disabled
 rather than half-working. What it actually does inside such a window was
-measured on 8–9 Oct 2026, below.
+measured on 8–9 Oct 2026, below. **Since 15 Oct 2026 the chain refreshes the
+model itself**, as its last step, and the schedule stays off for good —
+"Refreshing Report 1 from the chain", below.
 
 ### Scheduled refresh starts late, not never — 8–9 Oct 2026
 
@@ -347,7 +349,8 @@ and Embedded — in My Workspace the UI cancel of the 13:00 slot landed late, an
 `DELETE /refreshes/{id}` answered 429 first and 409 once the cancel had
 landed; and the schedule is switched off after four consecutive failures.
 
-**What it means for automation — not decided.** A scheduled refresh is the
+**What it meant for automation — superseded 15 Oct 2026 by the next
+section.** A scheduled refresh looked like the
 one free way to take the human out: a slot just after the weekly load, and the
 capacity held up from five minutes before the slot until the refresh ends —
 up to an hour, about NZ$0.73 a week. Three weaknesses come with it. The runner
@@ -358,6 +361,65 @@ failure is reported only by email to the model owner,
 fires on quiet weeks too: harmless with the capacity up, a failure if it is
 paused, and four such failures turn the schedule off. The paid alternative is
 W9 in `workstreams.md`.
+
+### Refreshing Report 1 from the chain — 15 Oct 2026
+
+The chain's last step, `task refresh` (`pipeline/run_refresh.py`), starts the
+Fabric pipeline `refresh_report_1` and waits for it. Its one Web activity posts
+an enhanced refresh to `https://api.powerbi.com/v1.0/myorg/datasets/221ea91d-…/refreshes`
+through a Web v2 connection, `pbi-api-andrei`, signed in as the model's owner
+(Organizational account, token audience
+`https://analysis.windows.net/powerbi/api`). An If condition fails the run
+unless the activity's output says `Completed`. Measured the same day: the
+pipeline 42 s, `task refresh` 55 s end to end, the refresh itself 14–18 s. The
+capacity pauses as soon as the chain ends — no hour held, no schedule.
+
+**Why a pipeline at all.** The runner is a service principal and My Workspace
+does not admit service principals, so nothing the runner calls directly can
+refresh the model. The pipeline lends the chain an identity that can: the
+connection's. Starting the pipeline needs nothing the service principal does
+not already use to start `ingest_mbie_weekly`. Whether the connection's
+credential holds when the service principal is the one starting the run is
+**not yet observed**. The ingest's connection is in the same position — its
+only role assignment is the user as Owner, none for the service principal — and
+has worked every week, which is the reason to expect it. First real run: the
+load of 22 Oct 2026.
+
+**The Web activity waits on its own.** The refresh API answers 202 with a
+`Location`; the activity follows that async pattern, polls until the refresh
+ends, and returns the final refresh object as its output (`status`, `objects`,
+`refreshAttempts`). So the pipeline's result is the refresh's result. The If
+condition exists because a refresh that fails inside Power BI is still an HTTP
+success to the activity — the failure is in the body, not the status code.
+That case has not been seen; the guard costs nothing.
+
+**What did not work, in the order tried:**
+
+| route | result |
+|---|---|
+| scheduled refresh in Power BI | works; starts up to an hour late and reports to no one the runner can see (previous section) |
+| watch for the refresh in `queryinsights.exec_requests_history` | unusable as a signal. Rows arrive in batches about ten minutes late, and rows not yet written when the capacity pauses are lost rather than delayed: neither the 15 Oct load (09:07) nor that day's refresh (13:11) ever appeared, and no query by the service principal appears in 30 days of history, because every load pauses the capacity within minutes |
+| the schedule's failure mail | the owner account has no mailbox at all — `POWER_BI_STANDARD` only, `mail` and `proxyAddresses` empty. Adding the Hotmail address draws "outside your organization", and whether mail would then arrive was not tried |
+| pipeline activity **Semantic model refresh** | fails in 11 s with 401 `GroupNotAccessible`, "Calling group APIs not permitted for personal workspace". It addresses the model through `/groups/<workspace>/…`, which a personal workspace does not serve; its documented prerequisite (Premium, PPU or Embedded) says the same |
+
+**The enhanced refresh API itself does work on My Workspace**, the documented
+Premium prerequisite notwithstanding: a direct call as the owner on 15 Oct was
+accepted (202), started 3 s later and completed in 18 s,
+`initiatedBy: ViaEnhancedApi`. It counts toward shared capacity's eight API
+refreshes a day, which one a week does not approach.
+
+**What it costs is a credential.** The connection holds the owner's OAuth
+token, and its lifetime is not documented anywhere this project has looked. If
+it lapses, `task refresh` fails, the run goes red and the watchdog mails. The
+week itself is already loaded and closed — the step sits after `close` for
+exactly this reason — so the fix is to re-sign the connection (Fabric →
+Settings → Manage connections and gateways → `pbi-api-andrei` → Edit
+credentials) and run `task refresh` alone. Tracked in
+`.claude/rules/active-items.md`.
+
+**Still manual:** a republish from Desktop when `forecast_accuracy` changes
+shape (W9 in `workstreams.md`, answered 10 Sep). A refresh against a changed
+table fails, and with it the run.
 
 ## The ingest read a week-old file and reported success — 19 Aug 2026
 

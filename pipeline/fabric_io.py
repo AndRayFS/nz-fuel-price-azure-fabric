@@ -37,6 +37,7 @@ SQL_COPT_SS_ACCESS_TOKEN = 1256
 # looked up by display name every run: a renamed item should break loudly.
 WORKSPACE_ID = "bc2e3801-9a54-4154-9f46-2a9dc442cad7"   # nz-fuel-price-project
 PIPELINE_ID = "9584c5ac-340b-48bd-a05c-885e4ac31df6"    # ingest_mbie_weekly
+REFRESH_PIPELINE_ID = "fce82773-51ca-41fd-8ef0-ad0f18d7ef16"  # refresh_report_1
 COPY_ACTIVITY = "Copy_MBIE_weekly_data"
 SQL_ENDPOINT_ID = "a2abcf3b-c492-42ca-aa16-3bac2db77a37"  # bronze_lakehouse
 
@@ -246,15 +247,15 @@ def refresh_sql_endpoint(timeout_seconds: int = 300) -> None:
     )
 
 
-def start_ingest() -> str:
-    """Start `ingest_mbie_weekly`; returns the run id.
+def start_pipeline(pipeline_id: str) -> str:
+    """Start a pipeline in the workspace; returns the run id.
 
     The job API answers 202 with `Location:
     .../jobs/instances/<run id>` and no body, so the id is read off the header.
     """
     _, headers = _call_full(
         "POST",
-        f"/v1/workspaces/{WORKSPACE_ID}/items/{PIPELINE_ID}/jobs/instances?jobType=Pipeline",
+        f"/v1/workspaces/{WORKSPACE_ID}/items/{pipeline_id}/jobs/instances?jobType=Pipeline",
         body={},
     )
     location = headers.get("location", "")
@@ -266,11 +267,21 @@ def start_ingest() -> str:
     return run_id
 
 
-def ingest_run(run_id: str) -> dict:
-    """One job instance, by id."""
+def pipeline_run(pipeline_id: str, run_id: str) -> dict:
+    """One job instance of a pipeline, by id."""
     return _call(
-        "GET", f"/v1/workspaces/{WORKSPACE_ID}/items/{PIPELINE_ID}/jobs/instances/{run_id}"
+        "GET", f"/v1/workspaces/{WORKSPACE_ID}/items/{pipeline_id}/jobs/instances/{run_id}"
     )
+
+
+def start_ingest() -> str:
+    """Start `ingest_mbie_weekly`; returns the run id."""
+    return start_pipeline(PIPELINE_ID)
+
+
+def ingest_run(run_id: str) -> dict:
+    """One `ingest_mbie_weekly` job instance, by id."""
+    return pipeline_run(PIPELINE_ID, run_id)
 
 
 def ingest_runs(limit: int = 12) -> list[dict]:

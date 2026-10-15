@@ -80,6 +80,7 @@ the gate unless the gate says go — the ordering and the dependency live in
 | `backtest` | 7 | refit + forecasts, into `dbo.forecast_history` |
 | `report` | 8 | rebuild the table Report 1 reads |
 | `close` | 9 | record the week as processed |
+| `refresh` | 10 | refresh Report 1's semantic model through the `refresh_report_1` pipeline |
 
 **A failed run resumes by name** — `task report`, not the whole chain again.
 `task --list` prints this table from the file itself; `task offline` runs just
@@ -89,7 +90,10 @@ anything else does.
 Every step is still one command you could type by hand, and `--full-refresh`
 is written into the file rather than remembered.
 
-Then refresh the Power BI dataset.
+The Power BI refresh is part of the chain since 15 Oct 2026 — the last step,
+after `close`, so a failed refresh never makes the gate rebuild a week. Rerun
+it alone with `task refresh`. Why it goes through a pipeline:
+`docs/architecture.md`, "Refreshing Report 1 from the chain".
 
 Notes:
 
