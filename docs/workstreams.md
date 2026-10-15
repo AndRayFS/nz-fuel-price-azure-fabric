@@ -1491,55 +1491,68 @@ crude, and a target, not a factor.
 and definitions; the comparison is only honest if both sides are on the
 same basis. Genuinely optional — it buys narrative, not correctness.
 
-## W19 — Report 1's last additions: the margin, the data behind it, a weekly release
+## W19 — Report 1's last additions: the margin, the data behind it, a dated archive
 
-Proposed 15 Oct 2026 as the last piece of the active phase. Not started.
+Proposed 15 Oct 2026 as the last piece of the active phase. **In progress**,
+branch `w19-report1-last-additions`: the margin model and the archive are
+written and checked; the two report pages are the owner's, in the VM.
 
-**Now.** Report 1 reads one table, `forecast_accuracy`. The margin measure
-(Part 10; `research.md`, "What the record says after a margin compression")
-exists only offline, in `research/margin_episodes.py`. Nothing the report shows
-can be downloaded: publish-to-web does not support exporting data from visuals
+**Now.** Report 1 reads `forecast_accuracy`. The margin measure (Part 10;
+`research.md`, "What the record says after a margin compression") existed only
+offline, in `research/margin_episodes.py`. Nothing the report shows can be
+downloaded: publish-to-web does not support exporting data from visuals
 (Microsoft, *Publish to web*, "Considerations and limitations").
 
 **Target — three parts, one republish.**
 
-1. **A gold model for the margin**, by fuel and week: the importer margin, its
-   trailing 104-week mean lagged one week, and the gap as a share of that mean
-   — the measure `research.md` settled on, because the margin's level has
-   tripled since 2004 and cents are not comparable across decades. T-SQL
-   window functions, no Python. It starts on **29 Mar 2024**, the first week
-   whose whole window is import-era and Datamine-sourced; earlier weeks are left
-   out rather than shown on a benchmark from another era.
-   - The visual marks **27 Feb 2026**, where MBIE's fuel market adjustment
-     starts. Not 23 Sep, the day MBIE made it: the chart is about the data,
-     not about the posts written before it.
-   - On the page, not in a footnote: the margin is a residual against
-     replacement cost, so a cost spike compresses it mechanically; cost and
-     margin were suspended 18 Mar – 1 Jul 2026 and backfilled. No
-     point-forecast wording — a compression marks a cost move that has not
-     reached the pump, not which side will close the gap.
+1. **`margin_compression`, a gold model** — **done 15 Oct 2026.** By fuel and
+   week: the importer margin, the mean of the 104 weeks before it, and the gap
+   as a share of that mean, in T-SQL window functions. From **29 Mar 2024**,
+   the first week whose whole window is import-era and Datamine-sourced.
+   Checked against the research function on the same panel: the same 399
+   (week, fuel) pairs, gap within 1e-12.
+   - **The fuel market adjustment is taken out where it can be**, 27 Feb –
+     11 Sep 2026: the change in the margin at the 24 Sep load, read from the
+     snapshot (`adjustment_cpl`, `margin_before_adjustment`,
+     `gap_before_adjustment_pct`, the last against a norm built the same way).
+     The extremes are the ones `mbie_notes.md` measured on 24 Sep, and the
+     unadjusted gap for 11 Sep reproduces the pre-revision readings in
+     `research.md` exactly. After 11 Sep the columns are null.
+   - The visual marks **27 Feb 2026**, where the adjustment starts — not
+     23 Sep, the day MBIE made it: the chart is about the data, not about the
+     posts written before it. The caveats belong on the page: the margin is a
+     residual against replacement cost; cost and margin were suspended
+     18 Mar – 1 Jul 2026 and backfilled (`cost_backfilled`). No point-forecast
+     wording — a compression marks a cost move that has not reached the pump,
+     not which side will close the gap.
 2. **A table page in Report 1**, showing what the report is made of: week,
-   fuel, the actual price, the model's forecast, "the price won't move", their
+   fuel, the actual price, the model's call, "the price won't move", their
    errors, and the margin.
-3. **A data release per load.** After `task refresh`, a GitHub release tagged
-   by the load date (`data-YYYY-MM-DD`) carries CSVs of `forecast_accuracy` and
-   the margin model. One release per load, never overwritten: the file for a
-   date is what the report showed after that load, readable without a vintage
-   run or a restore. Linked from the table page and from `README.md`.
-   - **Only what the project adds.** MBIE's own file is linked, not copied.
-     The Dubai crude columns stay out: their source is Argus Media
-     (`mbie_notes.md`), and MBIE's CC BY 4.0 excludes third-party material.
-     Everything else is attributed to MBIE, Weekly fuel price monitoring,
-     CC BY 4.0.
-   - A quiet week — the gate finds the file unchanged — produces no release,
-     because the chain does not run. A revision-only week (`revised_in_place`)
-     does run, which is why the tag is the load date and not the data week.
-
-**The permission.** The weekly job holds `contents: read` by decision
-(`weekly.yml`, 7 Sep 2026: nothing is written back). A release needs
-`contents: write`. It goes to a separate job that does nothing else, with the
-CSVs handed over as a workflow artifact, so the job that holds the warehouse
-and capacity credentials still cannot write to the repository.
+3. **A dated archive per load** — **written 16 Oct 2026**, `task publish`
+   (`pipeline/publish_data.py`), the step after `task refresh`. One zip —
+   `weekly_prices.csv`, `forecasts.csv`, `margin.csv` and a README with
+   sources, columns and caveats — into the public Blob container
+   `nzfueldata/data`, as `<YYYY-MM-DD>/nz-fuel-<YYYY-MM-DD>.zip` and as
+   `latest/nz-fuel-latest.zip`. The dated file is never rewritten by a later
+   load: it is what the report showed after that load, readable without a
+   vintage run or a restore. 569 KB on 16 Oct.
+   - **Blob, not GitHub Releases** — the owner's call: releases are for
+     versions of software. Blob is the same stack, needs no new credential
+     (the chain's Azure identity holds Storage Blob Data Contributor on the
+     one container), and serves while the capacity is paused. Storage grows by
+     about 0.5 MB a week; at Hot LRS prices that is cents a year.
+   - **MBIE's own series go in, Dubai crude included** — the owner's call:
+     the data is MBIE's open publication, attributed as such (CC BY 4.0).
+     The crude price's upstream source is Argus Media (`mbie_notes.md`), and
+     MBIE's licence excludes third-party material; judged a low risk for a
+     series MBIE itself distributes openly.
+   - A quiet week — the gate finds the file unchanged — writes no archive,
+     because the chain does not run. A revision-only week
+     (`revised_in_place`) does run, which is why the name carries the load
+     date and not the data week.
+   - **A failed upload fails the run**, so the alarm mails and the gap in the
+     record is noticed the same day. The week itself is loaded, closed and
+     refreshed by then; rerun `task publish` alone.
 
 **Risks.**
 
@@ -1547,27 +1560,26 @@ and capacity credentials still cannot write to the repository.
   model by id (`221ea91d-…`). If publishing from Desktop replaces the model
   under a new id, `task refresh` fails. Read the id straight after the
   republish.
-- **Undecided: a failed release.** Fail the run, so the alarm mails and the
-  gap in the record is noticed; or warn, since the week itself is loaded and
-  refreshed. Decide before writing the job.
 
 **Verification.**
 
-1. The gold model against `research/margin_episodes.py` over the same weeks:
-   the same gap, to rounding.
+1. Done: the gold model against `research/margin_episodes.py`, and the
+   adjustment against `mbie_notes.md`.
 2. After the republish: the model id unchanged, and `task refresh` green.
-3. The first release written by a weekly run: the CSVs open, and their row
-   counts equal the tables'.
+3. The first archive written by a weekly run: it opens, and its row counts
+   equal the tables'.
 
-**Depends on.** The load of 22 Oct 2026, the first to run `task refresh`.
-Changing `weekly.yml` before it would put two unknowns into one run — the rule
-W18 set.
+**Depends on.** Nothing any more. The plan was to wait for the load of
+22 Oct, the first to run `task refresh`, so as not to put two unknowns into
+one run; the owner chose not to wait a week. That load now carries three new
+steps at once — `refresh`, `publish`, and a gold model built by `task build`
+— and if it fails, the log says which.
 
-**Touches.** `models/gold/` (the new model and its yml), `CLAUDE.md` (which
-says `models/gold/` holds one model), `.github/workflows/weekly.yml` (the
-release job and the artifact), `Taskfile.yml`, a small export script in
-`pipeline/`, `README.md`, `QUICKSTART.md`, `docs/architecture.md` (the
-permission decision). Outside git: Report 1 in Power BI Desktop, in the VM.
+**Touches.** `models/gold/margin_compression.sql`, `CLAUDE.md`,
+`pipeline/publish_data.py`, `Taskfile.yml`, `.github/workflows/weekly.yml`,
+`README.md`, `QUICKSTART.md`, `pipeline/README.md`, `docs/architecture.md`.
+Outside git: the storage account `nzfueldata` (created 16 Oct 2026), and
+Report 1 in Power BI Desktop, in the VM.
 
 ## Research backlog — where the analysis goes next, in priority order
 

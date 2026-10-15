@@ -199,6 +199,13 @@ tasks:
     cmds:
       - '"{{.PY}}" pipeline/run_refresh.py'
 
+  # After `refresh`: if the report could not be refreshed, the archive waits
+  # too, so the two never describe different loads. Rerun both, in order.
+  publish:
+    desc: "Archive the report's data to the public Blob container, dated (step 12)"
+    cmds:
+      - '"{{.PY}}" pipeline/publish_data.py'
+
 # --- local steps, no capacity needed -----------------------------------------
 
   flags:
@@ -233,6 +240,7 @@ tasks:
       - task: report
       - task: close
       - task: refresh
+      - task: publish
       - |
         echo ""
         echo "Chain finished. One thing is still yours to do:"

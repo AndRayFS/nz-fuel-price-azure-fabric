@@ -37,8 +37,10 @@ documented there.
 pass-through, the walk-forward test, and the corrections that overturned
 earlier findings. Withdrawn findings are kept in its appendix.
 
-**`models/gold/` holds one model, `forecast_accuracy`.** The four that used
-to sit beside it — `lag_correlation`, `lag_resolved`, `factor_volatility`,
+**`models/gold/` holds two models, both read by Report 1:
+`forecast_accuracy`, and `margin_compression` (W19, 15 Oct 2026).** Neither
+carries tests, so neither can stop a weekly run. The four that used
+to sit beside them — `lag_correlation`, `lag_resolved`, `factor_volatility`,
 `volatility_config` — were deleted on 8 Sep 2026: nothing had read them since
 Report 1 moved to the Python ADL+ECM, and they carried 22 of the project's 65
 tests, any of which could stop a weekly run over data with no consumer. Their

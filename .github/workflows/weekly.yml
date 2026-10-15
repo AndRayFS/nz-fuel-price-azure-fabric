@@ -34,7 +34,9 @@ concurrency:
 permissions:
   id-token: write      # OIDC, so no client secret is stored anywhere
   contents: read       # nothing is written back: the chain writes to the
-                       # warehouse, not to git (7 Sep 2026)
+                       # warehouse, not to git (7 Sep 2026), and its public
+                       # archive goes to Azure Blob under the same Azure
+                       # identity, not to GitHub (16 Oct 2026)
 
 jobs:
   weekly:
@@ -141,6 +143,7 @@ jobs:
           task report
           task close
           task refresh
+          task publish
 
       # always(), because `defer` inside task does not survive the runner being
       # cancelled or timing out. The 23:00 NZT auto-pause and the pause-capacity

@@ -33,6 +33,12 @@ design and should be trimmed or updated, not left as-is indefinitely.
   about 09:10 NZDT. If it failed on the connection, the week is still loaded
   and closed: fix the access and run `task refresh` alone. Delete this item
   once it has passed.
+  - **The same run is the first for two more things (W19):** `task build`
+    now builds `margin_compression`, and `task publish` uploads as
+    `nz-fuel-ci` for the first time — proven on 16 Oct from the laptop only.
+    Expect a new `2026-10-22/nz-fuel-2026-10-22.zip` in `nzfueldata/data`
+    and `latest` carrying the same bytes. A failed upload leaves the week
+    loaded and refreshed: `task publish` alone repairs it.
   - **Standing, once that has passed: the connection's token can lapse**, and
     its lifetime is not documented anywhere this project has looked. The
     symptom is a red run failing in `task refresh` with the week already
