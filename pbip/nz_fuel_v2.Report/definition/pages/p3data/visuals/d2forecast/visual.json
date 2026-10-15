@@ -1,0 +1,240 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "d2forecast",
+  "position": {
+    "x": 10,
+    "y": 84,
+    "z": 1000,
+    "height": 480,
+    "width": 940,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "week_date"
+                }
+              },
+              "queryRef": "forecast_accuracy.week_date",
+              "nativeQueryRef": "Week",
+              "displayName": "Week"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "Target week"
+                }
+              },
+              "queryRef": "forecast_accuracy.Target week",
+              "nativeQueryRef": "Target week",
+              "displayName": "Target week"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "fuel"
+                }
+              },
+              "queryRef": "forecast_accuracy.fuel",
+              "nativeQueryRef": "Fuel",
+              "displayName": "Fuel"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "horizon_weeks"
+                }
+              },
+              "queryRef": "forecast_accuracy.horizon_weeks",
+              "nativeQueryRef": "Weeks ahead",
+              "displayName": "Weeks ahead"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "price_now"
+                }
+              },
+              "queryRef": "forecast_accuracy.price_now",
+              "nativeQueryRef": "Price then",
+              "displayName": "Price then"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "actual_price"
+                }
+              },
+              "queryRef": "forecast_accuracy.actual_price",
+              "nativeQueryRef": "Price that followed",
+              "displayName": "Price that followed"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "pred_adl_ecm"
+                }
+              },
+              "queryRef": "forecast_accuracy.pred_adl_ecm",
+              "nativeQueryRef": "Model",
+              "displayName": "Model"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "pred_naive"
+                }
+              },
+              "queryRef": "forecast_accuracy.pred_naive",
+              "nativeQueryRef": "No change",
+              "displayName": "No change"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "abs_err_adl_ecm"
+                }
+              },
+              "queryRef": "forecast_accuracy.abs_err_adl_ecm",
+              "nativeQueryRef": "Model error",
+              "displayName": "Model error"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "abs_err_naive"
+                }
+              },
+              "queryRef": "forecast_accuracy.abs_err_naive",
+              "nativeQueryRef": "No-change error",
+              "displayName": "No-change error"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "forecast_accuracy"
+                  }
+                },
+                "Property": "week_date"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "visualContainerObjects": {
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Forecasts and what followed, c/L — a walk-forward backtest on today's revised data'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "heading": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Normal'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,141 @@
+table margin_compression
+	lineageTag: 92f119e8-73bd-483e-9e53-448092f2d92f
+
+	/// How far the importer margin sits from its own 104-week norm, as a share of that norm. Below zero is compressed. AVERAGE so that a slicer widened to several fuels degrades to their mean instead of adding them up.
+	measure 'Margin Gap' = AVERAGE(margin_compression[margin_gap_pct]) / 100
+		formatString: 0%;-0%;0%
+		lineageTag: 883a2427-1df9-44d1-96a3-4d8f8ff89d80
+
+	/// The same gap with MBIE's fuel market adjustment added back, against a norm built the same way. Exists only for 27 Feb - 11 Sep 2026; blank outside it, never zero.
+	measure 'Margin Gap before Adjustment' = AVERAGE(margin_compression[gap_before_adjustment_pct]) / 100
+		formatString: 0%;-0%;0%
+		lineageTag: 56a121df-4501-49ea-a7f8-a38a7bc780c4
+
+	/// The importer margin as MBIE publishes it, c/L.
+	measure 'Importer Margin' = AVERAGE(margin_compression[importer_margin])
+		formatString: 0.0
+		lineageTag: a28b0708-948f-4203-9861-ca01d7ffd7cb
+
+	/// The mean margin over the 104 weeks before the week, c/L. The week itself is left out of its own norm.
+	measure 'Margin Norm 104w' = AVERAGE(margin_compression[margin_norm_104w])
+		formatString: 0.0
+		lineageTag: d4796cf7-68d5-4f90-9fa5-5b040d63f0ea
+
+	/// The margin with the fuel market adjustment added back, c/L. 27 Feb - 11 Sep 2026 only.
+	measure 'Margin before Adjustment' = AVERAGE(margin_compression[margin_before_adjustment])
+		formatString: 0.0
+		lineageTag: ebcd97e7-23b8-481d-bb93-1a1cd87fcddd
+
+	column week_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 3803b224-b1a3-40e5-ba97-aa3eb3bdcaf4
+		summarizeBy: none
+		sourceColumn: week_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column fuel
+		dataType: string
+		lineageTag: a09e582b-098b-41e9-b693-dde47520e996
+		summarizeBy: none
+		sourceColumn: fuel
+
+		annotation SummarizationSetBy = Automatic
+
+	column importer_margin
+		dataType: double
+		lineageTag: bc1d4bfd-1b4f-40d9-b5e2-285e158776e5
+		summarizeBy: none
+		sourceColumn: importer_margin
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column margin_norm_104w
+		dataType: double
+		lineageTag: a5962350-3029-4fd1-9714-d2f75c022172
+		summarizeBy: none
+		sourceColumn: margin_norm_104w
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column margin_gap_pct
+		dataType: double
+		lineageTag: 751a868e-7e71-4c9a-83e0-745bb1405e75
+		summarizeBy: none
+		sourceColumn: margin_gap_pct
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column adjustment_cpl
+		dataType: double
+		lineageTag: 1ee209b1-18f9-460d-976d-c92977d0425a
+		summarizeBy: none
+		sourceColumn: adjustment_cpl
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column margin_before_adjustment
+		dataType: double
+		lineageTag: 915d7b4c-e9b0-49f1-aae1-d200ce977df1
+		summarizeBy: none
+		sourceColumn: margin_before_adjustment
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column gap_before_adjustment_pct
+		dataType: double
+		lineageTag: cf53a7fe-3dce-4c4a-b695-383b2898a833
+		summarizeBy: none
+		sourceColumn: gap_before_adjustment_pct
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column importer_margin_status
+		dataType: string
+		lineageTag: 1dd8b303-db04-4d0e-976e-f8cd8fe34e5d
+		summarizeBy: none
+		sourceColumn: importer_margin_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column fuel_market_adjustment
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 6a78aaf6-120e-439b-89b3-b02a5f6b24ba
+		summarizeBy: none
+		sourceColumn: fuel_market_adjustment
+
+		annotation SummarizationSetBy = Automatic
+
+	column cost_backfilled
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: da6f9f11-bced-4883-b4f8-205da65a6ac9
+		summarizeBy: none
+		sourceColumn: cost_backfilled
+
+		annotation SummarizationSetBy = Automatic
+
+	partition margin_compression = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("fhi24zxnvquurfybnnzrkz22aq-ae4c5pcutjkedh2gfko4iqwk24.datawarehouse.fabric.microsoft.com", "analytics_warehouse"),
+				    dbo_margin_compression = Source{[Schema="dbo",Item="margin_compression"]}[Data]
+				in
+				    dbo_margin_compression

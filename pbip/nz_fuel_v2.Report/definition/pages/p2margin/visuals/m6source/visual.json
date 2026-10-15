@@ -1,0 +1,47 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "m6source",
+  "position": {
+    "x": 10,
+    "y": 834,
+    "z": 5000,
+    "height": 40,
+    "width": 1260,
+    "tabOrder": 5000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Source: MBIE, Weekly fuel price monitoring (CC BY 4.0). Margin norm and gaps: this project's calculation. ",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "8pt",
+                      "color": "#6b7280"
+                    }
+                  },
+                  {
+                    "value": "Download the data",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "8pt",
+                      "color": "#0ea5e9"
+                    },
+                    "url": "https://nzfueldata.blob.core.windows.net/data/latest/nz-fuel-latest.zip"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
