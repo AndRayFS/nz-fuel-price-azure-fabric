@@ -1491,6 +1491,84 @@ crude, and a target, not a factor.
 and definitions; the comparison is only honest if both sides are on the
 same basis. Genuinely optional — it buys narrative, not correctness.
 
+## W19 — Report 1's last additions: the margin, the data behind it, a weekly release
+
+Proposed 15 Oct 2026 as the last piece of the active phase. Not started.
+
+**Now.** Report 1 reads one table, `forecast_accuracy`. The margin measure
+(Part 10; `research.md`, "What the record says after a margin compression")
+exists only offline, in `research/margin_episodes.py`. Nothing the report shows
+can be downloaded: publish-to-web does not support exporting data from visuals
+(Microsoft, *Publish to web*, "Considerations and limitations").
+
+**Target — three parts, one republish.**
+
+1. **A gold model for the margin**, by fuel and week: the importer margin, its
+   trailing 104-week mean lagged one week, and the gap as a share of that mean
+   — the measure `research.md` settled on, because the margin's level has
+   tripled since 2004 and cents are not comparable across decades. T-SQL
+   window functions, no Python. It starts on **29 Mar 2024**, the first week
+   whose whole window is import-era and Datamine-sourced; earlier weeks are left
+   out rather than shown on a benchmark from another era.
+   - The visual marks **27 Feb 2026**, where MBIE's fuel market adjustment
+     starts. Not 23 Sep, the day MBIE made it: the chart is about the data,
+     not about the posts written before it.
+   - On the page, not in a footnote: the margin is a residual against
+     replacement cost, so a cost spike compresses it mechanically; cost and
+     margin were suspended 18 Mar – 1 Jul 2026 and backfilled. No
+     point-forecast wording — a compression marks a cost move that has not
+     reached the pump, not which side will close the gap.
+2. **A table page in Report 1**, showing what the report is made of: week,
+   fuel, the actual price, the model's forecast, "the price won't move", their
+   errors, and the margin.
+3. **A data release per load.** After `task refresh`, a GitHub release tagged
+   by the load date (`data-YYYY-MM-DD`) carries CSVs of `forecast_accuracy` and
+   the margin model. One release per load, never overwritten: the file for a
+   date is what the report showed after that load, readable without a vintage
+   run or a restore. Linked from the table page and from `README.md`.
+   - **Only what the project adds.** MBIE's own file is linked, not copied.
+     The Dubai crude columns stay out: their source is Argus Media
+     (`mbie_notes.md`), and MBIE's CC BY 4.0 excludes third-party material.
+     Everything else is attributed to MBIE, Weekly fuel price monitoring,
+     CC BY 4.0.
+   - A quiet week — the gate finds the file unchanged — produces no release,
+     because the chain does not run. A revision-only week (`revised_in_place`)
+     does run, which is why the tag is the load date and not the data week.
+
+**The permission.** The weekly job holds `contents: read` by decision
+(`weekly.yml`, 7 Sep 2026: nothing is written back). A release needs
+`contents: write`. It goes to a separate job that does nothing else, with the
+CSVs handed over as a workflow artifact, so the job that holds the warehouse
+and capacity credentials still cannot write to the repository.
+
+**Risks.**
+
+- **The republish can break the refresh.** `refresh_report_1` addresses the
+  model by id (`221ea91d-…`). If publishing from Desktop replaces the model
+  under a new id, `task refresh` fails. Read the id straight after the
+  republish.
+- **Undecided: a failed release.** Fail the run, so the alarm mails and the
+  gap in the record is noticed; or warn, since the week itself is loaded and
+  refreshed. Decide before writing the job.
+
+**Verification.**
+
+1. The gold model against `research/margin_episodes.py` over the same weeks:
+   the same gap, to rounding.
+2. After the republish: the model id unchanged, and `task refresh` green.
+3. The first release written by a weekly run: the CSVs open, and their row
+   counts equal the tables'.
+
+**Depends on.** The load of 22 Oct 2026, the first to run `task refresh`.
+Changing `weekly.yml` before it would put two unknowns into one run — the rule
+W18 set.
+
+**Touches.** `models/gold/` (the new model and its yml), `CLAUDE.md` (which
+says `models/gold/` holds one model), `.github/workflows/weekly.yml` (the
+release job and the artifact), `Taskfile.yml`, a small export script in
+`pipeline/`, `README.md`, `QUICKSTART.md`, `docs/architecture.md` (the
+permission decision). Outside git: Report 1 in Power BI Desktop, in the VM.
+
 ## Research backlog — where the analysis goes next, in priority order
 
 Moved out of `docs/architecture.md` on 3 Sep 2026, unchanged apart from this
