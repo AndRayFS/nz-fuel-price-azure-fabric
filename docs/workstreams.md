@@ -1,6 +1,6 @@
-# Workstreams — plan of record, 23 Aug 2026, last updated 24 Sep 2026
+# Workstreams — plan of record, 23 Aug 2026, last updated 16 Oct 2026
 
-Sixteen pieces of work, grouped by what they are about rather than by when
+Seventeen pieces of work, grouped by what they are about rather than by when
 they happen. Each is meant to be one branch. Every entry states what
 exists today, what the branch delivers, what it risks, and which files it
 touches — the last so that parallel branches can be sequenced without
@@ -1491,11 +1491,14 @@ crude, and a target, not a factor.
 and definitions; the comparison is only honest if both sides are on the
 same basis. Genuinely optional — it buys narrative, not correctness.
 
-## W19 — Report 1's last additions: the margin, the data behind it, a dated archive
+## W19 — Report 1's last additions: the margin, the data behind it, a dated archive — **landed 16 Oct 2026**
 
-Proposed 15 Oct 2026 as the last piece of the active phase. **In progress**,
-branch `w19-report1-last-additions`: the margin model and the archive are
-written and checked; the two report pages are the owner's, in the VM.
+Proposed 15 Oct 2026 as the last piece of the active phase. **Landed 16 Oct
+2026** in two branches: `w19-report1-last-additions`, the margin model and the
+archive, and `w19-report-pages`, the two pages — written here as PBIR and
+published from Desktop (`architecture.md`, "Report 1's definition as text").
+What is left is the first weekly run to carry all of it, 22 Oct
+(`.claude/rules/active-items.md`).
 
 **Now.** Report 1 reads `forecast_accuracy`. The margin measure (Part 10;
 `research.md`, "What the record says after a margin compression") existed only
@@ -1518,16 +1521,20 @@ downloaded: publish-to-web does not support exporting data from visuals
      The extremes are the ones `mbie_notes.md` measured on 24 Sep, and the
      unadjusted gap for 11 Sep reproduces the pre-revision readings in
      `research.md` exactly. After 11 Sep the columns are null.
-   - The visual marks **27 Feb 2026**, where the adjustment starts — not
+   - The page marks **27 Feb 2026**, where the adjustment starts, by where
+     the grey before-adjustment line begins, and says why in its note — not
      23 Sep, the day MBIE made it: the chart is about the data, not about the
      posts written before it. The caveats belong on the page: the margin is a
      residual against replacement cost; cost and margin were suspended
      18 Mar – 1 Jul 2026 and backfilled (`cost_backfilled`). No point-forecast
      wording — a compression marks a cost move that has not reached the pump,
      not which side will close the gap.
-2. **A table page in Report 1**, showing what the report is made of: week,
-   fuel, the actual price, the model's call, "the price won't move", their
-   errors, and the margin.
+2. **A table page in Report 1** — **done 16 Oct 2026**, "The Data": week,
+   fuel, the actual price, the model's call, "the price won't move" and their
+   errors in one table, the margin against its norm in another, each with its
+   own fuel slicer, and a link to the archive. Beside it, "Importer Margin":
+   the gap to the norm with and without the adjustment, the margin and its
+   norm in c/L, and the caveats.
 3. **A dated archive per load** — **written 16 Oct 2026**, `task publish`
    (`pipeline/publish_data.py`), the step after `task refresh`. One zip —
    `weekly_prices.csv`, `forecasts.csv`, `margin.csv` and a README with
@@ -1558,14 +1565,20 @@ downloaded: publish-to-web does not support exporting data from visuals
 
 - **The republish can break the refresh.** `refresh_report_1` addresses the
   model by id (`221ea91d-…`). If publishing from Desktop replaces the model
-  under a new id, `task refresh` fails. Read the id straight after the
-  republish.
+  under a new id, `task refresh` fails. **Did not happen:** the id held on
+  16 Oct, and `task refresh` was green straight after.
+- **Built too early, found before any run.** `task build` (step 3) built
+  `margin_compression` before `task flags` (step 6) wrote the new week to
+  `period_flags`, so the newest week's `cost_backfilled` would have been empty
+  until the next load. `task report` now rebuilds both gold models after the
+  flags, as it already did for `forecast_accuracy`.
 
 **Verification.**
 
 1. Done: the gold model against `research/margin_episodes.py`, and the
    adjustment against `mbie_notes.md`.
-2. After the republish: the model id unchanged, and `task refresh` green.
+2. Done: after the republish, the model id unchanged and `task refresh`
+   green.
 3. The first archive written by a weekly run: it opens, and its row counts
    equal the tables'.
 
@@ -1577,9 +1590,10 @@ steps at once — `refresh`, `publish`, and a gold model built by `task build`
 
 **Touches.** `models/gold/margin_compression.sql`, `CLAUDE.md`,
 `pipeline/publish_data.py`, `Taskfile.yml`, `.github/workflows/weekly.yml`,
-`README.md`, `QUICKSTART.md`, `pipeline/README.md`, `docs/architecture.md`.
-Outside git: the storage account `nzfueldata` (created 16 Oct 2026), and
-Report 1 in Power BI Desktop, in the VM.
+`README.md`, `QUICKSTART.md`, `pipeline/README.md`, `docs/architecture.md`,
+and `pbip/` — the margin table in the model, two pages in the report.
+Outside git: the storage account `nzfueldata` (created 16 Oct 2026), and the
+republish of Report 1 from Desktop.
 
 ## Research backlog — where the analysis goes next, in priority order
 

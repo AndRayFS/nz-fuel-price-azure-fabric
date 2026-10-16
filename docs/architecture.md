@@ -417,9 +417,55 @@ Settings → Manage connections and gateways → `pbi-api-andrei` → Edit
 credentials) and run `task refresh` alone. Tracked in
 `.claude/rules/active-items.md`.
 
-**Still manual:** a republish from Desktop when `forecast_accuracy` changes
-shape (W9 in `workstreams.md`, answered 10 Sep). A refresh against a changed
-table fails, and with it the run.
+**The public link follows the refresh, not an hour later.** Publish-to-web
+caches query results for an hour, but a refresh of an import model clears that
+cache, and Microsoft documents the new data as visible "nearly simultaneous"
+with the refresh (*Publish to web*, "How it works"). So Report 1's public page
+shows a week about as soon as the run ends — three Thursday runs before the
+refresh joined the chain took 9–11 minutes from the 09:07 trigger. Not yet
+observed on a weekly load; the first is 22 Oct 2026.
+
+**Still manual:** a republish from Desktop when `forecast_accuracy` or
+`margin_compression` changes shape (W9 in `workstreams.md`, answered 10 Sep).
+A refresh against a changed table fails, and with it the run. How a republish
+goes is the next section.
+
+### Report 1's definition as text — 16 Oct 2026
+
+`pbip/` holds Report 1 and its model as a Power BI Project: pages and visuals
+in PBIR (JSON), the model in TMDL. Since W19 the report is edited there as
+well as in Desktop — what Desktop saves lands in the same files. As of October 2026 PBIR is Microsoft's default report format, editing
+it outside Desktop is supported, and every `page.json` and `visual.json` names
+the published JSON schema it follows. Desktop stays in the loop for one thing
+only: publishing, which nothing else here can do to My Workspace (above).
+
+The loop, as run for the margin and data pages:
+
+1. Write or change files under `pbip/`, and validate each against the schema
+   it names before Desktop sees it — the schema's error names the file and the
+   property, Desktop's does not.
+2. Open `nz_fuel_v2.pbip` in Desktop in the VM, straight from the shared
+   folder. Refresh (the capacity has to be up), look, save, publish to My
+   Workspace replacing `nz_fuel_v2`.
+3. Read the model's id: `refresh_report_1` addresses it as `221ea91d-…`, and a
+   republish that minted a new one would break `task refresh`. It kept it on
+   16 Oct. Then run `task refresh`.
+4. Commit what Desktop wrote back. `getDefinition` on the published items
+   confirms the round trip: on 16 Oct every page, visual and table file
+   matched the folder; only `.platform` and `definition.pbir` differ, as they
+   always do.
+
+What the schema does not catch, all found on 16 Oct:
+
+- **Measure names are unique across the model**, not per table. A second
+  `Fuel Colour`, on `margin_compression`, stopped Desktop opening the model.
+- **A copied visual keeps its measure references.** The fuel slicers take
+  their fill from a measure; pointed at a table without it, Desktop drew them
+  grey and reported nothing.
+- **Desktop rewrites on save**: CRLF line endings (`.gitattributes` keeps the
+  repository LF), reordered keys, renamed filter aliases, and Q&A synonyms in
+  `cultures/en-US.tmdl` derived from column display names. None of it changes
+  the report.
 
 ### The public archive — 16 Oct 2026
 

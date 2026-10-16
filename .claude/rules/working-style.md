@@ -4,11 +4,15 @@
   anything that's a file + terminal command. Also, since 10 Aug 2026, the
   **logged-in browser** (see below) and **Azure read-only queries** via the
   `az` CLI (installed, authenticated against subscription
-  `e30d2fa4-fb6e-48c5-b3cd-5f9c3f270159`).
-- **claude.ai chat (separate):** Power BI Desktop (Windows VM GUI — DAX
-  can be drafted here as text, but applying/screenshotting it happens
-  there), methodology discussions, LinkedIn post drafting. Don't assume
-  you can drive those directly.
+  `e30d2fa4-fb6e-48c5-b3cd-5f9c3f270159`). And, since 16 Oct 2026,
+  **Report 1 itself**: `pbip/` is PBIR and TMDL text, written and
+  schema-checked here; the owner opens it in Desktop, looks, and publishes
+  (`docs/architecture.md`, "Report 1's definition as text").
+- **The Windows VM:** Power BI Desktop — rendering, refresh, publish. What
+  a page looks like is known only from there; ask for a screenshot rather
+  than assume.
+- **claude.ai chat (separate):** methodology discussions, LinkedIn post
+  drafting. Don't assume you can drive those directly.
 
 ## Browser access
 
