@@ -26,8 +26,8 @@ table margin_compression
 		formatString: 0.0
 		lineageTag: ebcd97e7-23b8-481d-bb93-1a1cd87fcddd
 
-	/// The fuel slicers' fill, the same colours as forecast_accuracy's 'Fuel Colour'. A copy, not a reference: the two tables share no relationship, so that measure never sees what a slicer on this table selects. Change both together.
-	measure 'Fuel Colour' =
+	/// The fuel slicers' fill, the same colours as forecast_accuracy's 'Fuel Colour', under its own name because measure names are unique across the model. A copy, not a reference: the two tables share no relationship, so that measure never sees what a slicer on this table selects. Change both together.
+	measure 'Margin Fuel Colour' =
 			
 			SWITCH(
 			    SELECTEDVALUE(margin_compression[fuel]),

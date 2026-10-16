@@ -308,7 +308,7 @@
                           "Entity": "margin_compression"
                         }
                       },
-                      "Property": "Fuel Colour"
+                      "Property": "Margin Fuel Colour"
                     }
                   }
                 }
@@ -346,7 +346,7 @@
                           "Entity": "margin_compression"
                         }
                       },
-                      "Property": "Fuel Colour"
+                      "Property": "Margin Fuel Colour"
                     }
                   }
                 }
