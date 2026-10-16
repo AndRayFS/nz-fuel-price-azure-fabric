@@ -1448,7 +1448,14 @@ front-month futures, which came apart from spot by 20% during the Hormuz
 backwardation (`docs/research.md`, 19 Sep 2026). Re-measuring on spot is the
 first thing any promotion has to do.
 
-## W11 — Apply the Report 1 redesign
+## W11 — Apply the Report 1 redesign — **closed 16 Oct 2026**
+
+**Closed by the owner, two items short.** The spec's core is Report 1's first
+page: a time axis, the model's call against what followed, its errors, and
+its skill against "the price won't move". The two items added on 21 Aug were
+not done and are dropped, not deferred: small multiples on fuel for visual 1
+(the fuel slicer stayed) and episode names on the canvas. Neither of the
+mechanisms below was checked. What follows is the entry as it stood.
 
 **Now.** `docs/report1_redesign.md` is a spec; Power BI Desktop runs in the
 VM, so applying it happens there. Two items were added on 21 Aug: small
