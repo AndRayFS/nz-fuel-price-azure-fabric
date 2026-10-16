@@ -1,0 +1,225 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "d5margin",
+  "position": {
+    "x": 10,
+    "y": 574,
+    "z": 4000,
+    "height": 376,
+    "width": 940,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "margin_compression"
+                    }
+                  },
+                  "Property": "week_date"
+                }
+              },
+              "queryRef": "margin_compression.week_date",
+              "nativeQueryRef": "Week",
+              "displayName": "Week"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "margin_compression"
+                    }
+                  },
+                  "Property": "fuel"
+                }
+              },
+              "queryRef": "margin_compression.fuel",
+              "nativeQueryRef": "Fuel",
+              "displayName": "Fuel"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "margin_compression"
+                    }
+                  },
+                  "Property": "importer_margin"
+                }
+              },
+              "queryRef": "margin_compression.importer_margin",
+              "nativeQueryRef": "Margin, c/L",
+              "displayName": "Margin, c/L"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "margin_compression"
+                    }
+                  },
+                  "Property": "margin_norm_104w"
+                }
+              },
+              "queryRef": "margin_compression.margin_norm_104w",
+              "nativeQueryRef": "Norm, c/L",
+              "displayName": "Norm, c/L"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "margin_compression"
+                    }
+                  },
+                  "Property": "margin_gap_pct"
+                }
+              },
+              "queryRef": "margin_compression.margin_gap_pct",
+              "nativeQueryRef": "Gap, %",
+              "displayName": "Gap, %"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "margin_compression"
+                    }
+                  },
+                  "Property": "adjustment_cpl"
+                }
+              },
+              "queryRef": "margin_compression.adjustment_cpl",
+              "nativeQueryRef": "Adjustment, c/L",
+              "displayName": "Adjustment, c/L"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "margin_compression"
+                    }
+                  },
+                  "Property": "margin_before_adjustment"
+                }
+              },
+              "queryRef": "margin_compression.margin_before_adjustment",
+              "nativeQueryRef": "Margin before adj., c/L",
+              "displayName": "Margin before adj., c/L"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "margin_compression"
+                    }
+                  },
+                  "Property": "gap_before_adjustment_pct"
+                }
+              },
+              "queryRef": "margin_compression.gap_before_adjustment_pct",
+              "nativeQueryRef": "Gap before adj., %",
+              "displayName": "Gap before adj., %"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "margin_compression"
+                    }
+                  },
+                  "Property": "cost_backfilled"
+                }
+              },
+              "queryRef": "margin_compression.cost_backfilled",
+              "nativeQueryRef": "Backfilled",
+              "displayName": "Backfilled"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "margin_compression"
+                  }
+                },
+                "Property": "week_date"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "visualContainerObjects": {
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Importer margin against its two-year norm'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "heading": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Normal'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
