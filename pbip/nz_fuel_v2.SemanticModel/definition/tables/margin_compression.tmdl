@@ -151,3 +151,4 @@ table margin_compression
 				    dbo_margin_compression = Source{[Schema="dbo",Item="margin_compression"]}[Data]
 				in
 				    dbo_margin_compression
+

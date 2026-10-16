@@ -14,7 +14,6 @@ annotation PBI_QueryOrder = ["forecast_accuracy","margin_compression"]
 annotation PBI_ProTooling = ["DevMode"]
 
 ref table forecast_accuracy
-
 ref table margin_compression
 
 ref cultureInfo en-US

@@ -160,7 +160,7 @@
                 "Version": 2,
                 "From": [
                   {
-                    "Name": "f",
+                    "Name": "m",
                     "Entity": "margin_compression",
                     "Type": 0
                   }
@@ -174,7 +174,7 @@
                             "Column": {
                               "Expression": {
                                 "SourceRef": {
-                                  "Source": "f"
+                                  "Source": "m"
                                 }
                               },
                               "Property": "fuel"
@@ -330,8 +330,8 @@
                 }
               }
             ],
-            "hierarchyMatching": 1,
-            "id": "default"
+            "id": "default",
+            "hierarchyMatching": 1
           }
         },
         {
@@ -368,8 +368,8 @@
                 }
               }
             ],
-            "hierarchyMatching": 1,
-            "id": "selection:selected"
+            "id": "selection:selected",
+            "hierarchyMatching": 1
           }
         }
       ]
