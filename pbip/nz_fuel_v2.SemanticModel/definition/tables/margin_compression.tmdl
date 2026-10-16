@@ -26,6 +26,18 @@ table margin_compression
 		formatString: 0.0
 		lineageTag: ebcd97e7-23b8-481d-bb93-1a1cd87fcddd
 
+	/// The fuel slicers' fill, the same colours as forecast_accuracy's 'Fuel Colour'. A copy, not a reference: the two tables share no relationship, so that measure never sees what a slicer on this table selects. Change both together.
+	measure 'Fuel Colour' =
+			
+			SWITCH(
+			    SELECTEDVALUE(margin_compression[fuel]),
+			    "Regular Petrol", "#40B54A",
+			    "Premium Petrol 95R", "#F7EC14",
+			    "Diesel", "#cccccc",
+			    "#6b7280"
+			)
+		lineageTag: 4458db70-b7f1-4cbb-929a-5c80c3f9c83c
+
 	column week_date
 		dataType: dateTime
 		formatString: Long Date
