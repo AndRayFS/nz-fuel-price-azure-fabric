@@ -34,11 +34,16 @@ design and should be trimmed or updated, not left as-is indefinitely.
   and closed: fix the access and run `task refresh` alone. Delete this item
   once it has passed.
   - **The same run is the first for two more things (W19):** `task build`
-    now builds `margin_compression`, and `task publish` uploads as
-    `nz-fuel-ci` for the first time — proven on 16 Oct from the laptop only.
-    Expect a new `2026-10-22/nz-fuel-2026-10-22.zip` in `nzfueldata/data`
-    and `latest` carrying the same bytes. A failed upload leaves the week
-    loaded and refreshed: `task publish` alone repairs it.
+    and `task report` now build `margin_compression`, and `task publish`
+    uploads as `nz-fuel-ci` for the first time — proven on 16 Oct from the
+    laptop only. Expect a new `2026-10-22/nz-fuel-2026-10-22.zip` in
+    `nzfueldata/data` and `latest` carrying the same bytes. A failed upload
+    leaves the week loaded and refreshed: `task publish` alone repairs it.
+  - **And the first to show the week on the public link by itself.** Expect
+    it about as soon as the run ends, around 09:20 NZDT: a refresh clears
+    publish-to-web's hour-long cache (`architecture.md`, "Refreshing Report 1
+    from the chain"). In the margin table on "The Data", the newest week's
+    "Backfilled" should read False, not blank.
   - **Standing, once that has passed: the connection's token can lapse**, and
     its lifetime is not documented anywhere this project has looked. The
     symptom is a red run failing in `task refresh` with the week already
