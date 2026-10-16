@@ -182,27 +182,30 @@ tasks:
     cmds:
       - '"{{.PY}}" pipeline/export_panel.py'
 
+  # Both gold models, though `build` made them already: they read what steps 6
+  # and 7 write, and `build` runs before those. Built at step 3 alone,
+  # margin_compression leaves the newest week's `cost_backfilled` empty.
   report:
-    desc: "Rebuild the table Report 1 reads (step 9)"
+    desc: "Rebuild the two tables Report 1 reads (step 8)"
     cmds:
-      - '"{{.DBT}}" run --select forecast_accuracy --full-refresh'
+      - '"{{.DBT}}" run --select forecast_accuracy margin_compression --full-refresh'
 
   close:
-    desc: "Close the run — records the week as processed, which the gate reads next time (step 10)"
+    desc: "Close the run — records the week as processed, which the gate reads next time (step 9)"
     cmds:
       - '"{{.PY}}" pipeline/mark_processed.py'
 
   # After `close`, not before it: a refresh that fails leaves the week loaded
   # and recorded, so the gate does not rebuild it next time. Rerun this alone.
   refresh:
-    desc: "Refresh Report 1's semantic model through refresh_report_1 (step 11)"
+    desc: "Refresh Report 1's semantic model through refresh_report_1 (step 10)"
     cmds:
       - '"{{.PY}}" pipeline/run_refresh.py'
 
   # After `refresh`: if the report could not be refreshed, the archive waits
   # too, so the two never describe different loads. Rerun both, in order.
   publish:
-    desc: "Archive the report's data to the public Blob container, dated (step 12)"
+    desc: "Archive the report's data to the public Blob container, dated (step 11)"
     cmds:
       - '"{{.PY}}" pipeline/publish_data.py'
 

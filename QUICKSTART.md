@@ -78,7 +78,7 @@ the gate unless the gate says go — the ordering and the dependency live in
 | `panel` | 5 | panel out to `data/panel_weekly.csv` |
 | `flags` | 6 | regime axes, from the panel, into `dbo.period_flags` |
 | `backtest` | 7 | refit + forecasts, into `dbo.forecast_history` |
-| `report` | 8 | rebuild the table Report 1 reads |
+| `report` | 8 | rebuild the two tables Report 1 reads, after the flags and forecasts they read |
 | `close` | 9 | record the week as processed |
 | `refresh` | 10 | refresh Report 1's semantic model through the `refresh_report_1` pipeline |
 | `publish` | 11 | archive the report's data, dated, to the public Blob container `nzfueldata/data` |
@@ -160,15 +160,16 @@ Notes:
   `research/nowcast_brent.py`; both sources and what separates them are in
   `docs/mbie_notes.md`, "Daily crude and FX".
 
-**What is left to automate is the machine, not the sequence.** The eleven
-steps are one command since W7, and the two that needed a human *judgement*
-rather than a human *hand* went earlier: freshness is the gate rather than a
-portal click, and "was this week already done" is step 10 rather than memory.
-What remains is a hard dependency on one person's venv, one machine's Azure
-login, the capacity being awake, and two manual bookends — resuming the
-capacity with the ingest at the front, and the Power BI refresh at the back.
-That is W8 in `docs/workstreams.md`, which invokes this same `Taskfile.yml`
-so CI and this laptop cannot drift apart.
+**Nothing in the weekly run needs a person since 15 Oct 2026.** The steps
+are one command since W7, and the two that needed a human *judgement* rather
+than a human *hand* went first: freshness is the gate rather than a portal
+click, and "was this week already done" is step 9 rather than memory. The
+machine followed — CI runs this same `Taskfile.yml`, so CI and this laptop
+cannot drift apart (W8); a Logic App starts it on Thursday morning (W16); and
+the Power BI refresh is the chain's own step (W9). What stays with a person is
+reading the monitoring warnings below, and republishing Report 1 from Desktop
+when a table it reads changes shape (`docs/architecture.md`, "Report 1's
+definition as text").
 
 ## Reading the monitoring signals
 

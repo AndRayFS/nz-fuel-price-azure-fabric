@@ -51,7 +51,7 @@ Don't duplicate either file's content here; read them.
 
 `docs/mbie_notes.md` — source data gotchas.
 
-`docs/workstreams.md` — the current plan of record: sixteen pieces of work,
+`docs/workstreams.md` — the current plan of record: seventeen pieces of work,
 one branch each, with dependencies and a conflict map. Read it before
 starting anything structural.
 
