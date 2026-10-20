@@ -1,6 +1,6 @@
-# Workstreams — plan of record, 23 Aug 2026, last updated 16 Oct 2026
+# Workstreams — plan of record, 23 Aug 2026, last updated 20 Oct 2026
 
-Seventeen pieces of work, grouped by what they are about rather than by when
+Eighteen pieces of work, grouped by what they are about rather than by when
 they happen. Each is meant to be one branch. Every entry states what
 exists today, what the branch delivers, what it risks, and which files it
 touches — the last so that parallel branches can be sequenced without
@@ -1421,6 +1421,109 @@ this document warns against below.
 `nz-fuel-price-rg`, `.claude/rules/active-items.md`,
 `docs/architecture.md`, `docs/cost_notes.md`.
 
+## W20 — The last run, step by step, and the monthly bill, inside the report
+
+Proposed 20 Oct 2026; the bill added the same day, at the owner's request.
+Not started.
+
+**Now.** When each step of the weekly chain started, and how long it took, is
+known only to GitHub: the job's step timings, and inside "The rest of the
+chain" a text log with one line per task. Logs are kept 90 days, the most the
+repository allows (checked 20 Oct 2026). The warehouse holds one row per
+completed run, `pipeline.processed_weeks`, whose `recorded_at` is the moment
+of `task close` — when the load ended, not what it went through. For scale,
+from the log of 15 Oct 2026: dispatch 09:07:01 NZDT, ingest 61 s, gate 12 s,
+AIP 1 min 49 s, snapshot through tests 1 min 14 s, panel through backtest
+1 min 22 s, report tables and close 16 s, capacity awake 9 min.
+
+What the project costs is known only from Cost Management, read by hand
+(`docs/cost_notes.md`). Read 20 Oct 2026, actual cost, whole subscription,
+before GST: **September NZ$3.99, 1–19 October NZ$2.71.** A day with a weekly
+run and nothing else — 16, 24 and 30 Sep, 14 Oct — cost NZ$0.20–0.32, so the
+chain is about NZ$1 a month and the rest is the capacity woken for
+development. The run's bill is larger than its minutes at the F2 rate: 14 Oct
+was 9 minutes awake and about 17 minutes' worth of cost, consistent with
+Fabric billing the remaining smoothed usage when the capacity pauses. So the
+figure to show is the bill, not minutes times a rate.
+
+**Target.** The redesign mock-up's page "How it's built" (20 Oct 2026) draws
+the chain in four lanes — Azure, GitHub Actions, Fabric, Power BI — and puts
+on every step when it last started and how long it took, and beside it the
+last complete month's bill. The page reads both from the warehouse:
+
+1. **Each task appends its own line** — step, start, end, outcome — to a
+   local file on the runner. No warehouse write per step: a step's log must
+   never become a new way for the step to fail, and a local append cannot.
+2. **`task close` writes the file to `pipeline.run_steps`** in the same pass
+   as `processed_weeks`: append-only, one row per step, keyed by the GitHub
+   run id (a laptop run gets an id of its own). Times in UTC and in New
+   Zealand time, converted in Python — DAX has no time zones, and NZDT/NZST
+   would otherwise become a rule inside a measure.
+3. **The refresh stamps itself.** A calculated table returning `UTCNOW()` is
+   recalculated by every refresh of an import model, so the model knows when
+   it was refreshed without anyone writing it down. **Not verified** — check
+   in Desktop before relying on it; the fallback is Power Query's
+   `DateTimeZone.UtcNow()`.
+4. **The model gets a table over `run_steps`**, filtered to the last run, and
+   the page one card per step.
+5. **The bill, once a week.** A new step before `close`, `task cost`
+   (`pipeline/fetch_cost.py`), makes one Cost Management query — actual cost,
+   daily totals, no grouping, the last 13 months — sums it by month in Python
+   and replaces `pipeline.monthly_cost` (month, cost, currency, fetched_at).
+   Replace rather than append, because cost surfaces about a day late and is
+   adjusted after a month closes: rereading the whole year every week lets a
+   figure correct itself. The page shows the last complete month, labelled
+   "before GST" — Cost Management's figures are pre-tax. Scope is the
+   resource group `nz-fuel-price-rg`, which holds all six of the project's
+   resources (checked 20 Oct 2026), so it is the whole bill.
+
+**What the page cannot show, by construction.** `refresh`, `publish` and the
+capacity pause run after `close`, and the report is refreshed before the last
+two. So the page shows the refresh time from (3), the archive without a time
+("after the refresh"), and no pause. A quiet week — the gate finds nothing
+new — and a run that fails before `close` write nothing: the page shows the
+last run that brought a week, and its status line has to say exactly that.
+
+**Risks.**
+
+- **A failed log write must not fail the run.** `close` is what the gate
+  reads next week; the `run_steps` insert goes after it and only warns — the
+  monitoring contour's rule that a signal has no authority
+  (`architecture.md`).
+- **A new table changes the model's shape**, so Report 1 is republished from
+  Desktop and the model id has to hold — the same check as W19's.
+- **The gate and the AIP check are separate steps** today, and W18 would
+  remove the second. The page must not merge them into one claim.
+- **The bill needs a new grant.** `nz-fuel-ci` gets Cost Management Reader on
+  `nz-fuel-price-rg` — read-only, cost data only, and still a widening of
+  what CI holds. Agreed by the owner with this entry on 20 Oct 2026, not yet
+  granted. A query at resource-group
+  scope has **not been tried**; the figures above were read at subscription
+  scope.
+- **Cost Management throttles** (HTTP 429, wait at least 45 s —
+  `.claude/rules/working-style.md`). `task cost` tries twice, then exits 0
+  with a warning and leaves last week's table in place: a stale bill must
+  never cost a week's load.
+
+**Verification.** On the first run after landing: one row per task that ran,
+each within a second or two of GitHub's own step timings for the same run,
+and the page showing them once the refresh is done. September in
+`pipeline.monthly_cost` equal to the NZ$3.99 read on 20 Oct, unless Cost
+Management has adjusted it since — in which case the portal's Cost analysis
+for September is the reference.
+
+**Depends on.** The load of 22 Oct 2026, the first with `refresh` and
+`publish` in the chain — not a fourth new thing in that run, by W19's
+reasoning. Page 4 belongs to the redesign mock-up, which is not a branch yet;
+the table can land before the page, and keeps the timings past GitHub's
+90 days meanwhile.
+
+**Touches.** `Taskfile.yml`, `.github/workflows/weekly.yml` (`task cost` in
+the chain's list), `pipeline/mark_processed.py`, `pipeline/fetch_cost.py`
+(new), `pbip/` (two tables in the model, the page), `docs/architecture.md`,
+`docs/cost_notes.md`. Outside git: the role assignment on
+`nz-fuel-price-rg`.
+
 ---
 
 # Track 3 — Analysis
@@ -1800,6 +1903,7 @@ W6 env ─────┘                              ├─→ (W16 replaces i
                                            └─→ (W9 completes unattended operation)
 W2 monitoring   ─ independent
 W18 AIP removed ─ after W16's first unattended run, 1 Oct
+W20 run log, bill ─ after the 22 Oct load
 W4 vintage      ─ independent
 W10 model       ─ independent
 W11 report      ─ interacts with W9
@@ -1836,7 +1940,8 @@ side file to a whole-chain mode makes it an ordinary branch.
 | `QUICKSTART.md` | W2, W3, W5, W7, W18 |
 | `pipeline/aip_check.py` | W2, W18 (deletes it) |
 | `.claude/rules/active-items.md` | W9, W16, W18 |
-| `.github/workflows/weekly.yml` | W16, W18 |
+| `.github/workflows/weekly.yml` | W16, W18, W20 |
+| `Taskfile.yml` | W18 (the `aip` task), W20 |
 | `.github/workflows/pause-capacity.yml` | W16 |
 
 `QUICKSTART.md` is wanted by four branches; leave its rewrite to whichever
