@@ -270,7 +270,7 @@ with `weekly.yml`'s backstop cron gone there is nothing behind it, so an expiry
 is a scheduled outage with a calendar date on it. What it would buy is rotation
 hygiene on a credential whose whole power is starting and cancelling runs in
 one public repository with no secrets in it. The reflex replaces the date: if
-it leaks, revoke and redeploy. See `.claude/rules/active-items.md`.
+it leaks, revoke it on GitHub and redeploy the Logic App with a new one.
 
 A PAT rather than a GitHub App for a different reason: an App needs an RS256
 JWT, which a Logic App cannot sign without adding a Function, and the point of

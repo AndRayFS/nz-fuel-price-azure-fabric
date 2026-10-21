@@ -525,6 +525,26 @@ Data is Argus, published by AIP under licence, with their own calculations
 layered on. Attribution is required if any of it is republished, including
 in the LinkedIn series.
 
+**The markup above the old range is MBIE's fuel market adjustment, not the
+market — explained 8 Oct 2026.** The hand cross-check of 10 Sep (diesel
+14.42 → 14.57, petrol 10.40 → 10.23 USD/bbl, weeks 28 Aug → 4 Sep) predates
+the 16 Sep revision and the 23 Sep adjustment; `monitor_aip_gap`, read 8 Oct,
+has the same weeks at 16.62 → 17.53 and 12.32 → 14.59. In `Importer cost`
+terms the difference — diesel 2.3 and 3.2, petrol 2.0 and 4.7 c/L (2.8 and
+4.0 for 4 Sep net of the 16 Sep revision) — sits inside the adjustment's
+measured Jul–Sep size ("Known structural changes", 23 Sep). Two consequences:
+
+- **The 6.9–13.4 and 7.4–9.6 ranges stay as they are**, here and in
+  `architecture.md`: they were measured under the old methodology. From
+  27 Feb 2026 MBIE − Argus is the old markup plus the adjustment, and a new
+  range would be a range of that sum.
+- **After 11 Sep the adjustment cannot be separated.** MBIE publishes only
+  the sum, the snapshot holds unadjusted values only up to 11 Sep, and the
+  product differential is paid Argus data. The climb to ~24 USD/bbl on both
+  fuels by 2 Oct is probably the adjustment and cannot be shown to be. That
+  is W18's third argument; the unflagged diesel week of 2 Oct (ours +1.01
+  against Argus −2.02 USD/bbl) is an instance of it.
+
 ## `Importer margin` is not the importer's margin — read the name as a warning
 
 Established 15 Aug 2026, working back from the identity:

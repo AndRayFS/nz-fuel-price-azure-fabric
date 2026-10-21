@@ -12,8 +12,13 @@ az rest --method post \
 (`az consumption usage list` is not usable — it deserialises `pretaxCost`
 as the string `"None"`. `az costmanagement` needs an extension that isn't
 installed. The API throttles with HTTP 429; wait **at least 45 s** between
-attempts — 20 s intervals failed six times running on 14 Aug 2026. See
-`.claude/rules/working-style.md` for the rate-limit headers involved.)
+attempts — 20 s intervals failed six times running on 14 Aug 2026; 45 s
+succeeded on the second attempt. Not "a short backoff": the 429 body says
+only "Please retry", but the response headers carry
+`x-ms-ratelimit-microsoft.costmanagement-clienttype-retry-after: 32` and
+`...-clienttype-requests: DefaultQuota:0`. `az rest` hides those headers —
+use `curl -D` with a token from `az account get-access-token` when you need
+to see why it is refusing.)
 
 ## Headline numbers
 
@@ -374,3 +379,21 @@ to wake F2 and be told there was nothing new — unless it could tell that the
 first load had already happened. It was removed instead, on 19 Sep, so the
 capacity is woken once a week by one trigger, and being told when that trigger
 fails is a job for a notification rather than for a second load.
+
+## Budget alert (verified 8 Sep 2026)
+
+`nz-fuel-price-budget`: NZ$20/month, whole subscription, monthly reset,
+running to 30 Jun 2028, with actual-spend alerts at 50/100/150/200%. This
+replaces the spending limit that the 3 Sep pay-as-you-go upgrade removed; the
+23:00 NZT auto-pause is the other guard.
+
+- **The alerts go only to `morozov_77@hotmail.com`**, the billing Microsoft
+  Account — not to `andrei@…onmicrosoft.com`, which is the account the
+  project is normally driven from. That is fine: the owner reads that mailbox
+  daily (stated 19 Sep 2026), so no second contact is needed, and the same
+  mailbox is the destination for the weekly load's own alarm.
+- All four thresholds are **Actual**, not Forecasted, so the first warning
+  arrives after NZ$10 is already spent. At NZ$17.50/day for a capacity left
+  running, that is about half a day of drift. A forecasted threshold would
+  warn earlier; not added, because the auto-pause is meant to make that case
+  impossible and adding one would be guarding against the guard.
