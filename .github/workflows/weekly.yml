@@ -88,6 +88,25 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      # The login rests on GitHub's OIDC token, valid five minutes. After that
+      # the CLI still serves tokens it already holds but cannot fetch a new one
+      # (AADSTS700024). On 28 Oct 2026 `publish` asked for the storage scope
+      # first, 13 minutes in, and the archive was not uploaded. So every scope
+      # the chain uses is taken here, while the login is fresh; a script that
+      # asks for a new scope must add it to this list. Entra documents 60-90
+      # minutes for these tokens against a 45-minute job; the expiry printed
+      # here is the measurement. Only the expiry — the full output carries the
+      # token, and this log is public. Before the resume, so a failure here
+      # costs nothing.
+      - name: Take the tokens the chain will need
+        run: |
+          for scope in https://database.windows.net/.default \
+                       https://api.fabric.microsoft.com/.default \
+                       https://storage.azure.com/.default; do
+            expires=$(az account get-access-token --scope "$scope" --query expiresOn -o tsv)
+            echo "$scope until $expires"
+          done
+
       # Resuming is an ARM action on the capacity resource, a different
       # permission plane from the Fabric workspace role — the app registration
       # needs both. Waiting for Active is not optional: everything downstream
