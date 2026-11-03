@@ -129,15 +129,12 @@ def text_card(entity, measure, size, colour=INK, bold=False, align="left", colou
 
 def title_shape(entity, measure, size, colour=INK, bold=True):
     """Long dynamic text: the title of an invisible shape, because a title wraps and a card value may not."""
-    return {"visualType": "shape",
-            "objects": {"shape": [obj({"tileShape": s("rectangle")})],
-                        "fill": [obj({"show": b(False)}, DEFAULT)],
-                        "outline": [obj({"show": b(False)}, DEFAULT)]},
-            "visualContainerObjects": chrome(padding=(0, 0, 0, 0), title_props={
+    v = invisible_shape()
+    v["visualContainerObjects"] = chrome(padding=(0, 0, 0, 0), title_props={
                 "show": b(True), "text": mexpr(entity, measure), "titleWrap": b(True),
                 "fontSize": d(size), "fontFamily": s(FONT_B if bold else FONT), "fontColor": col(colour),
-                "alignment": s("left"), "heading": s("Heading1" if size >= 16 else "Normal")}),
-            "drillFilterOtherVisuals": True}
+                "alignment": s("left"), "heading": s("Heading1" if size >= 16 else "Normal")})
+    return v
 
 def write_page(root, name, display, visuals, hidden=False):
     pdir = pathlib.Path(root) / "pages" / name
@@ -153,3 +150,32 @@ def write_page(root, name, display, visuals, hidden=False):
         vd = pdir / "visuals" / v["name"]; vd.mkdir()
         (vd / "visual.json").write_text(json.dumps(v, indent=2, ensure_ascii=False) + "\n")
     return pdir
+
+def title_text(entity, measure, size, colour=INK, bold=False, align="left", colour_measure=None,
+               background_measure=None, radius=None):
+    """Short dynamic text, drawn as the title of an invisible shape. A new card does
+    not draw its value in a container under ~30 px high (seen 4 Nov 2026); a title
+    renders at any height and wraps."""
+    tp = {"show": b(True), "text": mexpr(entity, measure), "titleWrap": b(True),
+          "fontSize": d(size), "fontFamily": s(FONT_B if bold else FONT),
+          "fontColor": mcol(*colour_measure) if colour_measure else col(colour),
+          "alignment": s(align), "heading": s("Normal")}
+    v = invisible_shape()
+    v["visualContainerObjects"] = chrome(padding=(0, 0, 0, 0), title_props=tp)
+    if background_measure:
+        v["visualContainerObjects"]["background"] = [obj({"show": b(True), "color": mcol(*background_measure),
+                                                          "transparency": d(0)})]
+        v["visualContainerObjects"]["border"] = [obj({"show": b(True), "color": col(PAPER), "radius": d(radius or 0)})]
+    return v
+
+def invisible_shape():
+    """A shape with neither fill nor outline. Both switched off twice over - with and
+    without a selector, and at full transparency - because the first attempt, with
+    show=false alone, still painted the theme's first colour under the title."""
+    none_fill = {"show": b(False), "fillColor": col(BG), "transparency": d(100)}
+    none_line = {"show": b(False), "lineColor": col(BG), "transparency": d(100)}
+    return {"visualType": "shape",
+            "objects": {"shape": [obj({"tileShape": s("rectangle")})],
+                        "fill": [obj(none_fill), obj(none_fill, DEFAULT)],
+                        "outline": [obj(none_line), obj(none_line, DEFAULT)]},
+            "drillFilterOtherVisuals": True}

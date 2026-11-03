@@ -114,7 +114,18 @@
       "values": [
         {
           "properties": {
-            "fontColor": {
+            "fontColorPrimary": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#256ABF'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontColorSecondary": {
               "solid": {
                 "color": {
                   "expr": {
@@ -146,7 +157,18 @@
                 }
               }
             },
-            "backColor": {
+            "backColorPrimary": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "backColorSecondary": {
               "solid": {
                 "color": {
                   "expr": {

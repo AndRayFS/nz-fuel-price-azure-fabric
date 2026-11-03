@@ -11,17 +11,19 @@ CARD_X = [24, 440, 856]; CARD_W = 400
 
 def header(z=0):
     nav = {"visualType": "pageNavigator",
-           "objects": {"fill": [obj({"show": b(False)}, DEFAULT)],
+           "objects": {"fill": [obj({"show": b(True), "fillColor": col(PAPER), "transparency": d(0)}, DEFAULT),
+                                obj({"fillColor": col("#EFEEEA"), "transparency": d(0)}, {"id": "selected"})],
                        "text": [obj({"fontColor": col(MUTED), "fontSize": d(10), "fontFamily": s(FONT)}, DEFAULT),
                                 obj({"fontColor": col(INK), "fontFamily": s(FONT_B)}, {"id": "selected"})],
-                       "outline": [obj({"show": b(False)}, DEFAULT)]},
+                       "outline": [obj({"show": b(False)}, DEFAULT), obj({"show": b(False)}, {"id": "selected"})],
+                       "pages": [obj({"showHiddenPages": b(False)})]},
            "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
     return [
         container("hdrbg", 0, 0, 1280, 48, z, blank(PAPER)),
         container("hdrrule", 0, 48, 1280, 1, z + 1, blank(LINE)),
         container("hdrbrand", 24, 13, 240, 24, z + 2, textbox([[("NZ fuel prices · oil to pump", 10.5, INK, True)]])),
         container("hdrnav", 272, 6, 560, 36, z + 3, nav),
-        container("hdrweeks", 880, 12, 376, 24, z + 4, text_card("prices", "Header Weeks", 9, MUTED, align="right")),
+        container("hdrweeks", 880, 12, 376, 24, z + 4, title_text("prices", "Header Weeks", 9, MUTED, align="right")),
     ]
 
 def price_chart(key):
@@ -71,8 +73,9 @@ def calls_matrix():
         "objects": {
             "columnHeaders": [obj({"fontColor": col(FAINT), "fontSize": d(8), "fontFamily": s(FONT), "alignment": s("Left"),
                                    "outlineStyle": L(0), "backColor": col(PAPER)})],
-            "values": [obj({"fontColor": col(CALL), "fontSize": d(11), "fontFamily": s(FONT_B), "outlineStyle": L(0),
-                            "backColor": col(PAPER)})],
+            "values": [obj({"fontColorPrimary": col(CALL), "fontColorSecondary": col(CALL), "fontSize": d(11),
+                            "fontFamily": s(FONT_B), "outlineStyle": L(0),
+                            "backColorPrimary": col(PAPER), "backColorSecondary": col(PAPER)})],
             "grid": [obj({"gridVertical": b(False), "gridHorizontal": b(False), "outlineColor": col(PAPER), "rowPadding": d(2)})],
             "subTotals": [obj({"columnSubtotals": b(False), "rowSubtotals": b(False)})],
         },
@@ -113,13 +116,16 @@ def period_slicer():
                                                 "Values": [[{"Literal": {"Value": "'6 months'"}}]]}}}]}}})],
             "fillCustom": [obj({"show": b(True), "fillColor": col("#EFEEEA"), "transparency": d(0)}, DEFAULT),
                            obj({"fillColor": col(PAPER), "transparency": d(0)}, {"id": "selection:selected"})],
-            "value": [obj({"fontSize": d(9), "fontColor": col(MUTED), "fontFamily": s(FONT)}, DEFAULT),
+            "value": [obj({"show": b(True)}),
+                      obj({"textWrap": b(False), "fontSize": d(9), "fontColor": col(MUTED), "fontFamily": s(FONT)}, DEFAULT),
                       obj({"fontColor": col(INK), "fontFamily": s(FONT_B)}, {"id": "selection:selected"})],
             "label": [obj({"show": b(False)}, DEFAULT)],
             "outline": [obj({"show": b(False)}, DEFAULT)],
             "accentBar": [obj({"show": b(False)}, DEFAULT)],
+            "selectionIcon": [obj({"show": b(False)})],
             "shapeCustomRectangle": [obj({"rectangleRoundedCurve": L(6)}, DEFAULT)],
-            "layout": [obj({"rowCount": L(1), "columnCount": L(5), "cellPadding": L(2)}, DEFAULT)],
+            "padding": [obj({"paddingSelection": s("Narrow")}, DEFAULT)],
+            "layout": [obj({"showFixedSize": b(False), "autoGrid": b(True), "orientation": d(0)})],
         },
         "visualContainerObjects": chrome(padding=(0, 0, 0, 0), background="#EFEEEA", border="#EFEEEA", radius=8),
         "drillFilterOtherVisuals": True}
@@ -142,30 +148,29 @@ def page_now():
             container(f"c{i}bg", x, 172, CARD_W, 352, z, blank(PAPER, border=LINE, radius=8)),
             container(f"c{i}name", x + 14, 178, 220, 24, z + 1, textbox([[(label, 11, INK, True)]])),
             container(f"c{i}uline", x + 16, 203, uw, 3, z + 2, blank(colour)),
-            container(f"c{i}weekto", x + 16, 212, 368, 18, z + 3, text_card("prices", "Week To Label", 8.25, MUTED)),
-            container(f"c{i}price", x + 16, 232, 190, 36, z + 4, text_card("prices", "Price Now Label", 20, INK, bold=True), f),
+            container(f"c{i}weekto", x + 16, 212, 368, 18, z + 3, title_text("prices", "Week To Label", 8.25, MUTED)),
+            container(f"c{i}price", x + 16, 232, 190, 36, z + 4, title_text("prices", "Price Now Label", 20, INK, bold=True), f),
             container(f"c{i}change", x + 200, 238, 186, 26, z + 5,
-                      text_card("prices", "Change 4w Label", 9, align="center", colour_measure=("prices", "Change 4w Colour"),
-                                fill_measure=("prices", "Change 4w Fill"), radius=6), f),
-            container(f"c{i}chart", x + 6, 272, 388, 178, z + 6, price_chart(key),
-                      f + [measure_is_one("prices", "In Period", "period")]),
+                      title_text("prices", "Change 4w Label", 9, align="center", colour_measure=("prices", "Change 4w Colour"),
+                                 background_measure=("prices", "Change 4w Fill"), radius=6), f),
+            container(f"c{i}chart", x + 6, 272, 388, 178, z + 6, price_chart(key), f),
             container(f"c{i}rule", x + 16, 456, 368, 1, z + 7, blank("#ECEBE6")),
             container(f"c{i}calls", x + 12, 462, 376, 56, z + 8, calls_matrix(), f),
         ]
     z = 300
     V.append(container("cphead", 24, 532, 130, 22, z, textbox([[("Cost pressure", 10.5, INK, True)]])))
-    V.append(container("cpnote", 152, 535, 1104, 18, z + 1, text_card("margin_compression", "Cost Pressure Heading", 8.25, MUTED)))
+    V.append(container("cpnote", 152, 535, 1104, 18, z + 1, title_text("margin_compression", "Cost Pressure Heading", 8.25, MUTED)))
     for i, (key, label, colour, uw) in enumerate(FUELS):
         x = CARD_X[i]; z = 320 + i * 10; f = [fuel_filter(key)]
         V += [
-            container(f"p{i}bg", x, 560, CARD_W, 78, z, blank(PAPER, border=LINE, radius=8)),
-            container(f"p{i}lbl", x + 14, 568, 260, 20, z + 1, text_card("margin_compression", "Cost Pressure Label", 9, INK), f),
-            container(f"p{i}gap", x + 276, 568, 110, 20, z + 2,
-                      text_card("margin_compression", "Cost Pressure Gap Label", 9, bold=True, align="right",
-                                colour_measure=("margin_compression", "Cost Pressure Colour")), f),
-            container(f"p{i}bar", x + 8, 592, 384, 40, z + 3, pressure_bar(), f),
+            container(f"p{i}bg", x, 558, CARD_W, 86, z, blank(PAPER, border=LINE, radius=8)),
+            container(f"p{i}lbl", x + 14, 563, 260, 18, z + 1, title_text("margin_compression", "Cost Pressure Label", 9, INK), f),
+            container(f"p{i}gap", x + 276, 563, 110, 18, z + 2,
+                      title_text("margin_compression", "Cost Pressure Gap Label", 9, bold=True, align="right",
+                                 colour_measure=("margin_compression", "Cost Pressure Colour")), f),
+            container(f"p{i}bar", x + 8, 582, 384, 60, z + 3, pressure_bar(), f),
         ]
-    V.append(container("footer", 24, 650, 1232, 50, 400, title_shape("prices", "Now Footer", 8.25, FAINT, bold=False)))
+    V.append(container("footer", 24, 652, 1232, 40, 400, title_shape("prices", "Now Footer", 8.25, FAINT, bold=False)))
     return V
 
 def page_test():

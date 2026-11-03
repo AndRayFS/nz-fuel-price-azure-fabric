@@ -97,7 +97,8 @@ table prices
 		displayFolder: Now
 		lineageTag: c9f18970-e3bd-5c23-8e9e-36ed32610508
 
-	measure 'Paid (chart)' = IF(MAX(Week[week]) <= [Latest Week], [Average Paid])
+	/// The period is applied here rather than as a visual filter on In Period: a measure filter written into PBIR broke the visual (Broken_Filters, 4 Nov 2026). Weeks where every series is blank drop off the axis by themselves.
+	measure 'Paid (chart)' = IF(MAX(Week[week]) <= [Latest Week] && [In Period] = 1, [Average Paid])
 		formatString: 0.0
 		displayFolder: Now
 		lineageTag: f76c6615-c23e-58c0-beb2-b16c7808531f

@@ -167,7 +167,8 @@ VAR Start = MAX(Latest - 7 * Weeks, DATE(2013, 2, 1))
 RETURN IF(W > Start && W <= Latest + 21, 1)''', fmt="0", folder="Now",
     desc="Visual-level filter for page 1's charts: the chosen period up to the newest week, plus the three weeks the model has called. Since 2013 starts at the first call, 1 Feb 2013."))
 pm.append(measure(P, "Paid (chart)", '''
-IF(MAX(Week[week]) <= [Latest Week], [Average Paid])''', fmt="0.0", folder="Now"))
+IF(MAX(Week[week]) <= [Latest Week] && [In Period] = 1, [Average Paid])''', fmt="0.0", folder="Now",
+    desc="The period is applied here rather than as a visual filter on In Period: a measure filter written into PBIR broke the visual (Broken_Filters, 4 Nov 2026). Weeks where every series is blank drop off the axis by themselves."))
 pm.append(measure(P, "Four Weeks Ago (chart)", '''
 IF(MAX(Week[week]) = [Latest Week] - 28, [Average Paid])''', fmt="0.0", folder="Now",
     desc="One point, drawn as a hollow marker: where the four-week change is measured from."))
