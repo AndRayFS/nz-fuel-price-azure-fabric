@@ -3,9 +3,9 @@
   "name": "headline",
   "position": {
     "x": 24,
-    "y": 58,
+    "y": 60,
     "z": 100,
-    "height": 68,
+    "height": 64,
     "width": 1232,
     "tabOrder": 100
   },
@@ -212,7 +212,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "18D"
+                  "Value": "17D"
                 }
               }
             },

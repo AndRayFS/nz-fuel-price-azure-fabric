@@ -11,7 +11,7 @@
       "type": "SharedResources"
     },
     "customTheme": {
-      "name": "NZ_Fuel_Price_Project8463330001687849.json",
+      "name": "NZ_Fuel_W21.json",
       "reportVersionAtImport": {
         "visual": "2.11.0",
         "report": "3.4.0",
@@ -65,8 +65,8 @@
       "type": "RegisteredResources",
       "items": [
         {
-          "name": "NZ_Fuel_Price_Project8463330001687849.json",
-          "path": "NZ_Fuel_Price_Project8463330001687849.json",
+          "name": "NZ_Fuel_W21.json",
+          "path": "NZ_Fuel_W21.json",
           "type": "CustomTheme"
         }
       ]

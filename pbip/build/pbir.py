@@ -179,3 +179,12 @@ def invisible_shape():
                         "fill": [obj(none_fill), obj(none_fill, DEFAULT)],
                         "outline": [obj(none_line), obj(none_line, DEFAULT)]},
             "drillFilterOtherVisuals": True}
+
+
+def fx_box(entity, measure, radius=6):
+    """A rectangle whose fill comes from a measure: the pill behind the four-week change."""
+    v = invisible_shape()
+    v["visualContainerObjects"] = chrome(padding=(0, 0, 0, 0))
+    v["visualContainerObjects"]["background"] = [obj({"show": b(True), "color": mcol(entity, measure), "transparency": d(0)})]
+    v["visualContainerObjects"]["border"] = [obj({"show": b(True), "color": col(PAPER), "radius": d(radius)})]
+    return v

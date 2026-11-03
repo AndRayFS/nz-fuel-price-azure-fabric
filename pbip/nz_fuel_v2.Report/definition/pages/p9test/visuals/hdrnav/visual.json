@@ -3,9 +3,9 @@
   "name": "hdrnav",
   "position": {
     "x": 272,
-    "y": 6,
+    "y": 9,
     "z": 3,
-    "height": 36,
+    "height": 30,
     "width": 560,
     "tabOrder": 3
   },
@@ -36,7 +36,7 @@
             "transparency": {
               "expr": {
                 "Literal": {
-                  "Value": "0D"
+                  "Value": "100D"
                 }
               }
             }

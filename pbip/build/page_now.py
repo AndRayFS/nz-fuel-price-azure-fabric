@@ -11,7 +11,7 @@ CARD_X = [24, 440, 856]; CARD_W = 400
 
 def header(z=0):
     nav = {"visualType": "pageNavigator",
-           "objects": {"fill": [obj({"show": b(True), "fillColor": col(PAPER), "transparency": d(0)}, DEFAULT),
+           "objects": {"fill": [obj({"show": b(True), "fillColor": col(PAPER), "transparency": d(100)}, DEFAULT),
                                 obj({"fillColor": col("#EFEEEA"), "transparency": d(0)}, {"id": "selected"})],
                        "text": [obj({"fontColor": col(MUTED), "fontSize": d(10), "fontFamily": s(FONT)}, DEFAULT),
                                 obj({"fontColor": col(INK), "fontFamily": s(FONT_B)}, {"id": "selected"})],
@@ -23,7 +23,7 @@ def header(z=0):
         container("hdrbg", 0, 0, 1280, 48, z, blank(PAPER)),
         container("hdrrule", 0, 48, 1280, 1, z + 1, blank(LINE)),
         container("hdrbrand", 24, 13, 240, 24, z + 2, textbox([[("NZ fuel prices · oil to pump", 10.5, INK, True)]])),
-        container("hdrnav", 272, 6, 560, 36, z + 3, nav),
+        container("hdrnav", 272, 9, 560, 30, z + 3, nav),
         container("hdrweeks", 880, 12, 376, 24, z + 4, title_text("prices", "Header Weeks", 9, MUTED, align="right")),
     ]
 
@@ -126,7 +126,7 @@ def period_slicer():
             "selectionIcon": [obj({"show": b(False)})],
             "shapeCustomRectangle": [obj({"rectangleRoundedCurve": L(6)}, DEFAULT)],
             "padding": [obj({"paddingSelection": s("Narrow")}, DEFAULT)],
-            "layout": [obj({"showFixedSize": b(False), "autoGrid": b(True), "orientation": d(1)})],
+            "layout": [obj({"showFixedSize": b(False), "autoGrid": b(False), "rowCount": L(1), "columnCount": L(5)})],
         },
         "visualContainerObjects": chrome(padding=(0, 0, 0, 0), background="#EFEEEA", border="#EFEEEA", radius=8),
         "drillFilterOtherVisuals": True}
@@ -134,7 +134,7 @@ def period_slicer():
 def page_now():
     V = header()
     z = 100
-    V.append(container("headline", 24, 58, 1232, 68, z, title_shape("prices", "Headline", 18)))
+    V.append(container("headline", 24, 60, 1232, 64, z, title_shape("prices", "Headline", 17)))
     V.append(container("legend", 24, 136, 790, 22, z + 1, textbox([[
         ("━ ", 10, INK, True), ("Average paid     ", 9, MUTED, False),
         ("○ ", 9, INK, False), ("Four weeks ago     ", 9, MUTED, False),
@@ -150,10 +150,12 @@ def page_now():
             container(f"c{i}name", x + 14, 178, 220, 24, z + 1, textbox([[(label, 11, INK, True)]])),
             container(f"c{i}uline", x + 16, 203, uw, 3, z + 2, blank(colour)),
             container(f"c{i}weekto", x + 16, 212, 368, 18, z + 3, title_text("prices", "Week To Label", 8.25, MUTED)),
-            container(f"c{i}price", x + 16, 232, 190, 36, z + 4, title_text("prices", "Price Now Label", 20, INK, bold=True), f),
-            container(f"c{i}change", x + 200, 238, 186, 26, z + 5,
-                      title_text("prices", "Change 4w Label", 9, align="center", colour_measure=("prices", "Change 4w Colour"),
-                                 background_measure=("prices", "Change 4w Fill"), radius=6), f),
+            container(f"c{i}price", x + 16, 230, 96, 38, z + 4, title_text("prices", "Price Now Number", 21, INK, bold=True), f),
+            container(f"c{i}unit", x + 92, 244, 40, 20, z + 4, textbox([[("c/L", 9.75, MUTED, False)]])),
+            container(f"c{i}pill", x + 206, 238, 180, 26, z + 5, fx_box("prices", "Change 4w Fill"), f),
+            container(f"c{i}change", x + 214, 242, 120, 20, z + 6,
+                      title_text("prices", "Change 4w Main", 9, bold=True, colour_measure=("prices", "Change 4w Colour")), f),
+            container(f"c{i}weeks", x + 330, 243, 50, 18, z + 6, textbox([[("4 weeks", 9, MUTED, False)]], align="right")),
             container(f"c{i}chart", x + 6, 272, 388, 178, z + 6, price_chart(key), f),
             container(f"c{i}rule", x + 16, 456, 368, 1, z + 7, blank("#ECEBE6")),
             container(f"c{i}calls", x + 12, 462, 376, 56, z + 8, calls_matrix(), f),
@@ -169,7 +171,8 @@ def page_now():
             container(f"p{i}gap", x + 276, 563, 110, 18, z + 2,
                       title_text("margin_compression", "Cost Pressure Gap Label", 9, bold=True, align="right",
                                  colour_measure=("margin_compression", "Cost Pressure Colour")), f),
-            container(f"p{i}bar", x + 8, 582, 384, 60, z + 3, pressure_bar(), f),
+            container(f"p{i}track", x + 12, 608, 376, 8, z + 3, blank("#ECEBE6", border="#ECEBE6", radius=4)),
+            container(f"p{i}bar", x + 8, 582, 384, 60, z + 4, pressure_bar(), f),
         ]
     V.append(container("footer", 24, 652, 1232, 40, 400, title_shape("prices", "Now Footer", 8.25, FAINT, bold=False)))
     return V

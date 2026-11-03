@@ -141,6 +141,15 @@ VAR ThenP = [Price 4 Weeks Ago]
 RETURN IF(NOT ISBLANK(NowP) && NOT ISBLANK(ThenP), NowP - ThenP)''', fmt="+0.0;-0.0;0.0", folder="Now"))
 pm.append(measure(P, "Change 4w %", "DIVIDE([Change 4w], [Price 4 Weeks Ago])", fmt="+0.0%;-0.0%;0.0%", folder="Now"))
 pm.append(measure(P, "Price Now Label", '''IF(NOT ISBLANK([Price Now]), FORMAT([Price Now], "0.0") & " c/L")''', folder="Now"))
+pm.append(measure(P, "Price Now Number", '''IF(NOT ISBLANK([Price Now]), FORMAT([Price Now], "0.0"))''', folder="Now",
+    desc="The price without its unit: the card sets the number large and c/L small beside it, as the mock-up does."))
+pm.append(measure(P, "Change 4w Main", '''
+VAR vD = [Change 4w]
+RETURN
+IF(
+    NOT ISBLANK(vD),
+    IF(vD >= 0, "▲ ", "▼ ") & FORMAT(vD, "+0.0;-0.0;0.0") & " c/L · " & FORMAT([Change 4w %], "+0.0%;-0.0%;0.0%")
+)''', folder="Now", desc="The change itself, set semibold in the pill; \"4 weeks\" sits beside it in grey."))
 pm.append(measure(P, "Change 4w Label", '''
 VAR D = [Change 4w]
 RETURN
