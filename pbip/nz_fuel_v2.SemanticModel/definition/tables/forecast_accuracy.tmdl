@@ -143,6 +143,92 @@ table forecast_accuracy
 			)
 		lineageTag: 8c698132-7689-4030-b58e-f9d67520d2b4
 
+	/// The model's calls made in the newest week for the three weeks after it, starting from the last price paid so the line leaves from it.
+	measure 'Call (chart)' =
+			VAR W = MAX(Week[week])
+			VAR Latest = [Latest Week]
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    W = Latest, [Average Paid],
+			    W > Latest && W <= Latest + 21,
+			        CALCULATE(AVERAGE(forecast_accuracy[pred_adl_ecm]), forecast_accuracy[week_date] = Latest)
+			)
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: 4d9e1728-3175-58e8-8998-d0c3a49b3530
+
+	/// Edge of the band around the calls: the call plus the 25th percentile of this fuel's past misses at the same horizon, actual minus call, outcomes known by the newest week. The band is the middle half of what happened after calls like it.
+	measure 'Call Low (chart)' =
+			VAR W = MAX(Week[week])
+			VAR Latest = [Latest Week]
+			VAR H = INT((W - Latest) / 7)
+			VAR CallW = [Call (chart)]
+			RETURN
+			IF(
+			    NOT ISBLANK(CallW),
+			    IF(
+			        H = 0,
+			        CallW,
+			        // Only for the three called weeks, so the percentile never runs on an empty set.
+			        CallW
+			            + PERCENTILEX.INC(
+			                CALCULATETABLE(
+			                    forecast_accuracy,
+			                    REMOVEFILTERS(Week),
+			                    forecast_accuracy[horizon_weeks] = H,
+			                    forecast_accuracy[outcome_known] = TRUE(),
+			                    forecast_accuracy[Target week] <= Latest
+			                ),
+			                forecast_accuracy[actual_price] - forecast_accuracy[pred_adl_ecm],
+			                0.25
+			            )
+			    )
+			)
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: d28ffe54-6f07-55d9-b0e6-e4acbf3b7122
+
+	/// Edge of the band around the calls: the call plus the 75th percentile of this fuel's past misses at the same horizon, actual minus call, outcomes known by the newest week. The band is the middle half of what happened after calls like it.
+	measure 'Call High (chart)' =
+			VAR W = MAX(Week[week])
+			VAR Latest = [Latest Week]
+			VAR H = INT((W - Latest) / 7)
+			VAR CallW = [Call (chart)]
+			RETURN
+			IF(
+			    NOT ISBLANK(CallW),
+			    IF(
+			        H = 0,
+			        CallW,
+			        // Only for the three called weeks, so the percentile never runs on an empty set.
+			        CallW
+			            + PERCENTILEX.INC(
+			                CALCULATETABLE(
+			                    forecast_accuracy,
+			                    REMOVEFILTERS(Week),
+			                    forecast_accuracy[horizon_weeks] = H,
+			                    forecast_accuracy[outcome_known] = TRUE(),
+			                    forecast_accuracy[Target week] <= Latest
+			                ),
+			                forecast_accuracy[actual_price] - forecast_accuracy[pred_adl_ecm],
+			                0.75
+			            )
+			    )
+			)
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: f5eb735d-52f5-5deb-bbf5-7a09ca3de4c2
+
+	/// Whole cents: the model's error is several c/L, so a decimal would claim a precision it does not have.
+	measure 'Call Number' =
+			VAR W = MAX(Week[week])
+			VAR Latest = [Latest Week]
+			RETURN IF(W > Latest && W <= Latest + 21, ROUND([Call (chart)], 0))
+		formatString: 0
+		displayFolder: Now
+		lineageTag: 5a553545-b2a4-557f-8ca8-c385f8ca5402
+
 	column week_date
 		dataType: dateTime
 		formatString: Long Date

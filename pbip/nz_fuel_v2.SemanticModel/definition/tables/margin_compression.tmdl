@@ -38,6 +38,49 @@ table margin_compression
 			)
 		lineageTag: 4458db70-b7f1-4cbb-929a-5c80c3f9c83c
 
+	measure 'Margin Now' =
+			VAR W = [Latest Week]
+			RETURN CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(Week), REMOVEFILTERS(margin_compression[week_date]), margin_compression[week_date] = W)
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: 71668a44-538d-51ca-95c9-244739a9a177
+
+	measure 'Margin Norm Now' =
+			VAR W = [Latest Week]
+			RETURN CALCULATE(AVERAGE(margin_compression[margin_norm_104w]), REMOVEFILTERS(Week), REMOVEFILTERS(margin_compression[week_date]), margin_compression[week_date] = W)
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: 511e3d47-7e94-5b63-b3d1-978626571771
+
+	measure 'Margin Gap Now' =
+			VAR M = [Margin Now]
+			VAR N = [Margin Norm Now]
+			RETURN IF(NOT ISBLANK(M) && NOT ISBLANK(N), M - N)
+		formatString: +0.0;-0.0;0.0
+		displayFolder: Now
+		lineageTag: f7f4831d-1651-5f76-9725-0dc8f0db7942
+
+	measure 'Cost Pressure Label' =
+			IF(NOT ISBLANK([Margin Gap Now]),
+			    FORMAT([Margin Now], "0.0") & " c/L now · average " & FORMAT([Margin Norm Now], "0.0"))
+		displayFolder: Now
+		lineageTag: 7cdb05da-530b-52a9-ab05-ec285e7e4590
+
+	measure 'Cost Pressure Gap Label' = IF(NOT ISBLANK([Margin Gap Now]), FORMAT([Margin Gap Now], "+0.0;-0.0;0.0") & " c/L")
+		displayFolder: Now
+		lineageTag: 40d6b7fe-53e8-5fbd-a468-4fc5679333f8
+
+	/// Orange when the margin sits at least 5 c/L under its norm: costs have run ahead of the pump. Same threshold as the headline's "close to".
+	measure 'Cost Pressure Colour' = IF([Margin Gap Now] <= -5, "#EB6834", "#8A8983")
+		displayFolder: Now
+		lineageTag: 89748666-bb76-58a3-8462-19d58e7c9ee1
+
+	measure 'Cost Pressure Heading' =
+			"Importer margin against its two-year average, week to " & FORMAT([Latest Week], "d mmm")
+			    & " · orange: below average, costs have run ahead of the pump"
+		displayFolder: Now
+		lineageTag: a105f357-c026-5569-9233-77985b6dd7e0
+
 	column week_date
 		dataType: dateTime
 		formatString: Long Date

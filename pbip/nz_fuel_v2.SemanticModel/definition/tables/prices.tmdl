@@ -1,0 +1,287 @@
+/// MBIE's weekly price and its components, by fuel, straight from silver - the same rows the archive's weekly_prices.csv carries.
+table prices
+	lineageTag: 08f1489f-599e-5f61-85bb-c0060eba789d
+
+	/// The newest MBIE week in the model, whatever the visual filters. On the hidden test page, the week picked there instead.
+	measure 'Latest Week' =
+			VAR Newest = CALCULATE(MAX(prices[week_date]), REMOVEFILTERS())
+			VAR AsOf = SELECTEDVALUE('As Of'[As of week])
+			RETURN IF(ISBLANK(AsOf), Newest, MIN(AsOf, Newest))
+		formatString: d mmm yyyy
+		displayFolder: Now
+		lineageTag: 15e76f97-7afa-54df-8965-3e637c8c449c
+
+	/// MBIE's national average price paid for the week, c/L. A few cents below the pump sign.
+	measure 'Average Paid' = AVERAGE(prices[adjusted_retail_price])
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: a80bfdb3-c61e-5c0c-806c-359cccb0265d
+
+	measure 'Price Now' =
+			VAR W = [Latest Week]
+			RETURN CALCULATE([Average Paid], REMOVEFILTERS(Week), REMOVEFILTERS(prices[week_date]), prices[week_date] = W)
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: b479b184-65b0-52d7-add2-e651fb2c1c5e
+
+	measure 'Price 4 Weeks Ago' =
+			VAR W = [Latest Week] - 28
+			RETURN CALCULATE([Average Paid], REMOVEFILTERS(Week), REMOVEFILTERS(prices[week_date]), prices[week_date] = W)
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: 3b2f9d1a-44ad-5eb3-8df4-df4c268a1833
+
+	measure 'Change 4w' =
+			VAR NowP = [Price Now]
+			VAR ThenP = [Price 4 Weeks Ago]
+			RETURN IF(NOT ISBLANK(NowP) && NOT ISBLANK(ThenP), NowP - ThenP)
+		formatString: +0.0;-0.0;0.0
+		displayFolder: Now
+		lineageTag: c59f858a-ae2e-5595-bb50-b04573c5b655
+
+	measure 'Change 4w %' = DIVIDE([Change 4w], [Price 4 Weeks Ago])
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: Now
+		lineageTag: f4ada28f-6660-53f5-959b-b87c066025df
+
+	measure 'Price Now Label' = IF(NOT ISBLANK([Price Now]), FORMAT([Price Now], "0.0") & " c/L")
+		displayFolder: Now
+		lineageTag: 1270027a-06c9-5971-8517-5f5743c5d314
+
+	/// Gaspy-style change: arrow, c/L, per cent, and the window it covers.
+	measure 'Change 4w Label' =
+			VAR D = [Change 4w]
+			RETURN
+			IF(
+			    NOT ISBLANK(D),
+			    IF(D >= 0, "▲ ", "▼ ") & FORMAT(D, "+0.0;-0.0;0.0") & " c/L · "
+			        & FORMAT([Change 4w %], "+0.0%;-0.0%;0.0%") & " · 4 weeks"
+			)
+		displayFolder: Now
+		lineageTag: 101d75ea-12de-5883-a891-906e3ac4acfc
+
+	/// Rising price in red: it is the reader's cost. A fall stays neutral, not green - green is Regular 91's colour.
+	measure 'Change 4w Colour' = IF([Change 4w] >= 0, "#B42318", "#4D4C48")
+		displayFolder: Now
+		lineageTag: 17c6603f-e3ba-5ab6-addf-f7c641e45f8e
+
+	measure 'Change 4w Fill' = IF([Change 4w] >= 0, "#FBE7E5", "#EFEEEA")
+		displayFolder: Now
+		lineageTag: 95cc4711-d4f2-5751-8078-23bb2172fdf8
+
+	measure 'Week To Label' = "Average paid, week to " & FORMAT([Latest Week], "d mmm")
+		displayFolder: Now
+		lineageTag: 982155cf-90eb-58f1-b821-87648c107d29
+
+	/// MBIE stamps a week by its Friday and publishes it the Wednesday after next; the chain loads it the Thursday, 13 days after the stamp.
+	measure 'Header Weeks' =
+			"Latest MBIE week: " & FORMAT([Latest Week], "d mmm yyyy")
+			    & " · next about " & FORMAT([Latest Week] + 13, "d mmm")
+		displayFolder: Now
+		lineageTag: 4b463d7e-6535-5ba6-a359-79f376f31e4e
+
+	/// For the Today line. Evaluated when the page is read, not at refresh, so it moves between loads.
+	measure Today = TODAY()
+		formatString: d mmm yyyy
+		displayFolder: Now
+		lineageTag: 73608bf9-49ff-5f54-9fe7-1c36b8344283
+
+	/// Visual-level filter for page 1's charts: the chosen period up to the newest week, plus the three weeks the model has called. Since 2013 starts at the first call, 1 Feb 2013.
+	measure 'In Period' =
+			VAR W = MAX(Week[week])
+			VAR Latest = [Latest Week]
+			VAR Weeks = SELECTEDVALUE(Period[Weeks], 26)
+			VAR Start = MAX(Latest - 7 * Weeks, DATE(2013, 2, 1))
+			RETURN IF(W > Start && W <= Latest + 21, 1)
+		formatString: 0
+		displayFolder: Now
+		lineageTag: c9f18970-e3bd-5c23-8e9e-36ed32610508
+
+	measure 'Paid (chart)' = IF(MAX(Week[week]) <= [Latest Week], [Average Paid])
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: f76c6615-c23e-58c0-beb2-b16c7808531f
+
+	/// One point, drawn as a hollow marker: where the four-week change is measured from.
+	measure 'Four Weeks Ago (chart)' = IF(MAX(Week[week]) = [Latest Week] - 28, [Average Paid])
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: b74c55cf-0511-5ddb-b53c-2de512acc92f
+
+	/// Page 1's title, built from the newest week. States what happened and where margins stand - never what will happen.
+	measure Headline =
+			// Two clauses, each a small decision table over the newest week's numbers.
+			// Mirrored in Python and run over every week since Feb 2013 before it was
+			// written here (W21). Change a threshold here and rerun that check.
+			VAR FLAT = 3      // c/L: a smaller four-week move counts as no move
+			VAR NEAR = 5      // c/L: a margin this close to its norm is "close to" it
+			VAR SPREAD = 5    // c/L: fuels further apart than this get a range, not one number
+			VAR W = [Latest Week]
+			VAR W4 = W - 28
+			VAR P91 = CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(), prices[week_date] = W, prices[fuel] = "Regular Petrol")
+			VAR P95 = CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(), prices[week_date] = W, prices[fuel] = "Premium Petrol 95R")
+			VAR PD = CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(), prices[week_date] = W, prices[fuel] = "Diesel")
+			VAR Q91 = CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(), prices[week_date] = W4, prices[fuel] = "Regular Petrol")
+			VAR Q95 = CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(), prices[week_date] = W4, prices[fuel] = "Premium Petrol 95R")
+			VAR QD = CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(), prices[week_date] = W4, prices[fuel] = "Diesel")
+			VAR HavePrices = NOT (ISBLANK(P91) || ISBLANK(P95) || ISBLANK(PD) || ISBLANK(Q91) || ISBLANK(Q95) || ISBLANK(QD))
+			VAR D91 = P91 - Q91
+			VAR D95 = P95 - Q95
+			VAR DD = PD - QD
+			VAR DMin = MIN(MIN(D91, D95), DD)
+			VAR DMax = MAX(MAX(D91, D95), DD)
+			VAR NUp = (D91 >= FLAT) + (D95 >= FLAT) + (DD >= FLAT)
+			VAR NDown = (D91 <= -FLAT) + (D95 <= -FLAT) + (DD <= -FLAT)
+			VAR AmtUp = IF(DMax - DMin <= SPREAD, FORMAT((D91 + D95 + DD) / 3, "0"), FORMAT(DMin, "0") & "–" & FORMAT(DMax, "0"))
+			VAR AmtDown = IF(DMax - DMin <= SPREAD, FORMAT(-(D91 + D95 + DD) / 3, "0"), FORMAT(-DMax, "0") & "–" & FORMAT(-DMin, "0"))
+			VAR DPet = (D91 + D95) / 2
+			VAR VerbPet = IF(DPet >= FLAT, "rose " & FORMAT(ABS(DPet), "0") & " c/L", IF(DPet <= -FLAT, "fell " & FORMAT(ABS(DPet), "0") & " c/L", "held steady"))
+			VAR VerbDsl = IF(DD >= FLAT, "rose " & FORMAT(ABS(DD), "0") & " c/L", IF(DD <= -FLAT, "fell " & FORMAT(ABS(DD), "0") & " c/L", "held steady"))
+			VAR ClauseA =
+			    SWITCH(
+			        TRUE(),
+			        NOT HavePrices, "",
+			        NUp = 3, "Pump prices rose " & AmtUp & " c/L in four weeks.",
+			        NDown = 3, "Pump prices fell " & AmtDown & " c/L in four weeks.",
+			        NUp + NDown = 0, "Pump prices barely moved in four weeks.",
+			        VerbPet = VerbDsl,
+			            IF(VerbPet = "held steady", "Pump prices barely moved in four weeks.", "Pump prices " & VerbPet & " in four weeks."),
+			        "Petrol " & VerbPet & " in four weeks; diesel " & VerbDsl & "."
+			    )
+			// Clause B: the importer margin against its 104-week norm, c/L.
+			VAR M91 = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Regular Petrol")
+			VAR M95 = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Premium Petrol 95R")
+			VAR MD = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Diesel")
+			VAR N91 = CALCULATE(AVERAGE(margin_compression[margin_norm_104w]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Regular Petrol")
+			VAR N95 = CALCULATE(AVERAGE(margin_compression[margin_norm_104w]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Premium Petrol 95R")
+			VAR ND = CALCULATE(AVERAGE(margin_compression[margin_norm_104w]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Diesel")
+			VAR M914 = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W4, margin_compression[fuel] = "Regular Petrol")
+			VAR M954 = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W4, margin_compression[fuel] = "Premium Petrol 95R")
+			VAR MD4 = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W4, margin_compression[fuel] = "Diesel")
+			VAR N914 = CALCULATE(AVERAGE(margin_compression[margin_norm_104w]), REMOVEFILTERS(), margin_compression[week_date] = W4, margin_compression[fuel] = "Regular Petrol")
+			VAR N954 = CALCULATE(AVERAGE(margin_compression[margin_norm_104w]), REMOVEFILTERS(), margin_compression[week_date] = W4, margin_compression[fuel] = "Premium Petrol 95R")
+			VAR ND4 = CALCULATE(AVERAGE(margin_compression[margin_norm_104w]), REMOVEFILTERS(), margin_compression[week_date] = W4, margin_compression[fuel] = "Diesel")
+			VAR HaveMargins = NOT (ISBLANK(M91) || ISBLANK(M95) || ISBLANK(MD) || ISBLANK(N91) || ISBLANK(N95) || ISBLANK(ND))
+			VAR HaveMargins4 = NOT (ISBLANK(M914) || ISBLANK(M954) || ISBLANK(MD4) || ISBLANK(N914) || ISBLANK(N954) || ISBLANK(ND4))
+			VAR GPet = ((M91 - N91) + (M95 - N95)) / 2
+			VAR GDsl = MD - ND
+			VAR GPet4 = ((M914 - N914) + (M954 - N954)) / 2
+			VAR GDsl4 = MD4 - ND4
+			VAR SPet = IF(GPet <= -NEAR, "below", IF(GPet >= NEAR, "above", "near"))
+			VAR SDsl = IF(GDsl <= -NEAR, "below", IF(GDsl >= NEAR, "above", "near"))
+			VAR StillPet = HaveMargins4 && IF(GPet4 <= -NEAR, "below", IF(GPet4 >= NEAR, "above", "near")) = SPet
+			VAR StillDsl = HaveMargins4 && IF(GDsl4 <= -NEAR, "below", IF(GDsl4 >= NEAR, "above", "near")) = SDsl
+			VAR Lo = MIN(ABS(GPet), ABS(GDsl))
+			VAR Hi = MAX(ABS(GPet), ABS(GDsl))
+			VAR AmtBoth = IF(Hi - Lo <= SPREAD, "about " & FORMAT((Lo + Hi) / 2, "0"), FORMAT(Lo, "0") & "–" & FORMAT(Hi, "0"))
+			VAR PartPet =
+			    IF(
+			        SPet = "near",
+			        "Petrol's margin is close to its two-year average",
+			        "Petrol's margin is " & IF(StillPet, "still ", "") & "about " & FORMAT(ABS(GPet), "0") & " c/L " & SPet & " its two-year average"
+			    )
+			VAR PartDsl =
+			    IF(
+			        SDsl = "near",
+			        "diesel's is close to it",
+			        "diesel's is " & IF(StillDsl, "still ", "") & "about " & FORMAT(ABS(GDsl), "0") & " c/L " & SDsl & " it"
+			    )
+			VAR ClauseB =
+			    SWITCH(
+			        TRUE(),
+			        NOT HaveMargins, "",
+			        SPet = SDsl && SPet = "near", "Importer margins are close to their two-year average.",
+			        SPet = SDsl, "Importer margins are " & IF(StillPet && StillDsl, "still ", "") & AmtBoth & " c/L " & SPet & " their two-year average.",
+			        PartPet & "; " & PartDsl & "."
+			    )
+			RETURN
+			    ClauseA & IF(ClauseA <> "" && ClauseB <> "", " ", "") & ClauseB
+		displayFolder: Now
+		lineageTag: c41677c4-3cc2-528f-b658-53d89a8eb8f2
+
+	column week_date
+		dataType: dateTime
+		formatString: d mmm yyyy
+		lineageTag: 930919e6-c542-57f7-af18-f2e8897accc7
+		summarizeBy: none
+		sourceColumn: week_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column fuel
+		dataType: string
+		lineageTag: 47f91f97-dafd-5eef-9be7-a4ecdc5ee4ae
+		summarizeBy: none
+		sourceColumn: fuel
+
+		annotation SummarizationSetBy = Automatic
+
+	column adjusted_retail_price
+		dataType: double
+		formatString: 0.0
+		lineageTag: e60772d9-4973-577c-964a-053f88e62b91
+		summarizeBy: none
+		sourceColumn: adjusted_retail_price
+
+		annotation SummarizationSetBy = Automatic
+
+	column importer_cost
+		dataType: double
+		formatString: 0.0
+		lineageTag: 380c21c5-cb78-56fd-8150-0da9062cd649
+		summarizeBy: none
+		sourceColumn: importer_cost
+
+		annotation SummarizationSetBy = Automatic
+
+	column importer_margin
+		dataType: double
+		formatString: 0.0
+		lineageTag: 1ee274ca-9316-522f-bab5-620d7f911f6e
+		summarizeBy: none
+		sourceColumn: importer_margin
+
+		annotation SummarizationSetBy = Automatic
+
+	column taxes
+		dataType: double
+		formatString: 0.0
+		lineageTag: b5783b30-487b-533b-8676-960110d6a43c
+		summarizeBy: none
+		sourceColumn: taxes
+
+		annotation SummarizationSetBy = Automatic
+
+	column ets
+		dataType: double
+		formatString: 0.0
+		lineageTag: f8703f7d-0bb4-5d8c-8f7a-7e698739cad6
+		summarizeBy: none
+		sourceColumn: ets
+
+		annotation SummarizationSetBy = Automatic
+
+	column gst
+		dataType: double
+		formatString: 0.0
+		lineageTag: 1968586f-4aeb-536b-ab1a-3e0fa8518583
+		summarizeBy: none
+		sourceColumn: gst
+
+		annotation SummarizationSetBy = Automatic
+
+	partition prices = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("fhi24zxnvquurfybnnzrkz22aq-ae4c5pcutjkedh2gfko4iqwk24.datawarehouse.fabric.microsoft.com", "analytics_warehouse"),
+				    silver_fuel = Source{[Schema="dbo",Item="silver_fuel"]}[Data],
+				    Kept = Table.SelectColumns(silver_fuel, {"Date", "Fuel", "adjusted_retail_price", "importer_cost", "importer_margin", "taxes", "ets", "gst"}),
+				    Renamed = Table.RenameColumns(Kept, {{"Date", "week_date"}, {"Fuel", "fuel"}}),
+				    Typed = Table.TransformColumnTypes(Renamed, {{"week_date", type date}, {"fuel", type text}, {"adjusted_retail_price", type number}, {"importer_cost", type number}, {"importer_margin", type number}, {"taxes", type number}, {"ets", type number}, {"gst", type number}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

@@ -1,0 +1,52 @@
+table Period
+	lineageTag: 50a39c84-8288-5adf-b0fd-843f9862c9eb
+
+	column Period
+		dataType: string
+		lineageTag: 99cabe8b-d01a-5364-b9c4-89e5edf8ac49
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Period]
+		sortByColumn: 'Period order'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Weeks
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 964c382c-69dc-550b-9531-3ef9f0961f93
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Weeks]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Period order'
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 32feebb1-054c-51cd-a312-d39803ebe186
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Period order]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Period = calculated
+		mode: import
+		source =
+				DATATABLE(
+				    "Period", STRING,
+				    "Weeks", INTEGER,
+				    "Period order", INTEGER,
+				    {
+				        {"3 months", 13, 1},
+				        {"6 months", 26, 2},
+				        {"1 year", 52, 3},
+				        {"5 years", 260, 4},
+				        {"Since 2013", 9999, 5}
+				    }
+				)
+
+	annotation PBI_Id = df8d8de63e05554c96d669568a47c757

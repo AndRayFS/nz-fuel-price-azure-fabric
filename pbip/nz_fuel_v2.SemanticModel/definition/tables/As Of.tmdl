@@ -1,0 +1,24 @@
+table 'As Of'
+	isHidden
+	lineageTag: 227e630c-7d0f-5788-8960-a65638060e58
+
+	column 'As of week'
+		dataType: dateTime
+		formatString: d mmm yyyy
+		lineageTag: 73559ac3-eb1a-5ae5-99f9-915e24f5b67a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [As of week]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition 'As Of' = calculated
+		mode: import
+		source =
+				// For the hidden test page only: pick a past week and every page-1 measure,
+				// the headline included, is computed as if that week were the newest.
+				SELECTCOLUMNS(GENERATESERIES(DATE(2013, 2, 1), TODAY(), 7), "As of week", [Value])
+
+	annotation PBI_Id = d6053f437e3151ca81f5fb59d7542663
