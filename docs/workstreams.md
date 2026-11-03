@@ -1,6 +1,6 @@
-# Workstreams — plan of record, 23 Aug 2026, last updated 20 Oct 2026
+# Workstreams — plan of record, 23 Aug 2026, last updated 4 Nov 2026
 
-Eighteen pieces of work, grouped by what they are about rather than by when
+Nineteen pieces of work, grouped by what they are about rather than by when
 they happen. Each is meant to be one branch. Every entry states what
 exists today, what the branch delivers, what it risks, and which files it
 touches — the last so that parallel branches can be sequenced without
@@ -1705,6 +1705,88 @@ and `pbip/` — the margin table in the model, two pages in the report.
 Outside git: the storage account `nzfueldata` (created 16 Oct 2026), and the
 republish of Report 1 from Desktop.
 
+## W21 — Report 1 for a reader who has never seen it: five pages, replacing three
+
+Proposed 4 Nov 2026, from a review of 17–20 Oct whose mock-up lives on
+claude.ai (private). Branch `w21-report1-v2`, worktree `../nz-fuel-report-v2`.
+
+**Now.** Three pages: "Oil → Pump: Track Record" (W11), "Importer Margin" and
+"The Data" (W19). They answer the author's question in the author's words:
+captions carry what the visuals do not, the canvas is 4:3, a colour means
+different things on different pages, and titles name the visual instead of
+saying what it shows. The review put the cause in the structure, not the
+styling — the audience is data people reading a LinkedIn link, and the story
+they need is "what now, then why believe it".
+
+**Target.** The three pages give way to five, in the order a first-time
+reader asks:
+
+1. **Now** — one card per fuel: the average paid in the latest MBIE week, the
+   change over four weeks in c/L and %, the price line with the model's calls
+   for the next three weeks, the middle half of its past misses as a band
+   around them, and a Today line. One period selector — 3 months, 6 months,
+   1 year, 5 years, since 2013 — for all three. Under the cards, cost
+   pressure: each fuel's margin against its two-year norm.
+2. **Track record** — the model's miss over time against "the price won't
+   move", since Feb 2013 on one scale, with fuel and weeks-ahead selectors;
+   beside it the miss by fuel and horizon, model against naive.
+3. **Margin** — the gap to the norm in c/L, three panels on one scale, the
+   part MBIE's fuel market adjustment accounts for (27 Feb – 11 Sep 2026) in a
+   lighter tone. Beside it a litre's price split into cost, margin, ETS, taxes
+   and GST: the latest week filled, the average since 29 Mar 2024 outlined,
+   both on one c/L scale.
+4. **How it's built** — the chain in four lanes: Azure, GitHub Actions,
+   Fabric, Power BI. Static here; W20 gives it each step's last run and the
+   monthly bill.
+5. **Data** — the calls and their misses, a glossary, the archive link.
+
+Throughout: 16:9 at 1280×720, Segoe UI (publish-to-web serves no custom
+fonts), an action title on every page, c/L as the unit, fuel colours used for
+fuels and nothing else. The phone landing page from the same review is not
+part of this.
+
+**Data.** Pages 1, 2 and 5 read `forecast_accuracy`, page 3
+`margin_compression`. The price and its components — page 1's line, page 3's
+split — come from a third table importing `silver_fuel` as it is, which is what
+the archive's `weekly_prices.csv` already reads. No change to dbt or to the
+chain.
+
+**Risks.**
+
+- **Mechanisms not yet seen in Desktop**, each with the fallback that keeps
+  the page:
+
+  | mechanism | where | fallback |
+  |---|---|---|
+  | line chart error bars drawn as a band | Now, the misses around the calls | two stacked areas, the lower one transparent |
+  | x-axis constant line whose value is a measure | Now, Today | a one-point series with a label |
+  | button slicer on a disconnected table, applied through a measure | Now, the period | an ordinary slicer |
+  | per-series fill transparency with a border | Margin, the outlined average | one bar visual per row |
+  | data labels from a measure, not the value | Margin, shares on c/L bars | labels off, shares in a column beside |
+
+- **Replacing in place is what keeps the public link and the model id**
+  (`221ea91d-…`) that `refresh_report_1` addresses. Publish over `nz_fuel_v2`
+  as on 16 Oct, and read the id before `task refresh`.
+- **The 16 Oct Desktop save is still uncommitted in the main checkout** —
+  line endings throughout, and "The Data"'s horizon slicer default moved from
+  1 to 2. This branch deletes those pages, so that save has to be committed
+  or discarded before the merge; the owner's call.
+
+**Verification.**
+
+1. Desktop opens the model and refreshes; page 1's numbers for the latest
+   week equal the archive of the same load.
+2. Each page against the mock-up, from a Desktop screenshot.
+3. After the publish: the model id unchanged, `task refresh` green, the
+   public link showing five pages, and the next Thursday run green.
+
+**Depends on.** Nothing. W20 fills page 4 in later.
+
+**Touches.** `pbip/` throughout — three pages deleted, five written, a table,
+measures and a theme added; `docs/report1_redesign.md`;
+`docs/architecture.md`, for the report now reading silver. Outside git: the
+republish.
+
 ## Research backlog — where the analysis goes next, in priority order
 
 Moved out of `docs/architecture.md` on 3 Sep 2026, unchanged apart from this
@@ -1904,6 +1986,7 @@ W6 env ─────┘                              ├─→ (W16 replaces i
 W2 monitoring   ─ independent
 W18 AIP removed ─ after W16's first unattended run, 1 Oct
 W20 run log, bill ─ after the 22 Oct load
+W21 report v2   ─ independent; W20 fills its page 4
 W4 vintage      ─ independent
 W10 model       ─ independent
 W11 report      ─ interacts with W9
@@ -1942,6 +2025,7 @@ side file to a whole-chain mode makes it an ordinary branch.
 | `.claude/rules/active-items.md` | W9, W16, W18 |
 | `.github/workflows/weekly.yml` | W16, W18, W20 |
 | `Taskfile.yml` | W18 (the `aip` task), W20 |
+| `pbip/` | W20 (a table, page 4), W21 (throughout) |
 | `.github/workflows/pause-capacity.yml` | W16 |
 
 `QUICKSTART.md` is wanted by four branches; leave its rewrite to whichever
