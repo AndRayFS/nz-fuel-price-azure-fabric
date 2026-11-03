@@ -35,11 +35,11 @@
                     }
                   },
                   {
-                    "value": "● ",
+                    "value": "○ ",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "9pt",
-                      "color": "#8A8983"
+                      "color": "#1B1B19"
                     }
                   },
                   {
@@ -55,7 +55,7 @@
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
                       "fontSize": "10pt",
-                      "color": "#256ABF"
+                      "color": "#2A78D6"
                     }
                   },
                   {
@@ -71,7 +71,7 @@
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "9pt",
-                      "color": "#C9DAF0"
+                      "color": "#C3D9F3"
                     }
                   },
                   {
@@ -87,7 +87,7 @@
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "10pt",
-                      "color": "#8A8983"
+                      "color": "#1B1B19"
                     }
                   },
                   {

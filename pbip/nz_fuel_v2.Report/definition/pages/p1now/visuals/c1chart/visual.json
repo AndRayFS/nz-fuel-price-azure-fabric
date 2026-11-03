@@ -55,6 +55,36 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "Call (chart)"
+                }
+              },
+              "queryRef": "forecast_accuracy.Call (chart)",
+              "nativeQueryRef": "Model's calls",
+              "displayName": "Model's calls"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "prices"
+                    }
+                  },
+                  "Property": "Latest (chart)"
+                }
+              },
+              "queryRef": "prices.Latest (chart)",
+              "nativeQueryRef": "Newest week",
+              "displayName": "Newest week"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
                       "Entity": "prices"
                     }
                   },
@@ -70,15 +100,15 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "forecast_accuracy"
+                      "Entity": "prices"
                     }
                   },
-                  "Property": "Call (chart)"
+                  "Property": "Four Weeks Ago Inner (chart)"
                 }
               },
-              "queryRef": "forecast_accuracy.Call (chart)",
-              "nativeQueryRef": "Model's calls",
-              "displayName": "Model's calls"
+              "queryRef": "prices.Four Weeks Ago Inner (chart)",
+              "nativeQueryRef": "Four weeks ago, inner",
+              "displayName": "Four weeks ago, inner"
             }
           ]
         }
@@ -129,7 +159,43 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#8A8983'"
+                      "Value": "'#2A78D6'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "forecast_accuracy.Call (chart)"
+          }
+        },
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#1B1B19'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "prices.Latest (chart)"
+          }
+        },
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#1B1B19'"
                     }
                   }
                 }
@@ -147,7 +213,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#256ABF'"
+                      "Value": "'#FFFFFF'"
                     }
                   }
                 }
@@ -155,7 +221,7 @@
             }
           },
           "selector": {
-            "metadata": "forecast_accuracy.Call (chart)"
+            "metadata": "prices.Four Weeks Ago Inner (chart)"
           }
         }
       ],
@@ -179,52 +245,6 @@
           },
           "selector": {
             "metadata": "prices.Paid (chart)"
-          }
-        },
-        {
-          "properties": {
-            "strokeWidth": {
-              "expr": {
-                "Literal": {
-                  "Value": "0D"
-                }
-              }
-            },
-            "showMarker": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "markerShape": {
-              "expr": {
-                "Literal": {
-                  "Value": "'circle'"
-                }
-              }
-            },
-            "markerSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "5D"
-                }
-              }
-            },
-            "markerColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#8A8983'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "prices.Four Weeks Ago (chart)"
           }
         },
         {
@@ -269,7 +289,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#256ABF'"
+                      "Value": "'#2A78D6'"
                     }
                   }
                 }
@@ -278,6 +298,144 @@
           },
           "selector": {
             "metadata": "forecast_accuracy.Call (chart)"
+          }
+        },
+        {
+          "properties": {
+            "strokeWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "showMarker": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "markerShape": {
+              "expr": {
+                "Literal": {
+                  "Value": "'circle'"
+                }
+              }
+            },
+            "markerSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "5D"
+                }
+              }
+            },
+            "markerColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#1B1B19'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "prices.Latest (chart)"
+          }
+        },
+        {
+          "properties": {
+            "strokeWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "showMarker": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "markerShape": {
+              "expr": {
+                "Literal": {
+                  "Value": "'circle'"
+                }
+              }
+            },
+            "markerSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "5D"
+                }
+              }
+            },
+            "markerColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#1B1B19'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "prices.Four Weeks Ago (chart)"
+          }
+        },
+        {
+          "properties": {
+            "strokeWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "showMarker": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "markerShape": {
+              "expr": {
+                "Literal": {
+                  "Value": "'circle'"
+                }
+              }
+            },
+            "markerSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "3D"
+                }
+              }
+            },
+            "markerColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "prices.Four Weeks Ago Inner (chart)"
           }
         }
       ],
@@ -396,7 +554,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#8A8983'"
+                      "Value": "'#1B1B19'"
                     }
                   }
                 }

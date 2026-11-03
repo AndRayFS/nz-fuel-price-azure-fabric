@@ -158,12 +158,18 @@ table forecast_accuracy
 		displayFolder: Now
 		lineageTag: 4d9e1728-3175-58e8-8998-d0c3a49b3530
 
-	/// Edge of the band around the calls: the call plus the 25th percentile of this fuel's past misses at the same horizon, actual minus call, outcomes known by the newest week. The band is the middle half of what happened after calls like it.
+	/// Edge of the band around the calls: the call plus the 25th percentile of past misses (actual minus call) at the same horizon, in weeks of the same crude-volatility regime as the newest, all three fuels pooled, outcomes known by the newest week. Agreed in the review of 19 Oct: the middle half of misses in weeks like this one, so the band widens when crude is volatile.
 	measure 'Call Low (chart)' =
 			VAR W = MAX(Week[week])
 			VAR Latest = [Latest Week]
 			VAR H = INT((W - Latest) / 7)
 			VAR CallW = [Call (chart)]
+			VAR Regime =
+			    CALCULATE(
+			        MAX(forecast_accuracy[crude_vol_regime]),
+			        REMOVEFILTERS(Week), REMOVEFILTERS(Fuel),
+			        forecast_accuracy[week_date] = Latest
+			    )
 			RETURN
 			IF(
 			    NOT ISBLANK(CallW),
@@ -175,7 +181,8 @@ table forecast_accuracy
 			            + PERCENTILEX.INC(
 			                CALCULATETABLE(
 			                    forecast_accuracy,
-			                    REMOVEFILTERS(Week),
+			                    REMOVEFILTERS(Week), REMOVEFILTERS(Fuel),
+			                    forecast_accuracy[crude_vol_regime] = Regime,
 			                    forecast_accuracy[horizon_weeks] = H,
 			                    forecast_accuracy[outcome_known] = TRUE(),
 			                    forecast_accuracy[Target week] <= Latest
@@ -189,12 +196,18 @@ table forecast_accuracy
 		displayFolder: Now
 		lineageTag: d28ffe54-6f07-55d9-b0e6-e4acbf3b7122
 
-	/// Edge of the band around the calls: the call plus the 75th percentile of this fuel's past misses at the same horizon, actual minus call, outcomes known by the newest week. The band is the middle half of what happened after calls like it.
+	/// Edge of the band around the calls: the call plus the 75th percentile of past misses (actual minus call) at the same horizon, in weeks of the same crude-volatility regime as the newest, all three fuels pooled, outcomes known by the newest week. Agreed in the review of 19 Oct: the middle half of misses in weeks like this one, so the band widens when crude is volatile.
 	measure 'Call High (chart)' =
 			VAR W = MAX(Week[week])
 			VAR Latest = [Latest Week]
 			VAR H = INT((W - Latest) / 7)
 			VAR CallW = [Call (chart)]
+			VAR Regime =
+			    CALCULATE(
+			        MAX(forecast_accuracy[crude_vol_regime]),
+			        REMOVEFILTERS(Week), REMOVEFILTERS(Fuel),
+			        forecast_accuracy[week_date] = Latest
+			    )
 			RETURN
 			IF(
 			    NOT ISBLANK(CallW),
@@ -206,7 +219,8 @@ table forecast_accuracy
 			            + PERCENTILEX.INC(
 			                CALCULATETABLE(
 			                    forecast_accuracy,
-			                    REMOVEFILTERS(Week),
+			                    REMOVEFILTERS(Week), REMOVEFILTERS(Fuel),
+			                    forecast_accuracy[crude_vol_regime] = Regime,
 			                    forecast_accuracy[horizon_weeks] = H,
 			                    forecast_accuracy[outcome_known] = TRUE(),
 			                    forecast_accuracy[Target week] <= Latest

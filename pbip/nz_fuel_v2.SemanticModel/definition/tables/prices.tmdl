@@ -61,7 +61,7 @@ table prices
 		lineageTag: 101d75ea-12de-5883-a891-906e3ac4acfc
 
 	/// Rising price in red: it is the reader's cost. A fall stays neutral, not green - green is Regular 91's colour.
-	measure 'Change 4w Colour' = IF([Change 4w] >= 0, "#B42318", "#4D4C48")
+	measure 'Change 4w Colour' = IF([Change 4w] >= 0, "#D03B3B", "#4D4C48")
 		displayFolder: Now
 		lineageTag: 17c6603f-e3ba-5ab6-addf-f7c641e45f8e
 
@@ -107,6 +107,37 @@ table prices
 		formatString: 0.0
 		displayFolder: Now
 		lineageTag: b74c55cf-0511-5ddb-b53c-2de512acc92f
+
+	/// One point: the newest week, a dark dot where the calls leave from.
+	measure 'Latest (chart)' = IF(MAX(Week[week]) = [Latest Week], [Average Paid])
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: 1e2d0277-0606-5bad-8f3a-c81f97e48088
+
+	/// The same point again, a smaller white marker over the dark one, so it reads as a hollow ring. Power BI line markers have no outline of their own.
+	measure 'Four Weeks Ago Inner (chart)' = [Four Weeks Ago (chart)]
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: 1c9f839a-ce56-5859-be59-291953f4af81
+
+	measure 'Regular On Sign' =
+			VAR W = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[board_price]), REMOVEFILTERS(), prices[week_date] = W, prices[fuel] = "Regular Petrol")
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: 49668f74-ff46-5243-a4bd-9fd6b426c4be
+
+	measure 'Now Footer' =
+			VAR W = [Latest Week]
+			VAR Sign = [Regular On Sign]
+			RETURN
+			"Average paid: MBIE's national average for the week, a few cents below the pump sign"
+			    & IF(NOT ISBLANK(Sign), " (Regular 91 showed " & FORMAT(Sign, "0.0") & " on the sign)", "")
+			    & ". MBIE publishes about a week later"
+			    & IF(TODAY() > W + 7, ", so " & FORMAT(W + 7, "d mmm") & " has passed but is not yet out", "")
+			    & ". Calls come from a walk-forward backtest model and are not published forecasts."
+		displayFolder: Now
+		lineageTag: af8783ae-5f31-5a4d-a6d6-425e06d2d5b6
 
 	/// Page 1's title, built from the newest week. States what happened and where margins stand - never what will happen.
 	measure Headline =
@@ -272,15 +303,24 @@ table prices
 
 		annotation SummarizationSetBy = Automatic
 
+	column board_price
+		dataType: double
+		formatString: 0.0
+		lineageTag: c57bd8cb-337f-53cb-927b-060701be0f1e
+		summarizeBy: none
+		sourceColumn: board_price
+
+		annotation SummarizationSetBy = Automatic
+
 	partition prices = m
 		mode: import
 		source =
 				let
 				    Source = Sql.Database("fhi24zxnvquurfybnnzrkz22aq-ae4c5pcutjkedh2gfko4iqwk24.datawarehouse.fabric.microsoft.com", "analytics_warehouse"),
 				    silver_fuel = Source{[Schema="dbo",Item="silver_fuel"]}[Data],
-				    Kept = Table.SelectColumns(silver_fuel, {"Date", "Fuel", "adjusted_retail_price", "importer_cost", "importer_margin", "taxes", "ets", "gst"}),
+				    Kept = Table.SelectColumns(silver_fuel, {"Date", "Fuel", "adjusted_retail_price", "importer_cost", "importer_margin", "taxes", "ets", "gst", "board_price"}),
 				    Renamed = Table.RenameColumns(Kept, {{"Date", "week_date"}, {"Fuel", "fuel"}}),
-				    Typed = Table.TransformColumnTypes(Renamed, {{"week_date", type date}, {"fuel", type text}, {"adjusted_retail_price", type number}, {"importer_cost", type number}, {"importer_margin", type number}, {"taxes", type number}, {"ets", type number}, {"gst", type number}})
+				    Typed = Table.TransformColumnTypes(Renamed, {{"week_date", type date}, {"fuel", type text}, {"adjusted_retail_price", type number}, {"importer_cost", type number}, {"importer_margin", type number}, {"taxes", type number}, {"ets", type number}, {"gst", type number}, {"board_price", type number}})
 				in
 				    Typed
 
