@@ -160,32 +160,32 @@ table forecast_accuracy
 
 	/// Edge of the band around the calls: the call plus the 25th percentile of past misses (actual minus call) at the same horizon, in weeks of the same crude-volatility regime as the newest, all three fuels pooled, outcomes known by the newest week. Agreed in the review of 19 Oct: the middle half of misses in weeks like this one, so the band widens when crude is volatile.
 	measure 'Call Low (chart)' =
-			VAR W = MAX(Week[week])
-			VAR Latest = [Latest Week]
-			VAR H = INT((W - Latest) / 7)
-			VAR CallW = [Call (chart)]
-			VAR Regime =
+			VAR vWeek = MAX(Week[week])
+			VAR vLatest = [Latest Week]
+			VAR vH = INT((vWeek - vLatest) / 7)
+			VAR vCall = [Call (chart)]
+			VAR vRegime =
 			    CALCULATE(
 			        MAX(forecast_accuracy[crude_vol_regime]),
 			        REMOVEFILTERS(Week), REMOVEFILTERS(Fuel),
-			        forecast_accuracy[week_date] = Latest
+			        forecast_accuracy[week_date] = vLatest
 			    )
 			RETURN
 			IF(
-			    NOT ISBLANK(CallW),
+			    NOT ISBLANK(vCall),
 			    IF(
-			        H = 0,
-			        CallW,
+			        vH = 0,
+			        vCall,
 			        // Only for the three called weeks, so the percentile never runs on an empty set.
-			        CallW
+			        vCall
 			            + PERCENTILEX.INC(
 			                CALCULATETABLE(
 			                    forecast_accuracy,
 			                    REMOVEFILTERS(Week), REMOVEFILTERS(Fuel),
-			                    forecast_accuracy[crude_vol_regime] = Regime,
-			                    forecast_accuracy[horizon_weeks] = H,
+			                    forecast_accuracy[crude_vol_regime] = vRegime,
+			                    forecast_accuracy[horizon_weeks] = vH,
 			                    forecast_accuracy[outcome_known] = TRUE(),
-			                    forecast_accuracy[Target week] <= Latest
+			                    forecast_accuracy[Target week] <= vLatest
 			                ),
 			                forecast_accuracy[actual_price] - forecast_accuracy[pred_adl_ecm],
 			                0.25
@@ -198,32 +198,32 @@ table forecast_accuracy
 
 	/// Edge of the band around the calls: the call plus the 75th percentile of past misses (actual minus call) at the same horizon, in weeks of the same crude-volatility regime as the newest, all three fuels pooled, outcomes known by the newest week. Agreed in the review of 19 Oct: the middle half of misses in weeks like this one, so the band widens when crude is volatile.
 	measure 'Call High (chart)' =
-			VAR W = MAX(Week[week])
-			VAR Latest = [Latest Week]
-			VAR H = INT((W - Latest) / 7)
-			VAR CallW = [Call (chart)]
-			VAR Regime =
+			VAR vWeek = MAX(Week[week])
+			VAR vLatest = [Latest Week]
+			VAR vH = INT((vWeek - vLatest) / 7)
+			VAR vCall = [Call (chart)]
+			VAR vRegime =
 			    CALCULATE(
 			        MAX(forecast_accuracy[crude_vol_regime]),
 			        REMOVEFILTERS(Week), REMOVEFILTERS(Fuel),
-			        forecast_accuracy[week_date] = Latest
+			        forecast_accuracy[week_date] = vLatest
 			    )
 			RETURN
 			IF(
-			    NOT ISBLANK(CallW),
+			    NOT ISBLANK(vCall),
 			    IF(
-			        H = 0,
-			        CallW,
+			        vH = 0,
+			        vCall,
 			        // Only for the three called weeks, so the percentile never runs on an empty set.
-			        CallW
+			        vCall
 			            + PERCENTILEX.INC(
 			                CALCULATETABLE(
 			                    forecast_accuracy,
 			                    REMOVEFILTERS(Week), REMOVEFILTERS(Fuel),
-			                    forecast_accuracy[crude_vol_regime] = Regime,
-			                    forecast_accuracy[horizon_weeks] = H,
+			                    forecast_accuracy[crude_vol_regime] = vRegime,
+			                    forecast_accuracy[horizon_weeks] = vH,
 			                    forecast_accuracy[outcome_known] = TRUE(),
-			                    forecast_accuracy[Target week] <= Latest
+			                    forecast_accuracy[Target week] <= vLatest
 			                ),
 			                forecast_accuracy[actual_price] - forecast_accuracy[pred_adl_ecm],
 			                0.75

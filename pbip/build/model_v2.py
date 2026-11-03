@@ -160,11 +160,13 @@ pm.append(measure(P, "Header Weeks", '''
 pm.append(measure(P, "Today", "TODAY()", fmt="d mmm yyyy", folder="Now",
     desc="For the Today line. Evaluated when the page is read, not at refresh, so it moves between loads."))
 pm.append(measure(P, "In Period", '''
-VAR W = MAX(Week[week])
-VAR Latest = [Latest Week]
-VAR Weeks = SELECTEDVALUE(Period[Weeks], 26)
-VAR Start = MAX(Latest - 7 * Weeks, DATE(2013, 2, 1))
-RETURN IF(W > Start && W <= Latest + 21, 1)''', fmt="0", folder="Now",
+// Variables carry a v prefix: DAX inherits MDX's keywords, and the first
+// version, with VARs named Weeks and Start, failed to parse in Desktop (4 Nov 2026).
+VAR vWeek = MAX(Week[week])
+VAR vLatest = [Latest Week]
+VAR vWeeks = SELECTEDVALUE(Period[Weeks], 26)
+VAR vFirst = IF(vWeeks >= 9999, DATE(2013, 2, 1), MAX(vLatest - 7 * vWeeks, DATE(2013, 2, 1)))
+RETURN IF(vWeek > vFirst && vWeek <= vLatest + 21, 1)''', fmt="0", folder="Now",
     desc="Visual-level filter for page 1's charts: the chosen period up to the newest week, plus the three weeks the model has called. Since 2013 starts at the first call, 1 Feb 2013."))
 pm.append(measure(P, "Paid (chart)", '''
 IF(MAX(Week[week]) <= [Latest Week] && [In Period] = 1, [Average Paid])''', fmt="0.0", folder="Now",
@@ -319,32 +321,32 @@ SWITCH(
     desc="The model's calls made in the newest week for the three weeks after it, starting from the last price paid so the line leaves from it."))
 for name, q in (("Call Low (chart)", "0.25"), ("Call High (chart)", "0.75")):
     fm.append(measure(F, name, f'''
-VAR W = MAX(Week[week])
-VAR Latest = [Latest Week]
-VAR H = INT((W - Latest) / 7)
-VAR CallW = [Call (chart)]
-VAR Regime =
+VAR vWeek = MAX(Week[week])
+VAR vLatest = [Latest Week]
+VAR vH = INT((vWeek - vLatest) / 7)
+VAR vCall = [Call (chart)]
+VAR vRegime =
     CALCULATE(
         MAX(forecast_accuracy[crude_vol_regime]),
         REMOVEFILTERS(Week), REMOVEFILTERS(Fuel),
-        forecast_accuracy[week_date] = Latest
+        forecast_accuracy[week_date] = vLatest
     )
 RETURN
 IF(
-    NOT ISBLANK(CallW),
+    NOT ISBLANK(vCall),
     IF(
-        H = 0,
-        CallW,
+        vH = 0,
+        vCall,
         // Only for the three called weeks, so the percentile never runs on an empty set.
-        CallW
+        vCall
             + PERCENTILEX.INC(
                 CALCULATETABLE(
                     forecast_accuracy,
                     REMOVEFILTERS(Week), REMOVEFILTERS(Fuel),
-                    forecast_accuracy[crude_vol_regime] = Regime,
-                    forecast_accuracy[horizon_weeks] = H,
+                    forecast_accuracy[crude_vol_regime] = vRegime,
+                    forecast_accuracy[horizon_weeks] = vH,
                     forecast_accuracy[outcome_known] = TRUE(),
-                    forecast_accuracy[Target week] <= Latest
+                    forecast_accuracy[Target week] <= vLatest
                 ),
                 forecast_accuracy[actual_price] - forecast_accuracy[pred_adl_ecm],
                 {q}

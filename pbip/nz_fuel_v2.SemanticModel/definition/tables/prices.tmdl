@@ -88,11 +88,13 @@ table prices
 
 	/// Visual-level filter for page 1's charts: the chosen period up to the newest week, plus the three weeks the model has called. Since 2013 starts at the first call, 1 Feb 2013.
 	measure 'In Period' =
-			VAR W = MAX(Week[week])
-			VAR Latest = [Latest Week]
-			VAR Weeks = SELECTEDVALUE(Period[Weeks], 26)
-			VAR Start = MAX(Latest - 7 * Weeks, DATE(2013, 2, 1))
-			RETURN IF(W > Start && W <= Latest + 21, 1)
+			// Variables carry a v prefix: DAX inherits MDX's keywords, and the first
+			// version, with VARs named Weeks and Start, failed to parse in Desktop (4 Nov 2026).
+			VAR vWeek = MAX(Week[week])
+			VAR vLatest = [Latest Week]
+			VAR vWeeks = SELECTEDVALUE(Period[Weeks], 26)
+			VAR vFirst = IF(vWeeks >= 9999, DATE(2013, 2, 1), MAX(vLatest - 7 * vWeeks, DATE(2013, 2, 1)))
+			RETURN IF(vWeek > vFirst && vWeek <= vLatest + 21, 1)
 		formatString: 0
 		displayFolder: Now
 		lineageTag: c9f18970-e3bd-5c23-8e9e-36ed32610508

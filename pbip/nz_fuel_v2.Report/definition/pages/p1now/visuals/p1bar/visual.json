@@ -235,6 +235,20 @@
                   "Value": "false"
                 }
               }
+            },
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "innerPadding": {
+              "expr": {
+                "Literal": {
+                  "Value": "55L"
+                }
+              }
             }
           }
         }

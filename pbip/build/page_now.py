@@ -15,7 +15,8 @@ def header(z=0):
                                 obj({"fillColor": col("#EFEEEA"), "transparency": d(0)}, {"id": "selected"})],
                        "text": [obj({"fontColor": col(MUTED), "fontSize": d(10), "fontFamily": s(FONT)}, DEFAULT),
                                 obj({"fontColor": col(INK), "fontFamily": s(FONT_B)}, {"id": "selected"})],
-                       "outline": [obj({"show": b(False)}, DEFAULT), obj({"show": b(False)}, {"id": "selected"})],
+                       "outline": [obj({"show": b(False), "lineColor": col(PAPER), "transparency": d(100)}, DEFAULT),
+                                   obj({"show": b(False), "lineColor": col("#EFEEEA"), "transparency": d(100)}, {"id": "selected"})],
                        "pages": [obj({"showHiddenPages": b(False)})]},
            "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
     return [
@@ -98,7 +99,7 @@ def pressure_bar():
                         "lowerBound": mexpr("margin_compression", "Margin Norm Now")}}},
                     {"data": [{"dataViewWildcard": {"matchingOption": 0}}], "metadata": "margin_compression.Margin Now", "highlightMatching": 1})],
             "valueAxis": [obj({"show": b(False), "start": d(0), "end": d(100), "gridlineShow": b(False)})],
-            "categoryAxis": [obj({"show": b(False)})],
+            "categoryAxis": [obj({"show": b(False), "showAxisTitle": b(False), "innerPadding": L(55)})],
             "legend": [obj({"show": b(False)})],
             "labels": [obj({"show": b(False)})],
         },
@@ -125,7 +126,7 @@ def period_slicer():
             "selectionIcon": [obj({"show": b(False)})],
             "shapeCustomRectangle": [obj({"rectangleRoundedCurve": L(6)}, DEFAULT)],
             "padding": [obj({"paddingSelection": s("Narrow")}, DEFAULT)],
-            "layout": [obj({"showFixedSize": b(False), "autoGrid": b(True), "orientation": d(0)})],
+            "layout": [obj({"showFixedSize": b(False), "autoGrid": b(True), "orientation": d(1)})],
         },
         "visualContainerObjects": chrome(padding=(0, 0, 0, 0), background="#EFEEEA", border="#EFEEEA", radius=8),
         "drillFilterOtherVisuals": True}
