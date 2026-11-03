@@ -3,7 +3,7 @@
   "name": "footer",
   "position": {
     "x": 24,
-    "y": 652,
+    "y": 640,
     "z": 400,
     "height": 40,
     "width": 1232,
@@ -219,7 +219,7 @@
             "fontFamily": {
               "expr": {
                 "Literal": {
-                  "Value": "'Segoe UI'"
+                  "Value": "'''Segoe UI'', wf_segoe-ui_normal, helvetica, arial, sans-serif'"
                 }
               }
             },

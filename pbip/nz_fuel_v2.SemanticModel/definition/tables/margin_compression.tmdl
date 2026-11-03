@@ -52,6 +52,14 @@ table margin_compression
 		displayFolder: Now
 		lineageTag: 511e3d47-7e94-5b63-b3d1-978626571771
 
+	/// The grey remainder of the 0-100 c/L track, stacked after the margin, so bar and track are one shape and cannot drift apart.
+	measure 'Track Rest' =
+			VAR vM = [Margin Now]
+			RETURN IF(NOT ISBLANK(vM), 100 - MAX(0, MIN(100, vM)))
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: d5506c15-f2e8-50e0-b444-704505fdd573
+
 	measure 'Margin Gap Now' =
 			VAR M = [Margin Now]
 			VAR N = [Margin Norm Now]

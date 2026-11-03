@@ -53,16 +53,22 @@ table prices
 		displayFolder: Now
 		lineageTag: 79cf3d36-98a4-5ddc-ad1b-dc9d41b87427
 
-	/// The change itself, set semibold in the pill; "4 weeks" sits beside it in grey.
+	/// The change itself, in ink and semibold as in the mock-up; the arrow beside it carries the colour, "4 weeks" sits after it in grey.
 	measure 'Change 4w Main' =
 			VAR vD = [Change 4w]
 			RETURN
 			IF(
 			    NOT ISBLANK(vD),
-			    IF(vD >= 0, "▲ ", "▼ ") & FORMAT(vD, "+0.0;-0.0;0.0") & " c/L · " & FORMAT([Change 4w %], "+0.0%;-0.0%;0.0%")
+			    FORMAT(vD, "+0.0;-0.0;0.0") & " c/L · " & FORMAT([Change 4w %], "+0.0%;-0.0%;0.0%")
 			)
 		displayFolder: Now
 		lineageTag: c74a2e55-1fec-5f32-9688-a994ea5364e4
+
+	measure 'Change 4w Arrow' =
+			VAR vD = [Change 4w]
+			RETURN IF(NOT ISBLANK(vD), IF(vD >= 0, "▲", "▼"))
+		displayFolder: Now
+		lineageTag: 0dc901d7-b840-5854-8825-4edbd02b2702
 
 	/// Gaspy-style change: arrow, c/L, per cent, and the window it covers.
 	measure 'Change 4w Label' =

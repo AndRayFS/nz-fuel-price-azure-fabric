@@ -3,11 +3,11 @@
   "name": "p0gap",
   "position": {
     "x": 300,
-    "y": 563,
-    "z": 322,
+    "y": 566,
+    "z": 326,
     "height": 18,
     "width": 110,
-    "tabOrder": 322
+    "tabOrder": 326
   },
   "visual": {
     "visualType": "shape",
@@ -219,7 +219,7 @@
             "fontFamily": {
               "expr": {
                 "Literal": {
-                  "Value": "'Segoe UI Semibold'"
+                  "Value": "'''Segoe UI Semibold'', wf_segoe-ui_semibold, helvetica, arial, sans-serif'"
                 }
               }
             },

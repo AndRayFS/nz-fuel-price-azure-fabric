@@ -3,11 +3,11 @@
   "name": "p0bar",
   "position": {
     "x": 32,
-    "y": 582,
-    "z": 324,
-    "height": 60,
+    "y": 568,
+    "z": 321,
+    "height": 56,
     "width": 384,
-    "tabOrder": 324
+    "tabOrder": 321
   },
   "visual": {
     "visualType": "barChart",
@@ -49,6 +49,21 @@
               "queryRef": "margin_compression.Margin Now",
               "nativeQueryRef": "Margin now",
               "displayName": "Margin now"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "margin_compression"
+                    }
+                  },
+                  "Property": "Track Rest"
+                }
+              },
+              "queryRef": "margin_compression.Track Rest",
+              "nativeQueryRef": "Track",
+              "displayName": "Track"
             }
           ]
         }
@@ -82,7 +97,26 @@
                   "matchingOption": 1
                 }
               }
-            ]
+            ],
+            "metadata": "margin_compression.Margin Now"
+          }
+        },
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#ECEBE6'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "margin_compression.Track Rest"
           }
         }
       ],
@@ -246,7 +280,7 @@
             "innerPadding": {
               "expr": {
                 "Literal": {
-                  "Value": "55L"
+                  "Value": "72L"
                 }
               }
             }

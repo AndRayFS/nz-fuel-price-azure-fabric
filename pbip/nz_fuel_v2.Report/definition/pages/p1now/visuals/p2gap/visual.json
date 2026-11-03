@@ -3,11 +3,11 @@
   "name": "p2gap",
   "position": {
     "x": 1132,
-    "y": 563,
-    "z": 342,
+    "y": 566,
+    "z": 346,
     "height": 18,
     "width": 110,
-    "tabOrder": 342
+    "tabOrder": 346
   },
   "visual": {
     "visualType": "shape",
@@ -219,7 +219,7 @@
             "fontFamily": {
               "expr": {
                 "Literal": {
-                  "Value": "'Segoe UI Semibold'"
+                  "Value": "'''Segoe UI Semibold'', wf_segoe-ui_semibold, helvetica, arial, sans-serif'"
                 }
               }
             },

@@ -2,7 +2,7 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "showlbl",
   "position": {
-    "x": 828,
+    "x": 760,
     "y": 138,
     "z": 102,
     "height": 20,

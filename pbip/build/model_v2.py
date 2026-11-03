@@ -148,8 +148,11 @@ VAR vD = [Change 4w]
 RETURN
 IF(
     NOT ISBLANK(vD),
-    IF(vD >= 0, "▲ ", "▼ ") & FORMAT(vD, "+0.0;-0.0;0.0") & " c/L · " & FORMAT([Change 4w %], "+0.0%;-0.0%;0.0%")
-)''', folder="Now", desc="The change itself, set semibold in the pill; \"4 weeks\" sits beside it in grey."))
+    FORMAT(vD, "+0.0;-0.0;0.0") & " c/L · " & FORMAT([Change 4w %], "+0.0%;-0.0%;0.0%")
+)''', folder="Now", desc="The change itself, in ink and semibold as in the mock-up; the arrow beside it carries the colour, \"4 weeks\" sits after it in grey."))
+pm.append(measure(P, "Change 4w Arrow", '''
+VAR vD = [Change 4w]
+RETURN IF(NOT ISBLANK(vD), IF(vD >= 0, "▲", "▼"))''', folder="Now"))
 pm.append(measure(P, "Change 4w Label", '''
 VAR D = [Change 4w]
 RETURN
@@ -363,6 +366,22 @@ IF(
     )
 )''', fmt="0.0", folder="Now",
         desc="Edge of the band around the calls: the call plus the " + ("25th" if q == "0.25" else "75th") + " percentile of past misses (actual minus call) at the same horizon, in weeks of the same crude-volatility regime as the newest, all three fuels pooled, outcomes known by the newest week. Agreed in the review of 19 Oct: the middle half of misses in weeks like this one, so the band widens when crude is volatile."))
+for n in (1, 2, 3):
+    fm.append(measure(F, f"Call Date {n}", f'''
+VAR vLatest = [Latest Week]
+RETURN IF(NOT ISBLANK(vLatest), FORMAT(vLatest + {7 * n}, "d mmm"))''', folder="Now",
+        desc="The week the model's call is for, set over the number below it." if n == 1 else None))
+    fm.append(measure(F, f"Call {n}", f'''
+VAR vLatest = [Latest Week]
+VAR vCall =
+    CALCULATE(
+        AVERAGE(forecast_accuracy[pred_adl_ecm]),
+        REMOVEFILTERS(Week),
+        forecast_accuracy[week_date] = vLatest,
+        forecast_accuracy[horizon_weeks] = {n}
+    )
+RETURN IF(NOT ISBLANK(vCall), FORMAT(vCall, "0"))''', folder="Now",
+        desc="The call made in the newest week for {n} week(s) ahead, in whole cents, as text so it can be set in a title. Three fixed slots replace the matrix, which bunched its columns to the left.".format(n=n) if n == 1 else None))
 fm.append(measure(F, "Call Number", '''
 VAR W = MAX(Week[week])
 VAR Latest = [Latest Week]
@@ -376,6 +395,10 @@ for name, colname in (("Margin Now", "importer_margin"), ("Margin Norm Now", "ma
     mm.append(measure(M, name, f'''
 VAR W = [Latest Week]
 RETURN CALCULATE(AVERAGE(margin_compression[{colname}]), REMOVEFILTERS(Week), REMOVEFILTERS(margin_compression[week_date]), margin_compression[week_date] = W)''', fmt="0.0", folder="Now"))
+mm.append(measure(M, "Track Rest", '''
+VAR vM = [Margin Now]
+RETURN IF(NOT ISBLANK(vM), 100 - MAX(0, MIN(100, vM)))''', fmt="0.0", folder="Now",
+    desc="The grey remainder of the 0-100 c/L track, stacked after the margin, so bar and track are one shape and cannot drift apart."))
 mm.append(measure(M, "Margin Gap Now", '''
 VAR M = [Margin Now]
 VAR N = [Margin Norm Now]

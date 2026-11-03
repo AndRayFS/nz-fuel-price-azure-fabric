@@ -7,6 +7,17 @@ PAGE = "https://developer.microsoft.com/json-schemas/fabric/item/report/definiti
 INK, MUTED, FAINT, LINE, PAPER, BG = "#1B1B19", "#5C5B56", "#8A8983", "#E6E5E0", "#FFFFFF", "#F7F7F5"
 CALL, CALL_LINE, ORANGE = "#256ABF", "#2A78D6", "#EB6834"
 FONT, FONT_B = "Segoe UI", "Segoe UI Semibold"
+# How Power BI itself writes font families into visual properties: the face, then
+# the web font it ships with the service, then generic fallbacks. A bare name only
+# renders where the viewer has the font installed. Text box runs take bare names.
+WEBFONT = {
+    "Segoe UI": "'Segoe UI', wf_segoe-ui_normal, helvetica, arial, sans-serif",
+    "Segoe UI Semibold": "'Segoe UI Semibold', wf_segoe-ui_semibold, helvetica, arial, sans-serif",
+    "Segoe UI Light": "'Segoe UI Light', wf_segoe-ui_light, helvetica, arial, sans-serif",
+    "DIN": "wf_standard-font, helvetica, arial, sans-serif",
+    "Georgia": "Georgia, 'Times New Roman', serif",
+}
+def wf(face): return s(WEBFONT[face])
 
 def lit(v): return {"expr": {"Literal": {"Value": v}}}
 def s(t): return lit("'" + str(t).replace("'", "''") + "'")
@@ -127,12 +138,12 @@ def text_card(entity, measure, size, colour=INK, bold=False, align="left", colou
             "visualContainerObjects": chrome(padding=(0, 0, 0, 0)),
             "drillFilterOtherVisuals": True}
 
-def title_shape(entity, measure, size, colour=INK, bold=True):
+def title_shape(entity, measure, size, colour=INK, bold=True, face=None):
     """Long dynamic text: the title of an invisible shape, because a title wraps and a card value may not."""
     v = invisible_shape()
     v["visualContainerObjects"] = chrome(padding=(0, 0, 0, 0), title_props={
                 "show": b(True), "text": mexpr(entity, measure), "titleWrap": b(True),
-                "fontSize": d(size), "fontFamily": s(FONT_B if bold else FONT), "fontColor": col(colour),
+                "fontSize": d(size), "fontFamily": wf(face or (FONT_B if bold else FONT)), "fontColor": col(colour),
                 "alignment": s("left"), "heading": s("Heading1" if size >= 16 else "Normal")})
     return v
 
@@ -152,12 +163,12 @@ def write_page(root, name, display, visuals, hidden=False):
     return pdir
 
 def title_text(entity, measure, size, colour=INK, bold=False, align="left", colour_measure=None,
-               background_measure=None, radius=None):
+               background_measure=None, radius=None, face=None):
     """Short dynamic text, drawn as the title of an invisible shape. A new card does
     not draw its value in a container under ~30 px high (seen 4 Nov 2026); a title
     renders at any height and wraps."""
     tp = {"show": b(True), "text": mexpr(entity, measure), "titleWrap": b(True),
-          "fontSize": d(size), "fontFamily": s(FONT_B if bold else FONT),
+          "fontSize": d(size), "fontFamily": wf(face or (FONT_B if bold else FONT)),
           "fontColor": mcol(*colour_measure) if colour_measure else col(colour),
           "alignment": s(align), "heading": s("Normal")}
     v = invisible_shape()

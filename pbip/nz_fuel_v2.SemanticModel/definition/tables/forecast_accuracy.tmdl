@@ -234,6 +234,65 @@ table forecast_accuracy
 		displayFolder: Now
 		lineageTag: f5eb735d-52f5-5deb-bbf5-7a09ca3de4c2
 
+	/// The week the model's call is for, set over the number below it.
+	measure 'Call Date 1' =
+			VAR vLatest = [Latest Week]
+			RETURN IF(NOT ISBLANK(vLatest), FORMAT(vLatest + 7, "d mmm"))
+		displayFolder: Now
+		lineageTag: 587d76e9-c7ba-5bdf-a239-bbe46d94593a
+
+	/// The call made in the newest week for 1 week(s) ahead, in whole cents, as text so it can be set in a title. Three fixed slots replace the matrix, which bunched its columns to the left.
+	measure 'Call 1' =
+			VAR vLatest = [Latest Week]
+			VAR vCall =
+			    CALCULATE(
+			        AVERAGE(forecast_accuracy[pred_adl_ecm]),
+			        REMOVEFILTERS(Week),
+			        forecast_accuracy[week_date] = vLatest,
+			        forecast_accuracy[horizon_weeks] = 1
+			    )
+			RETURN IF(NOT ISBLANK(vCall), FORMAT(vCall, "0"))
+		displayFolder: Now
+		lineageTag: 5584e450-6651-5e96-9de7-41f7427478cc
+
+	measure 'Call Date 2' =
+			VAR vLatest = [Latest Week]
+			RETURN IF(NOT ISBLANK(vLatest), FORMAT(vLatest + 14, "d mmm"))
+		displayFolder: Now
+		lineageTag: 929410ed-0c77-50af-8274-e9d939ab46e8
+
+	measure 'Call 2' =
+			VAR vLatest = [Latest Week]
+			VAR vCall =
+			    CALCULATE(
+			        AVERAGE(forecast_accuracy[pred_adl_ecm]),
+			        REMOVEFILTERS(Week),
+			        forecast_accuracy[week_date] = vLatest,
+			        forecast_accuracy[horizon_weeks] = 2
+			    )
+			RETURN IF(NOT ISBLANK(vCall), FORMAT(vCall, "0"))
+		displayFolder: Now
+		lineageTag: ab5954a3-90cd-5422-b95e-7c0ec255c6a0
+
+	measure 'Call Date 3' =
+			VAR vLatest = [Latest Week]
+			RETURN IF(NOT ISBLANK(vLatest), FORMAT(vLatest + 21, "d mmm"))
+		displayFolder: Now
+		lineageTag: a31a7ad4-b0d4-5b39-bca3-5ca9b0a0bbf5
+
+	measure 'Call 3' =
+			VAR vLatest = [Latest Week]
+			VAR vCall =
+			    CALCULATE(
+			        AVERAGE(forecast_accuracy[pred_adl_ecm]),
+			        REMOVEFILTERS(Week),
+			        forecast_accuracy[week_date] = vLatest,
+			        forecast_accuracy[horizon_weeks] = 3
+			    )
+			RETURN IF(NOT ISBLANK(vCall), FORMAT(vCall, "0"))
+		displayFolder: Now
+		lineageTag: 5c223da4-2607-5dfd-b37d-f9af7955a105
+
 	/// Whole cents: the model's error is several c/L, so a decimal would claim a precision it does not have.
 	measure 'Call Number' =
 			VAR W = MAX(Week[week])

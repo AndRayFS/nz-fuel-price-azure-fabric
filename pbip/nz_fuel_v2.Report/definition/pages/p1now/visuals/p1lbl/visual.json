@@ -3,11 +3,11 @@
   "name": "p1lbl",
   "position": {
     "x": 454,
-    "y": 563,
-    "z": 331,
+    "y": 566,
+    "z": 335,
     "height": 18,
     "width": 260,
-    "tabOrder": 331
+    "tabOrder": 335
   },
   "visual": {
     "visualType": "shape",
@@ -219,7 +219,7 @@
             "fontFamily": {
               "expr": {
                 "Literal": {
-                  "Value": "'Segoe UI'"
+                  "Value": "'''Segoe UI'', wf_segoe-ui_normal, helvetica, arial, sans-serif'"
                 }
               }
             },
