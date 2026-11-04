@@ -364,63 +364,105 @@ table prices
 		isHidden
 		lineageTag: a1531fae-c3ab-5300-91c2-ee078245e6a5
 
-	measure 'Cost Share (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", DIVIDE([Cost Now (c/L)], [Price Now (c/L)]), 0)
-		formatString: 0%
+	measure 'Cost Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [Cost Now (c/L)], 0)
 		displayFolder: Margin
-		lineageTag: 3d20b76b-faae-53d7-b0a4-05c24d8cb95e
+		lineageTag: a7520f41-b268-569c-91a6-9ef20a67a440
 
-	measure 'Cost Share (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", DIVIDE([Cost Average (c/L)], [Price Average (c/L)]), 0)
-		formatString: 0%
-		displayFolder: Margin
-		lineageTag: e22c68b0-6808-53f1-9a7b-a8dfcb21d863
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", """" & FORMAT(DIVIDE([Cost Now (c/L)], [Price Now (c/L)]), "0%") & """", "0")
 
-	measure 'Taxes Share (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", DIVIDE([Taxes Now (c/L)], [Price Now (c/L)]), 0)
-		formatString: 0%
+	measure 'Cost Bar (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", [Cost Average (c/L)], 0)
 		displayFolder: Margin
-		lineageTag: 8bf48d5d-99b2-5d94-9534-f55a0d969290
+		lineageTag: e5a57ef9-ef14-52aa-b0ec-27414e10c480
 
-	measure 'Taxes Share (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", DIVIDE([Taxes Average (c/L)], [Price Average (c/L)]), 0)
-		formatString: 0%
-		displayFolder: Margin
-		lineageTag: 8c7f7160-9980-5acd-82ba-9ff59664ba06
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([Cost Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
 
-	measure 'ETS Share (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", DIVIDE([ETS Now (c/L)], [Price Now (c/L)]), 0)
-		formatString: 0%
+	measure 'Taxes Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [Taxes Now (c/L)], 0)
 		displayFolder: Margin
-		lineageTag: e1a2c664-1d54-5beb-a06c-745230eef1e8
+		lineageTag: b187e5c9-c059-5814-a6ec-bf1c39d5f91d
 
-	measure 'ETS Share (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", DIVIDE([ETS Average (c/L)], [Price Average (c/L)]), 0)
-		formatString: 0%
-		displayFolder: Margin
-		lineageTag: fd278046-87b0-5ffe-ad39-ba56a29f6373
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", """" & FORMAT(DIVIDE([Taxes Now (c/L)], [Price Now (c/L)]), "0%") & """", "0")
 
-	measure 'GST Share (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", DIVIDE([GST Now (c/L)], [Price Now (c/L)]), 0)
-		formatString: 0%
+	measure 'Taxes Bar (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", [Taxes Average (c/L)], 0)
 		displayFolder: Margin
-		lineageTag: 2b4cef32-b32a-57ec-b275-4ef73ffbaee2
+		lineageTag: 96648584-f290-545a-9944-5989260631f0
 
-	measure 'GST Share (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", DIVIDE([GST Average (c/L)], [Price Average (c/L)]), 0)
-		formatString: 0%
-		displayFolder: Margin
-		lineageTag: 8069b53b-6930-5ec2-9adb-ff7748e68dda
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([Taxes Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
 
-	measure 'Margin Share (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", DIVIDE([Margin Now (c/L)], [Price Now (c/L)]), 0)
-		formatString: 0%
+	measure 'ETS Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [ETS Now (c/L)], 0)
 		displayFolder: Margin
-		lineageTag: 3e2543bd-f7dd-5231-9690-8774b44db921
+		lineageTag: 40cd9a30-3ce8-58e5-bd2b-63b79e7da18c
 
-	measure 'Margin Share (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", DIVIDE([Margin Average (c/L)], [Price Average (c/L)]), 0)
-		formatString: 0%
-		displayFolder: Margin
-		lineageTag: e6532585-bc63-5408-b56e-165676339c5e
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", """" & FORMAT(DIVIDE([ETS Now (c/L)], [Price Now (c/L)]), "0%") & """", "0")
 
-	measure 'Share Label Now' = FORMAT([Latest Week], "d mmm") & " · " & FORMAT([Price Now (c/L)], "0.0") & " c/L"
+	measure 'ETS Bar (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", [ETS Average (c/L)], 0)
 		displayFolder: Margin
-		lineageTag: d6793bde-81f7-5c94-8bbc-cad0c687310d
+		lineageTag: cfe2a621-7993-5fcd-aa5d-71fe459a8098
 
-	measure 'Share Label Average' = "Average · " & FORMAT([Price Average (c/L)], "0.0") & " c/L"
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([ETS Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
+
+	measure 'GST Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [GST Now (c/L)], 0)
 		displayFolder: Margin
-		lineageTag: 4c16a4bc-2250-5b27-a568-1172c60a1a86
+		lineageTag: 19859e9c-c3bd-5ba0-a5ac-169e8c06f665
+
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", """" & FORMAT(DIVIDE([GST Now (c/L)], [Price Now (c/L)]), "0%") & """", "0")
+
+	measure 'GST Bar (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", [GST Average (c/L)], 0)
+		displayFolder: Margin
+		lineageTag: 34504106-2a48-58d8-a1f4-61bb24431102
+
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([GST Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
+
+	measure 'Margin Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [Margin Now (c/L)], 0)
+		displayFolder: Margin
+		lineageTag: a6d090c6-846f-5623-bb14-5e1285686f51
+
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", """" & FORMAT(DIVIDE([Margin Now (c/L)], [Price Now (c/L)]), "0%") & """", "0")
+
+	measure 'Margin Bar (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", [Margin Average (c/L)], 0)
+		displayFolder: Margin
+		lineageTag: bfd3a814-ce3f-51d0-b717-4f5682954856
+
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([Margin Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
+
+	/// One c/L scale for every bar on Margin's right: the dearest litre, this week or on average, of the three fuels.
+	measure 'Share Axis End' = MAX(MAXX(ALL(Fuel), [Price Now (c/L)]), MAXX(ALL(Fuel), [Price Average (c/L)]))
+		formatString: 0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 90c54a51-036e-543d-8632-41ced5f614ce
+
+	measure 'Share Date' = FORMAT([Latest Week], "d mmm")
+		displayFolder: Margin
+		lineageTag: af35f79a-42cf-5506-a8a3-f126927b3a13
+
+	measure 'Share Price Now' = FORMAT([Price Now (c/L)], "0.0") & " c/L"
+		displayFolder: Margin
+		lineageTag: b442b4bb-8efa-5d2b-b6e2-c10d4c8d07c8
+
+	measure 'Share Price Average' = FORMAT([Price Average (c/L)], "0.0") & " c/L"
+		displayFolder: Margin
+		lineageTag: e4baa197-24ea-50ec-8f70-edcaeaef7bbc
+
+	measure 'Share Subtitle' = "Week of " & FORMAT([Latest Week], "d mmm") & ", dark, against the average since 29 Mar 2024, pale · one c/L scale · labels are shares of the price"
+		displayFolder: Margin
+		lineageTag: 682f9567-6060-5520-a2db-2f6127214131
+
+	measure 'Share Title' =
+			// A claim, as the mock-up's title is, but only the part all three fuels agree on:
+			// a share within a point of its average counts as usual.
+			VAR vCost = ADDCOLUMNS(ALL(Fuel), "d", DIVIDE([Cost Now (c/L)], [Price Now (c/L)]) - DIVIDE([Cost Average (c/L)], [Price Average (c/L)]),
+			                                   "m", DIVIDE([Margin Now (c/L)], [Price Now (c/L)]) - DIVIDE([Margin Average (c/L)], [Price Average (c/L)]))
+			VAR vCostUp = COUNTROWS(FILTER(vCost, [d] >= 0.01))
+			VAR vCostDown = COUNTROWS(FILTER(vCost, [d] <= -0.01))
+			VAR vMarginUp = COUNTROWS(FILTER(vCost, [m] >= 0.01))
+			VAR vMarginDown = COUNTROWS(FILTER(vCost, [m] <= -0.01))
+			VAR vA = SWITCH(TRUE(), vCostUp = 3, "Cost takes a bigger share of every litre than usual",
+			                        vCostDown = 3, "Cost takes a smaller share of every litre than usual",
+			                        "Where each litre goes, against the usual")
+			VAR vB = SWITCH(TRUE(), vMarginDown = 3, ", the margin a smaller one", vMarginUp = 3, ", the margin a bigger one", "")
+			RETURN vA & vB
+		displayFolder: Margin
+		lineageTag: 4e7918d0-500e-5f8a-b8a3-89c7757f6d9b
 
 	measure 'Margin Share Now Label' = FORMAT(DIVIDE([Margin Now (c/L)], [Price Now (c/L)]), "0.0%")
 		displayFolder: Margin

@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "s0pale",
   "position": {
-    "x": 918,
-    "y": 258,
+    "x": 912,
+    "y": 262,
     "z": 313,
-    "height": 60,
-    "width": 262,
+    "height": 84,
+    "width": 268,
     "tabOrder": 313
   },
   "visual": {
@@ -43,10 +43,10 @@
                       "Entity": "prices"
                     }
                   },
-                  "Property": "Cost Share (average)"
+                  "Property": "Cost Bar (average)"
                 }
               },
-              "queryRef": "prices.Cost Share (average)",
+              "queryRef": "prices.Cost Bar (average)",
               "nativeQueryRef": "Importer cost",
               "displayName": "Importer cost"
             },
@@ -58,12 +58,12 @@
                       "Entity": "prices"
                     }
                   },
-                  "Property": "Taxes Share (average)"
+                  "Property": "Taxes Bar (average)"
                 }
               },
-              "queryRef": "prices.Taxes Share (average)",
-              "nativeQueryRef": "Taxes",
-              "displayName": "Taxes"
+              "queryRef": "prices.Taxes Bar (average)",
+              "nativeQueryRef": "Taxes and levies",
+              "displayName": "Taxes and levies"
             },
             {
               "field": {
@@ -73,12 +73,12 @@
                       "Entity": "prices"
                     }
                   },
-                  "Property": "ETS Share (average)"
+                  "Property": "ETS Bar (average)"
                 }
               },
-              "queryRef": "prices.ETS Share (average)",
-              "nativeQueryRef": "ETS",
-              "displayName": "ETS"
+              "queryRef": "prices.ETS Bar (average)",
+              "nativeQueryRef": "Emissions trading",
+              "displayName": "Emissions trading"
             },
             {
               "field": {
@@ -88,10 +88,10 @@
                       "Entity": "prices"
                     }
                   },
-                  "Property": "GST Share (average)"
+                  "Property": "GST Bar (average)"
                 }
               },
-              "queryRef": "prices.GST Share (average)",
+              "queryRef": "prices.GST Bar (average)",
               "nativeQueryRef": "GST",
               "displayName": "GST"
             },
@@ -103,10 +103,10 @@
                       "Entity": "prices"
                     }
                   },
-                  "Property": "Margin Share (average)"
+                  "Property": "Margin Bar (average)"
                 }
               },
-              "queryRef": "prices.Margin Share (average)",
+              "queryRef": "prices.Margin Bar (average)",
               "nativeQueryRef": "Importer margin",
               "displayName": "Importer margin"
             }
@@ -149,7 +149,7 @@
             }
           },
           "selector": {
-            "metadata": "prices.Cost Share (average)"
+            "metadata": "prices.Cost Bar (average)"
           }
         },
         {
@@ -167,7 +167,7 @@
             }
           },
           "selector": {
-            "metadata": "prices.Taxes Share (average)"
+            "metadata": "prices.Taxes Bar (average)"
           }
         },
         {
@@ -185,7 +185,7 @@
             }
           },
           "selector": {
-            "metadata": "prices.ETS Share (average)"
+            "metadata": "prices.ETS Bar (average)"
           }
         },
         {
@@ -203,7 +203,7 @@
             }
           },
           "selector": {
-            "metadata": "prices.GST Share (average)"
+            "metadata": "prices.GST Bar (average)"
           }
         },
         {
@@ -221,7 +221,7 @@
             }
           },
           "selector": {
-            "metadata": "prices.Margin Share (average)"
+            "metadata": "prices.Margin Bar (average)"
           }
         }
       ],
@@ -266,7 +266,7 @@
             }
           },
           "selector": {
-            "metadata": "prices.Cost Share (average)"
+            "metadata": "prices.Cost Bar (average)"
           }
         },
         {
@@ -291,7 +291,7 @@
             }
           },
           "selector": {
-            "metadata": "prices.Taxes Share (average)"
+            "metadata": "prices.Taxes Bar (average)"
           }
         },
         {
@@ -316,7 +316,7 @@
             }
           },
           "selector": {
-            "metadata": "prices.ETS Share (average)"
+            "metadata": "prices.ETS Bar (average)"
           }
         },
         {
@@ -341,7 +341,7 @@
             }
           },
           "selector": {
-            "metadata": "prices.GST Share (average)"
+            "metadata": "prices.GST Bar (average)"
           }
         },
         {
@@ -366,7 +366,7 @@
             }
           },
           "selector": {
-            "metadata": "prices.Margin Share (average)"
+            "metadata": "prices.Margin Bar (average)"
           }
         }
       ],
@@ -409,8 +409,13 @@
             },
             "end": {
               "expr": {
-                "Literal": {
-                  "Value": "1D"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "prices"
+                    }
+                  },
+                  "Property": "Share Axis End"
                 }
               }
             },

@@ -3,9 +3,9 @@
   "name": "s0mavg",
   "position": {
     "x": 1180,
-    "y": 293,
+    "y": 310,
     "z": 315,
-    "height": 18,
+    "height": 20,
     "width": 60,
     "tabOrder": 315
   },
@@ -212,7 +212,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "9D"
+                  "Value": "9.75D"
                 }
               }
             },

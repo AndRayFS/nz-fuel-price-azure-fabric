@@ -11,7 +11,7 @@ def block(text, depth):
     pad = "\t" * depth
     return "\n".join(pad + l if l.strip() else "" for l in textwrap.dedent(text).strip("\n").split("\n"))
 
-def measure(table, name, dax, fmt=None, desc=None, folder=None, hidden=False):
+def measure(table, name, dax, fmt=None, desc=None, folder=None, hidden=False, fmt_dax=None):
     q = f"'{name}'" if any(c in name for c in " ()%-/") else name
     out = []
     if desc:
@@ -26,6 +26,8 @@ def measure(table, name, dax, fmt=None, desc=None, folder=None, hidden=False):
     if folder: out.append(f"\t\tdisplayFolder: {folder}")
     if hidden: out.append("\t\tisHidden")
     out.append(f"\t\tlineageTag: {tag(table + '.m.' + name)}")
+    # A child object, not a property: TMDL rejects properties after it (4 Nov 2026).
+    if fmt_dax: out.append(f"\n\t\tformatStringDefinition = {fmt_dax}")
     return "\n".join(out) + "\n"
 
 def column(table, name, dtype, fmt=None, calc=False, sort_by=None, hidden=False, summarize="none", date=False):
@@ -501,16 +503,43 @@ RETURN CALCULATE(AVERAGE(prices[{col_}]), REMOVEFILTERS(Week), prices[week_date]
 VAR vW = [Latest Week]
 RETURN CALCULATE(AVERAGE(prices[{col_}]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)''',
         fmt="0.0", folder=MG, hidden=True))
+QQ = '""""'    # DAX for a string holding one double quote: a format string's literal text
 for name, _ in PARTS:
-    # 0 rather than blank on the other row, so both layers keep both rows in place.
-    pm.append(measure(P, f"{name} Share (now)", f'''
-IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", DIVIDE([{name} Now (c/L)], [Price Now (c/L)]), 0)''', fmt="0%", folder=MG))
-    pm.append(measure(P, f"{name} Share (average)", f'''
-IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", DIVIDE([{name} Average (c/L)], [Price Average (c/L)]), 0)''', fmt="0%", folder=MG))
-pm.append(measure(P, "Share Label Now", '''
-FORMAT([Latest Week], "d mmm") & " · " & FORMAT([Price Now (c/L)], "0.0") & " c/L"''', folder=MG))
-pm.append(measure(P, "Share Label Average", '''
-"Average · " & FORMAT([Price Average (c/L)], "0.0") & " c/L"''', folder=MG))
+    # Bars in c/L on one scale, as in the mock-up, so the average litre is drawn
+    # shorter than this week's; the label shows the part's share of the price through
+    # a dynamic format string. 0 rather than blank on the other row, so both layers
+    # keep both rows in place.
+    for layer, kind, stem in (("now", "Newest week", "Now"), ("average", "Average", "Average")):
+        share = f'FORMAT(DIVIDE([{name} {stem} (c/L)], [Price {stem} (c/L)]), "0%")'
+        pm.append(measure(P, f"{name} Bar ({layer})", f'''
+IF(SELECTEDVALUE('Share Row'[Kind]) = "{kind}", [{name} {stem} (c/L)], 0)''', folder=MG,
+            fmt_dax=f"IF(SELECTEDVALUE('Share Row'[Kind]) = \"{kind}\", {QQ} & {share} & {QQ}, \"0\")"))
+pm.append(measure(P, "Share Axis End", '''
+MAX(MAXX(ALL(Fuel), [Price Now (c/L)]), MAXX(ALL(Fuel), [Price Average (c/L)]))''', fmt="0", folder=MG, hidden=True,
+    desc="One c/L scale for every bar on Margin's right: the dearest litre, this week or on average, of the three fuels."))
+pm.append(measure(P, "Share Date", '''
+FORMAT([Latest Week], "d mmm")''', folder=MG))
+pm.append(measure(P, "Share Price Now", '''
+FORMAT([Price Now (c/L)], "0.0") & " c/L"''', folder=MG))
+pm.append(measure(P, "Share Price Average", '''
+FORMAT([Price Average (c/L)], "0.0") & " c/L"''', folder=MG))
+pm.append(measure(P, "Share Subtitle", '''
+"Week of " & FORMAT([Latest Week], "d mmm") & ", dark, against the average since 29 Mar 2024, pale · one c/L scale · labels are shares of the price"''',
+    folder=MG))
+pm.append(measure(P, "Share Title", '''
+// A claim, as the mock-up's title is, but only the part all three fuels agree on:
+// a share within a point of its average counts as usual.
+VAR vCost = ADDCOLUMNS(ALL(Fuel), "d", DIVIDE([Cost Now (c/L)], [Price Now (c/L)]) - DIVIDE([Cost Average (c/L)], [Price Average (c/L)]),
+                                   "m", DIVIDE([Margin Now (c/L)], [Price Now (c/L)]) - DIVIDE([Margin Average (c/L)], [Price Average (c/L)]))
+VAR vCostUp = COUNTROWS(FILTER(vCost, [d] >= 0.01))
+VAR vCostDown = COUNTROWS(FILTER(vCost, [d] <= -0.01))
+VAR vMarginUp = COUNTROWS(FILTER(vCost, [m] >= 0.01))
+VAR vMarginDown = COUNTROWS(FILTER(vCost, [m] <= -0.01))
+VAR vA = SWITCH(TRUE(), vCostUp = 3, "Cost takes a bigger share of every litre than usual",
+                        vCostDown = 3, "Cost takes a smaller share of every litre than usual",
+                        "Where each litre goes, against the usual")
+VAR vB = SWITCH(TRUE(), vMarginDown = 3, ", the margin a smaller one", vMarginUp = 3, ", the margin a bigger one", "")
+RETURN vA & vB''', folder=MG))
 pm.append(measure(P, "Margin Share Now Label", '''
 FORMAT(DIVIDE([Margin Now (c/L)], [Price Now (c/L)]), "0.0%")''', folder=MG))
 pm.append(measure(P, "Margin Share Average Label", '''
@@ -565,21 +594,43 @@ VAR vM = AVERAGE(margin_compression[margin_before_adjustment])
 VAR vP = AVERAGE(margin_compression[gap_before_adjustment_pct])
 RETURN IF(NOT ISBLANK(vA) && NOT ISBLANK(vM) && NOT ISBLANK(vP), vM - DIVIDE(vM, 1 + vP / 100))''', fmt="+0.0;-0.0;0.0", folder=MG,
     desc="The same gap with MBIE's fuel market adjustment added back, 27 Feb - 11 Sep 2026 only. The gold model gives it as a share of an unadjusted norm; the norm is recovered from the margin and that share."))
-mm.append(measure(M, "Gap Colour (chart)", '''
-VAR vG = [Gap (chart)]
+# The left-hand charts are three layers on one axis: a band for the weeks MBIE
+# suspended, pale columns spanning the gap with and without MBIE's adjustment, and
+# dark columns for the part the two agree on - so what sticks out pale is the
+# adjustment's shift, as in the mock-up. Every layer returns 0 rather than blank in
+# weeks it does not draw, so all three keep the same span of weeks on the axis.
+GAPS = '''VAR vO = [Gap (chart)]
+VAR vU = COALESCE([Gap Before Adjustment (chart)], vO)'''
+mm.append(measure(M, "Gap Dark (chart)", GAPS + '''
+RETURN SWITCH(TRUE(), ISBLANK(vO), BLANK(), vO >= 0 && vU >= 0, MIN(vO, vU), vO <= 0 && vU <= 0, MAX(vO, vU), 0)''',
+    fmt="+0.0;-0.0;0.0", folder=MG, hidden=True,
+    desc="The gap with and without the adjustment where both agree: the nearer one to zero when they share a sign, nothing when they do not."))
+mm.append(measure(M, "Gap Pale Up (chart)", GAPS + '''
+RETURN IF(NOT ISBLANK(vO), MAX(MAX(vO, vU), 0))''', fmt="+0.0;-0.0;0.0", folder=MG, hidden=True))
+mm.append(measure(M, "Gap Pale Down (chart)", GAPS + '''
+RETURN IF(NOT ISBLANK(vO), MIN(MIN(vO, vU), 0))''', fmt="+0.0;-0.0;0.0", folder=MG, hidden=True))
+for name, edge in (("Band Up (chart)", "Gap Axis High"), ("Band Down (chart)", "Gap Axis Low")):
+    mm.append(measure(M, name, f'''
 VAR vLate = CALCULATE(COUNTROWS(margin_compression), margin_compression[cost_backfilled] = TRUE()) > 0
-RETURN IF(vG < 0, IF(vLate, "#F6BFA8", "#EB6834"), IF(vLate, "#DEDDD7", "#A3A29B"))''', folder=MG, hidden=True,
-    desc="Orange below the norm, grey above; paler in the weeks MBIE suspended and filled in later."))
+RETURN IF(NOT ISBLANK([Gap (chart)]), IF(vLate, [{edge}], 0))''', fmt="0", folder=MG, hidden=True,
+        desc="Full height in the weeks MBIE suspended cost and margin and filled in later (18 Mar - 1 Jul 2026)."))
+mm.append(measure(M, "Gap Colour (chart)", '''
+IF([Gap Dark (chart)] < 0, "#EB6834", "#A3A29B")''', folder=MG, hidden=True,
+    desc="Orange below the norm, grey above."))
+# Each fuel on its own axis; the page draws the charts at heights in proportion to
+# their ranges, so a c/L is about the same height in all three.
 for name, agg, k in (("Gap Axis Low", "MIN", 1.08), ("Gap Axis High", "MAX", 1.15)):
     mm.append(measure(M, name, f'''
-VAR vA = CALCULATE({agg}X(margin_compression, margin_compression[importer_margin] - margin_compression[margin_norm_104w]), REMOVEFILTERS(Fuel), REMOVEFILTERS(Week))
+VAR vA = CALCULATE({agg}X(margin_compression, margin_compression[importer_margin] - margin_compression[margin_norm_104w]), REMOVEFILTERS(Week))
 VAR vB = CALCULATE({agg}X(FILTER(margin_compression, NOT ISBLANK(margin_compression[adjustment_cpl]) && NOT ISBLANK(margin_compression[gap_before_adjustment_pct])),
     margin_compression[margin_before_adjustment] - DIVIDE(margin_compression[margin_before_adjustment], 1 + margin_compression[gap_before_adjustment_pct] / 100)),
-    REMOVEFILTERS(Fuel), REMOVEFILTERS(Week))
+    REMOVEFILTERS(Week))
 RETURN {k} * {agg}(vA, vB)''', fmt="0", folder=MG, hidden=True,
-        desc="One value axis for all three fuels, so a bar's height means the same c/L in each chart."))
-mm.append(measure(M, "Gap Header", '''
-IF(NOT ISBLANK([Margin Gap Now]), FORMAT([Latest Week], "d mmm") & ": " & FORMAT([Margin Gap Now], "+0.0;−0.0;0.0") & " c/L")''', folder=MG))
+        desc="The fuel's own range, with and without the adjustment, plus a margin."))
+mm.append(measure(M, "Gap Header Date", '''
+IF(NOT ISBLANK([Margin Gap Now]), FORMAT([Latest Week], "d mmm") & ":")''', folder=MG))
+mm.append(measure(M, "Gap Header Value", '''
+IF(NOT ISBLANK([Margin Gap Now]), FORMAT([Margin Gap Now], "+0.0;−0.0;0.0"))''', folder=MG))
 
 def append_measures(path, measures):
     text = path.read_text()

@@ -3,9 +3,9 @@
   "name": "s0mnow",
   "position": {
     "x": 1180,
-    "y": 273,
+    "y": 281,
     "z": 315,
-    "height": 18,
+    "height": 20,
     "width": 60,
     "tabOrder": 315
   },
@@ -212,7 +212,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "9D"
+                  "Value": "9.75D"
                 }
               }
             },
