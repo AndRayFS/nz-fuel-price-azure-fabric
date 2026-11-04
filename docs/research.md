@@ -1821,6 +1821,11 @@ is done.
 
 ## The nowcast's Brent is futures, and in this market that is the wrong price — 19 Sep 2026
 
+> **Answered 5 Nov 2026.** Measured through the backwardation on futures, on
+> spot and on ComCom's daily product cost: the nowcast loses to plain
+> `adl_ecm` on futures, and spot does no better, so a better source is not
+> the fix. See the next section.
+
 `research/nowcast_brent.py` fetches Yahoo `BZ=F`, front-month Brent futures.
 FRED's `DCOILBRENTEU` is Europe Brent spot FOB. On 4,714 common days the two
 correlate at 0.9964 with a median annual divergence of 0.0-1.3%, which is why
@@ -1857,6 +1862,107 @@ measures.
 `importer_cost` from the MBIE panel and never touches Yahoo; the weekly chain
 and CI contain no reference to it. The exposure is confined to the nowcast,
 which is research.
+
+## The nowcast in the backwardation: it loses, and spot would not have saved it — 5 Nov 2026
+
+`research/nowcast_backwardation.py`, the measurement the section above made a
+condition of shipping. The rule was written into the script before any number
+was computed: Diesel and Regular Petrol, h=1 and h=2, forecast origins whose
+nowcast week is stamped 4 Sep 2026 or later; **pass** if the futures nowcast's
+pooled MAE is no worse than plain `adl_ecm` at both horizons. Everything else
+is `nowcast_in_adl.py`'s defaults on the unchanged production model. The panel
+is the published archive dated 2026-11-05 (MBIE weeks to 30 Oct), so MBIE's
+23 Sep fuel market adjustment is inside `d_cost`, and no warehouse is read.
+The reproduced `adl_ecm` matches the archive's `pred_adl_ecm` to 0.00005 c/L
+on 172 rows.
+
+**The backwardation, as weekly means of daily spot over front-month futures:**
+0.2% (28 Aug), 10.5% (11 Sep), 17.4% (18 Sep), **24.9% (9 Oct)**, 8.6%
+(23 Oct), 4.9% (30 Oct), 2.9% in the week of 6 Nov. It is unwinding.
+
+**Result: FAIL.** MAE c/L on the pump price, both fuels pooled:
+
+| h | n | naive | adl_ecm | + futures | + FRED spot | + ComCom |
+|---|---|---|---|---|---|---|
+| 1 | 18 | 6.992 | **2.216** | 2.515 | 3.337 | 3.687 |
+| 2 | 16 | 14.735 | 5.397 | 5.796 | 5.371 | **4.599** |
+
+The futures nowcast is 13.5% worse at h=1 and 7.4% worse at h=2. Both fuels
+lose at both horizons.
+
+**It is not the futures.** Every source beats today's assumption, that cost
+does not move, on the cost itself, and ComCom's product series beats it three-
+to fourfold. Mean |nowcast − actual `d_cost`|, c/L, backwardation weeks:
+
+| | zero | futures | spot | ComCom |
+|---|---|---|---|---|
+| Diesel | 9.44 | 6.90 | 6.79 | 2.64 |
+| Regular Petrol | 10.26 | 8.71 | 8.05 | 3.47 |
+
+Yet at h=1 spot is worse than futures and ComCom worse than both. A better
+reading of the week's cost made the week's pump forecast worse, which means
+the pump was not following cost through `b0` in these weeks. Diesel's 25 Sep
+week is the plain case: cost −17.5 c/L, pump +21.1, and any information about
+the cost pushes the forecast the wrong way. What fails here is the model's
+response to cost, not the input — the same thing as "the crisis sum is not
+identified" above, met from the forecasting side.
+
+**Before the backwardation the nowcast helped.** Nowcast weeks 6 Mar–28 Aug
+2026, n = 26 per fuel: +4.3% at h=1 and +12.5% at h=2 on futures, spot a
+little better again. Over the whole 2026 episode, Mar–Oct, the two samples
+weighted by n, it is still ahead: +2.0% and +10.2%.
+
+**What follows.**
+
+- **Not promoted.** The rule was fixed before the run, and it says FAIL.
+- **Its own fallback is void.** The rule shelved the nowcast "until a timely
+  spot source exists"; spot does no better, so that condition would reopen
+  nothing.
+- **Not run in shadow either**, by the owner's decision of 5 Nov 2026.
+  Reopening it needs a new rule, written before the weeks it is tested on.
+- **Untouched:** the non-crisis edge of 8 Sep, which this sample does not
+  contain. It still cannot be switched on for calm weeks only: the regime is
+  a centred window and is not known when the forecast is made.
+- **n = 9 per fuel.** The direction is the finding, not the magnitude.
+
+### Sources checked for a timely series — 5 Nov 2026
+
+Looked for because the nowcast needed one. None of them is it, and the
+reasons are recorded so that they are not looked up again.
+
+- **fuelclock.nz** (Taxpayers' Union). Its "matches MBIE exactly" is about
+  fuel stocks in days, not prices. Crude and FX are the same Yahoo `BZ=F` and
+  `NZDUSD=X`; retail prices are Gaspy's crowd-sourced ones. Nothing new.
+- **Terminal gate prices** (Fuel Industry Act 2020, s 9).
+  - **Weekly, not daily.** Mobil's take effect on Saturdays (24 Oct, 31 Oct),
+    six terminals, as an HTML table. Gull's take effect on Fridays (30 Oct,
+    6 Nov), Mt Maunganui only, as a PDF posted the day before.
+  - **Too late.** By the Wednesday run the latest TGP was set at the end of
+    the week MBIE has just published, so it says nothing about the week in
+    progress.
+  - **Composition.** Tax- and GST-inclusive. Mobil lists excise, ETS, ACC,
+    NLTF, LAFT, RFT and PEFML; delivery is excluded.
+  - **No history.** Both pages carry the current week and one before it.
+    Gull's older PDFs are gone (404), Mobil's refuse scripts (403), and the
+    Wayback Machine has 20 snapshots of Mobil's page and 40 of Gull's, over
+    four to five years.
+  - **Not checked.** Z's page was not found (the site renders by
+    JavaScript); bp.com refuses with 403.
+  - **A posted list price.** The Commerce Commission reports few ad hoc TGP
+    sales and a TGP premium over contract prices larger than Australia's, so
+    it carries the importer's own pricing, not only its cost.
+- **ComCom daily product cost.** `Fuel-price-monitoring-Data-to-27-October-2026.xlsx`
+  from the Commission's monitoring page: `REFINED_COSTS` and
+  `RETAIL_PRICES_AVG`, c/L, every day including weekends from 1 Feb 2026,
+  for 91, 95 and diesel, at a tax-inclusive level.
+  - **Tracks MBIE closely.** Weekly changes correlate with `importer_cost` at
+    0.93 for petrol and 0.80 for diesel, over 35 weeks from 6 Feb to 9 Oct.
+    All of them are crisis weeks, which flatters a correlation.
+  - **Too late for a forecast.** Released fortnightly — the next release is
+    due 12 Nov — so it misses the Wednesday run.
+  - **Use.** A reference for questions like this one.
+  - **Unknown.** Its source, and whether it carries MBIE's fuel market
+    adjustment.
 
 ## A better crude-to-cost slope made the forecast worse — 8 Sep 2026
 
