@@ -1705,15 +1705,18 @@ and `pbip/` — the margin table in the model, two pages in the report.
 Outside git: the storage account `nzfueldata` (created 16 Oct 2026), and the
 republish of Report 1 from Desktop.
 
-## W21 — Report 1 for a reader who has never seen it: five pages, replacing three
+## W21 — Report 1 for a reader who has never seen it: five pages, replacing three — **landed 4 Nov 2026**
 
 Proposed 4 Nov 2026, from a review of 17–20 Oct whose mock-up lives on
 claude.ai (private). Branch `w21-report1-v2`, worktree `../nz-fuel-report-v2`.
 
 **Status, 4 Nov 2026.** All five pages built, reviewed page by page in the
 private dev copy, and the old three pages, their measures and theme removed.
-Waiting on the publish over `nz_fuel_v2` from Desktop. How it was built and
-what the service showed: `docs/architecture.md`, "Report 1 as five pages".
+Published over `nz_fuel_v2` from Desktop the same day: the model kept its id
+(`221ea91d-…`), `task refresh` completed, and the public link shows the five
+pages, bookmarks included. The first weekly run against it is 5 Nov. How it
+was built and what the service showed: `docs/architecture.md`, "Report 1 as
+five pages".
 
 **Now.** Three pages: "Oil → Pump: Track Record" (W11), "Importer Margin" and
 "The Data" (W19). They answer the author's question in the author's words:
