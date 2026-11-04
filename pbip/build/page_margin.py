@@ -9,7 +9,7 @@ M, P = "margin_compression", "prices"
 FUELS = [("Regular Petrol", "Regular 91", "#40B54A", 70), ("Premium Petrol 95R", "Premium 95", "#E5C700", 74),
          ("Diesel", "Diesel", "#4D4C48", 40)]
 LEFT, RIGHT = (24, 132, 748, 520), (788, 132, 468, 520)
-GREY, PALE_ORANGE, PALE_GREY, BAND, BAND_EDGE = "#A3A29B", "#F6BFA8", "#DEDDD7", "#F1F0EC", "#E2E1DB"
+GREY, PALE_ORANGE, PALE_GREY, BAND, BAND_EDGE = "#A3A29B", "#F6BFA8", "#DEDDD7", "#F7F6F2", "#E2E1DB"
 # Left-hand chart heights in proportion to each fuel's range of gaps (with and without
 # MBIE's adjustment, plus the axis margins) on 23 Oct 2026: 73, 76 and 169 c/L.
 # No chart draws a date axis: Power BI drops it on a chart this short, and the one
