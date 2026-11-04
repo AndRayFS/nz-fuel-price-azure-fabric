@@ -19,7 +19,15 @@
               {
                 "textRuns": [
                   {
-                    "value": "Gate and cross-check",
+                    "value": "4",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI Semibold",
+                      "fontSize": "9.75pt",
+                      "color": "#8A8983"
+                    }
+                  },
+                  {
+                    "value": "  Gate and cross-check",
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
                       "fontSize": "9.75pt",

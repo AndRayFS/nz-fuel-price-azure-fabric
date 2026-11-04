@@ -19,7 +19,15 @@
               {
                 "textRuns": [
                   {
-                    "value": "Archive",
+                    "value": "9",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI Semibold",
+                      "fontSize": "9.75pt",
+                      "color": "#8A8983"
+                    }
+                  },
+                  {
+                    "value": "  Archive",
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
                       "fontSize": "9.75pt",

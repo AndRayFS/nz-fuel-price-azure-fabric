@@ -516,8 +516,9 @@ never writes to `nz_fuel_v2`. Publishing the real report stays with Desktop.
 - A dynamic format string (`formatStringDefinition`) puts a share on a bar
   whose length is c/L.
 - A button draws a 2 px border unless fill and outline are off with and
-  without a selector, in every state. A triangle shape 10 px wide draws
-  nothing; How it's built's arrowheads are glyphs.
+  without a selector, in every state. A triangle shape draws nothing, and an
+  arrowhead glyph lands up to a pixel off its line at page scale, so How it's
+  built joins its steps with plain lines and numbers them instead.
 - Data's three tables are switched by bookmarks that carry display state only
   (`suppressData`), so the fuel and horizon chosen survive the switch.
 - A text box trims the spaces at its edges.

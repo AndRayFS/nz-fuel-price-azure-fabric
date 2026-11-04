@@ -19,7 +19,15 @@
               {
                 "textRuns": [
                   {
-                    "value": "This report",
+                    "value": "8",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI Semibold",
+                      "fontSize": "9.75pt",
+                      "color": "#8A8983"
+                    }
+                  },
+                  {
+                    "value": "  This report",
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
                       "fontSize": "9.75pt",

@@ -46,23 +46,13 @@ TILES = [("43", "data tests every run; a failure outside monitoring stops it"),
 
 def lane_top(i): return LANE_Y + i * (LANE_H + LANE_GAP)
 
-# Arrowheads are stacked bars, the same kind of rectangle as the line, so both land on
-# the same pixels at whatever scale the page is shown. Glyphs (4 Nov) were centred as
-# text and sat up to a pixel off some lines; a triangle shape draws nothing at all
-# (both seen 5 Nov 2026). Five rows, 10 px wide at the base down to 2 at the tip.
-HEAD_ROWS, HEAD_STEP = 5, 1.6
-HEAD_H = HEAD_ROWS * HEAD_STEP
-
-def arrow(name, x, y_from, y_to, z):
-    """A vertical connector from one step's edge to the next one's, head at y_to."""
-    down = y_to > y_from
-    top, bottom = (y_from, y_to - HEAD_H + 1) if down else (y_to + HEAD_H - 1, y_from)
-    V = [container(f"{name}l", x - 1, top, 2, bottom - top, z, blank(FAINT))]
-    for k in range(HEAD_ROWS):
-        w = 2 * (HEAD_ROWS - k) if down else 2 * (k + 1)       # widest row nearest the line
-        y = (y_to - HEAD_H + k * HEAD_STEP) if down else (y_to + k * HEAD_STEP)
-        V.append(container(f"{name}h{k}", x - w / 2, round(y, 1), w, 2, z + 1, blank(FAINT)))
-    return V
+# Connectors are plain lines, and the steps carry numbers instead of arrowheads. Glyph
+# heads (4 Nov) sat up to a pixel off some lines at page scale, a triangle shape drew
+# nothing, and heads built from stacked bars read as steps (5 Nov review).
+def connector(name, x, y_a, y_b, z):
+    """A vertical line from one step's edge to the next one's."""
+    top, bottom = min(y_a, y_b), max(y_a, y_b)
+    return [container(name, x - 1, top, 2, bottom - top, z, blank(FAINT))]
 
 def link_run(text, url):
     return {"value": text, "url": url, "textStyle": {"fontFamily": FONT, "fontSize": "9.75pt", "color": INK,
@@ -93,7 +83,7 @@ def page_built():
             bg["visualContainerObjects"]["border"][0]["properties"]["width"] = d(2)
         V += [container(f"s{k}bg", x, y, STEP_W, STEP_H, z + k * 4, bg),
               container(f"s{k}t", x + 10, y + 6, STEP_W - 20, 54, z + k * 4 + 1, textbox([
-                  [(title, 9.75, INK, True)], [(what, 9, BODY, False)]])),
+                  [(f"{k + 1}", 9.75, FAINT, True), (f"  {title}", 9.75, INK, True)], [(what, 9, BODY, False)]])),
               container(f"s{k}w", x + 10, y + STEP_H - 22, STEP_W - 20, 18, z + k * 4 + 2, textbox([
                   [(when, 8.25, MUTED, False)]]))]
 
@@ -102,8 +92,8 @@ def page_built():
     for k in range(len(STEPS) - 1):
         (xa, ya), (xb, yb) = boxes[k], boxes[k + 1]
         x = xb + (xa + STEP_W - xb) // 2 if xb < xa + STEP_W else xb + 24
-        if yb > ya: V += arrow(f"a{k}", x, ya + STEP_H, yb, z + k * 2)
-        else:       V += arrow(f"a{k}", x, ya, yb + STEP_H, z + k * 2)
+        if yb > ya: V += connector(f"a{k}", x, ya + STEP_H, yb, z + k * 2)
+        else:       V += connector(f"a{k}", x, ya, yb + STEP_H, z + k * 2)
 
     z = 500
     tw = (X1 - X0) // 4

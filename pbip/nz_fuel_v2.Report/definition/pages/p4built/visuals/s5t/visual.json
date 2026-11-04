@@ -19,7 +19,15 @@
               {
                 "textRuns": [
                   {
-                    "value": "Model",
+                    "value": "6",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI Semibold",
+                      "fontSize": "9.75pt",
+                      "color": "#8A8983"
+                    }
+                  },
+                  {
+                    "value": "  Model",
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
                       "fontSize": "9.75pt",
