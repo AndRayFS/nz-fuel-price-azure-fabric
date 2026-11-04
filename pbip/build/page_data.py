@@ -78,7 +78,10 @@ def table(cols, entity):
                         "outline": s("None"), "wordWrap": b(False)})],
         "total": [obj({"totals": b(False)})],
         "columnWidth": [obj({"value": d(w)}, {"metadata": ref(k, e, n)}) for k, e, n, _, w, _, _ in cols],
-        "columnFormatting": [obj({"alignment": s("Right")}, {"metadata": ref(k, e, n)}) for k, e, n, _, _, right, _ in cols if right],
+        # Header and values aligned together: numbers right, dates and text left. With the
+        # values alone right-aligned, a left header sat between two columns (4 Nov review).
+        "columnFormatting": [obj({"alignment": s("Right" if right else "Left"), "styleHeader": b(True), "styleValues": b(True)},
+                                 {"metadata": ref(k, e, n)}) for k, e, n, _, _, right, _ in cols],
     }
     objects["values"] += [obj({"fontColor": mcol(F, cm)}, {"data": [{"dataViewWildcard": {"matchingOption": 1}}],
                                                            "metadata": ref(k, e, n)})
