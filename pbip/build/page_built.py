@@ -83,7 +83,7 @@ def page_built():
             bg["visualContainerObjects"]["border"][0]["properties"]["width"] = d(2)
         V += [container(f"s{k}bg", x, y, STEP_W, STEP_H, z + k * 4, bg),
               container(f"s{k}t", x + 10, y + 6, STEP_W - 20, 54, z + k * 4 + 1, textbox([
-                  [(f"{k + 1}", 9.75, FAINT, True), (f"  {title}", 9.75, INK, True)], [(what, 9, BODY, False)]])),
+                  [(f"{k + 1}. {title}", 9.75, INK, True)], [(what, 9, BODY, False)]])),
               container(f"s{k}w", x + 10, y + STEP_H - 22, STEP_W - 20, 18, z + k * 4 + 2, textbox([
                   [(when, 8.25, MUTED, False)]]))]
 

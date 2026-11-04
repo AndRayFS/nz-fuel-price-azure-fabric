@@ -19,15 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "3",
-                    "textStyle": {
-                      "fontFamily": "Segoe UI Semibold",
-                      "fontSize": "9.75pt",
-                      "color": "#8A8983"
-                    }
-                  },
-                  {
-                    "value": "  Ingest",
+                    "value": "3. Ingest",
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
                       "fontSize": "9.75pt",
