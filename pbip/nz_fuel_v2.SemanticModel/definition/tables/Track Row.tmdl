@@ -1,0 +1,61 @@
+table 'Track Row'
+	lineageTag: 219e0b69-0e10-522e-a527-2e66a4ecd065
+
+	column Row
+		dataType: string
+		lineageTag: 4a53c9af-c1a6-5ec9-9dc6-00fdff806964
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Row]
+		sortByColumn: 'Row order'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Row order'
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: a92a65d2-7804-556f-b24b-0d706125283b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Row order]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Weeks ahead'
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: b06b19d6-58f0-5658-b621-b7a3ec5fa244
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Weeks ahead]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Regime
+		dataType: string
+		isHidden
+		lineageTag: 3b5132d4-1872-5d81-bd90-6d9f821004f1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Regime]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Track Row' = calculated
+		mode: import
+		source =
+				DATATABLE(
+				    "Row", STRING, "Row order", INTEGER, "Weeks ahead", INTEGER, "Regime", STRING,
+				    {
+				        {"1 week, calm", 1, 1, "normal"},
+				        {"1 week, volatile", 2, 1, "high"},
+				        {"2 weeks, calm", 3, 2, "normal"},
+				        {"2 weeks, volatile", 4, 2, "high"},
+				        {"3 weeks, calm", 5, 3, "normal"},
+				        {"3 weeks, volatile", 6, 3, "high"}
+				    }
+				)
+
+	annotation PBI_Id = 508de6fb9b2952acaff75e6cb3b2d8b3

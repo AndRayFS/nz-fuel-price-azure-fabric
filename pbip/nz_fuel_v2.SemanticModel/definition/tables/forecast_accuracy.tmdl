@@ -302,6 +302,124 @@ table forecast_accuracy
 		displayFolder: Now
 		lineageTag: 5a553545-b2a4-557f-8ca8-c385f8ca5402
 
+	measure 'Selected Horizon' = SELECTEDVALUE('Horizon'[Weeks ahead], 1)
+		formatString: 0
+		displayFolder: Track record
+		isHidden
+		lineageTag: b3eeb0b1-7884-5387-9bca-c3b4a55616c9
+
+	/// Average absolute miss at the chosen horizon, over every call whose outcome is known since Feb 2013.
+	measure 'Miss Model' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: c43dc23d-0cc1-5522-88de-0abc371d5eb1
+
+	/// Average absolute miss at the chosen horizon, over every call whose outcome is known since Feb 2013.
+	measure 'Miss No Change' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: 4df74c81-6698-53e5-b8fd-ef496cac41d4
+
+	measure 'Track Headline' =
+			VAR vH = [Selected Horizon]
+			VAR vFuel = SELECTEDVALUE(Fuel[Fuel name])
+			VAR vM = [Miss Model]
+			VAR vN = [Miss No Change]
+			VAR vPct = ROUND(100 * ABS(1 - DIVIDE(vM, vN)), 0)
+			RETURN IF(NOT ISBLANK(vFuel) && vN > 0,
+			    "Since 2013 the model's " & SWITCH(vH, 1, "one", 2, "two", 3, "three") & "-week call for " & vFuel
+			    & " has missed by " & FORMAT(vM, "0.0") & " c/L on average — " & vPct & "% "
+			    & IF(vM <= vN, "less", "more") & " than assuming the price won't change.")
+		displayFolder: Track record
+		lineageTag: 910fd39a-e072-563e-b4fe-0e6b65aa0b5a
+
+	/// Trailing 26-week average miss at the week called; full windows only, so the line starts in Aug 2013.
+	measure 'Model 26w (chart)' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[mae_model_26w]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: 3911e25a-bb7a-5469-83f4-60e14227b034
+
+	/// Trailing 26-week average miss at the week called; full windows only, so the line starts in Aug 2013.
+	measure 'No Change 26w (chart)' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[mae_naive_26w]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: 384828de-c330-56a3-80ef-47d3ba5412ce
+
+	measure 'Track Last Week' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(MAX(forecast_accuracy[Target week]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+		displayFolder: Track record
+		isHidden
+		lineageTag: 3904a670-bc22-5b3c-b50a-47c164825a89
+
+	measure 'Model 26w (last)' = IF(MAX(Week[week]) = [Track Last Week], [Model 26w (chart)])
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: a8c27304-9190-59b5-93ec-060dc94a1693
+
+	measure 'No Change 26w (last)' = IF(MAX(Week[week]) = [Track Last Week], [No Change 26w (chart)])
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: 99a3b80b-7f76-51ff-851c-372fc7bc5da4
+
+	measure 'Track Axis Top' =
+			VAR vH = [Selected Horizon]
+			VAR vA = CALCULATE(MAX(forecast_accuracy[mae_naive_26w]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+			VAR vB = CALCULATE(MAX(forecast_accuracy[mae_model_26w]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+			RETURN 1.1 * MAX(vA, vB)
+		formatString: 0.0
+		displayFolder: Track record
+		isHidden
+		lineageTag: ea26871b-a180-5aeb-bcab-fbd8579ef634
+
+	/// A full-height column in weeks whose call was made in volatile crude: the shading behind the lines.
+	measure 'Volatile (chart)' =
+			VAR vH = [Selected Horizon]
+			VAR vHigh = CALCULATE(COUNTROWS(forecast_accuracy), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26, forecast_accuracy[crude_vol_regime] = "high")
+			RETURN IF(vHigh > 0, [Track Axis Top])
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: e01332a7-f33f-5a9d-8124-f68a585e80cc
+
+	measure 'Miss Model (row)' =
+			VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
+			VAR vR = SELECTEDVALUE('Track Row'[Regime])
+			RETURN IF(NOT ISBLANK(vH), CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[crude_vol_regime] = vR, forecast_accuracy[outcome_known] = TRUE()))
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: 382212a0-c508-53b2-80a1-433ea24a69e6
+
+	measure 'Miss No Change (row)' =
+			VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
+			VAR vR = SELECTEDVALUE('Track Row'[Regime])
+			RETURN IF(NOT ISBLANK(vH), CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[crude_vol_regime] = vR, forecast_accuracy[outcome_known] = TRUE()))
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: a2ff1852-67e1-5768-8e15-6952f3f5d4bb
+
+	measure 'Row Fill 1' = IF([Selected Horizon] = 1, "#F4F8FD", "#FFFFFF")
+		displayFolder: Track record
+		isHidden
+		lineageTag: fcdc95d2-c983-5ce3-8e23-3a09bb6b0185
+
+	measure 'Row Fill 2' = IF([Selected Horizon] = 2, "#F4F8FD", "#FFFFFF")
+		displayFolder: Track record
+		isHidden
+		lineageTag: 69b3234d-518d-598d-8b99-6d51aad184ac
+
+	measure 'Row Fill 3' = IF([Selected Horizon] = 3, "#F4F8FD", "#FFFFFF")
+		displayFolder: Track record
+		isHidden
+		lineageTag: a141e303-83a0-5dd4-a056-7bf6e48e5611
+
 	column week_date
 		dataType: dateTime
 		formatString: Long Date

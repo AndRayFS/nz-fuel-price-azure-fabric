@@ -211,3 +211,54 @@ def fx_box(entity, measure, radius=6):
     v["visualContainerObjects"]["background"] = [obj({"show": b(True), "color": mcol(entity, measure), "transparency": d(0)})]
     v["visualContainerObjects"]["border"] = [obj({"show": b(True), "color": col(PAPER), "radius": d(radius)})]
     return v
+
+
+# ---------------------------------------------------------------- shared by the pages
+def header(z=0):
+    nav = {"visualType": "pageNavigator",
+           "objects": {"fill": [obj({"show": b(False), "fillColor": col(PAPER), "transparency": d(100)}, DEFAULT),
+                                obj({"show": b(False), "fillColor": col(PAPER), "transparency": d(100)}, {"id": "selected"})],
+                       "text": [obj({"fontColor": col(MUTED), "fontSize": d(9.75), "fontFamily": wf(FONT)}, DEFAULT),
+                                obj({"fontColor": col(INK), "fontSize": d(9.75), "fontFamily": wf(FONT_B)}, {"id": "selected"})],
+                       "accentBar": [obj({"show": b(False)}, DEFAULT),
+                                     obj({"show": b(True), "position": s("Bottom"), "width": d(2), "color": col(INK)}, {"id": "selected"})],
+                       "outline": [obj({"show": b(False), "lineColor": col(PAPER), "transparency": d(100)}, DEFAULT),
+                                   obj({"show": b(False), "lineColor": col("#EFEEEA"), "transparency": d(100)}, {"id": "selected"})],
+                       "pages": [obj({"showHiddenPages": b(False)})]},
+           "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
+    return [
+        container("hdrbg", 0, 0, 1280, 48, z, blank(PAPER)),
+        container("hdrrule", 0, 48, 1280, 1, z + 1, blank(LINE)),
+        container("hdrbrand", 24, 14, 240, 24, z + 2, textbox([[("NZ fuel prices · oil to pump", 10.5, INK, True)]])),
+        container("hdrnav", 272, 6, 520, 36, z + 3, nav),
+        container("hdrweeks", 880, 17, 376, 24, z + 4, title_text("prices", "Header Weeks", 9, MUTED, align="right")),
+    ]
+
+def button_slicer(entity, column, default, columns, grouped=False):
+    """One button per value of a column, one always selected. grouped=True leaves the grey
+    pill to a shape behind, so a label can sit inside it with the buttons."""
+    return {"visualType": "advancedSlicerVisual",
+        "query": {"queryState": {"Values": {"projections": [proj("c", entity, column, column)]}},
+                  "sortDefinition": {"sort": [{"field": cref(entity, column), "direction": "Ascending"}]}},
+        "objects": {
+            "selection": [obj({"singleSelect": b(True), "strictSingleSelect": b(True)})],
+            "general": [obj({"filter": {"filter": {"Version": 2,
+                "From": [{"Name": "p", "Entity": entity, "Type": 0}],
+                "Where": [{"Condition": {"In": {"Expressions": [{"Column": {"Expression": {"SourceRef": {"Source": "p"}}, "Property": column}}],
+                                                "Values": [[{"Literal": {"Value": default}}]]}}}]}}})],
+            "fillCustom": [obj({"show": b(True), "fillColor": col("#EFEEEA"), "transparency": d(0)}, DEFAULT),
+                           obj({"fillColor": col(PAPER), "transparency": d(0)}, {"id": "selection:selected"})],
+            "value": [obj({"show": b(True)}),
+                      obj({"textWrap": b(False), "fontSize": d(9), "fontColor": col(MUTED), "fontFamily": wf(FONT)}, DEFAULT),
+                      obj({"fontColor": col(INK), "fontFamily": wf(FONT_B)}, {"id": "selection:selected"})],
+            "label": [obj({"show": b(False)}, DEFAULT)],
+            "outline": [obj({"show": b(False)}, DEFAULT)],
+            "accentBar": [obj({"show": b(False)}, DEFAULT)],
+            "selectionIcon": [obj({"show": b(False)})],
+            "shapeCustomRectangle": [obj({"rectangleRoundedCurve": L(6)}, DEFAULT)],
+            "padding": [obj({"paddingSelection": s("Narrow")}, DEFAULT)],
+            "layout": [obj({"showFixedSize": b(False), "autoGrid": b(False), "rowCount": L(1), "columnCount": L(columns)})],
+        },
+        "visualContainerObjects": chrome(padding=(0, 0, 0, 0)) if grouped else
+            chrome(padding=(0, 0, 0, 0), background="#EFEEEA", border="#EFEEEA", radius=8),
+        "drillFilterOtherVisuals": True}

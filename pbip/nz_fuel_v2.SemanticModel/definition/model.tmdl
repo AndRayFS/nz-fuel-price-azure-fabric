@@ -20,6 +20,8 @@ ref table Fuel
 ref table Week
 ref table Period
 ref table 'As Of'
+ref table 'Track Row'
+ref table Horizon
 
 ref cultureInfo en-US
 

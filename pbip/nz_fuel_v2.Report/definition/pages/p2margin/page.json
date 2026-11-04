@@ -4,5 +4,6 @@
   "displayName": "Importer Margin",
   "displayOption": "FitToPage",
   "height": 960,
-  "width": 1280
+  "width": 1280,
+  "visibility": "HiddenInViewMode"
 }

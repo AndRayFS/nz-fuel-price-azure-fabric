@@ -112,6 +112,30 @@ DATATABLE(
     }
 )''')
 
+horizon = calc_table("Horizon", [
+    column("Horizon", "Weeks ahead", "int64", fmt="0", calc=True),
+], '''
+DATATABLE("Weeks ahead", INTEGER, {{1}, {2}, {3}})''')
+
+# Rows of Track record's right-hand chart: each horizon in calm and in volatile crude.
+track_row = calc_table("Track Row", [
+    column("Track Row", "Row", "string", calc=True, sort_by="Row order"),
+    column("Track Row", "Row order", "int64", fmt="0", calc=True, hidden=True),
+    column("Track Row", "Weeks ahead", "int64", fmt="0", calc=True, hidden=True),
+    column("Track Row", "Regime", "string", calc=True, hidden=True),
+], '''
+DATATABLE(
+    "Row", STRING, "Row order", INTEGER, "Weeks ahead", INTEGER, "Regime", STRING,
+    {
+        {"1 week, calm", 1, 1, "normal"},
+        {"1 week, volatile", 2, 1, "high"},
+        {"2 weeks, calm", 3, 2, "normal"},
+        {"2 weeks, volatile", 4, 2, "high"},
+        {"3 weeks, calm", 5, 3, "normal"},
+        {"3 weeks, volatile", 6, 3, "high"}
+    }
+)''')
+
 as_of = calc_table("As Of", [
     column("As Of", "As of week", "dateTime", fmt="d mmm yyyy", calc=True, date=True),
 ], '''
@@ -388,6 +412,58 @@ VAR Latest = [Latest Week]
 RETURN IF(W > Latest && W <= Latest + 21, ROUND([Call (chart)], 0))''', fmt="0", folder="Now",
     desc="Whole cents: the model's error is several c/L, so a decimal would claim a precision it does not have."))
 
+# Track record. 'Horizon' is quoted everywhere: a bare table name that is also an
+# MDX keyword breaks the parse, as VAR names did on 4 Nov 2026.
+TR = "Track record"
+fm.append(measure(F, "Selected Horizon", '''
+SELECTEDVALUE('Horizon'[Weeks ahead], 1)''', fmt="0", folder=TR, hidden=True))
+for name, col_ in (("Miss Model", "abs_err_adl_ecm"), ("Miss No Change", "abs_err_naive")):
+    fm.append(measure(F, name, f'''
+VAR vH = [Selected Horizon]
+RETURN CALCULATE(AVERAGE(forecast_accuracy[{col_}]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())''',
+        fmt="0.0", folder=TR, desc="Average absolute miss at the chosen horizon, over every call whose outcome is known since Feb 2013."))
+fm.append(measure(F, "Track Headline", '''
+VAR vH = [Selected Horizon]
+VAR vFuel = SELECTEDVALUE(Fuel[Fuel name])
+VAR vM = [Miss Model]
+VAR vN = [Miss No Change]
+VAR vPct = ROUND(100 * ABS(1 - DIVIDE(vM, vN)), 0)
+RETURN IF(NOT ISBLANK(vFuel) && vN > 0,
+    "Since 2013 the model's " & SWITCH(vH, 1, "one", 2, "two", 3, "three") & "-week call for " & vFuel
+    & " has missed by " & FORMAT(vM, "0.0") & " c/L on average — " & vPct & "% "
+    & IF(vM <= vN, "less", "more") & " than assuming the price won't change.")''', folder=TR))
+for name, col_ in (("Model 26w (chart)", "mae_model_26w"), ("No Change 26w (chart)", "mae_naive_26w")):
+    fm.append(measure(F, name, f'''
+VAR vH = [Selected Horizon]
+RETURN CALCULATE(AVERAGE(forecast_accuracy[{col_}]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)''',
+        fmt="0.0", folder=TR, desc="Trailing 26-week average miss at the week called; full windows only, so the line starts in Aug 2013."))
+fm.append(measure(F, "Track Last Week", '''
+VAR vH = [Selected Horizon]
+RETURN CALCULATE(MAX(forecast_accuracy[Target week]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)''',
+    folder=TR, hidden=True))
+for name, base in (("Model 26w (last)", "Model 26w (chart)"), ("No Change 26w (last)", "No Change 26w (chart)")):
+    fm.append(measure(F, name, f'''
+IF(MAX(Week[week]) = [Track Last Week], [{base}])''', fmt="0.0", folder=TR))
+fm.append(measure(F, "Track Axis Top", '''
+VAR vH = [Selected Horizon]
+VAR vA = CALCULATE(MAX(forecast_accuracy[mae_naive_26w]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+VAR vB = CALCULATE(MAX(forecast_accuracy[mae_model_26w]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+RETURN 1.1 * MAX(vA, vB)''', fmt="0.0", folder=TR, hidden=True))
+fm.append(measure(F, "Volatile (chart)", '''
+VAR vH = [Selected Horizon]
+VAR vHigh = CALCULATE(COUNTROWS(forecast_accuracy), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26, forecast_accuracy[crude_vol_regime] = "high")
+RETURN IF(vHigh > 0, [Track Axis Top])''', fmt="0.0", folder=TR,
+    desc="A full-height column in weeks whose call was made in volatile crude: the shading behind the lines."))
+for name, col_ in (("Miss Model (row)", "abs_err_adl_ecm"), ("Miss No Change (row)", "abs_err_naive")):
+    fm.append(measure(F, name, f'''
+VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
+VAR vR = SELECTEDVALUE('Track Row'[Regime])
+RETURN IF(NOT ISBLANK(vH), CALCULATE(AVERAGE(forecast_accuracy[{col_}]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[crude_vol_regime] = vR, forecast_accuracy[outcome_known] = TRUE()))''',
+        fmt="0.0", folder=TR))
+for n in (1, 2, 3):
+    fm.append(measure(F, f"Row Fill {n}", f'''
+IF([Selected Horizon] = {n}, "#F4F8FD", "#FFFFFF")''', folder=TR, hidden=True))
+
 # ---------------------------------------------------------------- margin_compression additions
 M = "margin_compression"
 mm = []
@@ -435,6 +511,8 @@ def append_measures(path, measures):
 (ROOT / "tables/Week.tmdl").write_text(week)
 (ROOT / "tables/Period.tmdl").write_text(period)
 (ROOT / "tables/As Of.tmdl").write_text(as_of)
+(ROOT / "tables/Horizon.tmdl").write_text(horizon)
+(ROOT / "tables/Track Row.tmdl").write_text(track_row)
 (ROOT / "tables/prices.tmdl").write_text(prices)
 append_measures(ROOT / "tables/forecast_accuracy.tmdl", fm)
 append_measures(ROOT / "tables/margin_compression.tmdl", mm)
@@ -451,5 +529,8 @@ model = model.replace('annotation PBI_QueryOrder = ["forecast_accuracy","margin_
 if "ref table prices" not in model:
     model = model.replace("ref table margin_compression\n",
         "ref table margin_compression\nref table prices\nref table Fuel\nref table Week\nref table Period\nref table 'As Of'\n")
+for ref in ("ref table Horizon\n", "ref table 'Track Row'\n"):
+    if ref not in model:
+        model = model.replace("ref table 'As Of'\n", "ref table 'As Of'\n" + ref)
 (ROOT / "model.tmdl").write_text(model)
 print("written")
