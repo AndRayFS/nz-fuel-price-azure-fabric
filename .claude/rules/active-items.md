@@ -5,7 +5,7 @@ design and should be trimmed or updated, not left as-is indefinitely.
 Open items only: once an item closes, move anything durable to `docs/` and
 delete it here.
 
-- [ ] **~mid-Oct 2026** — Stats NZ releases the September-quarter CPI, and
+- [ ] **~mid-Oct 2026, not arrived by 4 Nov** — Stats NZ releases the September-quarter CPI, and
   MBIE finalises the thirteen weeks of Jul–Sep 2026. This is the second
   observation of an event the project has now seen once, and the first it
   can prepare for. Two things to check, both cheap and offline:
@@ -20,6 +20,11 @@ delete it here.
     removed a petrol one; the numbers in `docs/research.md` are written
     against 29 Aug 2026 and will need the same treatment again.
   Method and expectations: `docs/mbie_notes.md`, "A standing prediction".
+  - **Status at the 4 Nov 2026 load:** not arrived. Every week from 3 Jul is
+    still Provisional (last Final: 26 Jun), and `monitor_revisions` has no
+    Provisional → Final transition since 18 Sep — only the usual one-week
+    `provisional_revised` rows. Q2 finalised on 26 Aug, two months after its
+    last week; the same gap from 25 Sep puts Q3 around 25 Nov.
 
 - [ ] **`rounded_check` not yet exercised against a precision flip.** The
   snapshot fix of 17 Sep (`docs/mbie_notes.md`, "Known structural changes",
