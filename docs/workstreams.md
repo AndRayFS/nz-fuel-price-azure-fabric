@@ -1551,6 +1551,15 @@ front-month futures, which came apart from spot by 20% during the Hormuz
 backwardation (`docs/research.md`, 19 Sep 2026). Re-measuring on spot is the
 first thing any promotion has to do.
 
+**Measured 5 Nov 2026, and not promoted.** `research/nowcast_backwardation.py`
+ran a test with its rule written in advance. Through the backwardation
+(nowcast weeks from 4 Sep), the futures nowcast is worse than plain `adl_ecm`:
+pooled MAE 2.515 against 2.216 at h=1, and 5.796 against 5.397 at h=2. Spot
+does no better at h=1 (3.337), so a better source is not the fix
+(`docs/research.md`, "The nowcast in the backwardation", 5 Nov 2026). It is
+not run in shadow either — the owner's decision the same day. Reopening it
+needs a new rule, written before the weeks it is tested on.
+
 ## W11 — Apply the Report 1 redesign — **closed 16 Oct 2026**
 
 **Closed by the owner, two items short.** The spec's core is Report 1's first
