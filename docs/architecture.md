@@ -467,6 +467,67 @@ What the schema does not catch, all found on 16 Oct:
   `cultures/en-US.tmdl` derived from column display names. None of it changes
   the report.
 
+### Report 1 as five pages — W21, 4 Nov 2026
+
+The three pages of W11 and W19 gave way to five, in the order a first-time
+reader asks: Now, Track record, Margin, How it's built, Data. Why, and what
+each page answers: `docs/workstreams.md`, W21.
+
+**What it reads.** Three tables. `forecast_accuracy` — Now's calls, Track
+record, Data's calls. `margin_compression` — Now's cost pressure, Margin,
+Data's margin. `prices` — `silver_fuel` imported as it is, the rows the
+archive's `weekly_prices.csv` carries — Now's price lines, Margin's split of a
+litre, Data's weekly prices. Small calculated tables carry the selectors and
+chart rows (`Period`, `Horizon`, `Track Row`, `Share Row`); `As Of` serves the
+hidden page `p9test`, where a week can be picked and the headline compared
+with `pbip/build/headline_check.py`.
+
+**Written by generators.** Each page is rewritten whole by a script in
+`pbip/build/` — `page_now.py`, `page_track.py`, `page_margin.py`,
+`page_built.py`, `page_data.py`, with shared builders in `pbir.py` — and the
+model's additions by `model_v2.py`. Change the script, not the JSON.
+`model_v2.py` appends its measures to `forecast_accuracy.tmdl` and
+`margin_compression.tmdl` and drops the old pages' measures from them, so
+restore both from 9076a1e before a rerun
+(`git checkout 9076a1e -- <the two files>`): finding its measures already
+there, it writes nothing, and a changed measure does not land.
+
+**Looking without Desktop.** `pbip/build/to_dev.py` publishes the folder to My
+Workspace as a private copy, `nz_fuel_w21_dev`, through the Fabric REST API,
+and the pages are checked in a browser. A change to visuals or measures needs
+no refresh and so no capacity; a new table or column does (`--refresh`, with
+the capacity up). The copy binds to the live model's gateway datasource and
+never writes to `nz_fuel_v2`. Publishing the real report stays with Desktop.
+
+**What the service showed**, each seen on the rendered page, 4 Nov 2026:
+
+- A text box under ~16 px high draws a scroll-bar stub. Rectangles, rules and
+  swatches are empty shapes whose container draws the fill (`blank()`).
+- Short dynamic text is the title of an invisible shape: a new card does not
+  draw its value under ~30 px.
+- A stacked bar with two series drops fx colours and error bars. One series
+  per visual, visuals layered, keeps both — if every layer has the same
+  categories (0 rather than blank) and the same plot area (the lower layers
+  write their axis labels in white).
+- A chart ~80–90 px high drops its date axis; a taller one keeps it and
+  reserves a ~19 px margin on the right. Charts that have to line up draw no
+  date axis at all.
+- Data labels show only with `show` set globally and `showSeries` per series.
+- A dynamic format string (`formatStringDefinition`) puts a share on a bar
+  whose length is c/L.
+- A button draws a 2 px border unless fill and outline are off with and
+  without a selector, in every state. A triangle shape 10 px wide draws
+  nothing; How it's built's arrowheads are glyphs.
+- Data's three tables are switched by bookmarks that carry display state only
+  (`suppressData`), so the fuel and horizon chosen survive the switch.
+- A text box trims the spaces at its edges.
+
+**How it's built is static until W20.** Its step times are typical ones, from
+the runs of 22 and 29 Oct, and the cost tile — NZ$0.80 a month — is about 4.3
+runs a month of ~15 min at the F2 rate in `docs/cost_notes.md`. Two things the
+mock-up had wrong are corrected there: the Australian cross-check only warns,
+and monitoring tests warn rather than fail.
+
 ### The public archive — 16 Oct 2026
 
 Publish-to-web serves the report but cannot export from it, so the data goes

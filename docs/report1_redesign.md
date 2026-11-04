@@ -1,5 +1,10 @@
 # Report 1 — redesign spec, 16 Aug 2026
 
+> **Superseded, 4 Nov 2026.** The report this spec describes was replaced by
+> five pages in W21 — `docs/architecture.md`, "Report 1 as five pages". Kept
+> for its reasoning; the refresh commands below predate the weekly chain, and
+> the known limitation at the end still holds (Track record's footer says it).
+
 Report 1 currently shows one number for the latest week. This adds a time
 axis, shows forecast against outcome, and — the part that matters — shows
 **when the model was wrong**.
