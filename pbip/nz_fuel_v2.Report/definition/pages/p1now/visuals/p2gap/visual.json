@@ -3,10 +3,10 @@
   "name": "p2gap",
   "position": {
     "x": 1132,
-    "y": 566,
+    "y": 564,
     "z": 346,
-    "height": 18,
-    "width": 110,
+    "height": 22,
+    "width": 108,
     "tabOrder": 346
   },
   "visual": {
@@ -212,7 +212,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "9D"
+                  "Value": "11.25D"
                 }
               }
             },
@@ -227,13 +227,8 @@
               "solid": {
                 "color": {
                   "expr": {
-                    "Measure": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "margin_compression"
-                        }
-                      },
-                      "Property": "Cost Pressure Colour"
+                    "Literal": {
+                      "Value": "'#1B1B19'"
                     }
                   }
                 }

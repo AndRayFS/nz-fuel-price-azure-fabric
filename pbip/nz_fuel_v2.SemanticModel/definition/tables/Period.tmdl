@@ -41,11 +41,11 @@ table Period
 				    "Weeks", INTEGER,
 				    "Period order", INTEGER,
 				    {
-				        {"3 months", 13, 1},
-				        {"6 months", 26, 2},
-				        {"1 year", 52, 3},
-				        {"5 years", 260, 4},
-				        {"Since 2013", 9999, 5}
+				        {"3M", 13, 1},
+				        {"6M", 26, 2},
+				        {"1Y", 52, 3},
+				        {"5Y", 260, 4},
+				        {"2013+", 9999, 5}
 				    }
 				)
 

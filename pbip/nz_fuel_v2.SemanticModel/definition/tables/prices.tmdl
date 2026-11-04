@@ -108,7 +108,7 @@ table prices
 		displayFolder: Now
 		lineageTag: 73608bf9-49ff-5f54-9fe7-1c36b8344283
 
-	/// Visual-level filter for page 1's charts: the chosen period up to the newest week, plus the three weeks the model has called. Since 2013 starts at the first call, 1 Feb 2013.
+	/// Visual-level filter for page 1's charts: the chosen period up to the newest week, plus the three weeks the model has called. 2013+ starts at the first call, 1 Feb 2013.
 	measure 'In Period' =
 			// Variables carry a v prefix: DAX inherits MDX's keywords, and the first
 			// version, with VARs named Weeks and Start, failed to parse in Desktop (4 Nov 2026).

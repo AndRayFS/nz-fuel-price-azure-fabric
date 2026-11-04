@@ -104,11 +104,11 @@ DATATABLE(
     "Weeks", INTEGER,
     "Period order", INTEGER,
     {
-        {"3 months", 13, 1},
-        {"6 months", 26, 2},
-        {"1 year", 52, 3},
-        {"5 years", 260, 4},
-        {"Since 2013", 9999, 5}
+        {"3M", 13, 1},
+        {"6M", 26, 2},
+        {"1Y", 52, 3},
+        {"5Y", 260, 4},
+        {"2013+", 9999, 5}
     }
 )''')
 
@@ -179,7 +179,7 @@ VAR vLatest = [Latest Week]
 VAR vWeeks = SELECTEDVALUE(Period[Weeks], 26)
 VAR vFirst = IF(vWeeks >= 9999, DATE(2013, 2, 1), MAX(vLatest - 7 * vWeeks, DATE(2013, 2, 1)))
 RETURN IF(vWeek > vFirst && vWeek <= vLatest + 21, 1)''', fmt="0", folder="Now",
-    desc="Visual-level filter for page 1's charts: the chosen period up to the newest week, plus the three weeks the model has called. Since 2013 starts at the first call, 1 Feb 2013."))
+    desc="Visual-level filter for page 1's charts: the chosen period up to the newest week, plus the three weeks the model has called. 2013+ starts at the first call, 1 Feb 2013."))
 pm.append(measure(P, "Paid (chart)", '''
 IF(MAX(Week[week]) <= [Latest Week] && [In Period] = 1, [Average Paid])''', fmt="0.0", folder="Now",
     desc="The period is applied here rather than as a visual filter on In Period: a measure filter written into PBIR broke the visual (Broken_Filters, 4 Nov 2026). Weeks where every series is blank drop off the axis by themselves."))
@@ -395,10 +395,17 @@ for name, colname in (("Margin Now", "importer_margin"), ("Margin Norm Now", "ma
     mm.append(measure(M, name, f'''
 VAR W = [Latest Week]
 RETURN CALCULATE(AVERAGE(margin_compression[{colname}]), REMOVEFILTERS(Week), REMOVEFILTERS(margin_compression[week_date]), margin_compression[week_date] = W)''', fmt="0.0", folder="Now"))
-mm.append(measure(M, "Track Rest", '''
+mm.append(measure(M, "Track Full", '''
+IF(NOT ISBLANK([Margin Now]), 60)''', fmt="0", folder="Now",
+    desc="The grey track behind the cost pressure bar, 0-60 c/L as in the mock-up. Its own chart under the bar's: a stacked bar dropped both the colour measure and the norm's tick (4 Nov 2026)."))
+mm.append(measure(M, "Margin Bar", '''
 VAR vM = [Margin Now]
-RETURN IF(NOT ISBLANK(vM), 100 - MAX(0, MIN(100, vM)))''', fmt="0.0", folder="Now",
-    desc="The grey remainder of the 0-100 c/L track, stacked after the margin, so bar and track are one shape and cannot drift apart."))
+RETURN IF(NOT ISBLANK(vM), MAX(0, MIN(60, vM)))''', fmt="0.0", folder="Now",
+    desc="Margin Now held to the 0-60 c/L track: a margin above 60 fills the bar, and the figures above it say by how much."))
+mm.append(measure(M, "Margin Norm Bar", '''
+VAR vN = [Margin Norm Now]
+RETURN IF(NOT ISBLANK(vN), MAX(0, MIN(60, vN)))''', fmt="0.0", folder="Now",
+    desc="Where the norm's tick sits on the same 0-60 c/L track."))
 mm.append(measure(M, "Margin Gap Now", '''
 VAR M = [Margin Now]
 VAR N = [Margin Norm Now]

@@ -8,13 +8,17 @@ FUELS = [("Regular Petrol", "Regular 91", "#40B54A", 78),
          ("Premium Petrol 95R", "Premium 95", "#E5C700", 82),
          ("Diesel", "Diesel", "#4D4C48", 46)]
 CARD_X = [24, 440, 856]; CARD_W = 400
+TRACK = "#ECEBE6"
+# Type for the headline and the three prices. B was chosen to try on 4 Nov 2026;
+# A, the first Desktop pass, stays as a hidden page to compare against.
+STYLES = {"A": dict(head=FONT_B, num=FONT_B), "B": dict(head="Segoe UI Light", num="Segoe UI Light")}
 
 def header(z=0):
     nav = {"visualType": "pageNavigator",
            "objects": {"fill": [obj({"show": b(False), "fillColor": col(PAPER), "transparency": d(100)}, DEFAULT),
                                 obj({"show": b(False), "fillColor": col(PAPER), "transparency": d(100)}, {"id": "selected"})],
-                       "text": [obj({"fontColor": col(MUTED), "fontSize": d(10), "fontFamily": wf(FONT)}, DEFAULT),
-                                obj({"fontColor": col(INK), "fontFamily": wf(FONT_B)}, {"id": "selected"})],
+                       "text": [obj({"fontColor": col(MUTED), "fontSize": d(9.75), "fontFamily": wf(FONT)}, DEFAULT),
+                                obj({"fontColor": col(INK), "fontSize": d(9.75), "fontFamily": wf(FONT_B)}, {"id": "selected"})],
                        "accentBar": [obj({"show": b(False)}, DEFAULT),
                                      obj({"show": b(True), "position": s("Bottom"), "width": d(2), "color": col(INK)}, {"id": "selected"})],
                        "outline": [obj({"show": b(False), "lineColor": col(PAPER), "transparency": d(100)}, DEFAULT),
@@ -24,9 +28,9 @@ def header(z=0):
     return [
         container("hdrbg", 0, 0, 1280, 48, z, blank(PAPER)),
         container("hdrrule", 0, 48, 1280, 1, z + 1, blank(LINE)),
-        container("hdrbrand", 24, 13, 240, 24, z + 2, textbox([[("NZ fuel prices · oil to pump", 10.5, INK, True)]])),
+        container("hdrbrand", 24, 14, 240, 24, z + 2, textbox([[("NZ fuel prices · oil to pump", 10.5, INK, True)]])),
         container("hdrnav", 272, 6, 520, 36, z + 3, nav),
-        container("hdrweeks", 880, 12, 376, 24, z + 4, title_text("prices", "Header Weeks", 9, MUTED, align="right")),
+        container("hdrweeks", 880, 17, 376, 24, z + 4, title_text("prices", "Header Weeks", 9, MUTED, align="right")),
     ]
 
 def price_chart(key):
@@ -45,8 +49,8 @@ def price_chart(key):
             "dataPoint": [obj({"fill": col(INK)}, S(*PAID)), obj({"fill": col(CALL_LINE)}, S(*CALLM)),
                           obj({"fill": col(INK)}, S(*LAST)), obj({"fill": col(INK)}, S(*AGO)), obj({"fill": col(PAPER)}, S(*AGOIN))],
             "lineStyles": [
-                obj({"strokeWidth": d(2), "showMarker": b(False)}, S(*PAID)),
-                obj({"strokeWidth": d(2), "lineStyle": s("dashed"), "showMarker": b(True), "markerShape": s("circle"),
+                obj({"strokeWidth": d(2), "lineChartType": s("smooth"), "showMarker": b(False)}, S(*PAID)),
+                obj({"strokeWidth": d(2), "lineChartType": s("smooth"), "lineStyle": s("dashed"), "showMarker": b(True), "markerShape": s("circle"),
                      "markerSize": d(4), "markerColor": col(CALL_LINE)}, S(*CALLM)),
                 obj({"strokeWidth": d(0), "showMarker": b(True), "markerShape": s("circle"), "markerSize": d(5), "markerColor": col(INK)}, S(*LAST)),
                 obj({"strokeWidth": d(0), "showMarker": b(True), "markerShape": s("circle"), "markerSize": d(5), "markerColor": col(INK)}, S(*AGO)),
@@ -84,30 +88,34 @@ def calls_matrix():
         },
         "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
 
-def pressure_bar():
-    return {"visualType": "barChart",
+def pressure_chart(measure, bar):
+    """One bar on a 0-60 c/L axis. The track and the margin are two of these, one over
+    the other: in a single stacked chart Power BI dropped both the colour measure and
+    the norm's error-bar tick (4 Nov 2026), and both work on a single series."""
+    ref = "margin_compression." + measure
+    v = {"visualType": "barChart",
         "query": {"queryState": {
             "Category": {"projections": [proj("c", "Fuel", "Fuel name", "Fuel", active=True)]},
-            "Y": {"projections": [proj("m", "margin_compression", "Margin Now", "Margin now"),
-                                  proj("m", "margin_compression", "Track Rest", "Track")]}}},
+            "Y": {"projections": [proj("m", "margin_compression", measure, measure)]}}},
         "objects": {
             "dataPoint": [obj({"fill": mcol("margin_compression", "Cost Pressure Colour")},
-                              {"data": [{"dataViewWildcard": {"matchingOption": 1}}], "metadata": "margin_compression.Margin Now"}),
-                          obj({"fill": col("#ECEBE6")}, {"metadata": "margin_compression.Track Rest"})],
-            "error": [
-                obj({"enabled": b(True), "barShow": b(True), "shadeShow": b(False), "barColor": col(INK),
-                     "barWidth": d(14), "barBorderSize": L(0)}, {"metadata": "margin_compression.Margin Now"}),
-                obj({"errorRange": {"kind": "ErrorRange", "explicit": {
-                        "isRelative": b(False),
-                        "upperBound": mexpr("margin_compression", "Margin Norm Now"),
-                        "lowerBound": mexpr("margin_compression", "Margin Norm Now")}}},
-                    {"data": [{"dataViewWildcard": {"matchingOption": 0}}], "metadata": "margin_compression.Margin Now", "highlightMatching": 1})],
-            "valueAxis": [obj({"show": b(False), "start": d(0), "end": d(100), "gridlineShow": b(False)})],
-            "categoryAxis": [obj({"show": b(False), "showAxisTitle": b(False), "innerPadding": L(72)})],
+                              {"data": [{"dataViewWildcard": {"matchingOption": 1}}]}) if bar else obj({"fill": col(TRACK)})],
+            "valueAxis": [obj({"show": b(False), "start": d(0), "end": d(60), "gridlineShow": b(False)})],
+            "categoryAxis": [obj({"show": b(False), "showAxisTitle": b(False), "innerPadding": L(55)})],
             "legend": [obj({"show": b(False)})],
             "labels": [obj({"show": b(False)})],
         },
         "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
+    if bar:
+        v["objects"]["error"] = [
+            obj({"enabled": b(True), "barShow": b(True), "shadeShow": b(False), "barColor": col(INK),
+                 "barWidth": d(14), "barBorderSize": L(0)}, {"metadata": ref}),
+            obj({"errorRange": {"kind": "ErrorRange", "explicit": {
+                    "isRelative": b(False),
+                    "upperBound": mexpr("margin_compression", "Margin Norm Bar"),
+                    "lowerBound": mexpr("margin_compression", "Margin Norm Bar")}}},
+                {"data": [{"dataViewWildcard": {"matchingOption": 0}}], "metadata": ref, "highlightMatching": 1})]
+    return v
 
 def period_slicer():
     return {"visualType": "advancedSlicerVisual",
@@ -118,7 +126,7 @@ def period_slicer():
             "general": [obj({"filter": {"filter": {"Version": 2,
                 "From": [{"Name": "p", "Entity": "Period", "Type": 0}],
                 "Where": [{"Condition": {"In": {"Expressions": [{"Column": {"Expression": {"SourceRef": {"Source": "p"}}, "Property": "Period"}}],
-                                                "Values": [[{"Literal": {"Value": "'6 months'"}}]]}}}]}}})],
+                                                "Values": [[{"Literal": {"Value": "'6M'"}}]]}}}]}}})],
             "fillCustom": [obj({"show": b(True), "fillColor": col("#EFEEEA"), "transparency": d(0)}, DEFAULT),
                            obj({"fillColor": col(PAPER), "transparency": d(0)}, {"id": "selection:selected"})],
             "value": [obj({"show": b(True)}),
@@ -144,13 +152,13 @@ def legend(z):
         V.append(container(name, x, y - 3, w, 20, z + len(V), textbox([[(text, 9, MUTED, False)]])))
     V.append(container("lg1", x, y + 6, 18, 2, z, blank(INK))); x += 24
     label("lg1t", "Average paid", 80); x += 84
-    V.append(container("lg2", x, y + 2, 10, 10, z + 1, blank(PAPER, border=INK, radius=5))); x += 16
+    V.append(container("lg2", x, y + 1, 10, 10, z + 1, blank(PAPER, border=INK, radius=5))); x += 16
     label("lg2t", "Four weeks ago", 92); x += 100
     for k in range(3):
         V.append(container(f"lg3{k}", x + k * 7, y + 6, 4, 2, z + 2, blank(CALL_LINE)))
     x += 24
     label("lg3t", "Model's calls", 80); x += 86
-    V.append(container("lg4", x, y + 1, 12, 12, z + 3, blank("#C3D9F3"))); x += 18
+    V.append(container("lg4", x, y + 2, 14, 10, z + 3, blank("#C3D9F3"))); x += 20
     label("lg4t", "Range of its past misses (middle half)", 220); x += 226
     for k in range(3):
         V.append(container(f"lg5{k}", x + 5, y + k * 5, 1, 3, z + 4, blank(INK)))
@@ -186,13 +194,12 @@ def page_fonts():
         ]
     return V
 
-def page_now():
+def page_now(style):
     V = header()
     z = 100
-    V.append(container("headline", 24, 60, 1232, 64, z, title_shape("prices", "Headline", 17)))
+    V.append(container("headline", 24, 60, 1232, 64, z, title_shape("prices", "Headline", 17, face=style["head"])))
     V += legend(z + 10)
-    V.append(container("showlbl", 760, 138, 44, 20, z + 2, textbox([[("Show", 9, MUTED, False)]], align="right")))
-    V.append(container("period", 812, 130, 444, 34, z + 3, period_slicer()))
+    V.append(container("period", CARD_X[2], 130, CARD_W, 34, z + 3, period_slicer()))
     for i, (key, label, colour, uw) in enumerate(FUELS):
         x = CARD_X[i]; z = 200 + i * 20; f = [fuel_filter(key)]
         V += [
@@ -200,35 +207,37 @@ def page_now():
             container(f"c{i}name", x + 14, 178, 220, 24, z + 1, textbox([[(label, 11, INK, True)]])),
             container(f"c{i}uline", x + 16, 203, uw, 3, z + 2, blank(colour)),
             container(f"c{i}weekto", x + 16, 212, 368, 18, z + 3, title_text("prices", "Week To Label", 8.25, MUTED)),
-            container(f"c{i}price", x + 16, 230, 96, 38, z + 4, title_text("prices", "Price Now Number", 21, INK, bold=True), f),
+            container(f"c{i}price", x + 16, 230, 96, 38, z + 4, title_text("prices", "Price Now Number", 21, INK, face=style["num"]), f),
             container(f"c{i}unit", x + 92, 244, 40, 20, z + 4, textbox([[("c/L", 9.75, MUTED, False)]])),
             container(f"c{i}pill", x + 206, 238, 180, 26, z + 5, fx_box("prices", "Change 4w Fill"), f),
             container(f"c{i}arrow", x + 212, 242, 16, 20, z + 6,
                       title_text("prices", "Change 4w Arrow", 9, colour_measure=("prices", "Change 4w Colour")), f),
             container(f"c{i}change", x + 228, 242, 110, 20, z + 6, title_text("prices", "Change 4w Main", 9, INK, bold=True), f),
-            container(f"c{i}weeks", x + 330, 243, 50, 18, z + 6, textbox([[("4 weeks", 9, MUTED, False)]], align="right")),
+            # A pixel above the figures' baseline: lower case beside bold figures read low (review of 4 Nov 2026).
+            container(f"c{i}weeks", x + 330, 241, 50, 20, z + 6, title_label("4 weeks", 9, MUTED, align="right")),
             container(f"c{i}chart", x + 6, 272, 388, 178, z + 6, price_chart(key), f),
             container(f"c{i}rule", x + 16, 456, 368, 1, z + 7, blank("#ECEBE6")),
         ] + [c for n in (1, 2, 3) for c in (
             container(f"c{i}d{n}", x + 16 + (n - 1) * 123, 464, 120, 18, z + 8,
                       title_text("forecast_accuracy", f"Call Date {n}", 8.25, FAINT), f),
             container(f"c{i}v{n}", x + 16 + (n - 1) * 123, 482, 120, 28, z + 8,
-                      title_text("forecast_accuracy", f"Call {n}", 11.25, CALL, bold=True), f))] + [
-        ]
+                      title_text("forecast_accuracy", f"Call {n}", 11.25, CALL, bold=True), f))]
     z = 300
     V.append(container("cphead", 24, 532, 130, 22, z, textbox([[("Cost pressure", 10.5, INK, True)]])))
     V.append(container("cpnote", 152, 535, 1104, 18, z + 1, title_text("margin_compression", "Cost Pressure Heading", 8.25, MUTED)))
     for i, (key, label, colour, uw) in enumerate(FUELS):
-        x = CARD_X[i]; z = 320 + i * 10; f = [fuel_filter(key)]
+        x = CARD_X[i]; y = 556; z = 320 + i * 10; f = [fuel_filter(key)]
+        # As in the mock-up: the figures quiet, the gap in black on the right, then an
+        # 8 px track with the norm's tick. The label sits 3 px lower to share the gap's baseline.
         V += [
-            container(f"p{i}bg", x, 558, CARD_W, 66, z, blank(PAPER, border=LINE, radius=8)),
-            container(f"p{i}lbl", x + 14, 566, 260, 18, z + 5, title_text("margin_compression", "Cost Pressure Label", 9, INK), f),
-            container(f"p{i}gap", x + 276, 566, 110, 18, z + 6,
-                      title_text("margin_compression", "Cost Pressure Gap Label", 9, bold=True, align="right",
-                                 colour_measure=("margin_compression", "Cost Pressure Colour")), f),
-            container(f"p{i}bar", x + 8, 568, 384, 56, z + 1, pressure_bar(), f),
+            container(f"p{i}bg", x, y, CARD_W, 54, z, blank(PAPER, border=LINE, radius=8)),
+            container(f"p{i}track", x + 14, y + 10, 372, 56, z + 1, pressure_chart("Track Full", bar=False), f),
+            container(f"p{i}bar", x + 14, y + 10, 372, 56, z + 2, pressure_chart("Margin Bar", bar=True), f),
+            container(f"p{i}lbl", x + 16, y + 11, 260, 18, z + 5, title_text("margin_compression", "Cost Pressure Label", 9, MUTED), f),
+            container(f"p{i}gap", x + 276, y + 8, 108, 22, z + 6,
+                      title_text("margin_compression", "Cost Pressure Gap Label", 11.25, INK, bold=True, align="right"), f),
         ]
-    V.append(container("footer", 24, 640, 1232, 40, 400, title_shape("prices", "Now Footer", 8.25, FAINT, bold=False)))
+    V.append(container("footer", 24, 628, 1232, 40, 400, title_shape("prices", "Now Footer", 8.25, FAINT, bold=False)))
     return V
 
 def page_test():
@@ -256,12 +265,14 @@ def page_test():
          "Compare the headline with the Python mirror, pbip/build/headline_check.py, for the same week.", 9, MUTED, False)]])))
     return V
 
-write_page(ROOT, "p1now", "Now", page_now())
+write_page(ROOT, "p1now", "Now", page_now(STYLES["B"]))
+write_page(ROOT, "p1nowa", "Now · A", page_now(STYLES["A"]), hidden=True)
 write_page(ROOT, "p9test", "Headline test", page_test(), hidden=True)
 write_page(ROOT, "p8fonts", "Fonts", page_fonts(), hidden=True)
 pages = json.loads((ROOT / "pages/pages.json").read_text())
-order = [p for p in pages["pageOrder"] if p not in ("p1now", "p9test", "p8fonts")]
-pages["pageOrder"] = ["p1now"] + order + ["p8fonts", "p9test"]
+mine = ("p1now", "p1nowa", "p8fonts", "p9test")
+order = [p for p in pages["pageOrder"] if p not in mine]
+pages["pageOrder"] = ["p1now"] + order + ["p1nowa", "p8fonts", "p9test"]
 pages["activePageName"] = "p1now"
 (ROOT / "pages/pages.json").write_text(json.dumps(pages, indent=2) + "\n")
-print(len(page_now()), "visuals on Now")
+print(len(page_now(STYLES["B"])), "visuals on Now")

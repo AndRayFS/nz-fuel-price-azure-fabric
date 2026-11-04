@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "period",
   "position": {
-    "x": 812,
+    "x": 856,
     "y": 130,
     "z": 103,
     "height": 34,
-    "width": 444,
+    "width": 400,
     "tabOrder": 103
   },
   "visual": {
@@ -105,7 +105,7 @@
                           [
                             {
                               "Literal": {
-                                "Value": "'6 months'"
+                                "Value": "'6M'"
                               }
                             }
                           ]

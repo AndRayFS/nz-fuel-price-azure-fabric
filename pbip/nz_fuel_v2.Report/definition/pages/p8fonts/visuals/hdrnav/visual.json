@@ -95,7 +95,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "10D"
+                  "Value": "9.75D"
                 }
               }
             },
@@ -121,6 +121,13 @@
                       "Value": "'#1B1B19'"
                     }
                   }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9.75D"
                 }
               }
             },

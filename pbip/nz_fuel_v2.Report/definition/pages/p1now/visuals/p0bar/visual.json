@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "p0bar",
   "position": {
-    "x": 32,
-    "y": 568,
-    "z": 321,
+    "x": 38,
+    "y": 566,
+    "z": 322,
     "height": 56,
-    "width": 384,
-    "tabOrder": 321
+    "width": 372,
+    "tabOrder": 322
   },
   "visual": {
     "visualType": "barChart",
@@ -43,27 +43,12 @@
                       "Entity": "margin_compression"
                     }
                   },
-                  "Property": "Margin Now"
+                  "Property": "Margin Bar"
                 }
               },
-              "queryRef": "margin_compression.Margin Now",
-              "nativeQueryRef": "Margin now",
-              "displayName": "Margin now"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "margin_compression"
-                    }
-                  },
-                  "Property": "Track Rest"
-                }
-              },
-              "queryRef": "margin_compression.Track Rest",
-              "nativeQueryRef": "Track",
-              "displayName": "Track"
+              "queryRef": "margin_compression.Margin Bar",
+              "nativeQueryRef": "Margin Bar",
+              "displayName": "Margin Bar"
             }
           ]
         }
@@ -97,26 +82,94 @@
                   "matchingOption": 1
                 }
               }
-            ],
-            "metadata": "margin_compression.Margin Now"
+            ]
           }
-        },
+        }
+      ],
+      "valueAxis": [
         {
           "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#ECEBE6'"
-                    }
-                  }
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "start": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "end": {
+              "expr": {
+                "Literal": {
+                  "Value": "60D"
+                }
+              }
+            },
+            "gridlineShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }
-          },
-          "selector": {
-            "metadata": "margin_compression.Track Rest"
+          }
+        }
+      ],
+      "categoryAxis": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "innerPadding": {
+              "expr": {
+                "Literal": {
+                  "Value": "55L"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "legend": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "labels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
           }
         }
       ],
@@ -171,7 +224,7 @@
             }
           },
           "selector": {
-            "metadata": "margin_compression.Margin Now"
+            "metadata": "margin_compression.Margin Bar"
           }
         },
         {
@@ -194,7 +247,7 @@
                           "Entity": "margin_compression"
                         }
                       },
-                      "Property": "Margin Norm Now"
+                      "Property": "Margin Norm Bar"
                     }
                   }
                 },
@@ -206,7 +259,7 @@
                           "Entity": "margin_compression"
                         }
                       },
-                      "Property": "Margin Norm Now"
+                      "Property": "Margin Norm Bar"
                     }
                   }
                 }
@@ -221,95 +274,8 @@
                 }
               }
             ],
-            "metadata": "margin_compression.Margin Now",
+            "metadata": "margin_compression.Margin Bar",
             "highlightMatching": 1
-          }
-        }
-      ],
-      "valueAxis": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "start": {
-              "expr": {
-                "Literal": {
-                  "Value": "0D"
-                }
-              }
-            },
-            "end": {
-              "expr": {
-                "Literal": {
-                  "Value": "100D"
-                }
-              }
-            },
-            "gridlineShow": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "categoryAxis": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "showAxisTitle": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "innerPadding": {
-              "expr": {
-                "Literal": {
-                  "Value": "72L"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "legend": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "labels": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
           }
         }
       ]

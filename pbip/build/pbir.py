@@ -107,10 +107,13 @@ def textbox(runs, align="left", **chrome_kw):
             "drillFilterOtherVisuals": True}
 
 def blank(background, border=None, radius=None):
-    """An empty textbox whose container draws a rectangle: card backgrounds, rules, fuel underlines."""
-    return {"visualType": "textbox", "objects": {"general": [obj({"paragraphs": []})]},
-            "visualContainerObjects": chrome(background=background, border=border, radius=radius, padding=(0, 0, 0, 0)),
-            "drillFilterOtherVisuals": True}
+    """An empty shape whose container draws a rectangle: card backgrounds, rules, fuel
+    underlines, legend marks. It was an empty text box until 4 Nov 2026, but a text box
+    under ~16 px high overflows, and Desktop drew its scroll bar as a grey stub at the
+    right end of every underline and over the legend's ring and square."""
+    v = invisible_shape()
+    v["visualContainerObjects"] = chrome(background=background, border=border, radius=radius, padding=(0, 0, 0, 0))
+    return v
 
 def text_card(entity, measure, size, colour=INK, bold=False, align="left", colour_measure=None,
               fill_measure=None, radius=0, wrap=False):
@@ -177,6 +180,15 @@ def title_text(entity, measure, size, colour=INK, bold=False, align="left", colo
         v["visualContainerObjects"]["background"] = [obj({"show": b(True), "color": mcol(*background_measure),
                                                           "transparency": d(0)})]
         v["visualContainerObjects"]["border"] = [obj({"show": b(True), "color": col(PAPER), "radius": d(radius or 0)})]
+    return v
+
+def title_label(text, size, colour=INK, bold=False, align="left", face=None):
+    """Fixed text drawn like title_text, so it shares a baseline with the measures beside it."""
+    v = invisible_shape()
+    v["visualContainerObjects"] = chrome(padding=(0, 0, 0, 0), title_props={
+        "show": b(True), "text": s(text), "titleWrap": b(False), "fontSize": d(size),
+        "fontFamily": wf(face or (FONT_B if bold else FONT)), "fontColor": col(colour),
+        "alignment": s(align), "heading": s("Normal")})
     return v
 
 def invisible_shape():

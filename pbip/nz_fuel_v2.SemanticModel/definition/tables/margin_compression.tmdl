@@ -52,13 +52,27 @@ table margin_compression
 		displayFolder: Now
 		lineageTag: 511e3d47-7e94-5b63-b3d1-978626571771
 
-	/// The grey remainder of the 0-100 c/L track, stacked after the margin, so bar and track are one shape and cannot drift apart.
-	measure 'Track Rest' =
+	/// The grey track behind the cost pressure bar, 0-60 c/L as in the mock-up. Its own chart under the bar's: a stacked bar dropped both the colour measure and the norm's tick (4 Nov 2026).
+	measure 'Track Full' = IF(NOT ISBLANK([Margin Now]), 60)
+		formatString: 0
+		displayFolder: Now
+		lineageTag: 412662c2-2740-5ae6-a8a5-5b8e9555e2d7
+
+	/// Margin Now held to the 0-60 c/L track: a margin above 60 fills the bar, and the figures above it say by how much.
+	measure 'Margin Bar' =
 			VAR vM = [Margin Now]
-			RETURN IF(NOT ISBLANK(vM), 100 - MAX(0, MIN(100, vM)))
+			RETURN IF(NOT ISBLANK(vM), MAX(0, MIN(60, vM)))
 		formatString: 0.0
 		displayFolder: Now
-		lineageTag: d5506c15-f2e8-50e0-b444-704505fdd573
+		lineageTag: 47a15ff0-5cf2-5402-8f6d-6e69953a9fcd
+
+	/// Where the norm's tick sits on the same 0-60 c/L track.
+	measure 'Margin Norm Bar' =
+			VAR vN = [Margin Norm Now]
+			RETURN IF(NOT ISBLANK(vN), MAX(0, MIN(60, vN)))
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: 5a4666d7-eec4-5a27-8bc5-905b9986cc36
 
 	measure 'Margin Gap Now' =
 			VAR M = [Margin Now]
