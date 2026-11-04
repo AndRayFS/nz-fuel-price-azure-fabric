@@ -37,6 +37,10 @@ def main(force=False):
         if dst.exists():
             for p in files(dst): p.unlink()
         shutil.copytree(src, dst, dirs_exist_ok=True, ignore=shutil.ignore_patterns(*KEEP))
+        # A page or visual the generator dropped leaves its folders behind, empty; Desktop
+        # would read an empty page folder as a page with no page.json.
+        for d in sorted((p for p in dst.rglob("*") if p.is_dir()), key=lambda p: len(p.parts), reverse=True):
+            if not any(d.iterdir()): d.rmdir()
         plat = json.loads((dst / ".platform").read_text())
         plat["metadata"]["displayName"] = DST
         plat["config"]["logicalId"] = str(uuid.uuid5(uuid.NAMESPACE_URL, f"{DST}.{kind}"))

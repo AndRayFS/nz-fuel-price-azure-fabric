@@ -9,8 +9,8 @@ FUELS = [("Regular Petrol", "Regular 91", "#40B54A", 78),
          ("Diesel", "Diesel", "#4D4C48", 46)]
 CARD_X = [24, 440, 856]; CARD_W = 400
 TRACK = "#ECEBE6"
-# Type for the headline and the three prices. B was chosen to try on 4 Nov 2026;
-# A, the first Desktop pass, stays as a hidden page to compare against.
+# Type for the headline and the three prices. A was kept on 4 Nov 2026 after B, light
+# for both, was tried side by side; B is still on the hidden Fonts page.
 STYLES = {"A": dict(head=FONT_B, num=FONT_B), "B": dict(head="Segoe UI Light", num="Segoe UI Light")}
 
 def header(z=0):
@@ -152,13 +152,13 @@ def legend(z):
         V.append(container(name, x, y - 3, w, 20, z + len(V), textbox([[(text, 9, MUTED, False)]])))
     V.append(container("lg1", x, y + 6, 18, 2, z, blank(INK))); x += 24
     label("lg1t", "Average paid", 80); x += 84
-    V.append(container("lg2", x, y + 1, 10, 10, z + 1, blank(PAPER, border=INK, radius=5))); x += 16
+    V.append(container("lg2", x, y, 10, 10, z + 1, blank(PAPER, border=INK, radius=5))); x += 16
     label("lg2t", "Four weeks ago", 92); x += 100
     for k in range(3):
         V.append(container(f"lg3{k}", x + k * 7, y + 6, 4, 2, z + 2, blank(CALL_LINE)))
     x += 24
     label("lg3t", "Model's calls", 80); x += 86
-    V.append(container("lg4", x, y + 2, 14, 10, z + 3, blank("#C3D9F3"))); x += 20
+    V.append(container("lg4", x, y, 14, 10, z + 3, blank("#C3D9F3"))); x += 20
     label("lg4t", "Range of its past misses (middle half)", 220); x += 226
     for k in range(3):
         V.append(container(f"lg5{k}", x + 5, y + k * 5, 1, 3, z + 4, blank(INK)))
@@ -213,8 +213,7 @@ def page_now(style):
             container(f"c{i}arrow", x + 212, 242, 16, 20, z + 6,
                       title_text("prices", "Change 4w Arrow", 9, colour_measure=("prices", "Change 4w Colour")), f),
             container(f"c{i}change", x + 228, 242, 110, 20, z + 6, title_text("prices", "Change 4w Main", 9, INK, bold=True), f),
-            # A pixel above the figures' baseline: lower case beside bold figures read low (review of 4 Nov 2026).
-            container(f"c{i}weeks", x + 330, 241, 50, 20, z + 6, title_label("4 weeks", 9, MUTED, align="right")),
+            container(f"c{i}weeks", x + 330, 242, 50, 20, z + 6, title_label("4 weeks", 9, MUTED, align="right")),
             container(f"c{i}chart", x + 6, 272, 388, 178, z + 6, price_chart(key), f),
             container(f"c{i}rule", x + 16, 456, 368, 1, z + 7, blank("#ECEBE6")),
         ] + [c for n in (1, 2, 3) for c in (
@@ -265,14 +264,13 @@ def page_test():
          "Compare the headline with the Python mirror, pbip/build/headline_check.py, for the same week.", 9, MUTED, False)]])))
     return V
 
-write_page(ROOT, "p1now", "Now", page_now(STYLES["B"]))
-write_page(ROOT, "p1nowa", "Now · A", page_now(STYLES["A"]), hidden=True)
+write_page(ROOT, "p1now", "Now", page_now(STYLES["A"]))
 write_page(ROOT, "p9test", "Headline test", page_test(), hidden=True)
 write_page(ROOT, "p8fonts", "Fonts", page_fonts(), hidden=True)
 pages = json.loads((ROOT / "pages/pages.json").read_text())
-mine = ("p1now", "p1nowa", "p8fonts", "p9test")
+mine = ("p1now", "p1nowa", "p8fonts", "p9test")  # p1nowa: the A/B copy, gone
 order = [p for p in pages["pageOrder"] if p not in mine]
-pages["pageOrder"] = ["p1now"] + order + ["p1nowa", "p8fonts", "p9test"]
+pages["pageOrder"] = ["p1now"] + order + ["p8fonts", "p9test"]
 pages["activePageName"] = "p1now"
 (ROOT / "pages/pages.json").write_text(json.dumps(pages, indent=2) + "\n")
-print(len(page_now(STYLES["B"])), "visuals on Now")
+print(len(page_now(STYLES["A"])), "visuals on Now")
