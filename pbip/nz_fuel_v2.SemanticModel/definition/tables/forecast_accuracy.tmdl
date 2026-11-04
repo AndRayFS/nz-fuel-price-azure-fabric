@@ -405,6 +405,36 @@ table forecast_accuracy
 		displayFolder: Track record
 		lineageTag: a2ff1852-67e1-5768-8e15-6952f3f5d4bb
 
+	/// The chosen horizon's rows only, for the full-colour layer over the muted chart; 0 rather than blank elsewhere, so every row keeps its place.
+	measure 'Miss Model (row, chosen)' =
+			VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
+			RETURN IF(NOT ISBLANK(vH), IF(vH = [Selected Horizon], [Miss Model (row)], 0))
+		formatString: 0.0
+		displayFolder: Track record
+		isHidden
+		lineageTag: c0c8c453-11e4-55db-a1b6-48821a3062a3
+
+	/// The chosen horizon's rows only, for the full-colour layer over the muted chart; 0 rather than blank elsewhere, so every row keeps its place.
+	measure 'Miss No Change (row, chosen)' =
+			VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
+			RETURN IF(NOT ISBLANK(vH), IF(vH = [Selected Horizon], [Miss No Change (row)], 0))
+		formatString: 0.0
+		displayFolder: Track record
+		isHidden
+		lineageTag: ea020534-102f-5695-b3b1-199520010500
+
+	/// One axis end for both layers of the right-hand chart, so their bars line up.
+	measure 'Rows Axis End' = 1.15 * MAXX(ALL('Track Row'), MAX([Miss Model (row)], [Miss No Change (row)]))
+		formatString: 0.0
+		displayFolder: Track record
+		isHidden
+		lineageTag: f5d5ecd6-10e1-5329-9c1b-27dff471d788
+
+	measure 'Fuel Accent' = SELECTEDVALUE(Fuel[Fuel colour])
+		displayFolder: Track record
+		isHidden
+		lineageTag: bbf1f3f1-4860-5e64-8d23-9db07bfc5854
+
 	measure 'Row Fill 1' = IF([Selected Horizon] = 1, "#F4F8FD", "#FFFFFF")
 		displayFolder: Track record
 		isHidden

@@ -460,6 +460,16 @@ VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
 VAR vR = SELECTEDVALUE('Track Row'[Regime])
 RETURN IF(NOT ISBLANK(vH), CALCULATE(AVERAGE(forecast_accuracy[{col_}]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[crude_vol_regime] = vR, forecast_accuracy[outcome_known] = TRUE()))''',
         fmt="0.0", folder=TR))
+for name, base in (("Miss Model (row, chosen)", "Miss Model (row)"), ("Miss No Change (row, chosen)", "Miss No Change (row)")):
+    fm.append(measure(F, name, f'''
+VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
+RETURN IF(NOT ISBLANK(vH), IF(vH = [Selected Horizon], [{base}], 0))''', fmt="0.0", folder=TR, hidden=True,
+        desc="The chosen horizon's rows only, for the full-colour layer over the muted chart; 0 rather than blank elsewhere, so every row keeps its place."))
+fm.append(measure(F, "Rows Axis End", '''
+1.15 * MAXX(ALL('Track Row'), MAX([Miss Model (row)], [Miss No Change (row)]))''', fmt="0.0", folder=TR, hidden=True,
+    desc="One axis end for both layers of the right-hand chart, so their bars line up."))
+fm.append(measure(F, "Fuel Accent", '''
+SELECTEDVALUE(Fuel[Fuel colour])''', folder=TR, hidden=True))
 for n in (1, 2, 3):
     fm.append(measure(F, f"Row Fill {n}", f'''
 IF([Selected Horizon] = {n}, "#F4F8FD", "#FFFFFF")''', folder=TR, hidden=True))

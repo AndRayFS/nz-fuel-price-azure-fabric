@@ -234,9 +234,18 @@ def header(z=0):
         container("hdrweeks", 880, 17, 376, 24, z + 4, title_text("prices", "Header Weeks", 9, MUTED, align="right")),
     ]
 
-def button_slicer(entity, column, default, columns, grouped=False):
+def button_slicer(entity, column, default, columns, grouped=False, align=None, accent=None):
     """One button per value of a column, one always selected. grouped=True leaves the grey
-    pill to a shape behind, so a label can sit inside it with the buttons."""
+    pill to a shape behind, so a label can sit inside it with the buttons. accent=(entity,
+    measure) draws a bar under each button in the colour the measure gives for its value."""
+    each = lambda state: {"data": [{"dataViewWildcard": {"matchingOption": 1}}], "id": state, "hierarchyMatching": 1}
+    value = {"textWrap": b(False), "fontSize": d(9), "fontColor": col(MUTED), "fontFamily": wf(FONT)}
+    if align: value["horizontalAlignment"] = s(align)
+    bar = [obj({"show": b(False)}, DEFAULT)]
+    if accent:
+        bar = [obj({"show": b(True), "position": s("Bottom"), "width": d(2)}, DEFAULT),
+               obj({"show": b(True)}, {"id": "selection:selected"}),
+               obj({"color": mcol(*accent)}, each("default")), obj({"color": mcol(*accent)}, each("selection:selected"))]
     return {"visualType": "advancedSlicerVisual",
         "query": {"queryState": {"Values": {"projections": [proj("c", entity, column, column)]}},
                   "sortDefinition": {"sort": [{"field": cref(entity, column), "direction": "Ascending"}]}},
@@ -249,11 +258,11 @@ def button_slicer(entity, column, default, columns, grouped=False):
             "fillCustom": [obj({"show": b(True), "fillColor": col("#EFEEEA"), "transparency": d(0)}, DEFAULT),
                            obj({"fillColor": col(PAPER), "transparency": d(0)}, {"id": "selection:selected"})],
             "value": [obj({"show": b(True)}),
-                      obj({"textWrap": b(False), "fontSize": d(9), "fontColor": col(MUTED), "fontFamily": wf(FONT)}, DEFAULT),
+                      obj(value, DEFAULT),
                       obj({"fontColor": col(INK), "fontFamily": wf(FONT_B)}, {"id": "selection:selected"})],
             "label": [obj({"show": b(False)}, DEFAULT)],
             "outline": [obj({"show": b(False)}, DEFAULT)],
-            "accentBar": [obj({"show": b(False)}, DEFAULT)],
+            "accentBar": bar,
             "selectionIcon": [obj({"show": b(False)})],
             "shapeCustomRectangle": [obj({"rectangleRoundedCurve": L(6)}, DEFAULT)],
             "padding": [obj({"paddingSelection": s("Narrow")}, DEFAULT)],

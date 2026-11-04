@@ -7,6 +7,7 @@ from pbir import *
 ROOT = pathlib.Path(sys.argv[1]) / "pbip/nz_fuel_v2.Report/definition"
 F = "forecast_accuracy"
 MODEL, NAIVE, VOLATILE, EDGE = "#2A78D6", "#A3A29B", "#F1ECE2", "#C9DDF5"
+MODEL_SOFT, NAIVE_SOFT = "#BCD5F2", "#DCDBD6"     # the right-hand chart's other horizons: 4 Nov review, too bright
 LEFT, RIGHT = (24, 172, 774, 468), (814, 172, 442, 468)
 
 # Where the left chart's plot area falls on the page, for the episode labels above
@@ -60,22 +61,26 @@ def miss_chart():
         },
         "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
 
-def rows_chart():
-    """Model and no change side by side, per horizon in calm and volatile crude."""
+def rows_chart(chosen=False):
+    """Model and no change side by side, per horizon in calm and volatile crude. Drawn
+    twice, one over the other on the same axis: muted for every row, then full colour
+    for the chosen horizon's rows only, as the mock-up fades the others."""
     S = lambda m: {"metadata": f"{F}.{m}"}
-    M, N = "Miss Model (row)", "Miss No Change (row)"
+    M, N = ("Miss Model (row, chosen)", "Miss No Change (row, chosen)") if chosen else ("Miss Model (row)", "Miss No Change (row)")
+    fills = (MODEL, NAIVE) if chosen else (MODEL_SOFT, NAIVE_SOFT)
     return {"visualType": "clusteredBarChart",
         "query": {"queryState": {
             "Category": {"projections": [proj("c", "Track Row", "Row", "Row", active=True)]},
             "Y": {"projections": [proj("m", F, M, "Model"), proj("m", F, N, "No change")]}},
             "sortDefinition": {"sort": [{"field": cref("Track Row", "Row"), "direction": "Ascending"}], "isDefaultSort": True}},
         "objects": {
-            "dataPoint": [obj({"fill": col(MODEL)}, S(M)), obj({"fill": col(NAIVE)}, S(N))],
-            "labels": [obj({"show": b(True), "fontSize": d(8), "color": col(MUTED)})],
+            "dataPoint": [obj({"fill": col(fills[0])}, S(M)), obj({"fill": col(fills[1])}, S(N))],
+            "labels": [obj({"show": b(not chosen), "fontSize": d(8), "color": col(MUTED)})],
             "categoryAxis": [obj({"show": b(True), "showAxisTitle": b(False), "fontSize": d(8.25), "labelColor": col(MUTED),
                                   "innerPadding": L(35)})],
-            "valueAxis": [obj({"show": b(True), "start": d(0), "showAxisTitle": b(False), "gridlineShow": b(True),
-                               "gridlineColor": col("#ECEBE6"), "fontSize": d(8), "labelColor": col(FAINT)})],
+            "valueAxis": [obj({"show": b(True), "start": d(0), "end": mexpr(F, "Rows Axis End"), "showAxisTitle": b(False),
+                               "gridlineShow": b(not chosen), "gridlineColor": col("#ECEBE6"), "fontSize": d(8),
+                               "labelColor": col(FAINT)})],
             "legend": [obj({"show": b(False)})],
         },
         "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
@@ -100,10 +105,11 @@ def page_track():
         9.75, MUTED, False)]])))
     V += [container("fuelbg", 688, 130, 318, 34, z + 2, blank("#EFEEEA", border="#EFEEEA", radius=8)),
           container("fuellbl", 698, 138, 32, 20, z + 3, textbox([[("Fuel", 9, MUTED, False)]])),
-          container("fuel", 730, 130, 276, 34, z + 4, button_slicer("Fuel", "Fuel name", "'Regular 91'", 3, grouped=True)),
+          container("fuel", 730, 130, 276, 34, z + 4,
+                    button_slicer("Fuel", "Fuel name", "'Regular 91'", 3, grouped=True, accent=(F, "Fuel Accent"))),
           container("hzbg", 1022, 130, 234, 34, z + 5, blank("#EFEEEA", border="#EFEEEA", radius=8)),
           container("hzlbl", 1032, 138, 76, 20, z + 6, textbox([[("Weeks ahead", 9, MUTED, False)]])),
-          container("hz", 1108, 130, 148, 34, z + 7, button_slicer("Horizon", "Weeks ahead", "1L", 3, grouped=True))]
+          container("hz", 1108, 130, 148, 34, z + 7, button_slicer("Horizon", "Weeks ahead", "1L", 3, grouped=True, align="center"))]
 
     x, y, w, h = LEFT; z = 200
     V += [container("lbg", x, y, w, h, z, blank(PAPER, border=LINE, radius=8)),
@@ -111,11 +117,13 @@ def page_track():
                     textbox([[("The model's lead is widest in the oil shocks of 2022 and 2026", 12, INK, True)]])),
           container("lsub", x + 16, y + 38, w - 32, 18, z + 2,
                     textbox([[("Average miss over the trailing 26 weeks, c/L", 9, MUTED, False)]])),
-          container("lchart", x + 8, y + 78, w - 16, 350, z + 3, miss_chart())]
+          # The key sits under the subtitle, in the band the data labels' headroom left
+          # empty above the plot (4 Nov review); the chart takes the card's full height.
+          container("lchart", x + 8, y + 70, w - 16, 386, z + 3, miss_chart())]
+    V += legend_row(x + 16, y + 64, z + 10)
     for k, (text, day) in enumerate(EPISODES):
-        V.append(container(f"lep{k}", round(x_at(day)) - 45, y + 96, 90, 16, z + 4,
+        V.append(container(f"lep{k}", round(x_at(day)) - 45, y + 88, 90, 16, z + 4,
                            textbox([[(text, 8, FAINT, False)]], align="center")))
-    V += legend_row(x + 16, y + 444, z + 10)
 
     x, y, w, h = RIGHT; z = 300
     V += [container("rbg", x, y, w, h, z, blank(PAPER, border=LINE, radius=8)),
@@ -134,6 +142,7 @@ def page_track():
     V += [container(f"rhl{n}", x + 8, y + 120 + round((n - 1) * 80.6), w - 16, 81, z + 3, fx_box(F, f"Row Fill {n}"))
           for n in (1, 2, 3)]
     V += [container("rchart", x + 8, y + 104, w - 16, 290, z + 6, rows_chart()),
+          container("rchosen", x + 8, y + 104, w - 16, 290, z + 7, rows_chart(chosen=True)),
           container("rnote", x + 16, y + 402, w - 32, 56, z + 7, textbox([[(
               "The chosen horizon is highlighted. Volatile: crude-price volatility above its calm baseline, "
               "about one week in six.", 8.25, MUTED, False)]]))]
