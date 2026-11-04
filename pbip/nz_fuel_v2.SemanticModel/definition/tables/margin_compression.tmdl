@@ -211,9 +211,38 @@ table margin_compression
 		displayFolder: Margin
 		lineageTag: 30142ca7-c95c-5b15-beaa-2843aca4a6f3
 
+	measure 'Data Margin' = AVERAGE(margin_compression[importer_margin])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 70823bbf-a0d9-5b32-b04a-439d39a6062c
+
+	measure 'Data Norm' = AVERAGE(margin_compression[margin_norm_104w])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 95231d07-be6a-5d43-baba-19299b058224
+
+	measure 'Data Margin Before Adjustment' = AVERAGE(margin_compression[margin_before_adjustment])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: eca70ca3-c8be-5642-845d-6e58b62ecec3
+
+	measure 'Data Margin Status' =
+			VAR vS = MAX(margin_compression[importer_margin_status])
+			VAR vLate = CALCULATE(COUNTROWS(margin_compression), margin_compression[cost_backfilled] = TRUE()) > 0
+			RETURN IF(NOT ISBLANK(vS), vS & IF(vLate, " · filled in later"))
+		displayFolder: Data
+		lineageTag: f3d2cc45-e7b0-5520-aa1e-9b308ea6a0b7
+
+	measure 'Data Margin Caption' =
+			VAR vN = COUNTROWS(margin_compression)
+			VAR vFrom = MIN(margin_compression[week_date])
+			RETURN FORMAT(vN, "#,0") & " weeks since " & FORMAT(vFrom, "d mmm yyyy") & ", newest first, c/L. Before MBIE's adjustment: 27 Feb – 11 Sep 2026 only."
+		displayFolder: Data
+		lineageTag: 59fe8ead-de34-55a1-bb77-5669fcf2011c
+
 	column week_date
 		dataType: dateTime
-		formatString: Long Date
+		formatString: d mmm yyyy
 		lineageTag: 3803b224-b1a3-40e5-ba97-aa3eb3bdcaf4
 		summarizeBy: none
 		sourceColumn: week_date

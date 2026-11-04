@@ -666,6 +666,60 @@ IF(NOT ISBLANK([Margin Gap Now]), FORMAT([Latest Week], "d mmm") & ":")''', fold
 mm.append(measure(M, "Gap Header Value", '''
 IF(NOT ISBLANK([Margin Gap Now]), FORMAT([Margin Gap Now], "+0.0;−0.0;0.0"))''', folder=MG))
 
+# ---------------------------------------------------------------- Data
+# Page 5's three tables, one row per week of the chosen fuel. The calls table groups
+# by the week a call was made and the week it was for, at every horizon, so each
+# measure keeps only the chosen horizon and the rows of the others come out blank.
+DT = "Data"
+for name, col_, known in (("Data Price Then", "price_now", False), ("Data Model Call", "pred_adl_ecm", False),
+                          ("Data Actual", "actual_price", True)):
+    fm.append(measure(F, name, f'''
+VAR vH = [Selected Horizon]
+RETURN CALCULATE(AVERAGE(forecast_accuracy[{col_}]), forecast_accuracy[horizon_weeks] = vH{", forecast_accuracy[outcome_known] = TRUE()" if known else ""})''',
+        fmt="0.0", folder=DT))
+for name, mine, other, pending in (("Data Model Miss", "abs_err_adl_ecm", "abs_err_naive", '"awaiting MBIE"'),
+                                   ("Data No Change Miss", "abs_err_naive", "abs_err_adl_ecm", "BLANK()")):
+    fm.append(measure(F, name, f'''
+VAR vH = [Selected Horizon]
+VAR vCalls = CALCULATE(COUNTROWS(forecast_accuracy), forecast_accuracy[horizon_weeks] = vH)
+VAR vMiss = CALCULATE(AVERAGE(forecast_accuracy[{mine}]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+RETURN IF(vCalls > 0, IF(ISBLANK(vMiss), {pending}, FORMAT(vMiss, "0.0")))''', folder=DT,
+        desc="Text, so a call still waiting for its outcome can say so in the same column."))
+    fm.append(measure(F, name + " Colour", f'''
+VAR vH = [Selected Horizon]
+VAR vMine = CALCULATE(AVERAGE(forecast_accuracy[{mine}]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+VAR vOther = CALCULATE(AVERAGE(forecast_accuracy[{other}]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+RETURN IF(ISBLANK(vMine), "#5C5B56", IF(vMine {"<=" if mine == "abs_err_adl_ecm" else "<"} vOther, "#1B1B19", "#A3A29B"))''',
+        folder=DT, hidden=True, desc="Dark for the smaller miss of the week, grey for the larger; a tie goes to the model."))
+fm.append(measure(F, "Data Calls Caption", '''
+VAR vH = [Selected Horizon]
+VAR vN = CALCULATE(COUNTROWS(forecast_accuracy), forecast_accuracy[horizon_weeks] = vH)
+VAR vFrom = CALCULATE(MIN(forecast_accuracy[week_date]), forecast_accuracy[horizon_weeks] = vH)
+RETURN FORMAT(vN, "#,0") & " calls since " & FORMAT(vFrom, "mmm yyyy") & ", newest first, c/L. The smaller miss of each week is in dark type."''',
+    folder=DT))
+for name, col_ in (("Data Margin", "importer_margin"), ("Data Norm", "margin_norm_104w"),
+                   ("Data Margin Before Adjustment", "margin_before_adjustment")):
+    mm.append(measure(M, name, f'''
+AVERAGE(margin_compression[{col_}])''', fmt="0.0", folder=DT))
+mm.append(measure(M, "Data Margin Status", '''
+VAR vS = MAX(margin_compression[importer_margin_status])
+VAR vLate = CALCULATE(COUNTROWS(margin_compression), margin_compression[cost_backfilled] = TRUE()) > 0
+RETURN IF(NOT ISBLANK(vS), vS & IF(vLate, " · filled in later"))''', folder=DT))
+mm.append(measure(M, "Data Margin Caption", '''
+VAR vN = COUNTROWS(margin_compression)
+VAR vFrom = MIN(margin_compression[week_date])
+RETURN FORMAT(vN, "#,0") & " weeks since " & FORMAT(vFrom, "d mmm yyyy") & ", newest first, c/L. Before MBIE's adjustment: 27 Feb – 11 Sep 2026 only."''',
+    folder=DT))
+for name, col_ in (("Data Pump Price", "adjusted_retail_price"), ("Data Importer Cost", "importer_cost"), ("Data Taxes", "taxes"),
+                   ("Data ETS", "ets"), ("Data GST", "gst"), ("Data Importer Margin", "importer_margin")):
+    pm.append(measure(P, name, f'''
+AVERAGE(prices[{col_}])''', fmt="0.0", folder=DT))
+pm.append(measure(P, "Data Prices Caption", '''
+VAR vN = COUNTROWS(prices)
+VAR vFrom = MIN(prices[week_date])
+RETURN FORMAT(vN, "#,0") & " weeks since " & FORMAT(vFrom, "mmm yyyy") & ", newest first, c/L. The five parts add up to the pump price."''',
+    folder=DT))
+
 def append_measures(path, measures):
     text = path.read_text()
     marker = "\n\tcolumn "
@@ -689,6 +743,10 @@ prices = (f"/// MBIE's weekly price and its components, by fuel, straight from s
 (ROOT / "tables/prices.tmdl").write_text(prices)
 append_measures(ROOT / "tables/forecast_accuracy.tmdl", fm)
 append_measures(ROOT / "tables/margin_compression.tmdl", mm)
+# Data's tables show these dates in full; "Friday, 23 October 2026" took a third of a column.
+for t_ in ("forecast_accuracy", "margin_compression"):
+    p_ = ROOT / f"tables/{t_}.tmdl"
+    p_.write_text(p_.read_text().replace("formatString: Long Date", "formatString: d mmm yyyy"))
 
 rels = []
 for frm, to in (("forecast_accuracy.fuel", "Fuel.fuel"), ("margin_compression.fuel", "Fuel.fuel"), ("prices.fuel", "Fuel.fuel"),

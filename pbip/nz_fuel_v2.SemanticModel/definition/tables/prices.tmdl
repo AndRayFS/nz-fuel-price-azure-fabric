@@ -479,6 +479,43 @@ table prices
 		displayFolder: Margin
 		lineageTag: e03d5d7d-9e91-506e-a1b0-2e7775cbece5
 
+	measure 'Data Pump Price' = AVERAGE(prices[adjusted_retail_price])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 37caea06-14ab-593e-a38a-e50132e8c3a4
+
+	measure 'Data Importer Cost' = AVERAGE(prices[importer_cost])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 09ef888d-d2bb-538e-9dd2-780297c5c5e6
+
+	measure 'Data Taxes' = AVERAGE(prices[taxes])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 3e935d32-bcf3-5b67-8dad-b02d7cd4d1ed
+
+	measure 'Data ETS' = AVERAGE(prices[ets])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 6abc043c-981e-55fe-906a-090a3b41f6a3
+
+	measure 'Data GST' = AVERAGE(prices[gst])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 55ccda4c-4743-55c8-ae2b-303a10ecce1f
+
+	measure 'Data Importer Margin' = AVERAGE(prices[importer_margin])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: be675ee2-f5e0-593b-8892-c9e02177c94d
+
+	measure 'Data Prices Caption' =
+			VAR vN = COUNTROWS(prices)
+			VAR vFrom = MIN(prices[week_date])
+			RETURN FORMAT(vN, "#,0") & " weeks since " & FORMAT(vFrom, "mmm yyyy") & ", newest first, c/L. The five parts add up to the pump price."
+		displayFolder: Data
+		lineageTag: 5bacb859-e062-52bb-a025-30f960708dfe
+
 	column week_date
 		dataType: dateTime
 		formatString: d mmm yyyy

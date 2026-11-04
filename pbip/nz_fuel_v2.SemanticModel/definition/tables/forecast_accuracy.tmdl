@@ -484,9 +484,76 @@ table forecast_accuracy
 		isHidden
 		lineageTag: a141e303-83a0-5dd4-a056-7bf6e48e5611
 
+	measure 'Data Price Then' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[price_now]), forecast_accuracy[horizon_weeks] = vH)
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 8b5027d8-e27c-5880-85ab-1181e8dd0483
+
+	measure 'Data Model Call' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[pred_adl_ecm]), forecast_accuracy[horizon_weeks] = vH)
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 36f8a5f3-11e7-532d-992b-756030f6a391
+
+	measure 'Data Actual' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[actual_price]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 6d10d514-c8ca-506f-ac31-f703506b8a16
+
+	/// Text, so a call still waiting for its outcome can say so in the same column.
+	measure 'Data Model Miss' =
+			VAR vH = [Selected Horizon]
+			VAR vCalls = CALCULATE(COUNTROWS(forecast_accuracy), forecast_accuracy[horizon_weeks] = vH)
+			VAR vMiss = CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			RETURN IF(vCalls > 0, IF(ISBLANK(vMiss), "awaiting MBIE", FORMAT(vMiss, "0.0")))
+		displayFolder: Data
+		lineageTag: d60572d2-805b-54be-9242-10de0861efc0
+
+	/// Dark for the smaller miss of the week, grey for the larger; a tie goes to the model.
+	measure 'Data Model Miss Colour' =
+			VAR vH = [Selected Horizon]
+			VAR vMine = CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			VAR vOther = CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			RETURN IF(ISBLANK(vMine), "#5C5B56", IF(vMine <= vOther, "#1B1B19", "#A3A29B"))
+		displayFolder: Data
+		isHidden
+		lineageTag: 008e820d-0d3f-5187-b5a6-83c3f459a5da
+
+	/// Text, so a call still waiting for its outcome can say so in the same column.
+	measure 'Data No Change Miss' =
+			VAR vH = [Selected Horizon]
+			VAR vCalls = CALCULATE(COUNTROWS(forecast_accuracy), forecast_accuracy[horizon_weeks] = vH)
+			VAR vMiss = CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			RETURN IF(vCalls > 0, IF(ISBLANK(vMiss), BLANK(), FORMAT(vMiss, "0.0")))
+		displayFolder: Data
+		lineageTag: ca4f0477-9d44-51d0-a80e-f54f00530734
+
+	/// Dark for the smaller miss of the week, grey for the larger; a tie goes to the model.
+	measure 'Data No Change Miss Colour' =
+			VAR vH = [Selected Horizon]
+			VAR vMine = CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			VAR vOther = CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			RETURN IF(ISBLANK(vMine), "#5C5B56", IF(vMine < vOther, "#1B1B19", "#A3A29B"))
+		displayFolder: Data
+		isHidden
+		lineageTag: 43c772a3-bd75-581b-80a8-19c2ec6cf4d6
+
+	measure 'Data Calls Caption' =
+			VAR vH = [Selected Horizon]
+			VAR vN = CALCULATE(COUNTROWS(forecast_accuracy), forecast_accuracy[horizon_weeks] = vH)
+			VAR vFrom = CALCULATE(MIN(forecast_accuracy[week_date]), forecast_accuracy[horizon_weeks] = vH)
+			RETURN FORMAT(vN, "#,0") & " calls since " & FORMAT(vFrom, "mmm yyyy") & ", newest first, c/L. The smaller miss of each week is in dark type."
+		displayFolder: Data
+		lineageTag: bb98a1f7-e817-5f1f-b978-5735fb2d1d4b
+
 	column week_date
 		dataType: dateTime
-		formatString: Long Date
+		formatString: d mmm yyyy
 		lineageTag: fb85dbcf-9b9b-4044-a848-006fdc1c6a3e
 		summarizeBy: none
 		sourceColumn: week_date
@@ -497,7 +564,7 @@ table forecast_accuracy
 
 	column 'Target week'
 		dataType: dateTime
-		formatString: Long Date
+		formatString: d mmm yyyy
 		lineageTag: a0e94f81-29ad-46a0-b5e4-2dcd186e5f60
 		summarizeBy: none
 		sourceColumn: Target week
