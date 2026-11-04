@@ -1,0 +1,44 @@
+table Week
+	lineageTag: 9df74339-b5ac-5809-896b-f5a7187753e9
+
+	column week
+		dataType: dateTime
+		formatString: d mmm yyyy
+		lineageTag: 83251bee-c50e-5375-affa-09524c3f0a94
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [week]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Week short'
+		dataType: dateTime
+		formatString: d mmm
+		lineageTag: 2751fb54-1fe0-58f5-963a-9567a49f1fcf
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Week short]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition Week = calculated
+		mode: import
+		source =
+				// Every Friday from MBIE's first week to five weeks past today. MBIE stamps each
+				// week by its Friday and the series has no gaps, so a generated calendar matches
+				// every week_date and target week without depending on the tables it filters.
+				VAR Fridays = GENERATESERIES(DATE(2004, 4, 23), TODAY() + 35, 7)
+				RETURN
+				    ADDCOLUMNS(
+				        SELECTCOLUMNS(Fridays, "week", [Value]),
+				        // The same date again, formatted without the year, for headers that
+				        // name the three called weeks. A text label would repeat every year and
+				        // could not be sorted by date.
+				        "Week short", [week]
+				    )
+
+	annotation PBI_Id = d94854d9c90a56f7b1c252595aede304

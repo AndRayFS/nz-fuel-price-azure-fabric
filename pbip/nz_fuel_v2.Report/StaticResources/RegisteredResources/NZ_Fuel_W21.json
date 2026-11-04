@@ -1,0 +1,243 @@
+{
+  "name": "NZ fuel prices W21",
+  "dataColors": [
+    "#1B1B19",
+    "#2A78D6",
+    "#EB6834",
+    "#8A8983",
+    "#40B54A",
+    "#E5C700",
+    "#4D4C48",
+    "#C9C8C1",
+    "#256ABF",
+    "#D03B3B"
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#1B1B19",
+  "tableAccent": "#2A78D6",
+  "foregroundNeutralSecondary": "#5C5B56",
+  "foregroundNeutralTertiary": "#8A8983",
+  "backgroundLight": "#F7F7F5",
+  "backgroundNeutral": "#E6E5E0",
+  "good": "#2A78D6",
+  "neutral": "#8A8983",
+  "bad": "#D03B3B",
+  "textClasses": {
+    "callout": {
+      "fontSize": 21,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#1B1B19"
+    },
+    "title": {
+      "fontSize": 11,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#1B1B19"
+    },
+    "header": {
+      "fontSize": 9,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#5C5B56"
+    },
+    "label": {
+      "fontSize": 8,
+      "fontFace": "Segoe UI",
+      "color": "#8A8983"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [
+          {
+            "show": false
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ],
+        "dropShadow": [
+          {
+            "show": false
+          }
+        ],
+        "visualHeader": [
+          {
+            "show": false
+          }
+        ],
+        "title": [
+          {
+            "show": false,
+            "fontFamily": "Segoe UI Semibold",
+            "fontColor": {
+              "solid": {
+                "color": "#1B1B19"
+              }
+            }
+          }
+        ],
+        "padding": [
+          {
+            "top": 0,
+            "bottom": 0,
+            "left": 0,
+            "right": 0
+          }
+        ],
+        "visualTooltip": [
+          {
+            "fontSize": 9,
+            "titleFontColor": {
+              "solid": {
+                "color": "#5C5B56"
+              }
+            },
+            "valueFontColor": {
+              "solid": {
+                "color": "#1B1B19"
+              }
+            },
+            "background": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            }
+          }
+        ],
+        "categoryAxis": [
+          {
+            "fontSize": 7.5,
+            "labelColor": {
+              "solid": {
+                "color": "#8A8983"
+              }
+            },
+            "showAxisTitle": false,
+            "gridlineShow": false
+          }
+        ],
+        "valueAxis": [
+          {
+            "fontSize": 7.5,
+            "labelColor": {
+              "solid": {
+                "color": "#8A8983"
+              }
+            },
+            "showAxisTitle": false,
+            "gridlineColor": {
+              "solid": {
+                "color": "#ECEBE6"
+              }
+            },
+            "gridlineStyle": "solid"
+          }
+        ],
+        "legend": [
+          {
+            "show": false,
+            "fontSize": 9,
+            "labelColor": {
+              "solid": {
+                "color": "#5C5B56"
+              }
+            }
+          }
+        ],
+        "outspacePane": [
+          {
+            "titleSize": 11
+          }
+        ]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [
+          {
+            "color": {
+              "solid": {
+                "color": "#F7F7F5"
+              }
+            },
+            "transparency": 0
+          }
+        ],
+        "outspace": [
+          {
+            "color": {
+              "solid": {
+                "color": "#F7F7F5"
+              }
+            },
+            "transparency": 0
+          }
+        ]
+      }
+    },
+    "pivotTable": {
+      "*": {
+        "grid": [
+          {
+            "gridHorizontal": false,
+            "gridVertical": false
+          }
+        ],
+        "columnHeaders": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#8A8983"
+              }
+            },
+            "fontSize": 8,
+            "fontFamily": "Segoe UI"
+          }
+        ],
+        "values": [
+          {
+            "fontSize": 9
+          }
+        ]
+      }
+    },
+    "tableEx": {
+      "*": {
+        "grid": [
+          {
+            "gridHorizontal": true,
+            "gridHorizontalColor": {
+              "solid": {
+                "color": "#ECEBE6"
+              }
+            },
+            "gridVertical": false
+          }
+        ],
+        "columnHeaders": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#5C5B56"
+              }
+            },
+            "fontSize": 8,
+            "fontFamily": "Segoe UI Semibold"
+          }
+        ],
+        "values": [
+          {
+            "fontSize": 9,
+            "fontColorPrimary": {
+              "solid": {
+                "color": "#1B1B19"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,59 @@
+table Fuel
+	lineageTag: a0abbcfe-3e49-57e4-9553-db061d7f4d1d
+
+	column fuel
+		dataType: string
+		lineageTag: 8d0b4217-78fa-58bd-a228-4093b5b1978f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [fuel]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fuel name'
+		dataType: string
+		lineageTag: bfbe4dd8-f698-5edf-9295-ea6b91d6f398
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fuel name]
+		sortByColumn: 'Fuel order'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fuel order'
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: e66e854f-f147-5dbf-a797-78130170eb42
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fuel order]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fuel colour'
+		dataType: string
+		isHidden
+		lineageTag: aa27bdf4-4e25-5a0f-a2c7-a1d49cde7225
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fuel colour]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Fuel = calculated
+		mode: import
+		source =
+				DATATABLE(
+				    "fuel", STRING,
+				    "Fuel name", STRING,
+				    "Fuel order", INTEGER,
+				    "Fuel colour", STRING,
+				    {
+				        {"Regular Petrol", "Regular 91", 1, "#40B54A"},
+				        {"Premium Petrol 95R", "Premium 95", 2, "#E5C700"},
+				        {"Diesel", "Diesel", 3, "#4D4C48"}
+				    }
+				)
+
+	annotation PBI_Id = cbf22bcc1af1506980ba9c25ed791582

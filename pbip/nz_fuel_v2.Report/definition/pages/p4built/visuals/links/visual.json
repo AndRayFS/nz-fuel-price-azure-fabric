@@ -1,0 +1,193 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "links",
+  "position": {
+    "x": 24,
+    "y": 664,
+    "z": 600,
+    "height": 22,
+    "width": 1232,
+    "tabOrder": 600
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Code: ",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9.75pt",
+                      "color": "#5C5B56"
+                    }
+                  },
+                  {
+                    "value": "GitHub repository",
+                    "url": "https://github.com/AndRayFS/nz-fuel-price-azure-fabric",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9.75pt",
+                      "color": "#1B1B19",
+                      "textDecoration": "underline"
+                    }
+                  },
+                  {
+                    "value": "  ·  The story, step by step: ",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9.75pt",
+                      "color": "#5C5B56"
+                    }
+                  },
+                  {
+                    "value": "LinkedIn series, from Part 1",
+                    "url": "https://www.linkedin.com/posts/andreimor_watching-the-news-about-the-latest-escalation-ugcPost-7485572175953920001-Uzat/",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9.75pt",
+                      "color": "#1B1B19",
+                      "textDecoration": "underline"
+                    }
+                  },
+                  {
+                    "value": "  ·  Data: ",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9.75pt",
+                      "color": "#5C5B56"
+                    }
+                  },
+                  {
+                    "value": "nz-fuel-latest.zip",
+                    "url": "https://nzfueldata.blob.core.windows.net/data/latest/nz-fuel-latest.zip",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9.75pt",
+                      "color": "#1B1B19",
+                      "textDecoration": "underline"
+                    }
+                  },
+                  {
+                    "value": ", three CSV tables and a README",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9.75pt",
+                      "color": "#5C5B56"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "padding": [
+        {
+          "properties": {
+            "top": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "left": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "right": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

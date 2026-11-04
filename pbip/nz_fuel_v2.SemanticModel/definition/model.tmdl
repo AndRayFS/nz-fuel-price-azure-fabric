@@ -9,12 +9,20 @@ model Model
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["forecast_accuracy","margin_compression"]
+annotation PBI_QueryOrder = ["forecast_accuracy","margin_compression","prices"]
 
 annotation PBI_ProTooling = ["DevMode"]
 
 ref table forecast_accuracy
 ref table margin_compression
+ref table prices
+ref table Fuel
+ref table Week
+ref table Period
+ref table 'As Of'
+ref table 'Share Row'
+ref table 'Track Row'
+ref table Horizon
 
 ref cultureInfo en-US
 

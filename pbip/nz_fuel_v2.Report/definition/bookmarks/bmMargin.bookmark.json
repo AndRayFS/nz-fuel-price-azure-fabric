@@ -1,0 +1,168 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "Margin",
+  "name": "bmMargin",
+  "options": {
+    "applyOnlyToTargetVisuals": true,
+    "targetVisualNames": [
+      "vcallsseg",
+      "vcallson",
+      "hzbg",
+      "hzlbl",
+      "hz",
+      "tcalls",
+      "ccalls",
+      "gcalls",
+      "vmarginseg",
+      "vmarginon",
+      "tmargin",
+      "cmargin",
+      "gmargin",
+      "vpricesseg",
+      "vpriceson",
+      "tprices",
+      "cprices",
+      "gprices"
+    ],
+    "suppressData": true
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "p5data",
+    "sections": {
+      "p5data": {
+        "visualContainers": {
+          "vcallsseg": {
+            "singleVisual": {
+              "visualType": "shape",
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          },
+          "vcallson": {
+            "singleVisual": {
+              "visualType": "textbox",
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          },
+          "hzbg": {
+            "singleVisual": {
+              "visualType": "shape",
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          },
+          "hzlbl": {
+            "singleVisual": {
+              "visualType": "textbox",
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          },
+          "hz": {
+            "singleVisual": {
+              "visualType": "advancedSlicerVisual",
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          },
+          "tcalls": {
+            "singleVisual": {
+              "visualType": "tableEx",
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          },
+          "ccalls": {
+            "singleVisual": {
+              "visualType": "shape",
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          },
+          "gcalls": {
+            "singleVisual": {
+              "visualType": "textbox",
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          },
+          "vmarginseg": {
+            "singleVisual": {
+              "visualType": "shape"
+            }
+          },
+          "vmarginon": {
+            "singleVisual": {
+              "visualType": "textbox"
+            }
+          },
+          "tmargin": {
+            "singleVisual": {
+              "visualType": "tableEx"
+            }
+          },
+          "cmargin": {
+            "singleVisual": {
+              "visualType": "shape"
+            }
+          },
+          "gmargin": {
+            "singleVisual": {
+              "visualType": "textbox"
+            }
+          },
+          "vpricesseg": {
+            "singleVisual": {
+              "visualType": "shape",
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          },
+          "vpriceson": {
+            "singleVisual": {
+              "visualType": "textbox",
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          },
+          "tprices": {
+            "singleVisual": {
+              "visualType": "tableEx",
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          },
+          "cprices": {
+            "singleVisual": {
+              "visualType": "shape",
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          },
+          "gprices": {
+            "singleVisual": {
+              "visualType": "textbox",
+              "display": {
+                "mode": "hidden"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

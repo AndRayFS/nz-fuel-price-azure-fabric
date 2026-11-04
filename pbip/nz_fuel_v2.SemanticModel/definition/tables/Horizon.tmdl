@@ -1,0 +1,19 @@
+table Horizon
+	lineageTag: e0c55e5d-72f3-52d7-bf06-1f103c74a699
+
+	column 'Weeks ahead'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2d37a79b-c2d7-5519-bc8e-e5bc7def113f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Weeks ahead]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Horizon = calculated
+		mode: import
+		source =
+				DATATABLE("Weeks ahead", INTEGER, {{1}, {2}, {3}})
+
+	annotation PBI_Id = 1622e93dd788533a871584ebb0e7b616

@@ -1,0 +1,597 @@
+/// MBIE's weekly price and its components, by fuel, straight from silver - the same rows the archive's weekly_prices.csv carries.
+table prices
+	lineageTag: 08f1489f-599e-5f61-85bb-c0060eba789d
+
+	/// The newest MBIE week in the model, whatever the visual filters. On the hidden test page, the week picked there instead.
+	measure 'Latest Week' =
+			VAR Newest = CALCULATE(MAX(prices[week_date]), REMOVEFILTERS())
+			VAR AsOf = SELECTEDVALUE('As Of'[As of week])
+			RETURN IF(ISBLANK(AsOf), Newest, MIN(AsOf, Newest))
+		formatString: d mmm yyyy
+		displayFolder: Now
+		lineageTag: 15e76f97-7afa-54df-8965-3e637c8c449c
+
+	/// MBIE's national average price paid for the week, c/L. A few cents below the pump sign.
+	measure 'Average Paid' = AVERAGE(prices[adjusted_retail_price])
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: a80bfdb3-c61e-5c0c-806c-359cccb0265d
+
+	measure 'Price Now' =
+			VAR W = [Latest Week]
+			RETURN CALCULATE([Average Paid], REMOVEFILTERS(Week), REMOVEFILTERS(prices[week_date]), prices[week_date] = W)
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: b479b184-65b0-52d7-add2-e651fb2c1c5e
+
+	measure 'Price 4 Weeks Ago' =
+			VAR W = [Latest Week] - 28
+			RETURN CALCULATE([Average Paid], REMOVEFILTERS(Week), REMOVEFILTERS(prices[week_date]), prices[week_date] = W)
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: 3b2f9d1a-44ad-5eb3-8df4-df4c268a1833
+
+	measure 'Change 4w' =
+			VAR NowP = [Price Now]
+			VAR ThenP = [Price 4 Weeks Ago]
+			RETURN IF(NOT ISBLANK(NowP) && NOT ISBLANK(ThenP), NowP - ThenP)
+		formatString: +0.0;-0.0;0.0
+		displayFolder: Now
+		lineageTag: c59f858a-ae2e-5595-bb50-b04573c5b655
+
+	measure 'Change 4w %' = DIVIDE([Change 4w], [Price 4 Weeks Ago])
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: Now
+		lineageTag: f4ada28f-6660-53f5-959b-b87c066025df
+
+	/// The price without its unit: the card sets the number large and c/L small beside it, as the mock-up does.
+	measure 'Price Now Number' = IF(NOT ISBLANK([Price Now]), FORMAT([Price Now], "0.0"))
+		displayFolder: Now
+		lineageTag: 79cf3d36-98a4-5ddc-ad1b-dc9d41b87427
+
+	/// The change itself, in ink and semibold as in the mock-up; the arrow beside it carries the colour, "4 weeks" sits after it in grey.
+	measure 'Change 4w Main' =
+			VAR vD = [Change 4w]
+			RETURN
+			IF(
+			    NOT ISBLANK(vD),
+			    FORMAT(vD, "+0.0;-0.0;0.0") & " c/L · " & FORMAT([Change 4w %], "+0.0%;-0.0%;0.0%")
+			)
+		displayFolder: Now
+		lineageTag: c74a2e55-1fec-5f32-9688-a994ea5364e4
+
+	measure 'Change 4w Arrow' =
+			VAR vD = [Change 4w]
+			RETURN IF(NOT ISBLANK(vD), IF(vD >= 0, "▲", "▼"))
+		displayFolder: Now
+		lineageTag: 0dc901d7-b840-5854-8825-4edbd02b2702
+
+	/// Rising price in red: it is the reader's cost. A fall stays neutral, not green - green is Regular 91's colour.
+	measure 'Change 4w Colour' = IF([Change 4w] >= 0, "#D03B3B", "#4D4C48")
+		displayFolder: Now
+		lineageTag: 17c6603f-e3ba-5ab6-addf-f7c641e45f8e
+
+	measure 'Change 4w Fill' = IF([Change 4w] >= 0, "#FBE7E5", "#EFEEEA")
+		displayFolder: Now
+		lineageTag: 95cc4711-d4f2-5751-8078-23bb2172fdf8
+
+	measure 'Week To Label' = "Average paid, week to " & FORMAT([Latest Week], "d mmm")
+		displayFolder: Now
+		lineageTag: 982155cf-90eb-58f1-b821-87648c107d29
+
+	/// MBIE stamps a week by its Friday and publishes it the Wednesday after next; the chain loads it the Thursday, 13 days after the stamp.
+	measure 'Header Weeks' =
+			"Latest MBIE week: " & FORMAT([Latest Week], "d mmm yyyy")
+			    & " · next about " & FORMAT([Latest Week] + 13, "d mmm")
+		displayFolder: Now
+		lineageTag: 4b463d7e-6535-5ba6-a359-79f376f31e4e
+
+	/// For the Today line. Evaluated when the page is read, not at refresh, so it moves between loads.
+	measure Today = TODAY()
+		formatString: d mmm yyyy
+		displayFolder: Now
+		lineageTag: 73608bf9-49ff-5f54-9fe7-1c36b8344283
+
+	/// Visual-level filter for page 1's charts: the chosen period up to the newest week, plus the three weeks the model has called. 2013+ starts at the first call, 1 Feb 2013.
+	measure 'In Period' =
+			// Variables carry a v prefix: DAX inherits MDX's keywords, and the first
+			// version, with VARs named Weeks and Start, failed to parse in Desktop (4 Nov 2026).
+			VAR vWeek = MAX(Week[week])
+			VAR vLatest = [Latest Week]
+			VAR vWeeks = SELECTEDVALUE(Period[Weeks], 26)
+			VAR vFirst = IF(vWeeks >= 9999, DATE(2013, 2, 1), MAX(vLatest - 7 * vWeeks, DATE(2013, 2, 1)))
+			RETURN IF(vWeek > vFirst && vWeek <= vLatest + 21, 1)
+		formatString: 0
+		displayFolder: Now
+		lineageTag: c9f18970-e3bd-5c23-8e9e-36ed32610508
+
+	/// The period is applied here rather than as a visual filter on In Period: a measure filter written into PBIR broke the visual (Broken_Filters, 4 Nov 2026). Weeks where every series is blank drop off the axis by themselves.
+	measure 'Paid (chart)' = IF(MAX(Week[week]) <= [Latest Week] && [In Period] = 1, [Average Paid])
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: f76c6615-c23e-58c0-beb2-b16c7808531f
+
+	/// One point, drawn as a hollow marker: where the four-week change is measured from.
+	measure 'Four Weeks Ago (chart)' = IF(MAX(Week[week]) = [Latest Week] - 28, [Average Paid])
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: b74c55cf-0511-5ddb-b53c-2de512acc92f
+
+	/// One point: the newest week, a dark dot where the calls leave from.
+	measure 'Latest (chart)' = IF(MAX(Week[week]) = [Latest Week], [Average Paid])
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: 1e2d0277-0606-5bad-8f3a-c81f97e48088
+
+	/// The same point again, a smaller white marker over the dark one, so it reads as a hollow ring. Power BI line markers have no outline of their own.
+	measure 'Four Weeks Ago Inner (chart)' = [Four Weeks Ago (chart)]
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: 1c9f839a-ce56-5859-be59-291953f4af81
+
+	measure 'Regular On Sign' =
+			VAR W = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[board_price]), REMOVEFILTERS(), prices[week_date] = W, prices[fuel] = "Regular Petrol")
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: 49668f74-ff46-5243-a4bd-9fd6b426c4be
+
+	measure 'Now Footer' =
+			VAR W = [Latest Week]
+			VAR Sign = [Regular On Sign]
+			RETURN
+			"Average paid: MBIE's national average for the week, a few cents below the pump sign"
+			    & IF(NOT ISBLANK(Sign), " (Regular 91 showed " & FORMAT(Sign, "0.0") & " on the sign)", "")
+			    & ". MBIE publishes about a week later"
+			    & IF(TODAY() > W + 7, ", so " & FORMAT(W + 7, "d mmm") & " has passed but is not yet out", "")
+			    & ". Calls come from a walk-forward backtest model and are not published forecasts."
+		displayFolder: Now
+		lineageTag: af8783ae-5f31-5a4d-a6d6-425e06d2d5b6
+
+	/// Page 1's title, built from the newest week. States what happened and where margins stand - never what will happen.
+	measure Headline =
+			// Two clauses, each a small decision table over the newest week's numbers.
+			// Mirrored in Python and run over every week since Feb 2013 before it was
+			// written here (W21). Change a threshold here and rerun that check.
+			VAR FLAT = 3      // c/L: a smaller four-week move counts as no move
+			VAR NEAR = 5      // c/L: a margin this close to its norm is "close to" it
+			VAR SPREAD = 5    // c/L: fuels further apart than this get a range, not one number
+			VAR W = [Latest Week]
+			VAR W4 = W - 28
+			VAR P91 = CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(), prices[week_date] = W, prices[fuel] = "Regular Petrol")
+			VAR P95 = CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(), prices[week_date] = W, prices[fuel] = "Premium Petrol 95R")
+			VAR PD = CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(), prices[week_date] = W, prices[fuel] = "Diesel")
+			VAR Q91 = CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(), prices[week_date] = W4, prices[fuel] = "Regular Petrol")
+			VAR Q95 = CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(), prices[week_date] = W4, prices[fuel] = "Premium Petrol 95R")
+			VAR QD = CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(), prices[week_date] = W4, prices[fuel] = "Diesel")
+			VAR HavePrices = NOT (ISBLANK(P91) || ISBLANK(P95) || ISBLANK(PD) || ISBLANK(Q91) || ISBLANK(Q95) || ISBLANK(QD))
+			VAR D91 = P91 - Q91
+			VAR D95 = P95 - Q95
+			VAR DD = PD - QD
+			VAR DMin = MIN(MIN(D91, D95), DD)
+			VAR DMax = MAX(MAX(D91, D95), DD)
+			VAR NUp = (D91 >= FLAT) + (D95 >= FLAT) + (DD >= FLAT)
+			VAR NDown = (D91 <= -FLAT) + (D95 <= -FLAT) + (DD <= -FLAT)
+			VAR AmtUp = IF(DMax - DMin <= SPREAD, FORMAT((D91 + D95 + DD) / 3, "0"), FORMAT(DMin, "0") & "–" & FORMAT(DMax, "0"))
+			VAR AmtDown = IF(DMax - DMin <= SPREAD, FORMAT(-(D91 + D95 + DD) / 3, "0"), FORMAT(-DMax, "0") & "–" & FORMAT(-DMin, "0"))
+			VAR DPet = (D91 + D95) / 2
+			VAR VerbPet = IF(DPet >= FLAT, "rose " & FORMAT(ABS(DPet), "0") & " c/L", IF(DPet <= -FLAT, "fell " & FORMAT(ABS(DPet), "0") & " c/L", "held steady"))
+			VAR VerbDsl = IF(DD >= FLAT, "rose " & FORMAT(ABS(DD), "0") & " c/L", IF(DD <= -FLAT, "fell " & FORMAT(ABS(DD), "0") & " c/L", "held steady"))
+			VAR ClauseA =
+			    SWITCH(
+			        TRUE(),
+			        NOT HavePrices, "",
+			        NUp = 3, "Pump prices rose " & AmtUp & " c/L in four weeks.",
+			        NDown = 3, "Pump prices fell " & AmtDown & " c/L in four weeks.",
+			        NUp + NDown = 0, "Pump prices barely moved in four weeks.",
+			        VerbPet = VerbDsl,
+			            IF(VerbPet = "held steady", "Pump prices barely moved in four weeks.", "Pump prices " & VerbPet & " in four weeks."),
+			        "Petrol " & VerbPet & " in four weeks; diesel " & VerbDsl & "."
+			    )
+			VAR ClauseB = [Headline Margin Clause]
+			RETURN
+			    ClauseA & IF(ClauseA <> "" && ClauseB <> "", " ", "") & ClauseB
+		displayFolder: Now
+		lineageTag: c41677c4-3cc2-528f-b658-53d89a8eb8f2
+
+	/// Where the petrol and diesel margins stand against their two-year norms, in a sentence.
+	measure 'Headline Margin Clause' =
+			// Headline's clause B on its own, so Margin's title says the same thing in the
+			// same words. pbip/build/headline_check.py mirrors it.
+			VAR NEAR = 5      // c/L: a margin this close to its norm is "close to" it
+			VAR SPREAD = 5    // c/L: fuels further apart than this get a range, not one number
+			VAR W = [Latest Week]
+			VAR W4 = W - 28
+			// Clause B: the importer margin against its 104-week norm, c/L.
+			VAR M91 = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Regular Petrol")
+			VAR M95 = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Premium Petrol 95R")
+			VAR MD = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Diesel")
+			VAR N91 = CALCULATE(AVERAGE(margin_compression[margin_norm_104w]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Regular Petrol")
+			VAR N95 = CALCULATE(AVERAGE(margin_compression[margin_norm_104w]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Premium Petrol 95R")
+			VAR ND = CALCULATE(AVERAGE(margin_compression[margin_norm_104w]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Diesel")
+			VAR M914 = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W4, margin_compression[fuel] = "Regular Petrol")
+			VAR M954 = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W4, margin_compression[fuel] = "Premium Petrol 95R")
+			VAR MD4 = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W4, margin_compression[fuel] = "Diesel")
+			VAR N914 = CALCULATE(AVERAGE(margin_compression[margin_norm_104w]), REMOVEFILTERS(), margin_compression[week_date] = W4, margin_compression[fuel] = "Regular Petrol")
+			VAR N954 = CALCULATE(AVERAGE(margin_compression[margin_norm_104w]), REMOVEFILTERS(), margin_compression[week_date] = W4, margin_compression[fuel] = "Premium Petrol 95R")
+			VAR ND4 = CALCULATE(AVERAGE(margin_compression[margin_norm_104w]), REMOVEFILTERS(), margin_compression[week_date] = W4, margin_compression[fuel] = "Diesel")
+			VAR HaveMargins = NOT (ISBLANK(M91) || ISBLANK(M95) || ISBLANK(MD) || ISBLANK(N91) || ISBLANK(N95) || ISBLANK(ND))
+			VAR HaveMargins4 = NOT (ISBLANK(M914) || ISBLANK(M954) || ISBLANK(MD4) || ISBLANK(N914) || ISBLANK(N954) || ISBLANK(ND4))
+			VAR GPet = ((M91 - N91) + (M95 - N95)) / 2
+			VAR GDsl = MD - ND
+			VAR GPet4 = ((M914 - N914) + (M954 - N954)) / 2
+			VAR GDsl4 = MD4 - ND4
+			VAR SPet = IF(GPet <= -NEAR, "below", IF(GPet >= NEAR, "above", "near"))
+			VAR SDsl = IF(GDsl <= -NEAR, "below", IF(GDsl >= NEAR, "above", "near"))
+			VAR StillPet = HaveMargins4 && IF(GPet4 <= -NEAR, "below", IF(GPet4 >= NEAR, "above", "near")) = SPet
+			VAR StillDsl = HaveMargins4 && IF(GDsl4 <= -NEAR, "below", IF(GDsl4 >= NEAR, "above", "near")) = SDsl
+			VAR Lo = MIN(ABS(GPet), ABS(GDsl))
+			VAR Hi = MAX(ABS(GPet), ABS(GDsl))
+			VAR AmtBoth = IF(Hi - Lo <= SPREAD, "about " & FORMAT((Lo + Hi) / 2, "0"), FORMAT(Lo, "0") & "–" & FORMAT(Hi, "0"))
+			VAR PartPet =
+			    IF(
+			        SPet = "near",
+			        "Petrol's margin is close to its two-year average",
+			        "Petrol's margin is " & IF(StillPet, "still ", "") & "about " & FORMAT(ABS(GPet), "0") & " c/L " & SPet & " its two-year average"
+			    )
+			VAR PartDsl =
+			    IF(
+			        SDsl = "near",
+			        "diesel's is close to it",
+			        "diesel's is " & IF(StillDsl, "still ", "") & "about " & FORMAT(ABS(GDsl), "0") & " c/L " & SDsl & " it"
+			    )
+			VAR ClauseB =
+			    SWITCH(
+			        TRUE(),
+			        NOT HaveMargins, "",
+			        SPet = SDsl && SPet = "near", "Importer margins are close to their two-year average.",
+			        SPet = SDsl, "Importer margins are " & IF(StillPet && StillDsl, "still ", "") & AmtBoth & " c/L " & SPet & " their two-year average.",
+			        PartPet & "; " & PartDsl & "."
+			    )
+			RETURN ClauseB
+		displayFolder: Now
+		lineageTag: 192f4088-8a38-5e6b-a81b-e587bb2e01ed
+
+	measure 'Cost Now (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[importer_cost]), REMOVEFILTERS(Week), prices[week_date] = vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: f6e7a6ab-c810-5e73-a8fd-49548318f3fa
+
+	measure 'Cost Average (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[importer_cost]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 10db25e2-9c0a-5ae2-8668-7f597233d282
+
+	measure 'Taxes Now (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[taxes]), REMOVEFILTERS(Week), prices[week_date] = vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 88fd84b2-d4a9-5ea4-814b-eeb7826bbb26
+
+	measure 'Taxes Average (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[taxes]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: c5eb80d3-0d83-55ee-9f5d-a1bdea910458
+
+	measure 'ETS Now (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[ets]), REMOVEFILTERS(Week), prices[week_date] = vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 2e079cb4-f926-55ea-bf08-9cf4c866a60c
+
+	measure 'ETS Average (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[ets]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: cf6ec29f-355a-540b-aa03-e48bd9a358d6
+
+	measure 'GST Now (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[gst]), REMOVEFILTERS(Week), prices[week_date] = vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 7ee0ce66-c169-58c6-9225-a31a0cc393fb
+
+	measure 'GST Average (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[gst]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 20c48e65-cd6b-5135-ab5c-863878f5d8e4
+
+	measure 'Margin Now (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[importer_margin]), REMOVEFILTERS(Week), prices[week_date] = vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 7a89d068-9bc3-50d9-bb62-efa2764e31aa
+
+	measure 'Margin Average (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[importer_margin]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 31bbd6b2-e328-563f-be31-70fa071d332a
+
+	measure 'Price Now (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(Week), prices[week_date] = vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: bca7d90c-647a-5bfa-a739-343e207f4cf7
+
+	measure 'Price Average (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: a1531fae-c3ab-5300-91c2-ee078245e6a5
+
+	measure 'Cost Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [Cost Now (c/L)], 0)
+		displayFolder: Margin
+		lineageTag: a7520f41-b268-569c-91a6-9ef20a67a440
+
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", """" & FORMAT(DIVIDE([Cost Now (c/L)], [Price Now (c/L)]), "0%") & """", "0")
+
+	measure 'Cost Bar (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", [Cost Average (c/L)], 0)
+		displayFolder: Margin
+		lineageTag: e5a57ef9-ef14-52aa-b0ec-27414e10c480
+
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([Cost Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
+
+	measure 'Taxes Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [Taxes Now (c/L)], 0)
+		displayFolder: Margin
+		lineageTag: b187e5c9-c059-5814-a6ec-bf1c39d5f91d
+
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", """" & FORMAT(DIVIDE([Taxes Now (c/L)], [Price Now (c/L)]), "0%") & """", "0")
+
+	measure 'Taxes Bar (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", [Taxes Average (c/L)], 0)
+		displayFolder: Margin
+		lineageTag: 96648584-f290-545a-9944-5989260631f0
+
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([Taxes Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
+
+	measure 'ETS Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [ETS Now (c/L)], 0)
+		displayFolder: Margin
+		lineageTag: 40cd9a30-3ce8-58e5-bd2b-63b79e7da18c
+
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", """" & FORMAT(DIVIDE([ETS Now (c/L)], [Price Now (c/L)]), "0%") & """", "0")
+
+	measure 'ETS Bar (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", [ETS Average (c/L)], 0)
+		displayFolder: Margin
+		lineageTag: cfe2a621-7993-5fcd-aa5d-71fe459a8098
+
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([ETS Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
+
+	measure 'GST Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [GST Now (c/L)], 0)
+		displayFolder: Margin
+		lineageTag: 19859e9c-c3bd-5ba0-a5ac-169e8c06f665
+
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", """" & FORMAT(DIVIDE([GST Now (c/L)], [Price Now (c/L)]), "0%") & """", "0")
+
+	measure 'GST Bar (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", [GST Average (c/L)], 0)
+		displayFolder: Margin
+		lineageTag: 34504106-2a48-58d8-a1f4-61bb24431102
+
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([GST Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
+
+	measure 'Margin Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [Margin Now (c/L)], 0)
+		displayFolder: Margin
+		lineageTag: a6d090c6-846f-5623-bb14-5e1285686f51
+
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", """" & FORMAT(DIVIDE([Margin Now (c/L)], [Price Now (c/L)]), "0%") & """", "0")
+
+	measure 'Margin Bar (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", [Margin Average (c/L)], 0)
+		displayFolder: Margin
+		lineageTag: bfd3a814-ce3f-51d0-b717-4f5682954856
+
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([Margin Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
+
+	/// One c/L scale for every bar on Margin's right: the dearest litre, this week or on average, of the three fuels.
+	measure 'Share Axis End' = MAX(MAXX(ALL(Fuel), [Price Now (c/L)]), MAXX(ALL(Fuel), [Price Average (c/L)]))
+		formatString: 0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 90c54a51-036e-543d-8632-41ced5f614ce
+
+	measure 'Share Date' = FORMAT([Latest Week], "d mmm")
+		displayFolder: Margin
+		lineageTag: af35f79a-42cf-5506-a8a3-f126927b3a13
+
+	measure 'Share Price Now' = FORMAT([Price Now (c/L)], "0.0") & " c/L"
+		displayFolder: Margin
+		lineageTag: b442b4bb-8efa-5d2b-b6e2-c10d4c8d07c8
+
+	measure 'Share Price Average' = FORMAT([Price Average (c/L)], "0.0") & " c/L"
+		displayFolder: Margin
+		lineageTag: e4baa197-24ea-50ec-8f70-edcaeaef7bbc
+
+	measure 'Share Subtitle' = "Week of " & FORMAT([Latest Week], "d mmm") & ", dark, against the average since 29 Mar 2024, pale · one c/L scale · labels are shares of the price"
+		displayFolder: Margin
+		lineageTag: 682f9567-6060-5520-a2db-2f6127214131
+
+	measure 'Share Title' =
+			// A claim, as the mock-up's title is, but only the part all three fuels agree on:
+			// a share within a point of its average counts as usual.
+			VAR vCost = ADDCOLUMNS(ALL(Fuel), "d", DIVIDE([Cost Now (c/L)], [Price Now (c/L)]) - DIVIDE([Cost Average (c/L)], [Price Average (c/L)]),
+			                                   "m", DIVIDE([Margin Now (c/L)], [Price Now (c/L)]) - DIVIDE([Margin Average (c/L)], [Price Average (c/L)]))
+			VAR vCostUp = COUNTROWS(FILTER(vCost, [d] >= 0.01))
+			VAR vCostDown = COUNTROWS(FILTER(vCost, [d] <= -0.01))
+			VAR vMarginUp = COUNTROWS(FILTER(vCost, [m] >= 0.01))
+			VAR vMarginDown = COUNTROWS(FILTER(vCost, [m] <= -0.01))
+			VAR vA = SWITCH(TRUE(), vCostUp = 3, "Cost takes a bigger share of every litre than usual",
+			                        vCostDown = 3, "Cost takes a smaller share of every litre than usual",
+			                        "Where each litre goes, against the usual")
+			VAR vB = SWITCH(TRUE(), vMarginDown = 3, ", the margin a smaller one", vMarginUp = 3, ", the margin a bigger one", "")
+			RETURN vA & vB
+		displayFolder: Margin
+		lineageTag: 4e7918d0-500e-5f8a-b8a3-89c7757f6d9b
+
+	measure 'Margin Share Now Label' = FORMAT(DIVIDE([Margin Now (c/L)], [Price Now (c/L)]), "0.0%")
+		displayFolder: Margin
+		lineageTag: 6be4372a-085f-5ab0-8e02-ca4c803ced91
+
+	measure 'Margin Share Average Label' = FORMAT(DIVIDE([Margin Average (c/L)], [Price Average (c/L)]), "0.0%")
+		displayFolder: Margin
+		lineageTag: 83985d86-46d6-53c7-8b45-16208856bbb8
+
+	/// Margin's title: what a squeeze means, then where the margins stand now, in Now's words.
+	measure 'Margin Headline' =
+			VAR vB = [Headline Margin Clause]
+			RETURN "A squeezed margin is a cost rise the pump has not passed on yet." & IF(vB <> "", " " & vB)
+		displayFolder: Margin
+		lineageTag: e03d5d7d-9e91-506e-a1b0-2e7775cbece5
+
+	measure 'Data Pump Price' = AVERAGE(prices[adjusted_retail_price])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 37caea06-14ab-593e-a38a-e50132e8c3a4
+
+	measure 'Data Importer Cost' = AVERAGE(prices[importer_cost])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 09ef888d-d2bb-538e-9dd2-780297c5c5e6
+
+	measure 'Data Taxes' = AVERAGE(prices[taxes])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 3e935d32-bcf3-5b67-8dad-b02d7cd4d1ed
+
+	measure 'Data ETS' = AVERAGE(prices[ets])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 6abc043c-981e-55fe-906a-090a3b41f6a3
+
+	measure 'Data GST' = AVERAGE(prices[gst])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 55ccda4c-4743-55c8-ae2b-303a10ecce1f
+
+	measure 'Data Importer Margin' = AVERAGE(prices[importer_margin])
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: be675ee2-f5e0-593b-8892-c9e02177c94d
+
+	measure 'Data Prices Caption' =
+			VAR vN = COUNTROWS(prices)
+			VAR vFrom = MIN(prices[week_date])
+			RETURN FORMAT(vN, "#,0") & " weeks since " & FORMAT(vFrom, "mmm yyyy") & ", newest first, c/L. The five parts add up to the pump price."
+		displayFolder: Data
+		lineageTag: 5bacb859-e062-52bb-a025-30f960708dfe
+
+	column week_date
+		dataType: dateTime
+		formatString: d mmm yyyy
+		lineageTag: 930919e6-c542-57f7-af18-f2e8897accc7
+		summarizeBy: none
+		sourceColumn: week_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column fuel
+		dataType: string
+		lineageTag: 47f91f97-dafd-5eef-9be7-a4ecdc5ee4ae
+		summarizeBy: none
+		sourceColumn: fuel
+
+		annotation SummarizationSetBy = Automatic
+
+	column adjusted_retail_price
+		dataType: double
+		formatString: 0.0
+		lineageTag: e60772d9-4973-577c-964a-053f88e62b91
+		summarizeBy: none
+		sourceColumn: adjusted_retail_price
+
+		annotation SummarizationSetBy = Automatic
+
+	column importer_cost
+		dataType: double
+		formatString: 0.0
+		lineageTag: 380c21c5-cb78-56fd-8150-0da9062cd649
+		summarizeBy: none
+		sourceColumn: importer_cost
+
+		annotation SummarizationSetBy = Automatic
+
+	column importer_margin
+		dataType: double
+		formatString: 0.0
+		lineageTag: 1ee274ca-9316-522f-bab5-620d7f911f6e
+		summarizeBy: none
+		sourceColumn: importer_margin
+
+		annotation SummarizationSetBy = Automatic
+
+	column taxes
+		dataType: double
+		formatString: 0.0
+		lineageTag: b5783b30-487b-533b-8676-960110d6a43c
+		summarizeBy: none
+		sourceColumn: taxes
+
+		annotation SummarizationSetBy = Automatic
+
+	column ets
+		dataType: double
+		formatString: 0.0
+		lineageTag: f8703f7d-0bb4-5d8c-8f7a-7e698739cad6
+		summarizeBy: none
+		sourceColumn: ets
+
+		annotation SummarizationSetBy = Automatic
+
+	column gst
+		dataType: double
+		formatString: 0.0
+		lineageTag: 1968586f-4aeb-536b-ab1a-3e0fa8518583
+		summarizeBy: none
+		sourceColumn: gst
+
+		annotation SummarizationSetBy = Automatic
+
+	column board_price
+		dataType: double
+		formatString: 0.0
+		lineageTag: c57bd8cb-337f-53cb-927b-060701be0f1e
+		summarizeBy: none
+		sourceColumn: board_price
+
+		annotation SummarizationSetBy = Automatic
+
+	partition prices = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("fhi24zxnvquurfybnnzrkz22aq-ae4c5pcutjkedh2gfko4iqwk24.datawarehouse.fabric.microsoft.com", "analytics_warehouse"),
+				    silver_fuel = Source{[Schema="dbo",Item="silver_fuel"]}[Data],
+				    Kept = Table.SelectColumns(silver_fuel, {"Date", "Fuel", "adjusted_retail_price", "importer_cost", "importer_margin", "taxes", "ets", "gst", "board_price"}),
+				    Renamed = Table.RenameColumns(Kept, {{"Date", "week_date"}, {"Fuel", "fuel"}}),
+				    Typed = Table.TransformColumnTypes(Renamed, {{"week_date", type date}, {"fuel", type text}, {"adjusted_retail_price", type number}, {"importer_cost", type number}, {"importer_margin", type number}, {"taxes", type number}, {"ets", type number}, {"gst", type number}, {"board_price", type number}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table

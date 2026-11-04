@@ -1,151 +1,408 @@
 table forecast_accuracy
 	lineageTag: c247b326-93c8-470a-bf56-06a81d7a6cc1
 
-	/// 1 - (model error / naive error) over the trailing 26 weeks. Above zero means the model beat "the price won't move". Null until 26 weeks of outcomes exist, and blank is honest here - do not coalesce it to zero.
-	measure Skill = AVERAGE(forecast_accuracy[skill_26w])
-		formatString: 0.0%;-0.0%;0.0%
-		lineageTag: 1e392f06-e54b-473a-a4f3-bab27292791d
+	/// The model's calls made in the newest week for the three weeks after it, starting from the last price paid so the line leaves from it.
+	measure 'Call (chart)' =
+			VAR W = MAX(Week[week])
+			VAR Latest = [Latest Week]
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    W = Latest, [Average Paid],
+			    W > Latest && W <= Latest + 21,
+			        CALCULATE(AVERAGE(forecast_accuracy[pred_adl_ecm]), forecast_accuracy[week_date] = Latest)
+			)
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: 4d9e1728-3175-58e8-8998-d0c3a49b3530
 
-	/// Mean absolute error of the model over the trailing 26 weeks, in c/L.
-	measure 'Model MAE 26w' = AVERAGE(forecast_accuracy[mae_model_26w])
-		formatString: 0.00
-		lineageTag: e7da4bc0-d992-4e0a-8bd7-b6cb6b74ce59
-
-	/// Same window, for the "price won't change" benchmark. The pair is the point: in volatile weeks both roughly double.
-	measure 'Naive MAE 26w' = AVERAGE(forecast_accuracy[mae_naive_26w])
-		formatString: 0.00
-		lineageTag: 2bbfbe3f-485a-430e-9b54-f0859de1bf83
-
-	/// Share of weeks where the model led naive. Denominator counts only weeks with a full window, so early history is excluded rather than scored as a loss.
-	measure '26-Week Windows Ahead %' =
-			
-			DIVIDE(
+	/// Edge of the band around the calls: the call plus the 25th percentile of past misses (actual minus call) at the same horizon, in weeks of the same crude-volatility regime as the newest, all three fuels pooled, outcomes known by the newest week. Agreed in the review of 19 Oct: the middle half of misses in weeks like this one, so the band widens when crude is volatile.
+	measure 'Call Low (chart)' =
+			VAR vWeek = MAX(Week[week])
+			VAR vLatest = [Latest Week]
+			VAR vH = INT((vWeek - vLatest) / 7)
+			VAR vCall = [Call (chart)]
+			VAR vRegime =
 			    CALCULATE(
-			        COUNTROWS(forecast_accuracy),
-			        forecast_accuracy[skill_26w] > 0
-			    ),
-			    CALCULATE(
-			        COUNTROWS(forecast_accuracy),
-			        NOT ISBLANK(forecast_accuracy[skill_26w])
+			        MAX(forecast_accuracy[crude_vol_regime]),
+			        REMOVEFILTERS(Week), REMOVEFILTERS(Fuel),
+			        forecast_accuracy[week_date] = vLatest
+			    )
+			RETURN
+			IF(
+			    NOT ISBLANK(vCall),
+			    IF(
+			        vH = 0,
+			        vCall,
+			        // Only for the three called weeks, so the percentile never runs on an empty set.
+			        vCall
+			            + PERCENTILEX.INC(
+			                CALCULATETABLE(
+			                    forecast_accuracy,
+			                    REMOVEFILTERS(Week), REMOVEFILTERS(Fuel),
+			                    forecast_accuracy[crude_vol_regime] = vRegime,
+			                    forecast_accuracy[horizon_weeks] = vH,
+			                    forecast_accuracy[outcome_known] = TRUE(),
+			                    forecast_accuracy[Target week] <= vLatest
+			                ),
+			                forecast_accuracy[actual_price] - forecast_accuracy[pred_adl_ecm],
+			                0.25
+			            )
 			    )
 			)
-		formatString: 0.0%;-0.0%;0.0%
-		lineageTag: 6e3298d8-64e7-4624-b1f7-9d5c11df01fe
-
-	/// Signed: positive means the model would have called the week high. Guarded, because a plain subtraction reads a missing outcome as zero and would draw the three pending weeks as a ~250 c/L error.
-	measure 'Forecast Error' =
-			
-			VAR Actual = SUM(forecast_accuracy[actual_price])
-			VAR Called = SUM(forecast_accuracy[pred_adl_ecm])
-			RETURN
-			IF(NOT ISBLANK(Actual), Called - Actual)
-		formatString: 0.00
-		lineageTag: b28070c8-b777-4dd7-9a73-0f1f6da40e0f
-
-	/// What the pump price actually was at the target week. Blank for the three weeks that have not arrived.
-	measure 'Actual Price' = AVERAGE(forecast_accuracy[actual_price])
 		formatString: 0.0
-		lineageTag: 29d45101-b648-4d68-833d-73b06af1b44b
+		displayFolder: Now
+		lineageTag: d28ffe54-6f07-55d9-b0e6-e4acbf3b7122
 
-	/// What the model would have indicated for that week, refitting on data available then. AVERAGE not SUM: with one fuel and one horizon selected there is exactly one row per week, and AVERAGE degrades gracefully if a slicer is widened instead of silently adding two fuels together.
-	measure 'Model Call' = AVERAGE(forecast_accuracy[pred_adl_ecm])
-		formatString: 0.0
-		lineageTag: 6dfcf04a-7812-474f-8407-46e3d82e83b1
-
-	/// The benchmark: "the price won't change".
-	measure 'Naive Call' = AVERAGE(forecast_accuracy[pred_naive])
-		formatString: 0.0
-		lineageTag: cdf98303-a7bc-473c-9b35-6efc9f66cefa
-
-	/// Column fill for the error chart. Red where the model would have called the week high, blue where low - the same blue the model's line carries above.
-	measure 'Error Colour' =
-			
-			IF(ISBLANK([Forecast Error]), BLANK(), IF([Forecast Error] >= 0, "#ef4444", "#0ea5e9"))
-		lineageTag: d60649f7-0257-4d92-bfb6-8c7205002324
-
-	/// Split in two so the area above zero can be blue and the area below red. Power BI cannot fill one series by sign, and two series that never overlap read as one shape.
-	measure 'Skill Above Zero' =
-			
-			VAR s = [Skill]
+	/// Edge of the band around the calls: the call plus the 75th percentile of past misses (actual minus call) at the same horizon, in weeks of the same crude-volatility regime as the newest, all three fuels pooled, outcomes known by the newest week. Agreed in the review of 19 Oct: the middle half of misses in weeks like this one, so the band widens when crude is volatile.
+	measure 'Call High (chart)' =
+			VAR vWeek = MAX(Week[week])
+			VAR vLatest = [Latest Week]
+			VAR vH = INT((vWeek - vLatest) / 7)
+			VAR vCall = [Call (chart)]
+			VAR vRegime =
+			    CALCULATE(
+			        MAX(forecast_accuracy[crude_vol_regime]),
+			        REMOVEFILTERS(Week), REMOVEFILTERS(Fuel),
+			        forecast_accuracy[week_date] = vLatest
+			    )
 			RETURN
-			IF(s > 0, s)
-		formatString: 0.0%;-0.0%;0.0%
-		lineageTag: 157f54a3-eced-4a3c-9f0e-6f00a25b6707
-
-	measure 'Skill Below Zero' =
-			
-			VAR s = [Skill]
-			RETURN
-			IF(s < 0, s)
-		formatString: 0.0%;-0.0%;0.0%
-		lineageTag: 82906c20-64a7-4336-bf9d-b53139d4ec05
-
-	/// Drives the strip under the price chart. Marks a week that is either volatile or not yet finalised - the two things a reader has to know before trusting a point. Keyed on the week the call was made.
-	measure 'Timeline Band' =
-			
-			VAR VolRegime = SELECTEDVALUE(forecast_accuracy[crude_vol_regime])
-			VAR InputState = SELECTEDVALUE(forecast_accuracy[input_status])
-			RETURN
-			IF(VolRegime = "high" || InputState = "provisional", 1)
-		formatString: 0
-		lineageTag: d6b05b87-d5c8-4a8c-9019-7e9ba61b11d2
-
-	/// Amber for volatile, grey for provisional inputs. Where a week is both, volatility wins: it is the louder fact, and the tooltip still names the status.
-	measure 'Timeline Band Colour' =
-			
-			IF(SELECTEDVALUE(forecast_accuracy[crude_vol_regime]) = "high", "#f59e0b", "#9ca3af")
-		lineageTag: 381e7fdf-bc39-4a4c-a476-2f11e9189ca0
-
-	/// The price chart's heading. Written as a measure because the horizon is a slicer choice, and a fixed heading would let two series of different informedness look comparable.
-	measure 'Price Chart Title' =
-			
-			VAR H = SELECTEDVALUE(forecast_accuracy[horizon_weeks])
-			RETURN
-			"What the model would have indicated, against what happened (c/L). "
-			    & "Every point was called "
-			    & H
-			    & IF(H = 1, " week", " weeks")
-			    & " before the date beneath it"
-		lineageTag: 757dde39-ad16-4096-ba99-7272636f0ef4
-
-	/// Status of the week's inputs, for the strip's tooltip.
-	measure 'Input Status' = SELECTEDVALUE(forecast_accuracy[input_status])
-		lineageTag: 76a7ebdc-1bfe-465e-8f5e-33c736c906f4
-
-	/// Named episode behind a volatile stretch, for the strip's tooltip.
-	measure Episode = SELECTEDVALUE(forecast_accuracy[crude_episode_id])
-		lineageTag: 1d25dfa1-1e4e-4049-8168-d459ff54fdfd
-
-	/// Zero on every week that carries a call, blank never - and that is the whole job.
-	/// 
-	/// The three charts share one axis field but not one axis RANGE: the price chart
-	/// runs to the last call (28 Aug), while error and skill stop at the last week
-	/// whose outcome exists. Power BI sizes each axis to the data it has, so on a
-	/// short window the lower charts were drawn narrower and their columns no longer
-	/// sat under the weeks they belong to. Adding this as a second series extends
-	/// their domain to match without inventing an error or a skill value: a column of
-	/// height zero draws nothing.
-	measure 'Axis Anchor' =
-			
-			IF(NOT ISBLANK([Model Call]), 0)
-		formatString: 0
-		lineageTag: 273bafc6-941f-43ee-adef-1e3ba79a7c7b
-
-	/// Pump-nozzle colours, carried over from the old Report 1 so the buttons look the way readers already know: green for 91, yellow for 95, grey for diesel.
-	measure 'Fuel Colour' =
-			
-			SWITCH(
-			    SELECTEDVALUE(forecast_accuracy[fuel]),
-			    "Regular Petrol", "#40B54A",
-			    "Premium Petrol 95R", "#F7EC14",
-			    "Diesel", "#cccccc",
-			    "#6b7280"
+			IF(
+			    NOT ISBLANK(vCall),
+			    IF(
+			        vH = 0,
+			        vCall,
+			        // Only for the three called weeks, so the percentile never runs on an empty set.
+			        vCall
+			            + PERCENTILEX.INC(
+			                CALCULATETABLE(
+			                    forecast_accuracy,
+			                    REMOVEFILTERS(Week), REMOVEFILTERS(Fuel),
+			                    forecast_accuracy[crude_vol_regime] = vRegime,
+			                    forecast_accuracy[horizon_weeks] = vH,
+			                    forecast_accuracy[outcome_known] = TRUE(),
+			                    forecast_accuracy[Target week] <= vLatest
+			                ),
+			                forecast_accuracy[actual_price] - forecast_accuracy[pred_adl_ecm],
+			                0.75
+			            )
+			    )
 			)
-		lineageTag: 8c698132-7689-4030-b58e-f9d67520d2b4
+		formatString: 0.0
+		displayFolder: Now
+		lineageTag: f5eb735d-52f5-5deb-bbf5-7a09ca3de4c2
+
+	/// The week the model's call is for, set over the number below it.
+	measure 'Call Date 1' =
+			VAR vLatest = [Latest Week]
+			RETURN IF(NOT ISBLANK(vLatest), FORMAT(vLatest + 7, "d mmm"))
+		displayFolder: Now
+		lineageTag: 587d76e9-c7ba-5bdf-a239-bbe46d94593a
+
+	/// The call made in the newest week for 1 week(s) ahead, in whole cents, as text so it can be set in a title. Three fixed slots replace the matrix, which bunched its columns to the left.
+	measure 'Call 1' =
+			VAR vLatest = [Latest Week]
+			VAR vCall =
+			    CALCULATE(
+			        AVERAGE(forecast_accuracy[pred_adl_ecm]),
+			        REMOVEFILTERS(Week),
+			        forecast_accuracy[week_date] = vLatest,
+			        forecast_accuracy[horizon_weeks] = 1
+			    )
+			RETURN IF(NOT ISBLANK(vCall), FORMAT(vCall, "0"))
+		displayFolder: Now
+		lineageTag: 5584e450-6651-5e96-9de7-41f7427478cc
+
+	measure 'Call Date 2' =
+			VAR vLatest = [Latest Week]
+			RETURN IF(NOT ISBLANK(vLatest), FORMAT(vLatest + 14, "d mmm"))
+		displayFolder: Now
+		lineageTag: 929410ed-0c77-50af-8274-e9d939ab46e8
+
+	measure 'Call 2' =
+			VAR vLatest = [Latest Week]
+			VAR vCall =
+			    CALCULATE(
+			        AVERAGE(forecast_accuracy[pred_adl_ecm]),
+			        REMOVEFILTERS(Week),
+			        forecast_accuracy[week_date] = vLatest,
+			        forecast_accuracy[horizon_weeks] = 2
+			    )
+			RETURN IF(NOT ISBLANK(vCall), FORMAT(vCall, "0"))
+		displayFolder: Now
+		lineageTag: ab5954a3-90cd-5422-b95e-7c0ec255c6a0
+
+	measure 'Call Date 3' =
+			VAR vLatest = [Latest Week]
+			RETURN IF(NOT ISBLANK(vLatest), FORMAT(vLatest + 21, "d mmm"))
+		displayFolder: Now
+		lineageTag: a31a7ad4-b0d4-5b39-bca3-5ca9b0a0bbf5
+
+	measure 'Call 3' =
+			VAR vLatest = [Latest Week]
+			VAR vCall =
+			    CALCULATE(
+			        AVERAGE(forecast_accuracy[pred_adl_ecm]),
+			        REMOVEFILTERS(Week),
+			        forecast_accuracy[week_date] = vLatest,
+			        forecast_accuracy[horizon_weeks] = 3
+			    )
+			RETURN IF(NOT ISBLANK(vCall), FORMAT(vCall, "0"))
+		displayFolder: Now
+		lineageTag: 5c223da4-2607-5dfd-b37d-f9af7955a105
+
+	measure 'Selected Horizon' = SELECTEDVALUE('Horizon'[Weeks ahead], 1)
+		formatString: 0
+		displayFolder: Track record
+		isHidden
+		lineageTag: b3eeb0b1-7884-5387-9bca-c3b4a55616c9
+
+	/// Average absolute miss at the chosen horizon, over every call whose outcome is known since Feb 2013.
+	measure 'Miss Model' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: c43dc23d-0cc1-5522-88de-0abc371d5eb1
+
+	/// Average absolute miss at the chosen horizon, over every call whose outcome is known since Feb 2013.
+	measure 'Miss No Change' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: 4df74c81-6698-53e5-b8fd-ef496cac41d4
+
+	measure 'Track Headline' =
+			VAR vH = [Selected Horizon]
+			VAR vFuel = SELECTEDVALUE(Fuel[Fuel name])
+			VAR vM = [Miss Model]
+			VAR vN = [Miss No Change]
+			VAR vPct = ROUND(100 * ABS(1 - DIVIDE(vM, vN)), 0)
+			RETURN IF(NOT ISBLANK(vFuel) && vN > 0,
+			    "Since 2013 the model's " & SWITCH(vH, 1, "one", 2, "two", 3, "three") & "-week call for " & vFuel
+			    & " has missed by " & FORMAT(vM, "0.0") & " c/L on average — " & vPct & "% "
+			    & IF(vM <= vN, "less", "more") & " than assuming the price won't change.")
+		displayFolder: Track record
+		lineageTag: 910fd39a-e072-563e-b4fe-0e6b65aa0b5a
+
+	/// Trailing 26-week average miss at the week called; full windows only, so the line starts in Aug 2013.
+	measure 'Model 26w (chart)' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[mae_model_26w]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: 3911e25a-bb7a-5469-83f4-60e14227b034
+
+	/// Trailing 26-week average miss at the week called; full windows only, so the line starts in Aug 2013.
+	measure 'No Change 26w (chart)' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[mae_naive_26w]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: 384828de-c330-56a3-80ef-47d3ba5412ce
+
+	measure 'Track Last Week' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(MAX(forecast_accuracy[Target week]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+		displayFolder: Track record
+		isHidden
+		lineageTag: 3904a670-bc22-5b3c-b50a-47c164825a89
+
+	measure 'Model 26w (last)' = IF(MAX(Week[week]) = [Track Last Week], [Model 26w (chart)])
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: a8c27304-9190-59b5-93ec-060dc94a1693
+
+	measure 'No Change 26w (last)' = IF(MAX(Week[week]) = [Track Last Week], [No Change 26w (chart)])
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: 99a3b80b-7f76-51ff-851c-372fc7bc5da4
+
+	measure 'Track Axis Top' =
+			VAR vH = [Selected Horizon]
+			VAR vA = CALCULATE(MAX(forecast_accuracy[mae_naive_26w]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+			VAR vB = CALCULATE(MAX(forecast_accuracy[mae_model_26w]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+			RETURN 1.1 * MAX(vA, vB)
+		formatString: 0.0
+		displayFolder: Track record
+		isHidden
+		lineageTag: ea26871b-a180-5aeb-bcab-fbd8579ef634
+
+	/// A full-height column in weeks whose call was made in volatile crude: the shading behind the lines.
+	measure 'Volatile (chart)' =
+			VAR vH = [Selected Horizon]
+			VAR vHigh = CALCULATE(COUNTROWS(forecast_accuracy), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26, forecast_accuracy[crude_vol_regime] = "high")
+			RETURN IF(vHigh > 0, [Track Axis Top])
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: e01332a7-f33f-5a9d-8124-f68a585e80cc
+
+	measure 'Miss Model (row)' =
+			VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
+			VAR vR = SELECTEDVALUE('Track Row'[Regime])
+			RETURN IF(NOT ISBLANK(vH), CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[crude_vol_regime] = vR, forecast_accuracy[outcome_known] = TRUE()))
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: 382212a0-c508-53b2-80a1-433ea24a69e6
+
+	measure 'Miss No Change (row)' =
+			VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
+			VAR vR = SELECTEDVALUE('Track Row'[Regime])
+			RETURN IF(NOT ISBLANK(vH), CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[crude_vol_regime] = vR, forecast_accuracy[outcome_known] = TRUE()))
+		formatString: 0.0
+		displayFolder: Track record
+		lineageTag: a2ff1852-67e1-5768-8e15-6952f3f5d4bb
+
+	/// The chosen horizon's rows only, for the full-colour layer over the muted chart; 0 rather than blank elsewhere, so every row keeps its place.
+	measure 'Miss Model (row, chosen)' =
+			VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
+			RETURN IF(NOT ISBLANK(vH), IF(vH = [Selected Horizon], [Miss Model (row)], 0))
+		formatString: 0.0
+		displayFolder: Track record
+		isHidden
+		lineageTag: c0c8c453-11e4-55db-a1b6-48821a3062a3
+
+	/// The chosen horizon's rows only, for the full-colour layer over the muted chart; 0 rather than blank elsewhere, so every row keeps its place.
+	measure 'Miss No Change (row, chosen)' =
+			VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
+			RETURN IF(NOT ISBLANK(vH), IF(vH = [Selected Horizon], [Miss No Change (row)], 0))
+		formatString: 0.0
+		displayFolder: Track record
+		isHidden
+		lineageTag: ea020534-102f-5695-b3b1-199520010500
+
+	/// One axis end for both layers of the right-hand chart, so their bars line up.
+	measure 'Rows Axis End' = 1.15 * MAXX(ALL('Track Row'), MAX([Miss Model (row)], [Miss No Change (row)]))
+		formatString: 0.0
+		displayFolder: Track record
+		isHidden
+		lineageTag: f5d5ecd6-10e1-5329-9c1b-27dff471d788
+
+	/// Left chart's title: the volatile-crude episode where the model beat no change by most, and any where it did worse.
+	measure 'Track Lead Title' =
+			VAR vH = [Selected Horizon]
+			VAR vEp = ADDCOLUMNS(
+			    CALCULATETABLE(VALUES(forecast_accuracy[crude_episode_id]), forecast_accuracy[horizon_weeks] = vH,
+			        forecast_accuracy[outcome_known] = TRUE(), NOT ISBLANK(forecast_accuracy[crude_episode_id])),
+			    "lead", CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]) - AVERAGE(forecast_accuracy[abs_err_adl_ecm]),
+			        forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE()))
+			VAR vTop = MAXX(TOPN(1, vEp, [lead], DESC), forecast_accuracy[crude_episode_id])
+			VAR vLow = TOPN(1, vEp, [lead], ASC)
+			VAR vLowId = MAXX(vLow, forecast_accuracy[crude_episode_id])
+			VAR vLowLead = MAXX(vLow, [lead])
+			RETURN IF(NOT ISBLANK(vTop),
+			    "The model's lead is widest in the " & SWITCH(vTop, "2026_iran_us", "2026 Iran–US shock", "2022_ukraine", "2022 Ukraine shock", "2020_covid_crash", "2020 COVID crash",
+			    "2016_opec_cuts", "2016 OPEC cuts", "2016_glut_trough", "2015–16 glut trough", "2015_glut_onset", "2015 glut onset", SUBSTITUTE(vTop, "_", " "))
+			    & IF(vLowLead < 0, "; in the " & SWITCH(vLowId, "2026_iran_us", "2026 Iran–US shock", "2022_ukraine", "2022 Ukraine shock", "2020_covid_crash", "2020 COVID crash",
+			    "2016_opec_cuts", "2016 OPEC cuts", "2016_glut_trough", "2015–16 glut trough", "2015_glut_onset", "2015 glut onset", SUBSTITUTE(vLowId, "_", " ")) & " no change did better", ""))
+		displayFolder: Track record
+		lineageTag: 91b26900-d996-5edb-8a99-775608be2452
+
+	/// Right chart's title: how much volatile crude multiplies both methods' miss, and in how many of the six rows the model still wins.
+	measure 'Track Regime Title' =
+			VAR vRows = ADDCOLUMNS('Track Row', "m", [Miss Model (row)], "n", [Miss No Change (row)])
+			VAR vR = DIVIDE(SUMX(FILTER(vRows, 'Track Row'[Regime] = "high"), [m] + [n]), SUMX(FILTER(vRows, 'Track Row'[Regime] = "normal"), [m] + [n]))
+			VAR vLeads = COUNTROWS(FILTER(vRows, [m] < [n]))
+			VAR vA = SWITCH(TRUE(), vR < 1.25, "Volatile weeks barely change anyone's miss", vR < 1.75, "Volatile weeks add half again to everyone's miss",
+			                vR < 2.5, "Volatile weeks double everyone's miss", vR < 3.5, "Volatile weeks triple everyone's miss",
+			                "Volatile weeks multiply everyone's miss " & FORMAT(vR, "0") & "-fold")
+			VAR vB = SWITCH(TRUE(), vLeads = 6, "the model keeps its lead", vLeads = 0, "no change does better throughout",
+			                "the model leads in " & vLeads & " of 6")
+			RETURN IF(NOT ISBLANK(vR), vA & "; " & vB)
+		displayFolder: Track record
+		lineageTag: 1a4db271-ea52-5476-b534-09cad9b8b095
+
+	measure 'Fuel Accent' = SELECTEDVALUE(Fuel[Fuel colour])
+		displayFolder: Track record
+		isHidden
+		lineageTag: bbf1f3f1-4860-5e64-8d23-9db07bfc5854
+
+	measure 'Row Fill 1' = IF([Selected Horizon] = 1, "#F4F8FD", "#FFFFFF")
+		displayFolder: Track record
+		isHidden
+		lineageTag: fcdc95d2-c983-5ce3-8e23-3a09bb6b0185
+
+	measure 'Row Fill 2' = IF([Selected Horizon] = 2, "#F4F8FD", "#FFFFFF")
+		displayFolder: Track record
+		isHidden
+		lineageTag: 69b3234d-518d-598d-8b99-6d51aad184ac
+
+	measure 'Row Fill 3' = IF([Selected Horizon] = 3, "#F4F8FD", "#FFFFFF")
+		displayFolder: Track record
+		isHidden
+		lineageTag: a141e303-83a0-5dd4-a056-7bf6e48e5611
+
+	measure 'Data Price Then' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[price_now]), forecast_accuracy[horizon_weeks] = vH)
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 8b5027d8-e27c-5880-85ab-1181e8dd0483
+
+	measure 'Data Model Call' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[pred_adl_ecm]), forecast_accuracy[horizon_weeks] = vH)
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 36f8a5f3-11e7-532d-992b-756030f6a391
+
+	measure 'Data Actual' =
+			VAR vH = [Selected Horizon]
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[actual_price]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+		formatString: 0.0
+		displayFolder: Data
+		lineageTag: 6d10d514-c8ca-506f-ac31-f703506b8a16
+
+	/// Text, so a call still waiting for its outcome can say so in the same column.
+	measure 'Data Model Miss' =
+			VAR vH = [Selected Horizon]
+			VAR vCalls = CALCULATE(COUNTROWS(forecast_accuracy), forecast_accuracy[horizon_weeks] = vH)
+			VAR vMiss = CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			RETURN IF(vCalls > 0, IF(ISBLANK(vMiss), "awaiting MBIE", FORMAT(vMiss, "0.0")))
+		displayFolder: Data
+		lineageTag: d60572d2-805b-54be-9242-10de0861efc0
+
+	/// Dark for the smaller miss of the week, grey for the larger; a tie goes to the model.
+	measure 'Data Model Miss Colour' =
+			VAR vH = [Selected Horizon]
+			VAR vMine = CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			VAR vOther = CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			RETURN IF(ISBLANK(vMine), "#5C5B56", IF(vMine <= vOther, "#1B1B19", "#A3A29B"))
+		displayFolder: Data
+		isHidden
+		lineageTag: 008e820d-0d3f-5187-b5a6-83c3f459a5da
+
+	/// Text, so a call still waiting for its outcome can say so in the same column.
+	measure 'Data No Change Miss' =
+			VAR vH = [Selected Horizon]
+			VAR vCalls = CALCULATE(COUNTROWS(forecast_accuracy), forecast_accuracy[horizon_weeks] = vH)
+			VAR vMiss = CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			RETURN IF(vCalls > 0, IF(ISBLANK(vMiss), BLANK(), FORMAT(vMiss, "0.0")))
+		displayFolder: Data
+		lineageTag: ca4f0477-9d44-51d0-a80e-f54f00530734
+
+	/// Dark for the smaller miss of the week, grey for the larger; a tie goes to the model.
+	measure 'Data No Change Miss Colour' =
+			VAR vH = [Selected Horizon]
+			VAR vMine = CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			VAR vOther = CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			RETURN IF(ISBLANK(vMine), "#5C5B56", IF(vMine < vOther, "#1B1B19", "#A3A29B"))
+		displayFolder: Data
+		isHidden
+		lineageTag: 43c772a3-bd75-581b-80a8-19c2ec6cf4d6
+
+	measure 'Data Calls Caption' =
+			VAR vH = [Selected Horizon]
+			VAR vN = CALCULATE(COUNTROWS(forecast_accuracy), forecast_accuracy[horizon_weeks] = vH)
+			VAR vFrom = CALCULATE(MIN(forecast_accuracy[week_date]), forecast_accuracy[horizon_weeks] = vH)
+			RETURN FORMAT(vN, "#,0") & " calls since " & FORMAT(vFrom, "mmm yyyy") & ", newest first, c/L. The smaller miss of each week is in dark type."
+		displayFolder: Data
+		lineageTag: bb98a1f7-e817-5f1f-b978-5735fb2d1d4b
 
 	column week_date
 		dataType: dateTime
-		formatString: Long Date
+		formatString: d mmm yyyy
 		lineageTag: fb85dbcf-9b9b-4044-a848-006fdc1c6a3e
 		summarizeBy: none
 		sourceColumn: week_date
@@ -156,7 +413,7 @@ table forecast_accuracy
 
 	column 'Target week'
 		dataType: dateTime
-		formatString: Long Date
+		formatString: d mmm yyyy
 		lineageTag: a0e94f81-29ad-46a0-b5e4-2dcd186e5f60
 		summarizeBy: none
 		sourceColumn: Target week
