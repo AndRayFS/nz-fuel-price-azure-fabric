@@ -44,10 +44,6 @@ table prices
 		displayFolder: Now
 		lineageTag: f4ada28f-6660-53f5-959b-b87c066025df
 
-	measure 'Price Now Label' = IF(NOT ISBLANK([Price Now]), FORMAT([Price Now], "0.0") & " c/L")
-		displayFolder: Now
-		lineageTag: 1270027a-06c9-5971-8517-5f5743c5d314
-
 	/// The price without its unit: the card sets the number large and c/L small beside it, as the mock-up does.
 	measure 'Price Now Number' = IF(NOT ISBLANK([Price Now]), FORMAT([Price Now], "0.0"))
 		displayFolder: Now
@@ -69,18 +65,6 @@ table prices
 			RETURN IF(NOT ISBLANK(vD), IF(vD >= 0, "▲", "▼"))
 		displayFolder: Now
 		lineageTag: 0dc901d7-b840-5854-8825-4edbd02b2702
-
-	/// Gaspy-style change: arrow, c/L, per cent, and the window it covers.
-	measure 'Change 4w Label' =
-			VAR D = [Change 4w]
-			RETURN
-			IF(
-			    NOT ISBLANK(D),
-			    IF(D >= 0, "▲ ", "▼ ") & FORMAT(D, "+0.0;-0.0;0.0") & " c/L · "
-			        & FORMAT([Change 4w %], "+0.0%;-0.0%;0.0%") & " · 4 weeks"
-			)
-		displayFolder: Now
-		lineageTag: 101d75ea-12de-5883-a891-906e3ac4acfc
 
 	/// Rising price in red: it is the reader's cost. A fall stays neutral, not green - green is Regular 91's colour.
 	measure 'Change 4w Colour' = IF([Change 4w] >= 0, "#D03B3B", "#4D4C48")

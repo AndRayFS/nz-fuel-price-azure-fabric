@@ -40,9 +40,9 @@ STEPS = [(0, "Clock", "a Logic App starts the run every Thursday", "Thu 09:07 NZ
 TILES = [("43", "data tests every run; a failure outside monitoring stops it"),
          ("Since 2004", "weekly history, three fuels"),
          ("10–15 min", "of paid compute a week; the capacity sleeps otherwise"),
-         # Four runs of ~15 min at the F2 rate measured in Aug 2026, NZ$0.729 an hour
-         # (docs/cost_notes.md); the USD price is fixed, so it moves with the exchange rate only.
-         ("About 73 cents", "NZD a month for that compute: four runs, about an hour, at NZ$0.73 an hour")]
+         # ~4.3 runs a month of ~15 min at the F2 rate measured in Aug 2026, NZ$0.729 an hour
+         # (docs/cost_notes.md): NZ$0.78. The USD price is fixed; it moves with the exchange rate only.
+         ("NZ$0.80", "a month of compute for about 4.3 weekly runs, plus storage")]
 
 def lane_top(i): return LANE_Y + i * (LANE_H + LANE_GAP)
 

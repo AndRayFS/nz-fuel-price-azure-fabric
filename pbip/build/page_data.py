@@ -99,24 +99,6 @@ def glossary(entries):
         p["textRuns"][0]["textStyle"]["fontFamily"] = FONT_B
     return v
 
-def button(link, tip):
-    """A transparent button over a label: link is ("Bookmark", name) or ("WebUrl", url)."""
-    kind, target = link
-    off = {"show": b(False)}
-    # Off with and without a selector, in every state: with "default" alone the service
-    # still drew a dark 2 px border round each button (4 Nov 2026).
-    states = [None] + [{"id": st} for st in ("default", "hover", "press", "selected")]
-    no_fill = {"show": b(False), "fillColor": col(PAPER), "transparency": d(100)}
-    no_line = {"show": b(False), "lineColor": col(PAPER), "transparency": d(100), "weight": d(0)}
-    vl = {"show": b(True), "type": s(kind), "tooltip": s(tip)}
-    vl["bookmark" if kind == "Bookmark" else "webUrl"] = s(target)
-    v = {"visualType": "actionButton",
-         "objects": {"icon": [obj(off, st) for st in states], "text": [obj(off, st) for st in states],
-                     "fill": [obj(no_fill, st) for st in states], "outline": [obj(no_line, st) for st in states]},
-         "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
-    v["visualContainerObjects"]["visualLink"] = [obj(vl)]
-    return v
-
 def page_data():
     V = header()
     V += [container("title", 24, 60, 1232, 32, 100, textbox([[("Every number in this report, week by week", 17, INK, True)]])),
@@ -131,7 +113,7 @@ def page_data():
         V += [container(f"v{key}lab", sx, 132, sw, 20, 151, textbox([[(label, 9, MUTED, False)]], align="center")),
               container(f"v{key}seg", sx, 127, sw, 28, 160, blank(PAPER, border=PAPER, radius=6), hidden=hidden),
               container(f"v{key}on", sx, 132, sw, 20, 161, textbox([[(label, 9, INK, True)]], align="center"), hidden=hidden),
-              container(f"v{key}btn", sx, 127, sw, 28, 170, button(("Bookmark", bm), "Show " + label.lower()))]
+              container(f"v{key}btn", sx, 127, sw, 28, 170, link_button(("Bookmark", bm), "Show " + label.lower()))]
         toggled[key] += [f"v{key}seg", f"v{key}on"]
 
     z = 180
@@ -158,7 +140,7 @@ def page_data():
           container("dbtn", sx + 16, sy + 42, sw - 32, 50, 302, blank(INK, border=INK, radius=8)),
           container("dbtnt", sx + 30, sy + 48, sw - 60, 40, 303, textbox([
               [("nz-fuel-latest.zip", 10.5, PAPER, True)], [("three CSV tables and a README", 9, HEAD_LINE, False)]])),
-          container("dbtnl", sx + 16, sy + 42, sw - 32, 50, 304, button(("WebUrl", ZIP), "Download nz-fuel-latest.zip")),
+          container("dbtnl", sx + 16, sy + 42, sw - 32, 50, 304, link_button(("WebUrl", ZIP), "Download nz-fuel-latest.zip")),
           container("dnote", sx + 16, sy + 100, sw - 32, 32, 305, textbox([[(
               "Each week's load is also kept under its own date, as it was published.", 8.25, MUTED, False)]]))]
     gy = sy + 152

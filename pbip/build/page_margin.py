@@ -155,7 +155,8 @@ def page_margin():
     V += key(swatches[:3], x + 16, y + h - 44, z + 60, "sk", size=8.25)
     V += key(swatches[3:], x + 16, y + h - 26, z + 60, "sl", size=8.25)
 
-    V.append(container("footer", 24, 662, 1232, 40, 400, textbox([[(
+    V += footer_links(1256, 662, [("The Data page", "p5data", 72), (" has both versions of the margin.", None, 170)], 410)
+    V.append(container("footer", 24, 662, 982, 40, 400, textbox([[(
         "The margin is what is left of the pump price after taxes and MBIE's estimate of this week's replacement cost, "
         "so a jump in cost squeezes it at once. A squeeze does not say whether the pump price or the cost closes it.",
         8.25, FAINT, False)]])))

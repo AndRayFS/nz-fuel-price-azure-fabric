@@ -271,3 +271,42 @@ def button_slicer(entity, column, default, columns, grouped=False, align=None, a
         "visualContainerObjects": chrome(padding=(0, 0, 0, 0)) if grouped else
             chrome(padding=(0, 0, 0, 0), background="#EFEEEA", border="#EFEEEA", radius=8),
         "drillFilterOtherVisuals": True}
+
+def link_button(link, tip):
+    """A transparent button over a label: link is ("Bookmark", name), ("WebUrl", url) or
+    ("PageNavigation", page name)."""
+    kind, target = link
+    off = {"show": b(False)}
+    # Off with and without a selector, in every state: with "default" alone the service
+    # still drew a dark 2 px border round each button (4 Nov 2026).
+    states = [None] + [{"id": st} for st in ("default", "hover", "press", "selected")]
+    no_fill = {"show": b(False), "fillColor": col(PAPER), "transparency": d(100)}
+    no_line = {"show": b(False), "lineColor": col(PAPER), "transparency": d(100), "weight": d(0)}
+    vl = {"show": b(True), "type": s(kind), "tooltip": s(tip)}
+    vl[{"Bookmark": "bookmark", "WebUrl": "webUrl", "PageNavigation": "navigationSection"}[kind]] = s(target)
+    v = {"visualType": "actionButton",
+         "objects": {"icon": [obj(off, st) for st in states], "text": [obj(off, st) for st in states],
+                     "fill": [obj(no_fill, st) for st in states], "outline": [obj(no_line, st) for st in states]},
+         "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
+    v["visualContainerObjects"]["visualLink"] = [obj(vl)]
+    return v
+
+
+def footer_links(x_right, y, items, z, prefix="fl"):
+    """Links to other pages at the right end of a footer, ending at x_right. items:
+    (text, page or None, width in px); a linked item is underlined ink with a transparent
+    page-navigation button over it, the rest is faint text. Widths are set by hand,
+    from the rendered page: a text box cannot report its own."""
+    V = []
+    x = x_right - sum(w for _, _, w in items)
+    for k, (text, page, w) in enumerate(items):
+        # A text box trims its edge spaces, so a lone separator is centred in its own box.
+        sep = text.strip() == "·"
+        tb = textbox([[(text.strip(), 8.25, INK if page else FAINT, False)]], align="center" if sep else "left")
+        if page:
+            tb["objects"]["general"][0]["properties"]["paragraphs"][0]["textRuns"][0]["textStyle"]["textDecoration"] = "underline"
+        V.append(container(f"{prefix}{k}t", x, y, w if sep else w + 6, 18, z, tb))
+        if page:
+            V.append(container(f"{prefix}{k}b", x, y, w, 18, z + 1, link_button(("PageNavigation", page), "Go to " + text)))
+        x += w
+    return V

@@ -145,7 +145,9 @@ def page_track():
               "The chosen horizon is highlighted. Volatile: crude-price volatility above its calm baseline, "
               "about one week in six.", 8.25, MUTED, False)]]))]
 
-    V.append(container("footer", 24, 652, 1232, 40, 400, textbox([[(
+    V += footer_links(1256, 652, [("How it's built", "p4built", 62), (" · ", None, 12),
+                                  ("Every call and outcome", "p5data", 116)], 410)
+    V.append(container("footer", 24, 652, 1022, 40, 400, textbox([[(
         "The record starts in Feb 2013: MBIE's price components add up only from 2010, and the model needs three years "
         "of data before its first call. Scored on today's revised data, which flatters both methods alike.",
         8.25, FAINT, False)]])))

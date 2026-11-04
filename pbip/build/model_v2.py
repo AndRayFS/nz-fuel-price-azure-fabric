@@ -1,6 +1,6 @@
 """Write the W21 model additions as TMDL into the worktree. Re-runnable: lineage
 tags are derived from names, so a rerun rewrites identical files."""
-import uuid, sys, pathlib, textwrap
+import uuid, sys, pathlib, textwrap, re
 
 ROOT = pathlib.Path(sys.argv[1]) / "pbip/nz_fuel_v2.SemanticModel/definition"
 NS = uuid.UUID("6f1c2d3e-0a4b-4c5d-8e9f-a1b2c3d4e5f6")
@@ -173,7 +173,6 @@ VAR NowP = [Price Now]
 VAR ThenP = [Price 4 Weeks Ago]
 RETURN IF(NOT ISBLANK(NowP) && NOT ISBLANK(ThenP), NowP - ThenP)''', fmt="+0.0;-0.0;0.0", folder="Now"))
 pm.append(measure(P, "Change 4w %", "DIVIDE([Change 4w], [Price 4 Weeks Ago])", fmt="+0.0%;-0.0%;0.0%", folder="Now"))
-pm.append(measure(P, "Price Now Label", '''IF(NOT ISBLANK([Price Now]), FORMAT([Price Now], "0.0") & " c/L")''', folder="Now"))
 pm.append(measure(P, "Price Now Number", '''IF(NOT ISBLANK([Price Now]), FORMAT([Price Now], "0.0"))''', folder="Now",
     desc="The price without its unit: the card sets the number large and c/L small beside it, as the mock-up does."))
 pm.append(measure(P, "Change 4w Main", '''
@@ -186,14 +185,6 @@ IF(
 pm.append(measure(P, "Change 4w Arrow", '''
 VAR vD = [Change 4w]
 RETURN IF(NOT ISBLANK(vD), IF(vD >= 0, "▲", "▼"))''', folder="Now"))
-pm.append(measure(P, "Change 4w Label", '''
-VAR D = [Change 4w]
-RETURN
-IF(
-    NOT ISBLANK(D),
-    IF(D >= 0, "▲ ", "▼ ") & FORMAT(D, "+0.0;-0.0;0.0") & " c/L · "
-        & FORMAT([Change 4w %], "+0.0%;-0.0%;0.0%") & " · 4 weeks"
-)''', folder="Now", desc="Gaspy-style change: arrow, c/L, per cent, and the window it covers."))
 pm.append(measure(P, "Change 4w Colour", 'IF([Change 4w] >= 0, "#D03B3B", "#4D4C48")', folder="Now",
     desc="Rising price in red: it is the reader's cost. A fall stays neutral, not green - green is Regular 91's colour."))
 pm.append(measure(P, "Change 4w Fill", 'IF([Change 4w] >= 0, "#FBE7E5", "#EFEEEA")', folder="Now"))
@@ -422,12 +413,6 @@ VAR vCall =
     )
 RETURN IF(NOT ISBLANK(vCall), FORMAT(vCall, "0"))''', folder="Now",
         desc="The call made in the newest week for {n} week(s) ahead, in whole cents, as text so it can be set in a title. Three fixed slots replace the matrix, which bunched its columns to the left.".format(n=n) if n == 1 else None))
-fm.append(measure(F, "Call Number", '''
-VAR W = MAX(Week[week])
-VAR Latest = [Latest Week]
-RETURN IF(W > Latest && W <= Latest + 21, ROUND([Call (chart)], 0))''', fmt="0", folder="Now",
-    desc="Whole cents: the model's error is several c/L, so a decimal would claim a precision it does not have."))
-
 # Track record. 'Horizon' is quoted everywhere: a bare table name that is also an
 # MDX keyword breaks the parse, as VAR names did on 4 Nov 2026.
 TR = "Track record"
@@ -720,8 +705,29 @@ VAR vFrom = MIN(prices[week_date])
 RETURN FORMAT(vN, "#,0") & " weeks since " & FORMAT(vFrom, "mmm yyyy") & ", newest first, c/L. The five parts add up to the pump price."''',
     folder=DT))
 
+# The three pages W21 replaced read these; nothing on the five that replace them does
+# (checked 4 Nov 2026 by walking every measure reference from the kept pages' visuals).
+DROP = {"Skill", "Model MAE 26w", "Naive MAE 26w", "26-Week Windows Ahead %", "Forecast Error", "Actual Price",
+        "Model Call", "Naive Call", "Error Colour", "Skill Above Zero", "Skill Below Zero", "Timeline Band",
+        "Timeline Band Colour", "Price Chart Title", "Input Status", "Episode", "Axis Anchor", "Fuel Colour",
+        "Margin Gap", "Margin Gap before Adjustment", "Importer Margin", "Margin Norm 104w", "Margin before Adjustment",
+        "Margin Fuel Colour"}
+
+def drop_measures(text):
+    """Remove the DROP measures, each with its /// description, up to the next object."""
+    out, lines, i = [], text.split("\n"), 0
+    while i < len(lines):
+        m = re.match(r"^\tmeasure '?(.+?)'? =", lines[i])
+        if m and m.group(1).replace("''", "'") in DROP:
+            while out and out[-1].startswith("\t///"): out.pop()
+            i += 1
+            while i < len(lines) and not re.match(r"^\t\S", lines[i]): i += 1
+            continue
+        out.append(lines[i]); i += 1
+    return "\n".join(out)
+
 def append_measures(path, measures):
-    text = path.read_text()
+    text = drop_measures(path.read_text())
     marker = "\n\tcolumn "
     i = text.index(marker)
     start = "\n".join(measures)

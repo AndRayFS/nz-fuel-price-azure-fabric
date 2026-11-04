@@ -52,22 +52,6 @@ def price_chart(key):
         },
         "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
 
-def calls_matrix():
-    return {"visualType": "pivotTable",
-        "query": {"queryState": {
-            "Columns": {"projections": [proj("c", "Week", "Week short", "Week", active=True)]},
-            "Values": {"projections": [proj("m", "forecast_accuracy", "Call Number", "Model's call")]}}},
-        "objects": {
-            "columnHeaders": [obj({"fontColor": col(FAINT), "fontSize": d(8), "fontFamily": wf(FONT), "alignment": s("Left"),
-                                   "outlineStyle": L(0), "backColor": col(PAPER)})],
-            "values": [obj({"fontColorPrimary": col(CALL), "fontColorSecondary": col(CALL), "fontSize": d(11),
-                            "fontFamily": wf(FONT_B), "outlineStyle": L(0),
-                            "backColorPrimary": col(PAPER), "backColorSecondary": col(PAPER)})],
-            "grid": [obj({"gridVertical": b(False), "gridHorizontal": b(False), "outlineColor": col(PAPER), "rowPadding": d(2)})],
-            "subTotals": [obj({"columnSubtotals": b(False), "rowSubtotals": b(False)})],
-        },
-        "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
-
 def pressure_chart(measure, bar):
     """One bar on a 0-60 c/L axis. The track and the margin are two of these, one over
     the other: in a single stacked chart Power BI dropped both the colour measure and
@@ -120,34 +104,6 @@ def legend(z):
     label("lg5t", "Today", 40)
     return V
 
-def page_fonts():
-    """Four type treatments of the same live numbers, side by side, to choose from."""
-    V = header()
-    variants = [
-        ("A", "Segoe UI, as now", dict(head="Segoe UI Semibold", num="Segoe UI Semibold", text="Segoe UI")),
-        ("B", "Segoe UI Light for large type", dict(head="Segoe UI Light", num="Segoe UI Light", text="Segoe UI")),
-        ("C", "DIN for figures, Segoe UI for words", dict(head="Segoe UI Semibold", num="DIN", text="Segoe UI")),
-        ("D", "Georgia headline, editorial", dict(head="Georgia", num="Segoe UI Semibold", text="Segoe UI")),
-    ]
-    f = [fuel_filter("Regular Petrol")]
-    for k, (tag, name, fc) in enumerate(variants):
-        x = 24 + k * 312; z = 100 + k * 20
-        V += [
-            container(f"f{tag}bg", x, 64, 296, 600, z, blank(PAPER, border=LINE, radius=8)),
-            container(f"f{tag}name", x + 14, 72, 268, 20, z + 1, textbox([[(f"{tag}. {name}", 9, MUTED, False)]])),
-            container(f"f{tag}head", x + 14, 98, 268, 150, z + 2, title_shape("prices", "Headline", 15, face=fc["head"])),
-            container(f"f{tag}num", x + 14, 262, 120, 40, z + 3, title_text("prices", "Price Now Number", 21, INK, face=fc["num"]), f),
-            container(f"f{tag}chg", x + 14, 310, 268, 20, z + 4, title_text("prices", "Change 4w Main", 9, INK, face=fc["num"]), f),
-            container(f"f{tag}wk", x + 14, 340, 268, 18, z + 5, title_text("prices", "Week To Label", 8.25, MUTED, face=fc["text"])),
-        ] + [c for n in (1, 2, 3) for c in (
-            container(f"f{tag}d{n}", x + 14 + (n - 1) * 88, 372, 86, 18, z + 6,
-                      title_text("forecast_accuracy", f"Call Date {n}", 8.25, FAINT, face=fc["text"]), f),
-            container(f"f{tag}v{n}", x + 14 + (n - 1) * 88, 390, 86, 28, z + 7,
-                      title_text("forecast_accuracy", f"Call {n}", 11.25, CALL, face=fc["num"]), f))] + [
-            container(f"f{tag}foot", x + 14, 440, 268, 120, z + 8, title_shape("prices", "Now Footer", 8.25, FAINT, face=fc["text"])),
-        ]
-    return V
-
 def page_now(style):
     V = header()
     z = 100
@@ -190,7 +146,8 @@ def page_now(style):
             container(f"p{i}gap", x + 276, y + 8, 108, 22, z + 6,
                       title_text("margin_compression", "Cost Pressure Gap Label", 11.25, INK, bold=True, align="right"), f),
         ]
-    V.append(container("footer", 24, 628, 1232, 40, 400, title_shape("prices", "Now Footer", 8.25, FAINT, bold=False)))
+    V.append(container("footer", 24, 628, 1112, 40, 400, title_shape("prices", "Now Footer", 8.25, FAINT, bold=False)))
+    V += footer_links(1256, 628, [("How it's built", "p4built", 62), (" · ", None, 12), ("Data", "p5data", 24)], 410)
     return V
 
 def page_test():
@@ -220,11 +177,10 @@ def page_test():
 
 write_page(ROOT, "p1now", "Now", page_now(STYLES["A"]))
 write_page(ROOT, "p9test", "Headline test", page_test(), hidden=True)
-write_page(ROOT, "p8fonts", "Fonts", page_fonts(), hidden=True)
 pages = json.loads((ROOT / "pages/pages.json").read_text())
-mine = ("p1now", "p1nowa", "p8fonts", "p9test")  # p1nowa: the A/B copy, gone
+mine = ("p1now", "p1nowa", "p8fonts", "p9test")  # p1nowa and p8fonts: gone
 order = [p for p in pages["pageOrder"] if p not in mine]
-pages["pageOrder"] = ["p1now"] + order + ["p8fonts", "p9test"]
+pages["pageOrder"] = ["p1now"] + order + ["p9test"]
 pages["activePageName"] = "p1now"
 (ROOT / "pages/pages.json").write_text(json.dumps(pages, indent=2) + "\n")
 print(len(page_now(STYLES["A"])), "visuals on Now")

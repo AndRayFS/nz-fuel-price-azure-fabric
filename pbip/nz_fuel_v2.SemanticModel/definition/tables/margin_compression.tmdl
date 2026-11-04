@@ -1,43 +1,6 @@
 table margin_compression
 	lineageTag: 92f119e8-73bd-483e-9e53-448092f2d92f
 
-	/// How far the importer margin sits from its own 104-week norm, as a share of that norm. Below zero is compressed. AVERAGE so that a slicer widened to several fuels degrades to their mean instead of adding them up.
-	measure 'Margin Gap' = AVERAGE(margin_compression[margin_gap_pct]) / 100
-		formatString: 0%;-0%;0%
-		lineageTag: 883a2427-1df9-44d1-96a3-4d8f8ff89d80
-
-	/// The same gap with MBIE's fuel market adjustment added back, against a norm built the same way. Exists only for 27 Feb - 11 Sep 2026; blank outside it, never zero.
-	measure 'Margin Gap before Adjustment' = AVERAGE(margin_compression[gap_before_adjustment_pct]) / 100
-		formatString: 0%;-0%;0%
-		lineageTag: 56a121df-4501-49ea-a7f8-a38a7bc780c4
-
-	/// The importer margin as MBIE publishes it, c/L.
-	measure 'Importer Margin' = AVERAGE(margin_compression[importer_margin])
-		formatString: 0.0
-		lineageTag: a28b0708-948f-4203-9861-ca01d7ffd7cb
-
-	/// The mean margin over the 104 weeks before the week, c/L. The week itself is left out of its own norm.
-	measure 'Margin Norm 104w' = AVERAGE(margin_compression[margin_norm_104w])
-		formatString: 0.0
-		lineageTag: d4796cf7-68d5-4f90-9fa5-5b040d63f0ea
-
-	/// The margin with the fuel market adjustment added back, c/L. 27 Feb - 11 Sep 2026 only.
-	measure 'Margin before Adjustment' = AVERAGE(margin_compression[margin_before_adjustment])
-		formatString: 0.0
-		lineageTag: ebcd97e7-23b8-481d-bb93-1a1cd87fcddd
-
-	/// The fuel slicers' fill, the same colours as forecast_accuracy's 'Fuel Colour', under its own name because measure names are unique across the model. A copy, not a reference: the two tables share no relationship, so that measure never sees what a slicer on this table selects. Change both together.
-	measure 'Margin Fuel Colour' =
-			
-			SWITCH(
-			    SELECTEDVALUE(margin_compression[fuel]),
-			    "Regular Petrol", "#40B54A",
-			    "Premium Petrol 95R", "#F7EC14",
-			    "Diesel", "#cccccc",
-			    "#6b7280"
-			)
-		lineageTag: 4458db70-b7f1-4cbb-929a-5c80c3f9c83c
-
 	measure 'Margin Now' =
 			VAR W = [Latest Week]
 			RETURN CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(Week), REMOVEFILTERS(margin_compression[week_date]), margin_compression[week_date] = W)
