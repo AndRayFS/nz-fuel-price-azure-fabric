@@ -13,8 +13,8 @@ table 'Track Row'
 
 	column 'Row order'
 		dataType: int64
-		formatString: 0
 		isHidden
+		formatString: 0
 		lineageTag: a92a65d2-7804-556f-b24b-0d706125283b
 		summarizeBy: none
 		isNameInferred
@@ -24,8 +24,8 @@ table 'Track Row'
 
 	column 'Weeks ahead'
 		dataType: int64
-		formatString: 0
 		isHidden
+		formatString: 0
 		lineageTag: b06b19d6-58f0-5658-b621-b7a3ec5fa244
 		summarizeBy: none
 		isNameInferred
@@ -59,3 +59,4 @@ table 'Track Row'
 				)
 
 	annotation PBI_Id = 508de6fb9b2952acaff75e6cb3b2d8b3
+

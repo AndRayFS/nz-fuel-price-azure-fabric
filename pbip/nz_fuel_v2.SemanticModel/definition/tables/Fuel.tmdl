@@ -22,8 +22,8 @@ table Fuel
 
 	column 'Fuel order'
 		dataType: int64
-		formatString: 0
 		isHidden
+		formatString: 0
 		lineageTag: e66e854f-f147-5dbf-a797-78130170eb42
 		summarizeBy: none
 		isNameInferred
@@ -57,3 +57,4 @@ table Fuel
 				)
 
 	annotation PBI_Id = cbf22bcc1af1506980ba9c25ed791582
+

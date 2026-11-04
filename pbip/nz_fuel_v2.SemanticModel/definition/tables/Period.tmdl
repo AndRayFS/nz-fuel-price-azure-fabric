@@ -13,8 +13,8 @@ table Period
 
 	column Weeks
 		dataType: int64
-		formatString: 0
 		isHidden
+		formatString: 0
 		lineageTag: 964c382c-69dc-550b-9531-3ef9f0961f93
 		summarizeBy: none
 		isNameInferred
@@ -24,8 +24,8 @@ table Period
 
 	column 'Period order'
 		dataType: int64
-		formatString: 0
 		isHidden
+		formatString: 0
 		lineageTag: 32feebb1-054c-51cd-a312-d39803ebe186
 		summarizeBy: none
 		isNameInferred
@@ -50,3 +50,4 @@ table Period
 				)
 
 	annotation PBI_Id = df8d8de63e05554c96d669568a47c757
+

@@ -28,6 +28,7 @@
               },
               "queryRef": "As Of.As of week",
               "nativeQueryRef": "As of week",
+              "active": true,
               "displayName": "As of week"
             }
           ]

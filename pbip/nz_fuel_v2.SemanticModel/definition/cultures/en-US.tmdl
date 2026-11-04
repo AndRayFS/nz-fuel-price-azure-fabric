@@ -12,19 +12,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "fuel"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Fuel": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "forecast_accuracy.horizon_weeks": {
 			      "Definition": {
@@ -33,19 +21,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "horizon_weeks"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Weeks ahead": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "forecast_accuracy.week_date": {
 			      "Definition": {
@@ -57,7 +33,7 @@ cultureInfo en-US
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Week": {
+			          "Call made": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -78,7 +54,7 @@ cultureInfo en-US
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Target week": {
+			          "For week": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -96,19 +72,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "price_now"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Price then": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "forecast_accuracy.actual_price": {
 			      "Definition": {
@@ -117,19 +81,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "actual_price"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Price that followed": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "forecast_accuracy.pred_adl_ecm": {
 			      "Definition": {
@@ -138,19 +90,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "pred_adl_ecm"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Model": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "forecast_accuracy.pred_naive": {
 			      "Definition": {
@@ -159,19 +99,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "pred_naive"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "No change": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "forecast_accuracy.abs_err_adl_ecm": {
 			      "Definition": {
@@ -180,19 +108,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "abs_err_adl_ecm"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Model error": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "forecast_accuracy.abs_err_naive": {
 			      "Definition": {
@@ -201,19 +117,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "abs_err_naive"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "No-change error": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "margin_compression.fuel": {
 			      "Definition": {
@@ -222,19 +126,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "fuel"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Fuel": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "margin_compression.week_date": {
 			      "Definition": {
@@ -264,19 +156,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "importer_margin"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Margin, c/L": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "margin_compression.margin_norm_104w": {
 			      "Definition": {
@@ -285,19 +165,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "margin_norm_104w"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Norm, c/L": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "margin_compression.margin_gap_pct": {
 			      "Definition": {
@@ -306,19 +174,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "margin_gap_pct"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Gap, %": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "margin_compression.adjustment_cpl": {
 			      "Definition": {
@@ -327,19 +183,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "adjustment_cpl"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Adjustment, c/L": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "margin_compression.margin_before_adjustment": {
 			      "Definition": {
@@ -348,19 +192,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "margin_before_adjustment"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Margin before adj., c/L": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "margin_compression.gap_before_adjustment_pct": {
 			      "Definition": {
@@ -369,10 +201,38 @@ cultureInfo en-US
 			          "ConceptualProperty": "gap_before_adjustment_pct"
 			        }
 			      },
+			      "State": "Generated"
+			    },
+			    "margin_compression.cost_backfilled": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "margin_compression",
+			          "ConceptualProperty": "cost_backfilled"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "fuel.fuel_name": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Fuel",
+			          "ConceptualProperty": "Fuel name"
+			        }
+			      },
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Gap before adj., %": {
+			          "Fuel": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Fuel name": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -383,17 +243,1151 @@ cultureInfo en-US
 			        }
 			      ]
 			    },
-			    "margin_compression.cost_backfilled": {
+			    "margin_compression.margin_bar": {
 			      "Definition": {
 			        "Binding": {
 			          "ConceptualEntity": "margin_compression",
-			          "ConceptualProperty": "cost_backfilled"
+			          "ConceptualProperty": "Margin Bar"
 			        }
 			      },
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Backfilled": {
+			          "Margin Bar": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "margin_compression.track_full": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "margin_compression",
+			          "ConceptualProperty": "Track Full"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Track Full": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "margin_compression.band_up_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "margin_compression",
+			          "ConceptualProperty": "Band Up (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Band Up (chart)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "margin_compression.band_down_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "margin_compression",
+			          "ConceptualProperty": "Band Down (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Band Down (chart)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "margin_compression.gap_pale_up_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "margin_compression",
+			          "ConceptualProperty": "Gap Pale Up (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Gap Pale Up (chart)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "margin_compression.gap_pale_down_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "margin_compression",
+			          "ConceptualProperty": "Gap Pale Down (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Gap Pale Down (chart)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "margin_compression.gap_dark_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "margin_compression",
+			          "ConceptualProperty": "Gap Dark (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Gap Dark (chart)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "margin_compression.data_margin": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "margin_compression",
+			          "ConceptualProperty": "Data Margin"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Margin": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "margin_compression.data_norm": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "margin_compression",
+			          "ConceptualProperty": "Data Norm"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Two-year average": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "margin_compression.gap_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "margin_compression",
+			          "ConceptualProperty": "Gap (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Gap": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "margin_compression.data_margin_before_adjustment": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "margin_compression",
+			          "ConceptualProperty": "Data Margin Before Adjustment"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Margin before MBIE's adjustment": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "margin_compression.gap_before_adjustment_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "margin_compression",
+			          "ConceptualProperty": "Gap Before Adjustment (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Gap before adjustment": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "margin_compression.data_margin_status": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "margin_compression",
+			          "ConceptualProperty": "Data Margin Status"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Status": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "week.week": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Week",
+			          "ConceptualProperty": "week"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Week": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.paid_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Paid (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Average paid": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.latest_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Latest (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Newest week": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.four_weeks_ago_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Four Weeks Ago (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Four weeks ago": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.four_weeks_ago_inner_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Four Weeks Ago Inner (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Four weeks ago, inner": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.cost_bar_now": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Cost Bar (now)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Importer cost": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.taxes_bar_now": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Taxes Bar (now)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Taxes and levies": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.ets_bar_now": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "ETS Bar (now)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Emissions trading": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.gst_bar_now": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "GST Bar (now)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "GST": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.margin_bar_now": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Margin Bar (now)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Importer margin": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.cost_bar_average": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Cost Bar (average)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Importer cost": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.taxes_bar_average": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Taxes Bar (average)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Taxes and levies": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.ets_bar_average": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "ETS Bar (average)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Emissions trading": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.gst_bar_average": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "GST Bar (average)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "GST": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.margin_bar_average": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Margin Bar (average)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Importer margin": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.week_date": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "week_date"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Week": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.data_pump_price": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Data Pump Price"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Pump price": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.data_importer_cost": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Data Importer Cost"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Importer cost": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.data_taxes": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Data Taxes"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Taxes and levies": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.data_ets": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Data ETS"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "ETS": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.data_gst": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Data GST"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "GST": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "prices.data_importer_margin": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "prices",
+			          "ConceptualProperty": "Data Importer Margin"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Importer margin": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.call_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "Call (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Model's calls": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.volatile_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "Volatile (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Volatile crude": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.model_26w_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "Model 26w (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Model": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.no_change_26w_chart": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "No Change 26w (chart)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "No change": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.model_26w_last": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "Model 26w (last)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Model, latest": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.no_change_26w_last": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "No Change 26w (last)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "No change, latest": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.miss_model_row_chosen": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "Miss Model (row, chosen)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Model": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.miss_no_change_row_chosen": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "Miss No Change (row, chosen)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "No change": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.miss_model_row": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "Miss Model (row)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Model": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.miss_no_change_row": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "Miss No Change (row)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "No change": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.data_price_then": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "Data Price Then"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Price then": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.data_model_call": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "Data Model Call"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Model's call": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.data_actual": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "Data Actual"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Actual": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.data_model_miss": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "Data Model Miss"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Model missed by": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "forecast_accuracy.data_no_change_miss": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "forecast_accuracy",
+			          "ConceptualProperty": "Data No Change Miss"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "“No change” missed by": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "period.period": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Period",
+			          "ConceptualProperty": "Period"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Period": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "horizon.weeks_ahead": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Horizon",
+			          "ConceptualProperty": "Weeks ahead"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Weeks ahead": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "track_row.row": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Track Row",
+			          "ConceptualProperty": "Row"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Row": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "share_row.kind": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Share Row",
+			          "ConceptualProperty": "Kind"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Kind": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "as_of.as_of_week": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "As Of",
+			          "ConceptualProperty": "As of week"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "As of week": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",

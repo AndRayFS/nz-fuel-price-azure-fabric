@@ -13,7 +13,7 @@ table Horizon
 
 	partition Horizon = calculated
 		mode: import
-		source =
-				DATATABLE("Weeks ahead", INTEGER, {{1}, {2}, {3}})
+		source = DATATABLE("Weeks ahead", INTEGER, {{1}, {2}, {3}})
 
 	annotation PBI_Id = 1622e93dd788533a871584ebb0e7b616
+

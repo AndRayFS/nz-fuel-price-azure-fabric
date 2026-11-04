@@ -22,3 +22,4 @@ table 'As Of'
 				SELECTCOLUMNS(GENERATESERIES(DATE(2013, 2, 1), TODAY(), 7), "As of week", [Value])
 
 	annotation PBI_Id = d6053f437e3151ca81f5fb59d7542663
+
