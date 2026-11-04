@@ -46,17 +46,23 @@ TILES = [("43", "data tests every run; a failure outside monitoring stops it"),
 
 def lane_top(i): return LANE_Y + i * (LANE_H + LANE_GAP)
 
-# Arrowheads are glyphs: a triangle shape 10 px wide drew nothing in the service
-# (4 Nov 2026). HEAD_DY is where the glyph's tip sits inside its 16 px box.
-HEAD_DY_DOWN, HEAD_DY_UP = 11, 3
+# Arrowheads are stacked bars, the same kind of rectangle as the line, so both land on
+# the same pixels at whatever scale the page is shown. Glyphs (4 Nov) were centred as
+# text and sat up to a pixel off some lines; a triangle shape draws nothing at all
+# (both seen 5 Nov 2026). Five rows, 10 px wide at the base down to 2 at the tip.
+HEAD_ROWS, HEAD_STEP = 5, 1.6
+HEAD_H = HEAD_ROWS * HEAD_STEP
 
 def arrow(name, x, y_from, y_to, z):
     """A vertical connector from one step's edge to the next one's, head at y_to."""
     down = y_to > y_from
-    top, bottom = (y_from, y_to - 6) if down else (y_to + 6, y_from)
-    head = textbox([[("▼" if down else "▲", 7, FAINT, False)]], align="center")
-    return [container(f"{name}l", x - 1, top, 2, bottom - top, z, blank(FAINT)),
-            container(f"{name}h", x - 8, (y_to - HEAD_DY_DOWN) if down else (y_to - HEAD_DY_UP), 16, 16, z + 1, head)]
+    top, bottom = (y_from, y_to - HEAD_H + 1) if down else (y_to + HEAD_H - 1, y_from)
+    V = [container(f"{name}l", x - 1, top, 2, bottom - top, z, blank(FAINT))]
+    for k in range(HEAD_ROWS):
+        w = 2 * (HEAD_ROWS - k) if down else 2 * (k + 1)       # widest row nearest the line
+        y = (y_to - HEAD_H + k * HEAD_STEP) if down else (y_to + k * HEAD_STEP)
+        V.append(container(f"{name}h{k}", x - w / 2, round(y, 1), w, 2, z + 1, blank(FAINT)))
+    return V
 
 def link_run(text, url):
     return {"value": text, "url": url, "textStyle": {"fontFamily": FONT, "fontSize": "9.75pt", "color": INK,
