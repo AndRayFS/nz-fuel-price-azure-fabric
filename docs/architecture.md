@@ -436,8 +436,9 @@ goes is the next section.
 in PBIR (JSON), the model in TMDL. Since W19 the report is edited there as
 well as in Desktop — what Desktop saves lands in the same files. As of October 2026 PBIR is Microsoft's default report format, editing
 it outside Desktop is supported, and every `page.json` and `visual.json` names
-the published JSON schema it follows. Desktop stays in the loop for one thing
-only: publishing, which nothing else here can do to My Workspace (above).
+the published JSON schema it follows. Desktop stayed in the loop for one thing,
+publishing, until 5 Nov 2026 — "Publishing without Desktop", in the next
+subsection, replaced it.
 
 The loop, as run for the margin and data pages:
 
@@ -497,7 +498,19 @@ Workspace as a private copy, `nz_fuel_w21_dev`, through the Fabric REST API,
 and the pages are checked in a browser. A change to visuals or measures needs
 no refresh and so no capacity; a new table or column does (`--refresh`, with
 the capacity up). The copy binds to the live model's gateway datasource and
-never writes to `nz_fuel_v2`. Publishing the real report stays with Desktop.
+never writes to `nz_fuel_v2`.
+
+**Publishing without Desktop — 5 Nov 2026.** `pbip/build/to_live.py --backup DIR`
+publishes the same folder over the live `nz_fuel_v2`, report and model, through
+the same API (`updateDefinition`). Both items are addressed by id, so the public
+link and `refresh_report_1`'s model id cannot change; the script never creates
+an item and stops if either id is gone or renamed. It saves each item's current
+definition under `DIR` first, so a publish can be put back the same way. Then,
+with the capacity up, `task refresh`. First run 5 Nov: ids kept, refresh
+completed, the public link showed the change. Updating the live items this way
+was the owner's decision; before it, only the dev copy was written from here.
+Desktop is still how to look at a page by hand; if it saves, what it writes back
+is committed as before.
 
 **What the service showed**, each seen on the rendered page, 4 Nov 2026:
 
