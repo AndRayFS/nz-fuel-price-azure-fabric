@@ -136,6 +136,13 @@ DATATABLE(
     }
 )''')
 
+# Rows of Margin's right-hand chart: the newest week and the average since 29 Mar 2024.
+share_row = calc_table("Share Row", [
+    column("Share Row", "Kind", "string", calc=True, sort_by="Kind order"),
+    column("Share Row", "Kind order", "int64", fmt="0", calc=True, hidden=True),
+], '''
+DATATABLE("Kind", STRING, "Kind order", INTEGER, {{"Newest week", 1}, {"Average", 2}})''')
+
 as_of = calc_table("As Of", [
     column("As Of", "As of week", "dateTime", fmt="d mmm yyyy", calc=True, date=True),
 ], '''
@@ -267,6 +274,17 @@ VAR ClauseA =
             IF(VerbPet = "held steady", "Pump prices barely moved in four weeks.", "Pump prices " & VerbPet & " in four weeks."),
         "Petrol " & VerbPet & " in four weeks; diesel " & VerbDsl & "."
     )
+VAR ClauseB = [Headline Margin Clause]
+RETURN
+    ClauseA & IF(ClauseA <> "" && ClauseB <> "", " ", "") & ClauseB''', folder="Now",
+    desc="Page 1's title, built from the newest week. States what happened and where margins stand - never what will happen."))
+pm.append(measure(P, "Headline Margin Clause", r'''
+// Headline's clause B on its own, so Margin's title says the same thing in the
+// same words. pbip/build/headline_check.py mirrors it.
+VAR NEAR = 5      // c/L: a margin this close to its norm is "close to" it
+VAR SPREAD = 5    // c/L: fuels further apart than this get a range, not one number
+VAR W = [Latest Week]
+VAR W4 = W - 28
 // Clause B: the importer margin against its 104-week norm, c/L.
 VAR M91 = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Regular Petrol")
 VAR M95 = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Premium Petrol 95R")
@@ -313,9 +331,8 @@ VAR ClauseB =
         SPet = SDsl, "Importer margins are " & IF(StillPet && StillDsl, "still ", "") & AmtBoth & " c/L " & SPet & " their two-year average.",
         PartPet & "; " & PartDsl & "."
     )
-RETURN
-    ClauseA & IF(ClauseA <> "" && ClauseB <> "", " ", "") & ClauseB''', folder="Now",
-    desc="Page 1's title, built from the newest week. States what happened and where margins stand - never what will happen."))
+RETURN ClauseB''', folder="Now",
+    desc="Where the petrol and diesel margins stand against their two-year norms, in a sentence."))
 
 prices_cols = [
     column(P, "week_date", "dateTime", fmt="d mmm yyyy", date=True),
@@ -337,9 +354,6 @@ let
     Typed = Table.TransformColumnTypes(Renamed, {{{{"week_date", type date}}, {{"fuel", type text}}, {{"adjusted_retail_price", type number}}, {{"importer_cost", type number}}, {{"importer_margin", type number}}, {{"taxes", type number}}, {{"ets", type number}}, {{"gst", type number}}, {{"board_price", type number}}}})
 in
     Typed'''
-prices = (f"/// MBIE's weekly price and its components, by fuel, straight from silver - the same rows the archive's weekly_prices.csv carries.\ntable prices\n\tlineageTag: {tag(P)}\n\n"
-          + "\n".join(pm) + "\n" + "\n".join(prices_cols)
-          + f"\n\tpartition prices = m\n\t\tmode: import\n\t\tsource =\n{block(prices_m, 4)}\n\n\tannotation PBI_ResultType = Table\n")
 
 # ---------------------------------------------------------------- forecast_accuracy additions
 F = "forecast_accuracy"
@@ -474,6 +488,38 @@ for n in (1, 2, 3):
     fm.append(measure(F, f"Row Fill {n}", f'''
 IF([Selected Horizon] = {n}, "#F4F8FD", "#FFFFFF")''', folder=TR, hidden=True))
 
+# Margin: where each litre goes, the newest week against the average since the
+# margin window opened on 29 Mar 2024. The five parts add up to the pump price
+# exactly (checked on the archive of 29 Oct 2026), so shares are honest.
+MG = "Margin"
+PARTS = [("Cost", "importer_cost"), ("Taxes", "taxes"), ("ETS", "ets"), ("GST", "gst"), ("Margin", "importer_margin")]
+for name, col_ in PARTS + [("Price", "adjusted_retail_price")]:
+    pm.append(measure(P, f"{name} Now (c/L)", f'''
+VAR vW = [Latest Week]
+RETURN CALCULATE(AVERAGE(prices[{col_}]), REMOVEFILTERS(Week), prices[week_date] = vW)''', fmt="0.0", folder=MG, hidden=True))
+    pm.append(measure(P, f"{name} Average (c/L)", f'''
+VAR vW = [Latest Week]
+RETURN CALCULATE(AVERAGE(prices[{col_}]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)''',
+        fmt="0.0", folder=MG, hidden=True))
+for name, _ in PARTS:
+    # 0 rather than blank on the other row, so both layers keep both rows in place.
+    pm.append(measure(P, f"{name} Share (now)", f'''
+IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", DIVIDE([{name} Now (c/L)], [Price Now (c/L)]), 0)''', fmt="0%", folder=MG))
+    pm.append(measure(P, f"{name} Share (average)", f'''
+IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", DIVIDE([{name} Average (c/L)], [Price Average (c/L)]), 0)''', fmt="0%", folder=MG))
+pm.append(measure(P, "Share Label Now", '''
+FORMAT([Latest Week], "d mmm") & " · " & FORMAT([Price Now (c/L)], "0.0") & " c/L"''', folder=MG))
+pm.append(measure(P, "Share Label Average", '''
+"Average · " & FORMAT([Price Average (c/L)], "0.0") & " c/L"''', folder=MG))
+pm.append(measure(P, "Margin Share Now Label", '''
+FORMAT(DIVIDE([Margin Now (c/L)], [Price Now (c/L)]), "0.0%")''', folder=MG))
+pm.append(measure(P, "Margin Share Average Label", '''
+FORMAT(DIVIDE([Margin Average (c/L)], [Price Average (c/L)]), "0.0%")''', folder=MG))
+pm.append(measure(P, "Margin Headline", '''
+VAR vB = [Headline Margin Clause]
+RETURN "A squeezed margin is a cost rise the pump has not passed on yet." & IF(vB <> "", " " & vB)''', folder=MG,
+    desc="Margin's title: what a squeeze means, then where the margins stand now, in Now's words."))
+
 # ---------------------------------------------------------------- margin_compression additions
 M = "margin_compression"
 mm = []
@@ -508,6 +554,33 @@ mm.append(measure(M, "Cost Pressure Heading", '''
 "Importer margin against its two-year average, week to " & FORMAT([Latest Week], "d mmm")
     & " · orange: below average, costs have run ahead of the pump"''', folder="Now"))
 
+mm.append(measure(M, "Gap (chart)", '''
+VAR vM = AVERAGE(margin_compression[importer_margin])
+VAR vN = AVERAGE(margin_compression[margin_norm_104w])
+RETURN IF(NOT ISBLANK(vM) && NOT ISBLANK(vN), vM - vN)''', fmt="+0.0;-0.0;0.0", folder=MG,
+    desc="The margin less its 104-week norm, c/L, week by week: the bars on Margin."))
+mm.append(measure(M, "Gap Before Adjustment (chart)", '''
+VAR vA = AVERAGE(margin_compression[adjustment_cpl])
+VAR vM = AVERAGE(margin_compression[margin_before_adjustment])
+VAR vP = AVERAGE(margin_compression[gap_before_adjustment_pct])
+RETURN IF(NOT ISBLANK(vA) && NOT ISBLANK(vM) && NOT ISBLANK(vP), vM - DIVIDE(vM, 1 + vP / 100))''', fmt="+0.0;-0.0;0.0", folder=MG,
+    desc="The same gap with MBIE's fuel market adjustment added back, 27 Feb - 11 Sep 2026 only. The gold model gives it as a share of an unadjusted norm; the norm is recovered from the margin and that share."))
+mm.append(measure(M, "Gap Colour (chart)", '''
+VAR vG = [Gap (chart)]
+VAR vLate = CALCULATE(COUNTROWS(margin_compression), margin_compression[cost_backfilled] = TRUE()) > 0
+RETURN IF(vG < 0, IF(vLate, "#F6BFA8", "#EB6834"), IF(vLate, "#DEDDD7", "#A3A29B"))''', folder=MG, hidden=True,
+    desc="Orange below the norm, grey above; paler in the weeks MBIE suspended and filled in later."))
+for name, agg, k in (("Gap Axis Low", "MIN", 1.08), ("Gap Axis High", "MAX", 1.15)):
+    mm.append(measure(M, name, f'''
+VAR vA = CALCULATE({agg}X(margin_compression, margin_compression[importer_margin] - margin_compression[margin_norm_104w]), REMOVEFILTERS(Fuel), REMOVEFILTERS(Week))
+VAR vB = CALCULATE({agg}X(FILTER(margin_compression, NOT ISBLANK(margin_compression[adjustment_cpl]) && NOT ISBLANK(margin_compression[gap_before_adjustment_pct])),
+    margin_compression[margin_before_adjustment] - DIVIDE(margin_compression[margin_before_adjustment], 1 + margin_compression[gap_before_adjustment_pct] / 100)),
+    REMOVEFILTERS(Fuel), REMOVEFILTERS(Week))
+RETURN {k} * {agg}(vA, vB)''', fmt="0", folder=MG, hidden=True,
+        desc="One value axis for all three fuels, so a bar's height means the same c/L in each chart."))
+mm.append(measure(M, "Gap Header", '''
+IF(NOT ISBLANK([Margin Gap Now]), FORMAT([Latest Week], "d mmm") & ": " & FORMAT([Margin Gap Now], "+0.0;−0.0;0.0") & " c/L")''', folder=MG))
+
 def append_measures(path, measures):
     text = path.read_text()
     marker = "\n\tcolumn "
@@ -523,6 +596,11 @@ def append_measures(path, measures):
 (ROOT / "tables/As Of.tmdl").write_text(as_of)
 (ROOT / "tables/Horizon.tmdl").write_text(horizon)
 (ROOT / "tables/Track Row.tmdl").write_text(track_row)
+(ROOT / "tables/Share Row.tmdl").write_text(share_row)
+# Assembled here, after every page has added its measures to pm.
+prices = (f"/// MBIE's weekly price and its components, by fuel, straight from silver - the same rows the archive's weekly_prices.csv carries.\ntable prices\n\tlineageTag: {tag(P)}\n\n"
+          + "\n".join(pm) + "\n" + "\n".join(prices_cols)
+          + f"\n\tpartition prices = m\n\t\tmode: import\n\t\tsource =\n{block(prices_m, 4)}\n\n\tannotation PBI_ResultType = Table\n")
 (ROOT / "tables/prices.tmdl").write_text(prices)
 append_measures(ROOT / "tables/forecast_accuracy.tmdl", fm)
 append_measures(ROOT / "tables/margin_compression.tmdl", mm)
@@ -539,7 +617,7 @@ model = model.replace('annotation PBI_QueryOrder = ["forecast_accuracy","margin_
 if "ref table prices" not in model:
     model = model.replace("ref table margin_compression\n",
         "ref table margin_compression\nref table prices\nref table Fuel\nref table Week\nref table Period\nref table 'As Of'\n")
-for ref in ("ref table Horizon\n", "ref table 'Track Row'\n"):
+for ref in ("ref table Horizon\n", "ref table 'Track Row'\n", "ref table 'Share Row'\n"):
     if ref not in model:
         model = model.replace("ref table 'As Of'\n", "ref table 'As Of'\n" + ref)
 (ROOT / "model.tmdl").write_text(model)

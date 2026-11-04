@@ -20,6 +20,7 @@ ref table Fuel
 ref table Week
 ref table Period
 ref table 'As Of'
+ref table 'Share Row'
 ref table 'Track Row'
 ref table Horizon
 

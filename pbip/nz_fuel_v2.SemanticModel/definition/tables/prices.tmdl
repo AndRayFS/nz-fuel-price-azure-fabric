@@ -204,6 +204,20 @@ table prices
 			            IF(VerbPet = "held steady", "Pump prices barely moved in four weeks.", "Pump prices " & VerbPet & " in four weeks."),
 			        "Petrol " & VerbPet & " in four weeks; diesel " & VerbDsl & "."
 			    )
+			VAR ClauseB = [Headline Margin Clause]
+			RETURN
+			    ClauseA & IF(ClauseA <> "" && ClauseB <> "", " ", "") & ClauseB
+		displayFolder: Now
+		lineageTag: c41677c4-3cc2-528f-b658-53d89a8eb8f2
+
+	/// Where the petrol and diesel margins stand against their two-year norms, in a sentence.
+	measure 'Headline Margin Clause' =
+			// Headline's clause B on its own, so Margin's title says the same thing in the
+			// same words. pbip/build/headline_check.py mirrors it.
+			VAR NEAR = 5      // c/L: a margin this close to its norm is "close to" it
+			VAR SPREAD = 5    // c/L: fuels further apart than this get a range, not one number
+			VAR W = [Latest Week]
+			VAR W4 = W - 28
 			// Clause B: the importer margin against its 104-week norm, c/L.
 			VAR M91 = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Regular Petrol")
 			VAR M95 = CALCULATE(AVERAGE(margin_compression[importer_margin]), REMOVEFILTERS(), margin_compression[week_date] = W, margin_compression[fuel] = "Premium Petrol 95R")
@@ -250,10 +264,178 @@ table prices
 			        SPet = SDsl, "Importer margins are " & IF(StillPet && StillDsl, "still ", "") & AmtBoth & " c/L " & SPet & " their two-year average.",
 			        PartPet & "; " & PartDsl & "."
 			    )
-			RETURN
-			    ClauseA & IF(ClauseA <> "" && ClauseB <> "", " ", "") & ClauseB
+			RETURN ClauseB
 		displayFolder: Now
-		lineageTag: c41677c4-3cc2-528f-b658-53d89a8eb8f2
+		lineageTag: 192f4088-8a38-5e6b-a81b-e587bb2e01ed
+
+	measure 'Cost Now (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[importer_cost]), REMOVEFILTERS(Week), prices[week_date] = vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: f6e7a6ab-c810-5e73-a8fd-49548318f3fa
+
+	measure 'Cost Average (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[importer_cost]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 10db25e2-9c0a-5ae2-8668-7f597233d282
+
+	measure 'Taxes Now (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[taxes]), REMOVEFILTERS(Week), prices[week_date] = vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 88fd84b2-d4a9-5ea4-814b-eeb7826bbb26
+
+	measure 'Taxes Average (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[taxes]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: c5eb80d3-0d83-55ee-9f5d-a1bdea910458
+
+	measure 'ETS Now (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[ets]), REMOVEFILTERS(Week), prices[week_date] = vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 2e079cb4-f926-55ea-bf08-9cf4c866a60c
+
+	measure 'ETS Average (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[ets]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: cf6ec29f-355a-540b-aa03-e48bd9a358d6
+
+	measure 'GST Now (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[gst]), REMOVEFILTERS(Week), prices[week_date] = vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 7ee0ce66-c169-58c6-9225-a31a0cc393fb
+
+	measure 'GST Average (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[gst]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 20c48e65-cd6b-5135-ab5c-863878f5d8e4
+
+	measure 'Margin Now (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[importer_margin]), REMOVEFILTERS(Week), prices[week_date] = vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 7a89d068-9bc3-50d9-bb62-efa2764e31aa
+
+	measure 'Margin Average (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[importer_margin]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 31bbd6b2-e328-563f-be31-70fa071d332a
+
+	measure 'Price Now (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(Week), prices[week_date] = vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: bca7d90c-647a-5bfa-a739-343e207f4cf7
+
+	measure 'Price Average (c/L)' =
+			VAR vW = [Latest Week]
+			RETURN CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: a1531fae-c3ab-5300-91c2-ee078245e6a5
+
+	measure 'Cost Share (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", DIVIDE([Cost Now (c/L)], [Price Now (c/L)]), 0)
+		formatString: 0%
+		displayFolder: Margin
+		lineageTag: 3d20b76b-faae-53d7-b0a4-05c24d8cb95e
+
+	measure 'Cost Share (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", DIVIDE([Cost Average (c/L)], [Price Average (c/L)]), 0)
+		formatString: 0%
+		displayFolder: Margin
+		lineageTag: e22c68b0-6808-53f1-9a7b-a8dfcb21d863
+
+	measure 'Taxes Share (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", DIVIDE([Taxes Now (c/L)], [Price Now (c/L)]), 0)
+		formatString: 0%
+		displayFolder: Margin
+		lineageTag: 8bf48d5d-99b2-5d94-9534-f55a0d969290
+
+	measure 'Taxes Share (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", DIVIDE([Taxes Average (c/L)], [Price Average (c/L)]), 0)
+		formatString: 0%
+		displayFolder: Margin
+		lineageTag: 8c7f7160-9980-5acd-82ba-9ff59664ba06
+
+	measure 'ETS Share (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", DIVIDE([ETS Now (c/L)], [Price Now (c/L)]), 0)
+		formatString: 0%
+		displayFolder: Margin
+		lineageTag: e1a2c664-1d54-5beb-a06c-745230eef1e8
+
+	measure 'ETS Share (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", DIVIDE([ETS Average (c/L)], [Price Average (c/L)]), 0)
+		formatString: 0%
+		displayFolder: Margin
+		lineageTag: fd278046-87b0-5ffe-ad39-ba56a29f6373
+
+	measure 'GST Share (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", DIVIDE([GST Now (c/L)], [Price Now (c/L)]), 0)
+		formatString: 0%
+		displayFolder: Margin
+		lineageTag: 2b4cef32-b32a-57ec-b275-4ef73ffbaee2
+
+	measure 'GST Share (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", DIVIDE([GST Average (c/L)], [Price Average (c/L)]), 0)
+		formatString: 0%
+		displayFolder: Margin
+		lineageTag: 8069b53b-6930-5ec2-9adb-ff7748e68dda
+
+	measure 'Margin Share (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", DIVIDE([Margin Now (c/L)], [Price Now (c/L)]), 0)
+		formatString: 0%
+		displayFolder: Margin
+		lineageTag: 3e2543bd-f7dd-5231-9690-8774b44db921
+
+	measure 'Margin Share (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", DIVIDE([Margin Average (c/L)], [Price Average (c/L)]), 0)
+		formatString: 0%
+		displayFolder: Margin
+		lineageTag: e6532585-bc63-5408-b56e-165676339c5e
+
+	measure 'Share Label Now' = FORMAT([Latest Week], "d mmm") & " · " & FORMAT([Price Now (c/L)], "0.0") & " c/L"
+		displayFolder: Margin
+		lineageTag: d6793bde-81f7-5c94-8bbc-cad0c687310d
+
+	measure 'Share Label Average' = "Average · " & FORMAT([Price Average (c/L)], "0.0") & " c/L"
+		displayFolder: Margin
+		lineageTag: 4c16a4bc-2250-5b27-a568-1172c60a1a86
+
+	measure 'Margin Share Now Label' = FORMAT(DIVIDE([Margin Now (c/L)], [Price Now (c/L)]), "0.0%")
+		displayFolder: Margin
+		lineageTag: 6be4372a-085f-5ab0-8e02-ca4c803ced91
+
+	measure 'Margin Share Average Label' = FORMAT(DIVIDE([Margin Average (c/L)], [Price Average (c/L)]), "0.0%")
+		displayFolder: Margin
+		lineageTag: 83985d86-46d6-53c7-8b45-16208856bbb8
+
+	/// Margin's title: what a squeeze means, then where the margins stand now, in Now's words.
+	measure 'Margin Headline' =
+			VAR vB = [Headline Margin Clause]
+			RETURN "A squeezed margin is a cost rise the pump has not passed on yet." & IF(vB <> "", " " & vB)
+		displayFolder: Margin
+		lineageTag: e03d5d7d-9e91-506e-a1b0-2e7775cbece5
 
 	column week_date
 		dataType: dateTime

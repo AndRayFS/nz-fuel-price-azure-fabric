@@ -103,6 +103,62 @@ table margin_compression
 		displayFolder: Now
 		lineageTag: a105f357-c026-5569-9233-77985b6dd7e0
 
+	/// The margin less its 104-week norm, c/L, week by week: the bars on Margin.
+	measure 'Gap (chart)' =
+			VAR vM = AVERAGE(margin_compression[importer_margin])
+			VAR vN = AVERAGE(margin_compression[margin_norm_104w])
+			RETURN IF(NOT ISBLANK(vM) && NOT ISBLANK(vN), vM - vN)
+		formatString: +0.0;-0.0;0.0
+		displayFolder: Margin
+		lineageTag: 9a86007b-87d4-5037-9fd6-739f8815a338
+
+	/// The same gap with MBIE's fuel market adjustment added back, 27 Feb - 11 Sep 2026 only. The gold model gives it as a share of an unadjusted norm; the norm is recovered from the margin and that share.
+	measure 'Gap Before Adjustment (chart)' =
+			VAR vA = AVERAGE(margin_compression[adjustment_cpl])
+			VAR vM = AVERAGE(margin_compression[margin_before_adjustment])
+			VAR vP = AVERAGE(margin_compression[gap_before_adjustment_pct])
+			RETURN IF(NOT ISBLANK(vA) && NOT ISBLANK(vM) && NOT ISBLANK(vP), vM - DIVIDE(vM, 1 + vP / 100))
+		formatString: +0.0;-0.0;0.0
+		displayFolder: Margin
+		lineageTag: 962592b6-5da9-5f0d-97bf-7d6f9fe56f67
+
+	/// Orange below the norm, grey above; paler in the weeks MBIE suspended and filled in later.
+	measure 'Gap Colour (chart)' =
+			VAR vG = [Gap (chart)]
+			VAR vLate = CALCULATE(COUNTROWS(margin_compression), margin_compression[cost_backfilled] = TRUE()) > 0
+			RETURN IF(vG < 0, IF(vLate, "#F6BFA8", "#EB6834"), IF(vLate, "#DEDDD7", "#A3A29B"))
+		displayFolder: Margin
+		isHidden
+		lineageTag: 110f7e02-b59f-5bc0-8369-9020bf2dc099
+
+	/// One value axis for all three fuels, so a bar's height means the same c/L in each chart.
+	measure 'Gap Axis Low' =
+			VAR vA = CALCULATE(MINX(margin_compression, margin_compression[importer_margin] - margin_compression[margin_norm_104w]), REMOVEFILTERS(Fuel), REMOVEFILTERS(Week))
+			VAR vB = CALCULATE(MINX(FILTER(margin_compression, NOT ISBLANK(margin_compression[adjustment_cpl]) && NOT ISBLANK(margin_compression[gap_before_adjustment_pct])),
+			    margin_compression[margin_before_adjustment] - DIVIDE(margin_compression[margin_before_adjustment], 1 + margin_compression[gap_before_adjustment_pct] / 100)),
+			    REMOVEFILTERS(Fuel), REMOVEFILTERS(Week))
+			RETURN 1.08 * MIN(vA, vB)
+		formatString: 0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 18d88dc4-ba9f-53f7-a6ac-b9c092f87d97
+
+	/// One value axis for all three fuels, so a bar's height means the same c/L in each chart.
+	measure 'Gap Axis High' =
+			VAR vA = CALCULATE(MAXX(margin_compression, margin_compression[importer_margin] - margin_compression[margin_norm_104w]), REMOVEFILTERS(Fuel), REMOVEFILTERS(Week))
+			VAR vB = CALCULATE(MAXX(FILTER(margin_compression, NOT ISBLANK(margin_compression[adjustment_cpl]) && NOT ISBLANK(margin_compression[gap_before_adjustment_pct])),
+			    margin_compression[margin_before_adjustment] - DIVIDE(margin_compression[margin_before_adjustment], 1 + margin_compression[gap_before_adjustment_pct] / 100)),
+			    REMOVEFILTERS(Fuel), REMOVEFILTERS(Week))
+			RETURN 1.15 * MAX(vA, vB)
+		formatString: 0
+		displayFolder: Margin
+		isHidden
+		lineageTag: e20c064f-a0e5-5bd4-bd2b-dcc1c9aaaf4c
+
+	measure 'Gap Header' = IF(NOT ISBLANK([Margin Gap Now]), FORMAT([Latest Week], "d mmm") & ": " & FORMAT([Margin Gap Now], "+0.0;−0.0;0.0") & " c/L")
+		displayFolder: Margin
+		lineageTag: 4a8753ab-393c-5bb8-86d7-4fbfdd41b06f
+
 	column week_date
 		dataType: dateTime
 		formatString: Long Date
