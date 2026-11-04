@@ -28,8 +28,8 @@
               },
               "queryRef": "Fuel.Fuel name",
               "nativeQueryRef": "Fuel",
-              "active": true,
-              "displayName": "Fuel"
+              "displayName": "Fuel",
+              "active": true
             }
           ]
         },
@@ -190,6 +190,13 @@
                 }
               }
             },
+            "shadeShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
             "barColor": {
               "solid": {
                 "color": {
@@ -232,7 +239,7 @@
                     }
                   }
                 },
-                "lowerBound": {
+                "upperBound": {
                   "expr": {
                     "Measure": {
                       "Expression": {
@@ -244,7 +251,7 @@
                     }
                   }
                 },
-                "upperBound": {
+                "lowerBound": {
                   "expr": {
                     "Measure": {
                       "Expression": {

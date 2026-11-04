@@ -13,8 +13,8 @@ table 'Share Row'
 
 	column 'Kind order'
 		dataType: int64
-		isHidden
 		formatString: 0
+		isHidden
 		lineageTag: a599a76f-1313-5bbd-b17e-15e737297492
 		summarizeBy: none
 		isNameInferred
@@ -24,7 +24,7 @@ table 'Share Row'
 
 	partition 'Share Row' = calculated
 		mode: import
-		source = DATATABLE("Kind", STRING, "Kind order", INTEGER, {{"Newest week", 1}, {"Average", 2}})
+		source =
+				DATATABLE("Kind", STRING, "Kind order", INTEGER, {{"Newest week", 1}, {"Average", 2}})
 
 	annotation PBI_Id = f2376ff54c16565797220fbea56f9740
-

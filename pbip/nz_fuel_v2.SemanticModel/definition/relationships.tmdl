@@ -21,4 +21,3 @@ relationship fdf7a568-6878-589a-99be-35715d0d6e06
 relationship 3c97b425-368e-5236-8540-ff01e019e23e
 	fromColumn: prices.week_date
 	toColumn: Week.week
-

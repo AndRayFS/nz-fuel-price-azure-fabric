@@ -118,7 +118,9 @@ def page_now(style):
             container(f"c{i}uline", x + 16, 203, uw, 3, z + 2, blank(colour)),
             container(f"c{i}weekto", x + 16, 212, 368, 18, z + 3, title_text("prices", "Week To Label", 8.25, MUTED)),
             container(f"c{i}price", x + 16, 230, 96, 38, z + 4, title_text("prices", "Price Now Number", 21, INK, face=style["num"]), f),
-            container(f"c{i}unit", x + 92, 244, 40, 20, z + 4, textbox([[("c/L", 9.75, MUTED, False)]])),
+            # One space after the number and on its baseline, as in the mock-up: at x+92, y 244
+            # it sat ~7 px off and ~4 px high (5 Nov 2026). Segoe UI's digits are all one width.
+            container(f"c{i}unit", x + 90, 247, 40, 20, z + 4, textbox([[("c/L", 9.75, MUTED, False)]])),
             container(f"c{i}pill", x + 206, 238, 180, 26, z + 5, fx_box("prices", "Change 4w Fill"), f),
             container(f"c{i}arrow", x + 212, 242, 16, 20, z + 6,
                       title_text("prices", "Change 4w Arrow", 9, colour_measure=("prices", "Change 4w Colour")), f),

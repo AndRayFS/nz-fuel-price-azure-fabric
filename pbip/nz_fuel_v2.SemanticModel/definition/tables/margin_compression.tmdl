@@ -55,8 +55,8 @@ table margin_compression
 		displayFolder: Now
 		lineageTag: 40d6b7fe-53e8-5fbd-a468-4fc5679333f8
 
-	/// Orange when the margin sits at least 5 c/L under its norm: costs have run ahead of the pump. Same threshold as the headline's "close to".
-	measure 'Cost Pressure Colour' = IF([Margin Gap Now] <= -5, "#EB6834", "#8A8983")
+	/// Orange whenever the margin is below its norm, as the legend says: costs have run ahead of the pump. It had a 5 c/L threshold, the headline's "close to", until 5 Nov 2026, when -0.5 and -1.7 stayed grey under a legend that said orange.
+	measure 'Cost Pressure Colour' = IF([Margin Gap Now] < 0, "#EB6834", "#8A8983")
 		displayFolder: Now
 		lineageTag: 89748666-bb76-58a3-8462-19d58e7c9ee1
 
@@ -91,8 +91,8 @@ table margin_compression
 			VAR vU = COALESCE([Gap Before Adjustment (chart)], vO)
 			RETURN SWITCH(TRUE(), ISBLANK(vO), BLANK(), vO >= 0 && vU >= 0, MIN(vO, vU), vO <= 0 && vU <= 0, MAX(vO, vU), 0)
 		formatString: +0.0;-0.0;0.0
-		isHidden
 		displayFolder: Margin
+		isHidden
 		lineageTag: 1cb40a0b-c34a-5441-802a-5ca4272b264d
 
 	measure 'Gap Pale Up (chart)' =
@@ -100,8 +100,8 @@ table margin_compression
 			VAR vU = COALESCE([Gap Before Adjustment (chart)], vO)
 			RETURN IF(NOT ISBLANK(vO), MAX(MAX(vO, vU), 0))
 		formatString: +0.0;-0.0;0.0
-		isHidden
 		displayFolder: Margin
+		isHidden
 		lineageTag: 8c91b10c-ebc0-599b-aae1-e15fcdfdd5eb
 
 	measure 'Gap Pale Down (chart)' =
@@ -109,8 +109,8 @@ table margin_compression
 			VAR vU = COALESCE([Gap Before Adjustment (chart)], vO)
 			RETURN IF(NOT ISBLANK(vO), MIN(MIN(vO, vU), 0))
 		formatString: +0.0;-0.0;0.0
-		isHidden
 		displayFolder: Margin
+		isHidden
 		lineageTag: cad6c2a5-4ea4-51db-96b6-da21718b1375
 
 	/// Full height in the weeks MBIE suspended cost and margin and filled in later (18 Mar - 1 Jul 2026).
@@ -118,8 +118,8 @@ table margin_compression
 			VAR vLate = CALCULATE(COUNTROWS(margin_compression), margin_compression[cost_backfilled] = TRUE()) > 0
 			RETURN IF(NOT ISBLANK([Gap (chart)]), IF(vLate, [Gap Axis High], 0))
 		formatString: 0
-		isHidden
 		displayFolder: Margin
+		isHidden
 		lineageTag: e3e2ca46-7523-5467-9d7e-7a95b528db35
 
 	/// Full height in the weeks MBIE suspended cost and margin and filled in later (18 Mar - 1 Jul 2026).
@@ -127,14 +127,14 @@ table margin_compression
 			VAR vLate = CALCULATE(COUNTROWS(margin_compression), margin_compression[cost_backfilled] = TRUE()) > 0
 			RETURN IF(NOT ISBLANK([Gap (chart)]), IF(vLate, [Gap Axis Low], 0))
 		formatString: 0
-		isHidden
 		displayFolder: Margin
+		isHidden
 		lineageTag: 1b2c126c-69a5-5cdd-8ba0-aa1de663ce43
 
 	/// Orange below the norm, grey above.
 	measure 'Gap Colour (chart)' = IF([Gap Dark (chart)] < 0, "#EB6834", "#A3A29B")
-		isHidden
 		displayFolder: Margin
+		isHidden
 		lineageTag: 110f7e02-b59f-5bc0-8369-9020bf2dc099
 
 	/// The fuel's own range, with and without the adjustment, plus a margin.
@@ -145,8 +145,8 @@ table margin_compression
 			    REMOVEFILTERS(Week))
 			RETURN 1.08 * MIN(vA, vB)
 		formatString: 0
-		isHidden
 		displayFolder: Margin
+		isHidden
 		lineageTag: 18d88dc4-ba9f-53f7-a6ac-b9c092f87d97
 
 	/// The fuel's own range, with and without the adjustment, plus a margin.
@@ -157,8 +157,8 @@ table margin_compression
 			    REMOVEFILTERS(Week))
 			RETURN 1.15 * MAX(vA, vB)
 		formatString: 0
-		isHidden
 		displayFolder: Margin
+		isHidden
 		lineageTag: e20c064f-a0e5-5bd4-bd2b-dcc1c9aaaf4c
 
 	/// The right-hand end of Margin's charts, written under them in place of a date axis.

@@ -594,8 +594,8 @@ IF(NOT ISBLANK([Margin Gap Now]),
 mm.append(measure(M, "Cost Pressure Gap Label", '''
 IF(NOT ISBLANK([Margin Gap Now]), FORMAT([Margin Gap Now], "+0.0;-0.0;0.0") & " c/L")''', folder="Now"))
 mm.append(measure(M, "Cost Pressure Colour", '''
-IF([Margin Gap Now] <= -5, "#EB6834", "#8A8983")''', folder="Now",
-    desc="Orange when the margin sits at least 5 c/L under its norm: costs have run ahead of the pump. Same threshold as the headline's \"close to\"."))
+IF([Margin Gap Now] < 0, "#EB6834", "#8A8983")''', folder="Now",
+    desc="Orange whenever the margin is below its norm, as the legend says: costs have run ahead of the pump. It had a 5 c/L threshold, the headline's \"close to\", until 5 Nov 2026, when -0.5 and -1.7 stayed grey under a legend that said orange."))
 mm.append(measure(M, "Cost Pressure Heading", '''
 "Importer margin against its two-year average, week to " & FORMAT([Latest Week], "d mmm")
     & " · orange: below average, costs have run ahead of the pump"''', folder="Now"))

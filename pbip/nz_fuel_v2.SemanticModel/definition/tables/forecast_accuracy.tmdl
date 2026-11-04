@@ -153,8 +153,8 @@ table forecast_accuracy
 
 	measure 'Selected Horizon' = SELECTEDVALUE('Horizon'[Weeks ahead], 1)
 		formatString: 0
-		isHidden
 		displayFolder: Track record
+		isHidden
 		lineageTag: b3eeb0b1-7884-5387-9bca-c3b4a55616c9
 
 	/// Average absolute miss at the chosen horizon, over every call whose outcome is known since Feb 2013.
@@ -205,8 +205,8 @@ table forecast_accuracy
 	measure 'Track Last Week' =
 			VAR vH = [Selected Horizon]
 			RETURN CALCULATE(MAX(forecast_accuracy[Target week]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
-		isHidden
 		displayFolder: Track record
+		isHidden
 		lineageTag: 3904a670-bc22-5b3c-b50a-47c164825a89
 
 	measure 'Model 26w (last)' = IF(MAX(Week[week]) = [Track Last Week], [Model 26w (chart)])
@@ -225,8 +225,8 @@ table forecast_accuracy
 			VAR vB = CALCULATE(MAX(forecast_accuracy[mae_model_26w]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
 			RETURN 1.1 * MAX(vA, vB)
 		formatString: 0.0
-		isHidden
 		displayFolder: Track record
+		isHidden
 		lineageTag: ea26871b-a180-5aeb-bcab-fbd8579ef634
 
 	/// A full-height column in weeks whose call was made in volatile crude: the shading behind the lines.
@@ -259,8 +259,8 @@ table forecast_accuracy
 			VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
 			RETURN IF(NOT ISBLANK(vH), IF(vH = [Selected Horizon], [Miss Model (row)], 0))
 		formatString: 0.0
-		isHidden
 		displayFolder: Track record
+		isHidden
 		lineageTag: c0c8c453-11e4-55db-a1b6-48821a3062a3
 
 	/// The chosen horizon's rows only, for the full-colour layer over the muted chart; 0 rather than blank elsewhere, so every row keeps its place.
@@ -268,15 +268,15 @@ table forecast_accuracy
 			VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
 			RETURN IF(NOT ISBLANK(vH), IF(vH = [Selected Horizon], [Miss No Change (row)], 0))
 		formatString: 0.0
-		isHidden
 		displayFolder: Track record
+		isHidden
 		lineageTag: ea020534-102f-5695-b3b1-199520010500
 
 	/// One axis end for both layers of the right-hand chart, so their bars line up.
 	measure 'Rows Axis End' = 1.15 * MAXX(ALL('Track Row'), MAX([Miss Model (row)], [Miss No Change (row)]))
 		formatString: 0.0
-		isHidden
 		displayFolder: Track record
+		isHidden
 		lineageTag: f5d5ecd6-10e1-5329-9c1b-27dff471d788
 
 	/// Left chart's title: the volatile-crude episode where the model beat no change by most, and any where it did worse.
@@ -314,23 +314,23 @@ table forecast_accuracy
 		lineageTag: 1a4db271-ea52-5476-b534-09cad9b8b095
 
 	measure 'Fuel Accent' = SELECTEDVALUE(Fuel[Fuel colour])
-		isHidden
 		displayFolder: Track record
+		isHidden
 		lineageTag: bbf1f3f1-4860-5e64-8d23-9db07bfc5854
 
 	measure 'Row Fill 1' = IF([Selected Horizon] = 1, "#F4F8FD", "#FFFFFF")
-		isHidden
 		displayFolder: Track record
+		isHidden
 		lineageTag: fcdc95d2-c983-5ce3-8e23-3a09bb6b0185
 
 	measure 'Row Fill 2' = IF([Selected Horizon] = 2, "#F4F8FD", "#FFFFFF")
-		isHidden
 		displayFolder: Track record
+		isHidden
 		lineageTag: 69b3234d-518d-598d-8b99-6d51aad184ac
 
 	measure 'Row Fill 3' = IF([Selected Horizon] = 3, "#F4F8FD", "#FFFFFF")
-		isHidden
 		displayFolder: Track record
+		isHidden
 		lineageTag: a141e303-83a0-5dd4-a056-7bf6e48e5611
 
 	measure 'Data Price Then' =
@@ -369,8 +369,8 @@ table forecast_accuracy
 			VAR vMine = CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
 			VAR vOther = CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
 			RETURN IF(ISBLANK(vMine), "#5C5B56", IF(vMine <= vOther, "#1B1B19", "#A3A29B"))
-		isHidden
 		displayFolder: Data
+		isHidden
 		lineageTag: 008e820d-0d3f-5187-b5a6-83c3f459a5da
 
 	/// Text, so a call still waiting for its outcome can say so in the same column.
@@ -388,8 +388,8 @@ table forecast_accuracy
 			VAR vMine = CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
 			VAR vOther = CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
 			RETURN IF(ISBLANK(vMine), "#5C5B56", IF(vMine < vOther, "#1B1B19", "#A3A29B"))
-		isHidden
 		displayFolder: Data
+		isHidden
 		lineageTag: 43c772a3-bd75-581b-80a8-19c2ec6cf4d6
 
 	measure 'Data Calls Caption' =
