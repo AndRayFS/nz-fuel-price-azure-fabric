@@ -198,6 +198,11 @@ table margin_compression
 		isHidden
 		lineageTag: e20c064f-a0e5-5bd4-bd2b-dcc1c9aaaf4c
 
+	/// The right-hand end of Margin's charts, written under them in place of a date axis.
+	measure 'Gap Last Week' = FORMAT([Latest Week], "d mmm yyyy")
+		displayFolder: Margin
+		lineageTag: d2498b5a-0aa8-52f0-868a-099dc4c169e8
+
 	measure 'Gap Header Date' = IF(NOT ISBLANK([Margin Gap Now]), FORMAT([Latest Week], "d mmm") & ":")
 		displayFolder: Margin
 		lineageTag: 50b610c0-c1f6-52a8-bc56-4ff3cec70fef

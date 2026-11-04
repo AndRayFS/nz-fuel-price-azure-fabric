@@ -113,8 +113,7 @@ def page_track():
 
     x, y, w, h = LEFT; z = 200
     V += [container("lbg", x, y, w, h, z, blank(PAPER, border=LINE, radius=8)),
-          container("ltitle", x + 16, y + 12, w - 32, 24, z + 1,
-                    textbox([[("The model's lead is widest in the oil shocks of 2022 and 2026", 12, INK, True)]])),
+          container("ltitle", x + 16, y + 12, w - 32, 24, z + 1, title_shape(F, "Track Lead Title", 12)),
           container("lsub", x + 16, y + 38, w - 32, 18, z + 2,
                     textbox([[("Average miss over the trailing 26 weeks, c/L", 9, MUTED, False)]])),
           # The key sits under the subtitle, in the band the data labels' headroom left
@@ -127,8 +126,7 @@ def page_track():
 
     x, y, w, h = RIGHT; z = 300
     V += [container("rbg", x, y, w, h, z, blank(PAPER, border=LINE, radius=8)),
-          container("rtitle", x + 16, y + 12, w - 32, 46, z + 1,
-                    textbox([[("Volatile weeks double everyone's miss; the model keeps its lead", 12, INK, True)]])),
+          container("rtitle", x + 16, y + 12, w - 32, 46, z + 1, title_shape(F, "Track Regime Title", 12)),
           container("rsub", x + 16, y + 60, w - 32, 18, z + 2,
                     textbox([[("Average miss by weeks ahead, c/L · every call since Feb 2013", 9, MUTED, False)]]))]
     for k, (text, fill, lw) in enumerate([("Model", MODEL, 40), ("No change", NAIVE, 62)]):

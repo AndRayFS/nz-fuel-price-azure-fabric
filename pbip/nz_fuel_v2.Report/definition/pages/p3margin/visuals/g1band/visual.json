@@ -3,9 +3,9 @@
   "name": "g1band",
   "position": {
     "x": 32,
-    "y": 332,
+    "y": 333,
     "z": 233,
-    "height": 81,
+    "height": 82,
     "width": 732,
     "tabOrder": 233
   },
@@ -154,24 +154,6 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
-                }
-              }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "8D"
-                }
-              }
-            },
-            "labelColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#FFFFFF'"
-                    }
-                  }
                 }
               }
             },

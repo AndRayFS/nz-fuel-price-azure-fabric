@@ -11,16 +11,19 @@ FUELS = [("Regular Petrol", "Regular 91", "#40B54A", 70), ("Premium Petrol 95R",
 LEFT, RIGHT = (24, 132, 748, 520), (788, 132, 468, 520)
 GREY, PALE_ORANGE, PALE_GREY, BAND, BAND_EDGE = "#A3A29B", "#F6BFA8", "#DEDDD7", "#F1F0EC", "#E2E1DB"
 # Left-hand chart heights in proportion to each fuel's range of gaps (with and without
-# MBIE's adjustment, plus the axis margins) on 23 Oct 2026: 73, 76 and 169 c/L. The
-# diesel chart also carries the date axis.
-GAP_BLOCKS = [(64, 78, False), (174, 81, False), (287, 199, True)]
+# MBIE's adjustment, plus the axis margins) on 23 Oct 2026: 73, 76 and 169 c/L.
+# No chart draws a date axis: Power BI drops it on a chart this short, and the one
+# chart tall enough to keep it reserved a margin for it and ended its plot ~19 px
+# short of the others (4 Nov review). The two end dates are written under diesel
+# instead - the axis always runs from the first week to the newest, so they never drift.
+GAP_BLOCKS = [(64, 79), (175, 82), (289, 183)]
 # (measure stem, legend label, colour this week, colour on average, label colour this week)
 PARTS = [("Cost", "Importer cost", "#5C5B56", "#CFCECA", PAPER), ("Taxes", "Taxes and levies", "#A3A29B", "#DFDED9", INK),
          ("ETS", "Emissions trading", "#C9C8C1", "#E8E7E2", INK), ("GST", "GST", "#DEDDD7", "#EFEEEA", INK),
          ("Margin", "Importer margin", ORANGE, "#F8D2C2", INK)]
 LABELLED = {"Cost", "Taxes", "GST"}    # ETS and the margin are too thin to carry a label; the margin's is on the right
 
-def gap_layer(layer, x_labels):
+def gap_layer(layer):
     """One of three column charts drawn on one another on the same axis: 'band' for
     the weeks MBIE suspended, 'pale' spanning the gap with and without MBIE's
     adjustment, 'dark' for the part both agree on. Only the top layer's axis labels
@@ -43,8 +46,8 @@ def gap_layer(layer, x_labels):
         "objects": {
             "dataPoint": [obj({"fill": mcol(M, "Gap Colour (chart)")}, {"data": [{"dataViewWildcard": {"matchingOption": 1}}]})] if top
                          else [obj({"fill": col(fill)}, S(m)) for m, fill in series],
-            "categoryAxis": [obj({"show": b(x_labels), "axisType": s("Scalar"), "showAxisTitle": b(False), "gridlineShow": b(False),
-                                  "fontSize": d(8), "labelColor": ink, "innerPadding": L(0 if layer == "band" else 20)})],
+            "categoryAxis": [obj({"show": b(False), "axisType": s("Scalar"), "showAxisTitle": b(False), "gridlineShow": b(False),
+                                  "innerPadding": L(0 if layer == "band" else 20)})],
             "valueAxis": [obj({"show": b(True), "start": mexpr(M, "Gap Axis Low"), "end": mexpr(M, "Gap Axis High"),
                                "showAxisTitle": b(False), "gridlineShow": b(layer == "pale"), "gridlineColor": col("#ECEBE6"),
                                "fontSize": d(8), "labelColor": ink})],
@@ -108,15 +111,18 @@ def page_margin():
               ("Shift from MBIE's cost adjustment, 27 Feb – 11 Sep", 272, [(5, 10, 1, PALE_ORANGE), (5, 10, 1, PALE_GREY)]),
               ("Suspended by MBIE, filled in later", 184, [(14, 10, 1, BAND, BAND_EDGE)])],
              x + 16, y + 42, z + 2, "lk")
-    for i, ((key_, label, colour, uw), (dy, ch, xl)) in enumerate(zip(FUELS, GAP_BLOCKS)):
+    for i, ((key_, label, colour, uw), (dy, ch)) in enumerate(zip(FUELS, GAP_BLOCKS)):
         by = y + dy; f = [fuel_filter(key_)]; zz = z + 20 + i * 10
         V += [container(f"g{i}name", x + 14, by, 200, 22, zz, textbox([[(label, 10.5, INK, True)]])),
               container(f"g{i}uline", x + 16, by + 22, uw, 3, zz + 1, blank(colour)),
               container(f"g{i}date", x + w - 160, by + 4, 100, 18, zz + 2, title_text(M, "Gap Header Date", 9, MUTED, align="right"), f),
               container(f"g{i}value", x + w - 58, by + 2, 42, 20, zz + 2,
                         title_text(M, "Gap Header Value", 9.75, INK, bold=True, align="right"), f)]
-        V += [container(f"g{i}{layer}", x + 8, by + 26, w - 16, ch, zz + 3 + k, gap_layer(layer, xl), f)
+        V += [container(f"g{i}{layer}", x + 8, by + 26, w - 16, ch, zz + 3 + k, gap_layer(layer), f)
               for k, layer in enumerate(("band", "pale", "dark"))]
+    by = y + GAP_BLOCKS[2][0] + 26 + GAP_BLOCKS[2][1]
+    V += [container("gfrom", x + 34, by, 120, 14, z + 60, textbox([[("29 Mar 2024", 8, FAINT, False)]])),
+          container("gto", x + w - 170, by - 2, 160, 16, z + 60, title_text(M, "Gap Last Week", 8, FAINT, align="right"))]
     by = y + GAP_BLOCKS[0][0] + 26 + GAP_BLOCKS[0][1]
     V.append(container("g0nosplit", x + w - 236, by - 18, 220, 16, z + 60, {
         "visualType": "textbox", "objects": {"general": [obj({"paragraphs": [{"horizontalTextAlignment": "right", "textRuns": [

@@ -430,6 +430,40 @@ table forecast_accuracy
 		isHidden
 		lineageTag: f5d5ecd6-10e1-5329-9c1b-27dff471d788
 
+	/// Left chart's title: the volatile-crude episode where the model beat no change by most, and any where it did worse.
+	measure 'Track Lead Title' =
+			VAR vH = [Selected Horizon]
+			VAR vEp = ADDCOLUMNS(
+			    CALCULATETABLE(VALUES(forecast_accuracy[crude_episode_id]), forecast_accuracy[horizon_weeks] = vH,
+			        forecast_accuracy[outcome_known] = TRUE(), NOT ISBLANK(forecast_accuracy[crude_episode_id])),
+			    "lead", CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]) - AVERAGE(forecast_accuracy[abs_err_adl_ecm]),
+			        forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE()))
+			VAR vTop = MAXX(TOPN(1, vEp, [lead], DESC), forecast_accuracy[crude_episode_id])
+			VAR vLow = TOPN(1, vEp, [lead], ASC)
+			VAR vLowId = MAXX(vLow, forecast_accuracy[crude_episode_id])
+			VAR vLowLead = MAXX(vLow, [lead])
+			RETURN IF(NOT ISBLANK(vTop),
+			    "The model's lead is widest in the " & SWITCH(vTop, "2026_iran_us", "2026 Iran–US shock", "2022_ukraine", "2022 Ukraine shock", "2020_covid_crash", "2020 COVID crash",
+			    "2016_opec_cuts", "2016 OPEC cuts", "2016_glut_trough", "2015–16 glut trough", "2015_glut_onset", "2015 glut onset", SUBSTITUTE(vTop, "_", " "))
+			    & IF(vLowLead < 0, "; in the " & SWITCH(vLowId, "2026_iran_us", "2026 Iran–US shock", "2022_ukraine", "2022 Ukraine shock", "2020_covid_crash", "2020 COVID crash",
+			    "2016_opec_cuts", "2016 OPEC cuts", "2016_glut_trough", "2015–16 glut trough", "2015_glut_onset", "2015 glut onset", SUBSTITUTE(vLowId, "_", " ")) & " no change did better", ""))
+		displayFolder: Track record
+		lineageTag: 91b26900-d996-5edb-8a99-775608be2452
+
+	/// Right chart's title: how much volatile crude multiplies both methods' miss, and in how many of the six rows the model still wins.
+	measure 'Track Regime Title' =
+			VAR vRows = ADDCOLUMNS('Track Row', "m", [Miss Model (row)], "n", [Miss No Change (row)])
+			VAR vR = DIVIDE(SUMX(FILTER(vRows, 'Track Row'[Regime] = "high"), [m] + [n]), SUMX(FILTER(vRows, 'Track Row'[Regime] = "normal"), [m] + [n]))
+			VAR vLeads = COUNTROWS(FILTER(vRows, [m] < [n]))
+			VAR vA = SWITCH(TRUE(), vR < 1.25, "Volatile weeks barely change anyone's miss", vR < 1.75, "Volatile weeks add half again to everyone's miss",
+			                vR < 2.5, "Volatile weeks double everyone's miss", vR < 3.5, "Volatile weeks triple everyone's miss",
+			                "Volatile weeks multiply everyone's miss " & FORMAT(vR, "0") & "-fold")
+			VAR vB = SWITCH(TRUE(), vLeads = 6, "the model keeps its lead", vLeads = 0, "no change does better throughout",
+			                "the model leads in " & vLeads & " of 6")
+			RETURN IF(NOT ISBLANK(vR), vA & "; " & vB)
+		displayFolder: Track record
+		lineageTag: 1a4db271-ea52-5476-b534-09cad9b8b095
+
 	measure 'Fuel Accent' = SELECTEDVALUE(Fuel[Fuel colour])
 		displayFolder: Track record
 		isHidden

@@ -3,9 +3,9 @@
   "name": "g2dark",
   "position": {
     "x": 32,
-    "y": 445,
+    "y": 447,
     "z": 245,
-    "height": 199,
+    "height": 183,
     "width": 732,
     "tabOrder": 245
   },
@@ -110,7 +110,7 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
+                  "Value": "false"
                 }
               }
             },
@@ -132,24 +132,6 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
-                }
-              }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "8D"
-                }
-              }
-            },
-            "labelColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#8A8983'"
-                    }
-                  }
                 }
               }
             },

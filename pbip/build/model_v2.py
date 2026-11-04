@@ -484,6 +484,38 @@ RETURN IF(NOT ISBLANK(vH), IF(vH = [Selected Horizon], [{base}], 0))''', fmt="0.
 fm.append(measure(F, "Rows Axis End", '''
 1.15 * MAXX(ALL('Track Row'), MAX([Miss Model (row)], [Miss No Change (row)]))''', fmt="0.0", folder=TR, hidden=True,
     desc="One axis end for both layers of the right-hand chart, so their bars line up."))
+# The two chart titles on Track record are claims, as in the mock-up, computed for the
+# chosen fuel and horizon. The mock-up's "widest in 2022 and 2026" held for diesel
+# only: Regular 91's second-widest lead is the 2015 glut, and in the 2020 COVID crash
+# no change did better (archive of 29 Oct 2026).
+EPISODE = '''SWITCH({id}, "2026_iran_us", "2026 Iran–US shock", "2022_ukraine", "2022 Ukraine shock", "2020_covid_crash", "2020 COVID crash",
+    "2016_opec_cuts", "2016 OPEC cuts", "2016_glut_trough", "2015–16 glut trough", "2015_glut_onset", "2015 glut onset", SUBSTITUTE({id}, "_", " "))'''
+fm.append(measure(F, "Track Lead Title", \
+'''VAR vH = [Selected Horizon]
+VAR vEp = ADDCOLUMNS(
+    CALCULATETABLE(VALUES(forecast_accuracy[crude_episode_id]), forecast_accuracy[horizon_weeks] = vH,
+        forecast_accuracy[outcome_known] = TRUE(), NOT ISBLANK(forecast_accuracy[crude_episode_id])),
+    "lead", CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]) - AVERAGE(forecast_accuracy[abs_err_adl_ecm]),
+        forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE()))
+VAR vTop = MAXX(TOPN(1, vEp, [lead], DESC), forecast_accuracy[crude_episode_id])
+VAR vLow = TOPN(1, vEp, [lead], ASC)
+VAR vLowId = MAXX(vLow, forecast_accuracy[crude_episode_id])
+VAR vLowLead = MAXX(vLow, [lead])
+RETURN IF(NOT ISBLANK(vTop),
+    "The model's lead is widest in the " & ''' + EPISODE.format(id="vTop") + '''
+    & IF(vLowLead < 0, "; in the " & ''' + EPISODE.format(id="vLowId") + ''' & " no change did better", ""))''', folder=TR,
+    desc="Left chart's title: the volatile-crude episode where the model beat no change by most, and any where it did worse."))
+fm.append(measure(F, "Track Regime Title", '''
+VAR vRows = ADDCOLUMNS('Track Row', "m", [Miss Model (row)], "n", [Miss No Change (row)])
+VAR vR = DIVIDE(SUMX(FILTER(vRows, 'Track Row'[Regime] = "high"), [m] + [n]), SUMX(FILTER(vRows, 'Track Row'[Regime] = "normal"), [m] + [n]))
+VAR vLeads = COUNTROWS(FILTER(vRows, [m] < [n]))
+VAR vA = SWITCH(TRUE(), vR < 1.25, "Volatile weeks barely change anyone's miss", vR < 1.75, "Volatile weeks add half again to everyone's miss",
+                vR < 2.5, "Volatile weeks double everyone's miss", vR < 3.5, "Volatile weeks triple everyone's miss",
+                "Volatile weeks multiply everyone's miss " & FORMAT(vR, "0") & "-fold")
+VAR vB = SWITCH(TRUE(), vLeads = 6, "the model keeps its lead", vLeads = 0, "no change does better throughout",
+                "the model leads in " & vLeads & " of 6")
+RETURN IF(NOT ISBLANK(vR), vA & "; " & vB)''', folder=TR,
+    desc="Right chart's title: how much volatile crude multiplies both methods' miss, and in how many of the six rows the model still wins."))
 fm.append(measure(F, "Fuel Accent", '''
 SELECTEDVALUE(Fuel[Fuel colour])''', folder=TR, hidden=True))
 for n in (1, 2, 3):
@@ -627,6 +659,8 @@ VAR vB = CALCULATE({agg}X(FILTER(margin_compression, NOT ISBLANK(margin_compress
     REMOVEFILTERS(Week))
 RETURN {k} * {agg}(vA, vB)''', fmt="0", folder=MG, hidden=True,
         desc="The fuel's own range, with and without the adjustment, plus a margin."))
+mm.append(measure(M, "Gap Last Week", '''
+FORMAT([Latest Week], "d mmm yyyy")''', folder=MG, desc="The right-hand end of Margin's charts, written under them in place of a date axis."))
 mm.append(measure(M, "Gap Header Date", '''
 IF(NOT ISBLANK([Margin Gap Now]), FORMAT([Latest Week], "d mmm") & ":")''', folder=MG))
 mm.append(measure(M, "Gap Header Value", '''
