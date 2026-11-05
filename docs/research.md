@@ -2135,6 +2135,75 @@ constructed. The surviving statement is smaller than either: **today is deep,
 it is the deepest reading of the only episode on comparable data, and there is
 nothing to compare it to.**
 
+## The 2026 Final weeks halved diesel's weights; recency weighting does not help — 5 Nov 2026
+
+Two walk-forward tests on the training sample. Both read the published archive
+dated 2026-11-05, and both reproduce the archive's `pred_adl_ecm` to
+0.00005 c/L before anything else is read.
+
+**Weighting recent weeks: FAIL** (`research/adl_decay.py`, rule written
+before the run). Weighted least squares with a three-year half-life, against
+production's equal weights since 2010. MAE c/L, Diesel and Regular Petrol
+pooled, every origin since 2013:
+
+| weeks | h | production | half-life 156 weeks |
+|---|---|---|---|
+| non-crisis | 1 | 1.395 | 1.415 (+1.5%) |
+| non-crisis | 2 | 2.696 | 2.732 (+1.3%) |
+| crisis | 1 | 3.076 | 3.111 (+1.1%) |
+| crisis | 2 | 6.616 | 6.622 (+0.1%) |
+
+- **Worse where it should have helped.** From April 2022, where diesel's lag
+  shift should favour recency, it is 1–3% worse.
+- **A rolling five-year window is worse again**, by 2–5%.
+- **Volume beats recency here.**
+
+**What the 2026 Final weeks did to the weights.** Sum of `b0..b6` in the
+production fit:
+
+| trained on | Diesel | Regular Petrol |
+|---|---|---|
+| Final weeks to the end of 2025 | 0.814 | 0.817 |
+| plus the Final weeks of 2026 (production today) | **0.444** | 0.760 |
+| the same, cost without MBIE's fuel market adjustment | 0.671 | 0.805 |
+
+- **Since the June quarter finalised on 26 Aug, diesel's model passes on
+  about half of what it did.**
+- **About 60% of that fall is MBIE's adjustment**, a premium of up to
+  +49 c/L that the pump did not follow week by week. The rest is the
+  crisis itself.
+
+**Training on 2010–2025 only** (`research/adl_train_cut.py`). Rule written
+before the run: Final weeks to the end of 2025 must beat production on 2026
+origins at h=1 and h=2, both fuels pooled.
+
+- **As specified, it failed**: +5.5% at h=1 and +5.9% at h=2.
+- **The specification was wrong.** On the current vintage, production
+  trains on Jan–Jun 2026 weeks at once, while live they were still
+  Provisional, so the whole loss sat in Jan–Jun.
+- **`--live-status` rebuilds the status each cutoff would have seen.** A
+  quarter counts as Final 61 days after it ends, the one observed lag
+  (26 Jun to 26 Aug). This is a diagnostic: the data had been seen.
+
+With the status as it was known:
+
+| origins | h=1 | h=2 |
+|---|---|---|
+| Jan–Jun 2026 | +0.2% | +0.1% |
+| from 1 Jul 2026 | **−11.1%** | −1.7% |
+| all 2026 | −1.9% | −0.2% |
+
+Negative means training to the end of 2025 is better.
+
+- **From July, by fuel.** Diesel gains at both horizons (−12% and −8%).
+  Petrol gains at one week (−9%) and loses at two (+8%).
+- **n is 16–17 origins per fuel.** That is a direction, not grounds to
+  change production.
+- **The next check is the September-quarter finalisation.** It brings July
+  to September into training and moves the weights again.
+  `.claude/skills/load-review` runs the comparison on every mass
+  finalisation.
+
 ## Checks that have repeatedly changed the answer
 
 Six questions, each of which has overturned at least one finding in this
