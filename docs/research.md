@@ -2204,6 +2204,34 @@ Negative means training to the end of 2025 is better.
   `.claude/skills/load-review` runs the comparison on every mass
   finalisation.
 
+## The pump price's own lags add nothing the cost lags do not carry — 5 Nov 2026
+
+`research/adl_ar.py`. The production model is a distributed lag with error
+correction. It never looks at how the pump price itself has been moving. Two
+lags of `d_net` were added to the same regression, with the h-step forecast
+made recursive. Everything else is unchanged, and the plain model reproduces
+`pred_adl_ecm` to 0.00005 c/L. The rule was written before the run: p = 2
+must beat production at h=1 and h=2 in non-crisis weeks and not lose in
+crisis weeks, Diesel and Regular Petrol pooled, every origin since 2013.
+
+**FAIL.** MAE change against production:
+
+| weeks | h=1 | h=2 | h=3 |
+|---|---|---|---|
+| non-crisis | +1.9% | +5.5% | +5.8% |
+| crisis | −3.6% | +3.3% | +3.2% |
+| Diesel, crisis | **−8.8%** | +1.5% | +2.0% |
+
+- **The lags take weight from cost rather than adding to it.** At the
+  newest cutoff diesel's cost-weight sum falls from 0.444 to 0.121 with
+  φ₁ = +0.41.
+- **Most of the pump's momentum is lagged cost.** It is already in the
+  model.
+- **The error compounds.** The recursive step carries the first week's error
+  into the second and third, which is why the loss grows with the horizon.
+- **p = 1 is worse than p = 2 everywhere.** The one gain, diesel at one week
+  in crisis weeks, does not survive a second week.
+
 ## Checks that have repeatedly changed the answer
 
 Six questions, each of which has overturned at least one finding in this
