@@ -56,8 +56,9 @@ loads by itself when a file under `models/gold/` is opened.
   it landed before running — heredocs have silently truncated content
   before.
 - One change at a time, verify, then the next.
-- No point-forecast language ("predict," "will be") on `Report1` measures
-  — see architecture.md's confidence-tier framing.
+- No point-forecast language ("predict," "will be") on `Report1` measures.
+  Report 1 states uncertainty as a band of past misses, not as tiers — see
+  architecture.md, "Report 1 as five pages".
 
 More detail: `.claude/rules/working-style.md` (working conventions, tooling
 split with claude.ai chat) and `.claude/rules/active-items.md`

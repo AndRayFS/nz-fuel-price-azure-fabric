@@ -213,5 +213,4 @@ the current data contradicts outright.
   Part-to-part backlinks and 2–3 hashtags sit at the very bottom.
 - Signed off as `NZ Fuel Price Project — Part N`.
 - No point-forecast language on report measures — "if the pattern holds,
-  we should begin seeing", never "will be". Matches the confidence-tier
-  rule in `CLAUDE.md` / `architecture.md`.
+  we should begin seeing", never "will be". Same rule as in `CLAUDE.md`.
