@@ -26,7 +26,11 @@ usual", SMALLER times it or less "Smaller than usual".
 The page is pipeline/phone/template.html with the data dropped in as JSON.
 Its QR code, pipeline/phone/qr.svg, encodes the address above; it was made
 once with segno 1.6.6 (version 4, error correction Q, 33 modules) and changes
-only if the address does, so the weekly run does not need segno.
+only if the address does, so the weekly run does not need segno. Its font is
+IBM Plex Sans, as in Report 1's mock-up: the three weights it uses, Latin
+subset, from @fontsource/ibm-plex-sans 5.3.0, unmodified, under the SIL Open
+Font License (pipeline/phone/fonts/OFL.txt). They are inlined, so the page is
+still one file and its text never flashes in a fallback face.
 
 Usage:  python pipeline/phone_page.py [ZIP | DIR]
 
@@ -39,6 +43,7 @@ publishes it.
 from __future__ import annotations
 
 import argparse
+import base64
 import io
 import json
 import sys
@@ -58,6 +63,7 @@ FUELS = (("Regular Petrol", "#40B54A"), ("Premium Petrol 95R", "#E5C700"), ("Die
 WEEKS = 13            # paid weeks on the chart, the newest included
 RECENT = 4            # the newest misses, set against the usual one
 LARGER, SMALLER = 1.5, 2 / 3
+FONT_WEIGHTS = (400, 500, 600)
 
 
 def _r(x, digits: int = 1):
@@ -144,14 +150,25 @@ def compute(csvs: dict[str, bytes]) -> dict:
     )
 
 
+def font_faces() -> str:
+    face = ("@font-face{{font-family:'IBM Plex Sans';font-style:normal;font-weight:{w};"
+            "font-display:swap;src:url(data:font/woff2;base64,{b}) format('woff2')}}")
+    return "\n".join(
+        face.format(w=w, b=base64.b64encode(
+            (HERE / "fonts" / f"ibm-plex-sans-latin-{w}-normal.woff2").read_bytes()).decode("ascii"))
+        for w in FONT_WEIGHTS)
+
+
 def render(data: dict) -> str:
     page = (HERE / "template.html").read_text(encoding="utf-8")
-    for mark in ("__DATA__", "<!--QR-->"):
+    for mark in ("__DATA__", "<!--QR-->", "/*FONTS*/"):
         if page.count(mark) != 1:
             raise RuntimeError(f"template.html must hold {mark} exactly once")
     qr = (HERE / "qr.svg").read_text(encoding="utf-8").strip()
     blob = json.dumps(data, separators=(",", ":"), allow_nan=False).replace("</", "<\\/")
-    return page.replace("<!--QR-->", qr).replace("__DATA__", blob)
+    return (page.replace("/*FONTS*/", font_faces())
+                .replace("<!--QR-->", qr)
+                .replace("__DATA__", blob))
 
 
 def read_archive(source: str | None) -> dict[str, bytes]:

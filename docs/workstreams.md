@@ -1858,7 +1858,8 @@ builds the same page from any archive with no warehouse at all.
 
 **Depends on.** W19 (the archive) and W21 (the definitions it repeats).
 
-**Touches.** `pipeline/phone_page.py` and `pipeline/phone/` (new);
+**Touches.** `pipeline/phone_page.py` and `pipeline/phone/` (new — the
+template, the QR code, and IBM Plex Sans under the OFL);
 `pipeline/publish_data.py`; `pipeline/README.md`; `Taskfile.yml` (the
 `phone` task); `docs/architecture.md`. Outside git: static website on
 `nzfueldata`, and Storage Blob Data Contributor on `$web` for `nz-fuel-ci`

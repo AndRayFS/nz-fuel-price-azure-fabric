@@ -596,9 +596,11 @@ zipped — no second warehouse read, and the page and the archive of a date
 are one load. What is on it, and which of Report 1's definitions each figure
 repeats, is in that file's docstring. The page is
 `pipeline/phone/template.html` with the data inlined as JSON, drawn in the
-browser by a page of plain JavaScript — no library, no font download, ~20 KB —
-so it opens at once on conference Wi-Fi and its Today line moves with the
-reader's clock between loads, as Report 1's does.
+browser by a page of plain JavaScript, with no library and with the mock-up's
+font, IBM Plex Sans, inlined — one request of ~115 KB, ~94 KB of it the three
+weights. It opens without a second round trip on conference Wi-Fi, its text
+never flashes in a fallback face, and its Today line moves with the reader's
+clock between loads, as Report 1's does.
 
 **Order and failure.** The page goes up after both zips. If building it
 fails, the archive is already whole, the previous page stays up, and the run
