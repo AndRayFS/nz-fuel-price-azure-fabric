@@ -2204,6 +2204,100 @@ Negative means training to the end of 2025 is better.
   `.claude/skills/load-review` runs the comparison on every mass
   finalisation.
 
+## The pump price's own lags add nothing the cost lags do not carry — 5 Nov 2026
+
+`research/adl_ar.py`. The production model is a distributed lag with error
+correction. It never looks at how the pump price itself has been moving. Two
+lags of `d_net` were added to the same regression, with the h-step forecast
+made recursive. Everything else is unchanged, and the plain model reproduces
+`pred_adl_ecm` to 0.00005 c/L. The rule was written before the run: p = 2
+must beat production at h=1 and h=2 in non-crisis weeks and not lose in
+crisis weeks, Diesel and Regular Petrol pooled, every origin since 2013.
+
+**FAIL.** MAE change against production:
+
+| weeks | h=1 | h=2 | h=3 |
+|---|---|---|---|
+| non-crisis | +1.9% | +5.5% | +5.8% |
+| crisis | −3.6% | +3.3% | +3.2% |
+| Diesel, crisis | **−8.8%** | +1.5% | +2.0% |
+
+- **The lags take weight from cost rather than adding to it.** At the
+  newest cutoff diesel's cost-weight sum falls from 0.444 to 0.121 with
+  φ₁ = +0.41.
+- **Most of the pump's momentum is lagged cost.** It is already in the
+  model.
+- **The error compounds.** The recursive step carries the first week's error
+  into the second and third, which is why the loss grows with the horizon.
+- **p = 1 is worse than p = 2 everywhere.** The one gain, diesel at one week
+  in crisis weeks, does not survive a second week.
+
+## Seeing this week's pump price would halve the one-week error — the ceiling, 5 Nov 2026
+
+`research/retail_ceiling.py`. When the Wednesday run makes its calls, the
+week they are about has already begun at the pump. The question is how much
+seeing its first days would be worth. It is measured on ComCom's daily
+national average (`RETAIL_PRICES_AVG`, from 1 Feb 2026). That series is
+published fortnightly and can never feed a run, so this is a ceiling for a
+timely source, not a plan for one.
+
+**ComCom's daily average tracks MBIE's weekly price almost exactly.** Weekly
+changes of its Mon–Sun mean against MBIE's
+`adjusted_retail_price` give r = 0.998 for diesel and 0.997 for petrol over
+37 weeks, slope 1.03.
+
+**The rule, written before the run: not met.**
+
+- **The rule.** The primary method takes the change from ComCom's mean over
+  week t to its mean over Monday and Tuesday of week t+1 as the forecast,
+  with no fitting. It had to beat production's one-week call by 20%, Diesel
+  and Regular Petrol pooled.
+- **The result.** It beats it by 10.9%: MAE 3.763 against 4.226 c/L on 76
+  calls, 6 Feb to 23 Oct 2026.
+
+**The rule picked the wrong primary, and the diagnostic is large.**
+
+- **What the direct reading misses.** It ignores that the price keeps moving
+  through the rest of the week, and the model's call carries that.
+- **The combination.** A walk-forward regression of the actual change on
+  production's call and the two-day reading (earlier weeks only, at least
+  eight) brings MAE from 3.963 to **2.056 c/L, −48%**, on its 60 calls.
+  Diesel goes from 6.145 to 2.527 and petrol from 2.306 to 1.584.
+- **Three days instead of two.** Wednesday's prices are not complete at the
+  run. Even direct, three days give 3.056.
+
+| | n | naive | production | 2 days, direct | 3 days, direct | production + 2 days |
+|---|---|---|---|---|---|---|
+| Diesel | 38 | 11.185 | 6.145 | 4.857 | 3.994 | 2.527 (30) |
+| Regular Petrol | 38 | 6.303 | 2.306 | 2.669 | 2.118 | 1.584 (30) |
+
+**The gain shrinks with the horizon, and it is diesel's.** The one-week
+combination is carried forward without refitting: the two- and three-week
+calls take the combined first week plus production's own increments after it.
+MAE change against production:
+
+| | h=1 | h=2 | h=3 |
+|---|---|---|---|
+| Diesel | −58.1% | −28.9% | −13.9% |
+| Regular Petrol | −16.7% | +4.0% | −1.0% |
+| pooled | **−48.1%** | **−20.0%** | **−10.1%** |
+
+A separate regression for each horizon was tried first. It was worse than
+production: +13% at h=2 and +62% at h=3, too few weeks to fit three
+coefficients on a two- or three-week change.
+
+**What it does and does not say.**
+
+- **One episode.** Every call is in 2026, almost all inside one volatility
+  episode, where the model's one-week error is largest. In calm weeks the
+  prize is smaller by construction.
+- **The verdict on the rule stands.** The combination's −48% is a post-hoc
+  diagnostic.
+- **Only one timely source exists.** It is Gaspy, crowd-sourced, with no
+  licence ("Sources checked for a timely series", above).
+  Whether to ask for one is the owner's decision. This section says only
+  that the information is worth roughly half the one-week error in a crisis.
+
 ## Checks that have repeatedly changed the answer
 
 Six questions, each of which has overturned at least one finding in this
