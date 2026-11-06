@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#FFFFFF">
+<title>NZ fuel prices</title>
+<meta name="description" content="New Zealand pump prices week by week, the model's calls for the next three weeks, and how far it has been off lately.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="NZ fuel prices">
+<meta property="og:description" content="New Zealand pump prices week by week, the model's calls for the next three weeks, and how far it has been off lately.">
+<meta property="og:url" content="https://nzfueldata.z8.web.core.windows.net/">
+<style>
+:root{--ink:#1B1B19;--muted:#5C5B56;--rule:#ECEBE6;--call-text:#1F66BF}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:#FFFFFF;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--ink)}
+.page{max-width:480px;margin:0 auto}
+header{position:sticky;top:0;z-index:5;height:56px;padding:0 max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left));display:flex;align-items:center;justify-content:space-between;gap:12px;background:#FFFFFF;border-bottom:1px solid var(--rule)}
+.brand{font-size:15px;font-weight:600;white-space:nowrap}
+.switch{display:flex;gap:2px;padding:2px;background:var(--rule);border-radius:10px}
+.switch button{min-width:58px;height:44px;padding:0 12px;border:0;border-radius:8px;font:inherit;font-size:15px;font-weight:500;color:var(--muted);background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.switch button[aria-pressed="true"]{background:#FFFFFF;color:var(--ink);font-weight:600;box-shadow:inset 0 -3px 0 var(--fuel)}
+main{padding:14px max(16px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.change{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.change .big{font-size:40px;line-height:46px;font-weight:600;font-variant-numeric:tabular-nums}
+.change .unit{font-size:18px;font-weight:500}
+.change .pct{font-size:17px;color:var(--muted)}
+svg.chart{display:block;width:100%;height:auto}
+.numbers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:6px}
+.numbers div{display:flex;flex-direction:column;gap:2px}
+.numbers .d{font-size:13px;line-height:18px;color:var(--muted)}
+.numbers .v{font-size:22px;line-height:28px;font-weight:600;font-variant-numeric:tabular-nums}
+.numbers .call{color:var(--call-text)}
+section{margin-top:20px;padding-top:16px;border-top:1px solid var(--rule);display:flex;flex-direction:column;gap:10px}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+h2{margin:0;font-size:16px;line-height:21px;font-weight:600}
+.head span{font-size:16px;line-height:21px;font-weight:600}
+.note{font-size:14px;line-height:20px;color:var(--muted)}
+nav{margin-top:24px;display:flex;flex-direction:column;gap:16px}
+.button{min-height:48px;padding:0 16px;border-radius:10px;border:1px solid #E2E1DB;background:#F7F7F5;color:var(--ink);text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500}
+.card{display:flex;align-items:center;gap:16px}
+.card .links{display:flex;flex-direction:column;gap:8px}
+.card a{font-size:15px;line-height:22px}
+footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--rule);font-size:12px;line-height:17px;color:var(--muted)}
+[hidden]{display:none !important}
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+<div class="brand">NZ fuel prices</div>
+<div class="switch" role="group" aria-label="Fuel">
+<button type="button" aria-label="Regular 91">91</button>
+<button type="button" aria-label="Premium 95">95</button>
+<button type="button" aria-label="Diesel">Diesel</button>
+</div>
+</header>
+<main>
+<noscript><p class="note">This page draws its numbers with JavaScript, which is off.</p></noscript>
+<div class="change" id="change"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path id="arrow"></path></svg><div><span class="big" id="chg"></span><span class="unit"> c/L</span></div><span class="pct" id="pct"></span></div>
+<svg class="chart" id="price" viewBox="0 0 358 250" role="img" style="margin-top:8px"></svg>
+<div class="numbers" id="numbers"></div>
+<section id="cost" aria-label="Cost pressure">
+<div class="head"><h2>Cost pressure</h2><span id="gap"></span></div>
+<svg class="chart" id="track" viewBox="0 0 358 20" role="img"></svg>
+<div class="note" id="margin"></div>
+</section>
+<section aria-label="Model's recent misses">
+<div class="head"><h2>Model's recent misses</h2><span id="verdict"></span></div>
+<svg class="chart" id="misses" viewBox="0 0 358 120" role="img"></svg>
+<div class="note" id="missnote"></div>
+</section>
+<nav aria-label="More">
+<a class="button" href="https://app.powerbi.com/view?r=eyJrIjoiZGQ4YzE2OWUtNTg1Zi00NzY4LWFiYTUtNGJmYTJlZmNkOWFiIiwidCI6IjY2YWVkMTI5LWFjZWQtNDgyOS05NzAxLTZiNzMxNTY3NWEwNCJ9">Full interactive report</a>
+<div class="card">
+<!--QR-->
+<div class="links"><a href="https://www.linkedin.com/in/andreimor/" rel="noopener">Andrei Morozov on LinkedIn</a><span class="note">Scan to open this page</span></div>
+</div>
+</nav>
+<footer>Data: MBIE weekly fuel price monitoring, CC BY 4.0; recent weeks provisional. Model figures come from a backtest, not published forecasts.</footer>
+</main>
+</div>
+<script id="data" type="application/json">__DATA__</script>
+<script>
+(function () {
+  "use strict";
+  // Built by pipeline/phone_page.py, which says what every figure is.
+  var D = JSON.parse(document.getElementById("data").textContent);
+  var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var DAY = 864e5, INK = "#1B1B19", MUTED = "#5C5B56", GUIDE = "#8A8983", CALL = "#2A78D6";
+  var $ = function (id) { return document.getElementById(id); };
+  var utc = function (iso) { var p = iso.split("-"); return Date.UTC(+p[0], +p[1] - 1, +p[2]); };
+  var dm = function (t) { var d = new Date(t); return d.getUTCDate() + " " + MON[d.getUTCMonth()]; };
+  var f1 = function (x) { return x.toFixed(1); };
+  var sgn = function (x) { return (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x).toFixed(1); };
+  var num = function (x) { return typeof x === "number"; };
+  var xy = function (x, y) { return x.toFixed(1) + "," + y.toFixed(1); };
+
+  // Price chart: the paid weeks in slots 0..N-1, the three called weeks after them.
+  var N = D.weeks.length, LAST = N - 1, FOUR = N - 5, SLOTS = N + 3;
+  var X0 = 8, X1 = 350, YT = 16, YB = 220, STEP = (X1 - X0) / (SLOTS - 1);
+  var px = function (i) { return X0 + i * STEP; };
+  var L = utc(D.latest);
+  var slot = function (i) { return L + (i - LAST) * 7 * DAY; };
+  var now = new Date();
+  var todayX = px(LAST) + (Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - L) / DAY / 7 * STEP;
+
+  // A month's name under its first week, unless the last name is under three weeks back.
+  var months = [];
+  for (var i = 0; i < SLOTS; i++) {
+    var m = new Date(slot(i)).getUTCMonth();
+    if (i > 0 && m === new Date(slot(i - 1)).getUTCMonth()) continue;
+    var prev = months[months.length - 1];
+    if (prev && i - prev.i < 3) { if (prev.i !== 0) continue; months.pop(); }
+    months.push({ i: i, m: m });
+  }
+  var monthText = months.map(function (o) {
+    var x = px(o.i), a = o.i === 0 ? "start" : x > 340 ? "end" : "middle";
+    return '<text x="' + x.toFixed(1) + '" y="244" font-size="13" fill="#6B6A64" text-anchor="' + a + '">' + MON[o.m] + "</text>";
+  }).join("");
+
+  var vline = function (x, label, anchor) {
+    return '<line x1="' + x.toFixed(1) + '" y1="16" x2="' + x.toFixed(1) + '" y2="' + YB + '" stroke="' + GUIDE + '" stroke-width="1" stroke-dasharray="2 3"/>' +
+      (label ? '<text x="' + x.toFixed(1) + '" y="11" font-size="12" fill="' + MUTED + '" text-anchor="' + anchor + '">' + label + "</text>" : "");
+  };
+  var dot = function (x, y, r, fill, stroke) {
+    return '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="2"/>';
+  };
+
+  function priceChart(f, name) {
+    var vals = f.series.filter(num).concat(f.calls.map(function (c) { return c[0]; }), f.calls.map(function (c) { return c[2]; }));
+    var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+    var pad = (mx - mn) * 0.08 || 1, lo = mn - pad, hi = mx + pad;
+    var py = function (v) { return YB - (v - lo) / (hi - lo) * (YB - YT); };
+    var paid = [];
+    f.series.forEach(function (v, i) { if (num(v)) paid.push(xy(px(i), py(v))); });
+    var start = xy(px(LAST), py(f.price));
+    var at = function (j, v) { return xy(px(LAST + 1 + j), py(v)); };
+    var call = [start].concat(f.calls.map(function (c, j) { return at(j, c[1]); }));
+    var band = [start].concat(f.calls.map(function (c, j) { return at(j, c[2]); }),
+      f.calls.map(function (c, j) { return at(j, c[0]); }).reverse());
+    var then = f.series[FOUR];
+    var showToday = todayX >= X0 && todayX <= X1;
+    var showFour = num(then) && !(showToday && Math.abs(todayX - px(FOUR)) < 80);
+    var s = "";
+    if (num(then)) s += vline(px(FOUR), showFour ? "4 weeks ago" : "", "middle");
+    if (showToday) s += vline(todayX, "Today", todayX > 330 ? "end" : "middle");
+    s += '<polygon points="' + band.join(" ") + '" fill="' + CALL + '" fill-opacity="0.16"/>';
+    s += '<polyline points="' + paid.join(" ") + '" fill="none" stroke="' + INK + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    s += '<polyline points="' + call.join(" ") + '" fill="none" stroke="' + CALL + '" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round"/>';
+    if (num(then)) s += dot(px(FOUR), py(then), 5, "#FFFFFF", INK);
+    s += dot(px(LAST), py(f.price), 5.5, INK, "#FFFFFF");
+    f.calls.forEach(function (c, j) { s += dot(px(LAST + 1 + j), py(c[1]), 5, CALL, "#FFFFFF"); });
+    $("price").innerHTML = s + monthText;
+    $("price").setAttribute("aria-label", name + ": average paid each week to " + dm(L) + ", " + f1(f.price) +
+      " c/L; the model's calls about " + f.calls.map(function (c) { return Math.round(c[1]); }).join(", ") +
+      " c/L for " + D.targets.map(function (t) { return dm(utc(t)); }).join(", ") + ".");
+  }
+
+  function numbers(f) {
+    var cell = function (d, v, cls) { return '<div><span class="d">' + d + '</span><span class="v' + cls + '">' + v + "</span></div>"; };
+    $("numbers").innerHTML = cell(dm(L), f1(f.price), "") +
+      D.targets.map(function (t, j) { return cell(dm(utc(t)), String(Math.round(f.calls[j][1])), " call"); }).join("");
+  }
+
+  function change(f) {
+    $("change").hidden = !num(f.chg);
+    if (!num(f.chg)) return;
+    $("chg").textContent = sgn(f.chg);
+    $("pct").textContent = sgn(f.pct) + "% · 4 weeks";
+    var a = $("arrow");
+    a.setAttribute("d", f.chg > 0 ? "M8 2 L15 13 L1 13 Z" : f.chg < 0 ? "M8 14 L1 3 L15 3 Z" : "");
+    a.setAttribute("fill", f.chg > 0 ? "#D03B3B" : "#4D4C48");
+  }
+
+  // The margin on a 0-60 c/L track, the tick its two-year average; orange below it.
+  function cost(f, name) {
+    var ok = num(f.margin) && num(f.norm) && num(f.gap);
+    $("cost").hidden = !ok;
+    if (!ok) return;
+    var t = function (v) { return (Math.max(0, Math.min(60, v)) / 60 * 358).toFixed(1); };
+    $("gap").textContent = sgn(f.gap) + " c/L";
+    $("track").innerHTML = '<rect x="0" y="6" width="358" height="8" rx="4" fill="#ECEBE6"/>' +
+      '<rect x="0" y="6" width="' + t(f.margin) + '" height="8" rx="4" fill="' + (f.gap < 0 ? "#EB6834" : "#8A8983") + '"/>' +
+      '<line x1="' + t(f.norm) + '" y1="1" x2="' + t(f.norm) + '" y2="19" stroke="' + INK + '" stroke-width="2"/>';
+    $("track").setAttribute("aria-label", name + ": importer margin " + f1(f.margin) + " c/L against a two-year average of " +
+      f1(f.norm) + ", " + f1(Math.abs(f.gap)) + " c/L " + (f.gap < 0 ? "below" : "above") + " it.");
+    $("margin").textContent = "Importer margin " + f1(f.margin) + " c/L · 2-year average " + f1(f.norm);
+  }
+
+  // One bar per paid week, the last four dark, against the fuel's usual miss.
+  function misses(f, name) {
+    var TB = 108, TT = 12, W = 14;
+    var top = Math.max.apply(null, [10, f.usual].concat(f.miss.filter(num))) * 1.05;
+    var ty = function (v) { return TB - v / top * (TB - TT); };
+    var right = (px(LAST) + 10).toFixed(1);
+    var s = '<line x1="0" y1="' + TB + '" x2="' + right + '" y2="' + TB + '" stroke="#D9D8D2" stroke-width="1"/>';
+    f.miss.forEach(function (v, i) {
+      if (!num(v) || v <= 0) return;
+      var x0 = px(i) - W / 2, y = ty(v), r = Math.min(3, (TB - y) / 2);
+      s += '<path d="M' + x0.toFixed(1) + " " + TB + " V" + (y + r).toFixed(1) + " Q" + x0.toFixed(1) + " " + y.toFixed(1) + " " + (x0 + r).toFixed(1) + " " + y.toFixed(1) +
+        " H" + (x0 + W - r).toFixed(1) + " Q" + (x0 + W).toFixed(1) + " " + y.toFixed(1) + " " + (x0 + W).toFixed(1) + " " + (y + r).toFixed(1) + " V" + TB + ' Z" fill="' + CALL + '"' +
+        (i < N - D.recent ? ' fill-opacity="0.35"' : "") + "/>";
+    });
+    var uy = ty(f.usual).toFixed(1);
+    s += '<line x1="0" y1="' + uy + '" x2="' + right + '" y2="' + uy + '" stroke="' + INK + '" stroke-width="1.5" stroke-dasharray="5 4"/>';
+    s += '<text x="298" y="' + (+uy + 4).toFixed(1) + '" font-size="13" fill="' + MUTED + '">usual</text>';
+    $("misses").innerHTML = s;
+    $("misses").setAttribute("aria-label", name + ": the model's miss one week ahead, each week to " + dm(L) +
+      "; the last " + D.recent + " average " + f1(f.m4) + " c/L against " + f1(f.usual) + " usually.");
+    $("verdict").textContent = f.verdict;
+    $("verdict").style.color = f.verdict === "Larger than usual" ? "#D03B3B" : INK;
+    $("missnote").textContent = "1 week ahead · last " + D.recent + " weeks " + f1(f.m4) + " c/L, usual " + f1(f.usual);
+  }
+
+  var buttons = Array.prototype.slice.call(document.querySelectorAll(".switch button"));
+  function show(k) {
+    var f = D.fuels[k], name = buttons[k].getAttribute("aria-label");
+    buttons.forEach(function (b, i) {
+      b.setAttribute("aria-pressed", i === k ? "true" : "false");
+      b.style.setProperty("--fuel", D.fuels[i].color);
+    });
+    change(f); priceChart(f, name); numbers(f); cost(f, name); misses(f, name);
+  }
+  buttons.forEach(function (b, i) { b.addEventListener("click", function () { show(i); }); });
+  show(0);
+})();
+</script>
+</body>
+</html>

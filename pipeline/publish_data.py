@@ -17,15 +17,25 @@ The date is the LOAD's, not the data's. A week MBIE only revised
 (`revised_in_place` in the gate) loads with no new week in it, and still
 deserves its own archive.
 
+The same run rebuilds the phone landing page from the same three tables and
+puts it at the root of the account's static website (`phone_page.py` says
+what is on it):
+
+    https://nzfueldata.z8.web.core.windows.net/
+
+The page goes up last. If it fails, the archive is already complete and the
+run still exits 1, so a stale page is noticed rather than left standing.
+
 Upload is one REST call per blob with an Entra token, not the storage SDK: the
 same DefaultAzureCredential the rest of `pipeline/` uses, and no new
 dependency. The identity needs Storage Blob Data Contributor on the `data`
-container — `nz-fuel-ci` holds it since 16 Oct 2026.
+container — `nz-fuel-ci` holds it since 16 Oct 2026 — and on `$web` for the
+page.
 
 Usage:  python pipeline/publish_data.py [--no-upload]
 
-`--no-upload` builds the archive into data/publish/ and stops, for looking at
-it. Exit codes: 0 published, 1 failed.
+`--no-upload` builds the archive and the page into data/publish/ and stops,
+for looking at them. Exit codes: 0 published, 1 failed.
 """
 
 from __future__ import annotations
@@ -43,10 +53,12 @@ from zoneinfo import ZoneInfo
 
 from azure.identity import DefaultAzureCredential
 
+import phone_page
 from fabric_io import connect
 
 ACCOUNT_URL = "https://nzfueldata.blob.core.windows.net"
 CONTAINER = "data"
+SITE_CONTAINER = "$web"
 STORAGE_SCOPE = "https://storage.azure.com/.default"
 API_VERSION = "2023-11-03"
 
@@ -177,7 +189,8 @@ def to_csv(cols: list[str], rows: list[tuple]) -> bytes:
     return buf.getvalue().encode("utf-8")
 
 
-def build_archive(published: str) -> tuple[bytes, dict[str, int]]:
+def build_archive(published: str) -> tuple[bytes, dict[str, int], dict[str, bytes]]:
+    """The zip, its row counts, and its CSVs as written into it."""
     tables = read_tables()
     counts = {name: len(rows) for name, (_, rows) in tables.items()}
     if not all(counts.values()):
@@ -193,23 +206,25 @@ def build_archive(published: str) -> tuple[bytes, dict[str, int]]:
         n_margin=counts["margin.csv"],
     )
 
+    csvs = {name: to_csv(cols, rows) for name, (cols, rows) in tables.items()}
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as z:
         z.writestr("README.txt", readme)
-        for name, (cols, rows) in tables.items():
-            z.writestr(name, to_csv(cols, rows))
-    return buf.getvalue(), counts
+        for name, body in csvs.items():
+            z.writestr(name, body)
+    return buf.getvalue(), counts, csvs
 
 
-def upload(blob: str, body: bytes, cache_control: str | None = None) -> str:
+def upload(blob: str, body: bytes, cache_control: str | None = None,
+           container: str = CONTAINER, content_type: str = "application/zip") -> str:
     token = DefaultAzureCredential().get_token(STORAGE_SCOPE).token
-    url = f"{ACCOUNT_URL}/{CONTAINER}/{blob}"
+    url = f"{ACCOUNT_URL}/{container}/{blob}"
     headers = {
         "Authorization": f"Bearer {token}",
         "x-ms-version": API_VERSION,
         "x-ms-blob-type": "BlockBlob",
-        "x-ms-blob-content-type": "application/zip",
-        "Content-Type": "application/zip",
+        "x-ms-blob-content-type": content_type,
+        "Content-Type": content_type,
     }
     if cache_control:
         headers["x-ms-blob-cache-control"] = cache_control
@@ -231,20 +246,27 @@ def main() -> int:
     args = ap.parse_args()
 
     published = nz_today()
-    archive, counts = build_archive(published)
+    archive, counts, csvs = build_archive(published)
     name = f"nz-fuel-{published}.zip"
     print(f"{name}: {len(archive):,} bytes, {counts}", file=sys.stderr)
 
     if args.no_upload:
         OUT.mkdir(parents=True, exist_ok=True)
         (OUT / name).write_bytes(archive)
-        print(f"written to {OUT / name}, not uploaded", file=sys.stderr)
+        (OUT / "index.html").write_text(phone_page.render(phone_page.compute(csvs)), encoding="utf-8")
+        print(f"written to {OUT / name} and {OUT / 'index.html'}, not uploaded", file=sys.stderr)
         return 0
 
     # Dated first: if the second call fails, the record is complete and only
     # the convenience link is stale, which the next load repairs.
     print(upload(f"{published}/{name}", archive), file=sys.stderr)
     print(upload("latest/nz-fuel-latest.zip", archive, cache_control="no-cache"),
+          file=sys.stderr)
+    # The page last, from the CSVs just zipped: a failure here leaves the
+    # archive whole and the previous page up, and the exit code says so.
+    page = phone_page.render(phone_page.compute(csvs))
+    print(upload("index.html", page.encode("utf-8"), cache_control="no-cache",
+                 container=SITE_CONTAINER, content_type="text/html; charset=utf-8"),
           file=sys.stderr)
     return 0
 

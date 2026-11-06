@@ -580,6 +580,39 @@ and refreshed by then, and `task publish` alone repairs it. After a failed
 refresh, run `task refresh` then `task publish`: the archive should not
 describe a load the report does not show.
 
+### The phone page — 6 Nov 2026 (W22)
+
+Report 1 cannot be read on a phone: publish-to-web serves the desktop page,
+never the mobile layout, which only the Power BI Mobile app shows. So the
+same `task publish` writes one more blob, a static page, to the account's
+static website:
+
+| blob | served at |
+|---|---|
+| `$web/index.html` | `https://nzfueldata.z8.web.core.windows.net/` |
+
+`pipeline/phone_page.py` builds it from the three CSVs the run has just
+zipped — no second warehouse read, and the page and the archive of a date
+are one load. What is on it, and which of Report 1's definitions each figure
+repeats, is in that file's docstring. The page is
+`pipeline/phone/template.html` with the data inlined as JSON, drawn in the
+browser by a page of plain JavaScript — no library, no font download, ~20 KB —
+so it opens at once on conference Wi-Fi and its Today line moves with the
+reader's clock between loads, as Report 1's does.
+
+**Order and failure.** The page goes up after both zips. If building it
+fails, the archive is already whole, the previous page stays up, and the run
+fails so that someone looks. `python pipeline/phone_page.py [archive]`
+rebuilds it from any archive into `data/publish/` with no warehouse and no
+capacity, which is how a change to the page is checked before a load
+publishes it.
+
+**The QR code is fixed.** It encodes the address, is committed as
+`pipeline/phone/qr.svg`, and was made once with segno outside the project's
+environment; it changes only if the address does. That is also why the
+address is the static website's root and not a path in `data`: a code that
+has been shown to someone should keep working.
+
 ## The ingest read a week-old file and reported success — 19 Aug 2026
 
 MBIE published week `2026w33` (14 Aug) at 01:01 UTC on 19 Aug. Two

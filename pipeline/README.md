@@ -21,7 +21,8 @@ of the weekly chain.
 | `mark_processed.py` | closes the run by recording which week was processed |
 | `run_ingest.py` | starts `ingest_mbie_weekly` and waits for it |
 | `run_refresh.py` | starts `refresh_report_1`, which refreshes Report 1's model, and waits for it |
-| `publish_data.py` | zips the report's data with a README and uploads it, dated, to the public Blob container |
+| `publish_data.py` | zips the report's data with a README and uploads it, dated, to the public Blob container; then the phone page |
+| `phone_page.py` | builds the phone page from an archive's three CSVs — called by `publish_data.py`, or alone, offline |
 | `fabric_io.py` | the warehouse connection and the Fabric REST calls both need |
 | `test_gate.py` | replays the gate's decision against the runs that happened |
 | `vintage.py` | puts the whole system on a past date, and brings it back |
@@ -101,13 +102,15 @@ vintages start at 6 August. A date means the state as that day *ended*.
 python pipeline/gate.py            # after the ingest, before everything else
 python pipeline/mark_processed.py  # after forecast_accuracy is rebuilt
 python pipeline/run_refresh.py     # Report 1's model, once the week is closed
-python pipeline/publish_data.py    # last: the dated public archive; --no-upload to look first
+python pipeline/publish_data.py    # last: the dated public archive and the phone page; --no-upload to look first
+python pipeline/phone_page.py      # the phone page from the public latest archive, into data/publish/; no capacity
 python pipeline/test_gate.py       # no capacity, no network, no dependencies
 ```
 
 `gate.py`, `mark_processed.py`, `run_refresh.py`, `publish_data.py` and
 `vintage.py` need the Fabric capacity up and an `az login`; `publish_data.py`
-also needs Storage Blob Data Contributor on `nzfueldata/data` to upload. `test_gate.py` needs neither.
+also needs Storage Blob Data Contributor on `nzfueldata/data` and
+`nzfueldata/$web` to upload. `test_gate.py` and `phone_page.py` need neither.
 
 ## State
 

@@ -205,9 +205,16 @@ tasks:
   # After `refresh`: if the report could not be refreshed, the archive waits
   # too, so the two never describe different loads. Rerun both, in order.
   publish:
-    desc: "Archive the report's data to the public Blob container, dated (step 11)"
+    desc: "Archive the report's data to the public Blob container, dated, and rebuild the phone page (step 11)"
     cmds:
       - '"{{.PY}}" pipeline/publish_data.py'
+
+  # Offline: no warehouse, no capacity. Default is the public latest archive;
+  # pass a zip or a directory of its CSVs after `--`.
+  phone:
+    desc: "Build the phone page from an archive into data/publish/index.html, to look at"
+    cmds:
+      - '"{{.PY}}" pipeline/phone_page.py {{.CLI_ARGS}}'
 
 # --- local steps, no capacity needed -----------------------------------------
 
