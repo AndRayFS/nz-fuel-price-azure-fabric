@@ -1815,8 +1815,8 @@ forecasting nobody knows which kind of week it is.
 which is production; it puts an undocumented Yahoo endpoint inside the
 Wednesday chain, so the failure path has to be *degrade to plain `adl_ecm`*
 rather than fail the run; Report 1 gains a predictor and the semantic model
-needs republishing; and the confidence-tier language rules apply to the new
-series as they do to the old ones. None of that is measurement, and none of it
+needs republishing; and the point-forecast language rule in `CLAUDE.md`
+applies to the new series as it does to the old ones. None of that is measurement, and none of it
 is done.
 
 ## The nowcast's Brent is futures, and in this market that is the wrong price — 19 Sep 2026

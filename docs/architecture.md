@@ -483,6 +483,23 @@ chart rows (`Period`, `Horizon`, `Track Row`, `Share Row`); `As Of` serves the
 hidden page `p9test`, where a week can be picked and the headline compared
 with `pbip/build/headline_check.py`.
 
+**How it states uncertainty.** As a band, not as tiers. On Now each fuel's
+three calls (`pred_adl_ecm`, one to three weeks ahead) sit inside `Call Low`
+and `Call High`: the call plus the 25th and 75th percentiles of past misses
+(actual minus call) at the same horizon, in weeks of the newest week's
+`crude_vol_regime`, all three fuels pooled, outcomes known by the newest week.
+The legend reads "Range of its past misses (middle half)". Agreed in the review
+of 19 Oct, so the band widens when crude is volatile. Track record carries the
+rest: the miss against "the price won't move", by fuel, horizon and regime.
+The `resolved_r` tiers (Strong / Moderate / withheld) belonged to the first
+report, retired on 23 Aug, and the T-SQL layer that computed them was deleted
+on 8 Sep; "Slope, not just r" below keeps their design, not a deployment.
+
+One asymmetry in the band, by construction: the newest week's regime comes
+from a centred window cut short at the edge (`crude_vol_window_full = False`),
+while the past misses it is matched against were labelled with full windows.
+The newest week's regime can change as later weeks arrive.
+
 **Written by generators.** Each page is rewritten whole by a script in
 `pbip/build/` — `page_now.py`, `page_track.py`, `page_margin.py`,
 `page_built.py`, `page_data.py`, with shared builders in `pbir.py` — and the
@@ -1755,10 +1772,14 @@ edit.
 > every cutoff over 703 weeks, a reconstruction of it runs 26% worse than
 > "the price won't move" at one week, level-pegs at two, and beats naive in
 > 39% of weeks — see "Walk-forward test" in `docs/research.md`, including why a
-> period-conditioned measure cannot be backtested honestly at all. The
-> slope arithmetic, the confidence tiers and the lag-0 edge case below are
-> unaffected and still describe what is deployed; the claim that the
-> formula forecasts anything is not.
+> period-conditioned measure cannot be backtested honestly at all.
+>
+> **Corrected 7 Nov 2026:** this note said the slope arithmetic, the
+> confidence tiers and the lag-0 edge case below "still describe what is
+> deployed". None of it is. The report that showed them was retired on
+> 23 Aug and the layer that computed them was deleted on 8 Sep ("The T-SQL
+> lag layer" above); what follows is design kept as reasoning. How Report 1
+> states uncertainty now: "Report 1 as five pages".
 
 `lag_correlation_series` also returns `slope` (`(nΣXY − ΣXΣY) / (nΣX² −
 (ΣX)²)`, the same regression-line slope, reusing sums already computed for
