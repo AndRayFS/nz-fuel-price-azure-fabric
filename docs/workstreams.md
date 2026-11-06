@@ -1,6 +1,6 @@
-# Workstreams — plan of record, 23 Aug 2026, last updated 4 Nov 2026
+# Workstreams — plan of record, 23 Aug 2026, last updated 6 Nov 2026
 
-Nineteen pieces of work, grouped by what they are about rather than by when
+Twenty pieces of work, grouped by what they are about rather than by when
 they happen. Each is meant to be one branch. Every entry states what
 exists today, what the branch delivers, what it risks, and which files it
 touches — the last so that parallel branches can be sequenced without
@@ -1804,6 +1804,75 @@ measures and a theme added; `docs/report1_redesign.md`;
 `docs/architecture.md`, for the report now reading silver. Outside git: the
 republish.
 
+## W22 — A phone page: what Report 1 says, readable on a phone
+
+Proposed 6 Nov 2026, from a review of the phone screen in the same claude.ai
+mock-up (private; boards "Phone · landing page", v1 to v3). Branch
+`w22-phone-page`.
+
+**Status, 6 Nov 2026.** Built and checked offline: the page is generated, its
+figures match the mock-up, and its QR code reads back. Live the same day:
+static website on (`index.html` as index and as 404 document), and the page
+from the 4 Nov archive uploaded by hand — the address answers 200,
+`text/html; charset=utf-8`, `Cache-Control: no-cache`, byte-identical to the
+build. Uploaded with the account key, because the CLI's sign-in holds
+Contributor on the subscription and so can read keys but cannot grant
+roles. **Open:** Storage Blob Data Contributor on `$web` for `nz-fuel-ci` and
+the owner — a portal grant by an account that can assign roles. Until it
+exists the branch stays unmerged: merged, the next weekly run would fail at
+the page's upload.
+
+**Now.** The only public link is Report 1, a 1280-px desktop page.
+Publish-to-web does not serve Power BI's mobile layout — that reaches the
+Power BI Mobile app only, for signed-in readers — so on a phone the report
+arrives at about 30% scale. The owner shows the project from a phone, in
+person, more often than from a laptop.
+
+**Target.** One static page at the root of the storage account's static
+website, `https://nzfueldata.z8.web.core.windows.net/`, rebuilt by every load:
+
+1. A sticky header with the fuel switch, 91 / 95 / Diesel.
+2. The 4-week change in c/L and %, on one line.
+3. The last 13 weeks paid, the model's calls for the next three weeks with the
+   band of Report 1's Now page, a "4 weeks ago" and a "Today" line, and no
+   legend. Under it the latest week's price to one decimal, in ink, and the
+   three calls in whole cents, in blue — they are approximate.
+4. Cost pressure: the importer margin on a 0–60 c/L track against its
+   two-year average, orange below it — Now's bar, one fuel at a time.
+5. The model's recent misses: the 1-week-ahead miss of each of the 13 weeks,
+   the last four dark, against the fuel's usual miss, with one word for how
+   the last four compare — the reader's question being whether to lean on
+   the calls right now.
+6. A link to Report 1, the author's LinkedIn, and a QR code of the page's own
+   address, for handing it on from a phone screen.
+
+Left out on purpose: the CSV download and How it's built — told in person,
+or found in the full report.
+
+**Built from the archive, in the archive's run.** `publish_data.py` passes
+the three CSVs it has just zipped to `pipeline/phone_page.py`, so the page
+and the archive of a date are one load, and there is no second warehouse
+read. The page goes up after both zips. `python pipeline/phone_page.py`
+builds the same page from any archive with no warehouse at all.
+
+**Verification.**
+1. Offline, from the 4 Nov archive: every figure equal to the mock-up's —
+   352.8 and 352 / 350 / 349 for 91, margin gaps −0.5 / −1.7 / +0.8, misses
+   1.27 / 1.45 / 1.29 c/L against 1.60 / 1.56 / 1.74. *Done 6 Nov.*
+2. Rendered at 390 px in headless Chrome, 91 and Diesel. *Done 6 Nov.*
+3. The QR read back by macOS's own detector as the page address. *Done 6 Nov.*
+4. After the switch-on and the first upload: the address opens on a phone,
+   and the next weekly run rewrites `index.html` with the new week.
+
+**Depends on.** W19 (the archive) and W21 (the definitions it repeats).
+
+**Touches.** `pipeline/phone_page.py` and `pipeline/phone/` (new — the
+template, the QR code, and IBM Plex Sans under the OFL);
+`pipeline/publish_data.py`; `pipeline/README.md`; `Taskfile.yml` (the
+`phone` task); `docs/architecture.md`. Outside git: static website on
+`nzfueldata`, and Storage Blob Data Contributor on `$web` for `nz-fuel-ci`
+and the owner.
+
 ## Research backlog — where the analysis goes next, in priority order
 
 Moved out of `docs/architecture.md` on 3 Sep 2026, unchanged apart from this
@@ -2004,6 +2073,7 @@ W2 monitoring   ─ independent
 W18 AIP removed ─ after W16's first unattended run, 1 Oct
 W20 run log, bill ─ after the 22 Oct load
 W21 report v2   ─ independent; W20 fills its page 4
+W22 phone page  ─ after W19 and W21
 W4 vintage      ─ independent
 W10 model       ─ independent
 W11 report      ─ interacts with W9
@@ -2041,7 +2111,8 @@ side file to a whole-chain mode makes it an ordinary branch.
 | `pipeline/aip_check.py` | W2, W18 (deletes it) |
 | `.claude/rules/active-items.md` | W9, W16, W18 |
 | `.github/workflows/weekly.yml` | W16, W18, W20 |
-| `Taskfile.yml` | W18 (the `aip` task), W20 |
+| `Taskfile.yml` | W18 (the `aip` task), W20, W22 (the `phone` task) |
+| `pipeline/publish_data.py` | W22 |
 | `pbip/` | W20 (a table, page 4), W21 (throughout) |
 | `.github/workflows/pause-capacity.yml` | W16 |
 
