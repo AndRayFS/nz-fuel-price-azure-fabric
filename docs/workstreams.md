@@ -1811,8 +1811,16 @@ mock-up (private; boards "Phone · landing page", v1 to v3). Branch
 `w22-phone-page`.
 
 **Status, 6 Nov 2026.** Built and checked offline: the page is generated, its
-figures match the mock-up, and its QR code reads back. Not yet live — the
-static website is not switched on, and nothing has been uploaded to it.
+figures match the mock-up, and its QR code reads back. Live the same day:
+static website on (`index.html` as index and as 404 document), and the page
+from the 4 Nov archive uploaded by hand — the address answers 200,
+`text/html; charset=utf-8`, `Cache-Control: no-cache`, byte-identical to the
+build. Uploaded with the account key, because the CLI's sign-in holds
+Contributor on the subscription and so can read keys but cannot grant
+roles. **Open:** Storage Blob Data Contributor on `$web` for `nz-fuel-ci` and
+the owner — a portal grant by an account that can assign roles. Until it
+exists the branch stays unmerged: merged, the next weekly run would fail at
+the page's upload.
 
 **Now.** The only public link is Report 1, a 1280-px desktop page.
 Publish-to-web does not serve Power BI's mobile layout — that reaches the
