@@ -130,7 +130,8 @@ def calendar_check() -> bool:
         # the other era's rule, applied to this era's months, as a placebo
         placebo = pd.Series({c: new_rule(c) if c <= LAST_OLD_RULE else old_rule(c)
                              for c in ex.index})
-        pa = pd.DatetimeIndex(days[np.searchsorted(days, placebo.to_numpy(), side="right")])
+        placebo = placebo[(placebo > db.index[0]) & (placebo < db.index[-1])]
+        pa =pd.DatetimeIndex(days[np.searchsorted(days, placebo.to_numpy(), side="right")])
         pratio = db[pa].mean() / other.median()
         print(f"  {era}: {len(ex)} expiries, ratio {ratio:.2f}  (placebo, other era's rule: {pratio:.2f})")
         ok &= ratio >= 2
