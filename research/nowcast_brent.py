@@ -52,11 +52,15 @@ nowcast is for.
 So: nothing here ships on this series without re-measuring on spot first. The
 walk-forward result in docs/research.md was scored on 2010-2026 where the two
 series agree; it is not evidence about a backwardated market.
+ANSWERED 5 and 7 Nov 2026 (docs/research.md): spot does no better, and in the
+weeks a contract expires the futures' jump is a real move in MBIE's cost.
 
-Also verified 19 Sep: the Yahoo reading of 98.77 for 2026-09-18 is wrong.
-TradingEconomics and Convex both put that close at 103.2-103.9, a -1.5% day
-rather than -5.8%. A front-month roll in steep backwardation produces exactly
-that kind of phantom gap, so treat single-day moves near a roll as suspect.
+CORRECTED 7 Nov 2026. The 19 Sep reading of 98.77 for 2026-09-18 was not an
+error but the next contract. Yahoo's live view of BZ=F moves to the next
+contract 4-9 trading days before expiry; its daily history stays on the
+calendar front contract until expiry, and it later rewrote that day to
+103.87. A live nowcast must request the front contract by symbol
+(e.g. BZF27.NYM), not BZ=F (docs/research.md, "Yahoo's Brent rolls twice").
 
 Usage:  python research/nowcast_brent.py [--from 2015] [--final-only]
 Reads `data/panel_weekly.csv`; fetches daily Brent and NZD/USD and caches

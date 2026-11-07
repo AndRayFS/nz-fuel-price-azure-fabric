@@ -8,6 +8,8 @@ quoted from `docs/research.md`; scripts are in `research/` and `pipeline/`.
 > - There are no confidence tiers (sections 1, 8). Report 1 states
 >   uncertainty as a band on Now and a Track record page.
 > - The run is on Thursday at 09:07 NZ, not on Wednesday (sections 1, 2).
+> - The 18 Sep Yahoo point (section 2) was not wrong. It was the next
+>   futures contract (`docs/research.md`, 7 Nov 2026).
 
 ## 1. The product
 

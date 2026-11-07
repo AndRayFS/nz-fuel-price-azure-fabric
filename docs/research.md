@@ -1825,6 +1825,12 @@ is done.
 > spot and on ComCom's daily product cost: the nowcast loses to plain
 > `adl_ecm` on futures, and spot does no better, so a better source is not
 > the fix. See the next section.
+>
+> **Revised 7 Nov 2026.** The 18 Sep "wrong point" was the next futures
+> contract, not an error. And in the weeks a contract expires, the futures'
+> jump is a real move in MBIE's cost. "Wrong price" holds for levels in a
+> backwardation, not for the nowcast's weekly change. See "Yahoo's Brent
+> rolls twice, and the roll is real for MBIE's cost" below.
 
 `research/nowcast_brent.py` fetches Yahoo `BZ=F`, front-month Brent futures.
 FRED's `DCOILBRENTEU` is Europe Brent spot FOB. On 4,714 common days the two
@@ -1865,9 +1871,9 @@ which is research.
 
 ## The nowcast in the backwardation: it loses, and spot would not have saved it — 5 Nov 2026
 
-*Re-judged 7 Nov 2026: with a confidence interval this FAIL is not
-detectable — see "The backwardation veto does not survive a confidence
-interval" below.*
+> **Re-judged 7 Nov 2026.** With a confidence interval this FAIL is not
+> detectable — see "The backwardation veto does not survive a confidence
+> interval" below.
 
 `research/nowcast_backwardation.py`, the measurement the section above made a
 condition of shipping. The rule was written into the script before any number
@@ -2029,8 +2035,105 @@ the nowcast.
     minutes after ICE settles. A late Yahoo bar would leave two days of the
     week, a case no test has covered.
   - Yahoo's endpoint is undocumented and has been wrong once (18 Sep).
-- **Open, the owner's decision:** whether to reopen the nowcast as a shadow
-  run, and on what rule.
+- **Open, the owner's decision:** whether to promote the nowcast. What
+  promotion needs, and why a shadow run is not it, is in the next section.
+
+## Yahoo's Brent rolls twice, and the roll is real for MBIE's cost — 7 Nov 2026
+
+`research/roll_weeks.py` and `research/roll_cost.py`, each committed with
+its rule and prediction before it was run. The measurements of Yahoo's own
+series were scratch checks the same day; their numbers are given here.
+
+**`BZ=F` is two series.**
+
+- **Daily closes are settlement prices.** Over 50 days, the daily close is
+  within 0.10 USD of the intraday price at 19:30 London on 54% of days, and
+  of the last trade at 17:00 ET on 20%.
+- **The daily series is the calendar front contract.** It switches on the
+  expiry day. In Yahoo's two years of hourly history, the daily and hourly
+  series agree to within 0.31 USD in the three days after each of 21
+  calendar expiries.
+- **The intraday series, the one a live request sees, switches 4–9 trading
+  days earlier.** On 23 Oct 2026 the hourly series moved to January:
+  111.70, `BZF27`'s close to the cent. The daily series stayed on December
+  until December expired on 30 Oct.
+- **The gap between the two contracts:** 0.3–1.25 USD (0.4–2%) in 2025, up
+  to 6–7 USD (6%) in the 2026 crisis.
+- **No contract in the data.** `BZ=F` carries neither a contract nor an
+  expiry in its metadata, and the endpoint that used to (`v7/quote`) now
+  answers 401. Live contracts can be requested by symbol (`BZF27.NYM`).
+  Expired ones answer 404, so there is no per-contract history.
+
+**The 18 Sep "wrong point" was the next contract.** On 19 Sep the daily bar
+for 18 Sep read 98.77, December's price. Today it reads 103.87, November's
+settlement. The hourly history still shows 98.4–99.7 through 18 Sep. It was
+the live view, overwritten later, not an error.
+
+**Expiry calendar.** From the March 2016 contract: the last London business
+day of the second month before the contract month. Before that: the business
+day before the 15th day before the contract month. Checked against FRED
+spot, as the mean |change in basis| on the day after an expiry over the
+median on other days:
+
+- current rule: 2.26, against 1.28 for a placebo (the old rule's dates);
+- 2013 – Jan 2016: the old rule scores 2.04 and its placebo 2.42. Labels
+  before March 2016 are not trusted.
+
+**Roll weeks: the nowcast does better there, not worse.** A roll week has an
+expiry between Monday of week t and Wednesday of week t+1, so the nowcast's
+feature straddles two contracts. 208 of 717 origins (29%) are roll weeks.
+MAE change against `adl_ecm`, %, Diesel and Regular Petrol pooled, all
+regimes, 90% CI:
+
+| | n | h=1 | h=2 | h=3 |
+|---|---|---|---|---|
+| Non-roll weeks | 509 | −6.7 [−10.3, −3.4] | −12.6 [−16.0, −10.1] | −10.9 [−13.8, −8.7] |
+| Roll weeks | 208 | −9.6 [−16.1, −3.4] | −15.8 [−21.6, −10.7] | −15.3 [−20.3, −10.6] |
+| Falling back to `adl_ecm` in roll weeks, against the nowcast | 717 | +3.4 [+1.1, +6.0] | +5.6 [+3.5, +7.9] | +5.4 [+3.8, +7.1] |
+
+- **From March 2016 only** (descriptive): roll weeks −8.0 / −15.7 / −16.0,
+  non-roll −4.1 / −11.0 / −9.6.
+- **D2, roll weeks: "better".** No fallback.
+- **D1, every fuel in non-roll weeks: not met.** In crisis non-roll weeks
+  (n = 86) the petrol CIs at h=1 reach +5.8% (91) and +7.3% (95R), against a
+  +5% bound. Their point estimates are below zero. Non-crisis weeks pass for
+  every fuel and horizon.
+- **Predictions: 2 of 4 held.** The two that missed expected roll weeks to
+  be worse.
+
+**Why: the roll moves MBIE's cost.** March 2016 – Sep 2026, three fuels
+pooled, over the nowcast's window: the change in `importer_cost` regressed on
+the spot move (FRED) and on futures minus spot. 90% CIs:
+
+| | n | b_spot | b_basis | b_basis / b_spot |
+|---|---|---|---|---|
+| Roll weeks | 480 | 1.39 [0.97, 1.78] | 1.02 [0.41, 1.49] | 0.73 [0.38, 0.88] |
+| Non-roll weeks | 1,164 | 1.06 [0.82, 1.32] | −0.38 [−1.55, +1.28] | — |
+
+- **Rule: "real".** The prediction ("phantom", from `docs/mbie_notes.md`:
+  the cost is a weekly Singapore spot quote with no contract month) missed.
+- **What it means.** In roll weeks, a jump that exists because a futures
+  contract expired reaches MBIE's cost at about three-quarters of a spot
+  move. Outside them, futures minus spot is noise.
+- **The mechanism is not established.** A candidate, not checked: Singapore
+  product quotes move to the next month at the turn of the month too.
+
+**What follows.**
+
+- **19 Sep's "futures is the wrong price"** holds for levels in a
+  backwardation. It does not hold for the nowcast's weekly change: the roll
+  the futures carry is a move the cost makes too.
+- **A live nowcast must reproduce the backtest's series.** Each day, the
+  calendar front contract, switching on expiry. That means requesting it by
+  symbol (`BZF27.NYM` until 30 Nov 2026), not `BZ=F`, whose live view moves
+  4–9 trading days early. Holding one contract across both weeks would
+  remove the jump that carries signal.
+- **Not measurable from history:** what Yahoo returns at the run for a
+  contract symbol, and whether it answers a GitHub runner. That is a probe
+  of a week or two, not a shadow run. Twelve shadow weeks could not confirm
+  the gain: scaled from the non-crisis CIs above, their CI would be about
+  ±25 points against a 7–13% effect. Everything else a shadow run would
+  check has been done on history.
 
 ## A better crude-to-cost slope made the forecast worse — 8 Sep 2026
 

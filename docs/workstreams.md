@@ -1560,6 +1560,21 @@ does no better at h=1 (3.337), so a better source is not the fix
 not run in shadow either — the owner's decision the same day. Reopening it
 needs a new rule, written before the weeks it is tested on.
 
+**Re-judged 7 Nov 2026.** With a confidence interval the 5 Nov FAIL is not
+detectable (n = 9). The nowcast is also better in crisis weeks: −10 to −14%,
+n = 119 per fuel (`research/verdict_ci.py`). Spot is no longer a condition:
+in the weeks a futures contract expires, its jump is a real move in MBIE's
+cost (`research/roll_weeks.py`, `research/roll_cost.py`). Promotion now
+needs four things:
+
+- the calendar front contract, requested by symbol;
+- a guard with fallback to `adl_ecm`;
+- the band recomputed from the nowcast's misses;
+- a one-to-two-week probe of Yahoo from the runner.
+
+Not a shadow run. The owner's decision is pending (`docs/research.md`,
+7 Nov 2026).
+
 ## W11 — Apply the Report 1 redesign — **closed 16 Oct 2026**
 
 **Closed by the owner, two items short.** The spec's core is Report 1's first
