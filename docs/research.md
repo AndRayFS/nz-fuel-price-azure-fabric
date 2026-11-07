@@ -1865,6 +1865,10 @@ which is research.
 
 ## The nowcast in the backwardation: it loses, and spot would not have saved it — 5 Nov 2026
 
+*Re-judged 7 Nov 2026: with a confidence interval this FAIL is not
+detectable — see "The backwardation veto does not survive a confidence
+interval" below.*
+
 `research/nowcast_backwardation.py`, the measurement the section above made a
 condition of shipping. The rule was written into the script before any number
 was computed: Diesel and Regular Petrol, h=1 and h=2, forecast origins whose
@@ -1963,6 +1967,70 @@ reasons are recorded so that they are not looked up again.
   - **Use.** A reference for questions like this one.
   - **Unknown.** Its source, and whether it carries MBIE's fuel market
     adjustment.
+
+## The backwardation veto does not survive a confidence interval — 7 Nov 2026
+
+`research/verdict_ci.py`, after an outside review of the plateau
+(`research/model_plateau_review.md`; the brief the reviewers read is
+`research/model_plateau_brief.md`). The rule was written in the review,
+section 5, before the run:
+
+- **Statistic.** Moving-block bootstrap of the MAE ratio over forecast
+  origins, both fuels of a date resampled together when pooled. 2,000
+  resamples, 90% CI. Blocks of 8 weeks when n ≥ 32, of 2 below.
+- **Verdicts.** "Better" stands if the CI's upper end is below 1, "worse" if
+  its lower end is above 1; otherwise it is not detectable. Crisis weeks:
+  "does not hurt" if the upper end is below 1.05.
+- **Nothing re-implemented.** Each try's own script makes the forecasts, and
+  all three reproduce the archive's `pred_adl_ecm` to 0.00005 c/L. Archive
+  2026-11-05.
+
+MAE change against production, % (negative = the variant is better), Diesel
+and Regular Petrol pooled, 90% CI in brackets:
+
+| Verdict | Sample | n per fuel | h=1 | h=2 | Now |
+|---|---|---|---|---|---|
+| Nowcast better (8 Sep) | non-crisis, 2013+ | 598 | −6.7 [−10.6, −2.6] | −13.5 [−17.0, −10.2] | **stands**, every fuel incl. 95R, and at h=3 |
+| Nowcast worse in the backwardation (5 Nov) | nowcast weeks from 4 Sep | 9 / 8 | +13.5 [−11.8, +32.2] | +7.4 [−20.2, +110.8] | **not detectable** |
+| Recency weighting worse (5 Nov) | non-crisis | 598 | +1.5 [+0.2, +3.0] | +1.3 [+0.1, +2.7] | **stands** |
+| | crisis | 119 | +1.1 [−1.0, +3.0] | +0.1 [−1.6, +1.7] | not detectable |
+| Nowcast in crisis (new) | every crisis week, seven episodes | 119 | −10.0 [−17.0, −3.0] | −13.7 [−19.4, −9.6] | **does not hurt**; better |
+
+**Crisis weeks per fuel**, h=1 / h=2 / h=3: Diesel −10.2 / −13.0 / −9.5,
+Regular Petrol −9.6 / −14.6 / −12.7, Premium 95R −9.6 / −14.6 / −12.6. Every
+upper end is below 1.05. At h=1 the petrol CIs reach +0.8 and +1.5, so for
+petrol at h=1 the crisis result is "does not hurt", not "better".
+
+**Inside the crisis weeks**, pooled, descriptive only:
+
+| Weeks | n | h=1 | h=2 |
+|---|---|---|---|
+| Before 2026 | 82 | −15.5 | −17.0 |
+| 2026 | 37 | −2.7 [−8.1, +8.9] | −10.2 |
+| The backwardation | 8 | +7.9 | +7.4 |
+
+2026 is the nowcast's weakest episode, h=1 is its weakest horizon, and the
+backwardation is the weakest part of 2026. None of them is evidence against
+the nowcast.
+
+**What follows.**
+
+- **The veto is gone.** The 5 Nov "not promoted" rested on nine weeks whose
+  sign the data cannot fix. The nowcast's record is now 598 calm and 119
+  crisis weeks per fuel, for all three fuels, and it is better in both.
+- **Moot.** "It cannot be switched on for calm weeks only" (5 Nov): it does
+  not need to be.
+- **Recency weighting:** its FAIL stands, now as a small real loss rather
+  than a tie.
+- **What the backtest cannot show:**
+  - The data is the current vintage, as in every test here.
+  - The run is on Thursday at 09:07 NZ (`infra/logic-apps/trigger-weekly-load.json`),
+    not on Wednesday as several notes say. In NZ summer that is about 40
+    minutes after ICE settles. A late Yahoo bar would leave two days of the
+    week, a case no test has covered.
+  - Yahoo's endpoint is undocumented and has been wrong once (18 Sep).
+- **Open, the owner's decision:** whether to reopen the nowcast as a shadow
+  run, and on what rule.
 
 ## A better crude-to-cost slope made the forecast worse — 8 Sep 2026
 
