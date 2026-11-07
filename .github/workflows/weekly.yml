@@ -60,6 +60,25 @@ jobs:
           python-version: '3.12'
           cache: pip
 
+      # W23, step 1 — temporary; see probe-yahoo.yml. One snapshot of Yahoo a
+      # week at the real run's time, so it comes before anything slow. It can
+      # neither stop the load nor delay it much: `continue-on-error`, standard
+      # library only, and a timeout above its worst case (eight requests at 15
+      # seconds each, a second apart). Remove with probe-yahoo.yml.
+      - name: Probe Yahoo (non-blocking)
+        continue-on-error: true
+        timeout-minutes: 3
+        run: python pipeline/probe_yahoo.py --out "$RUNNER_TEMP/probe"
+
+      - name: Keep the probe's answers
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: yahoo-probe
+          path: ${{ runner.temp }}/probe/
+          retention-days: 30
+          if-no-files-found: warn
+
       # One pin, dbt-core-experimental-parser, downloads its real wheel from
       # GitHub Releases rather than PyPI — the runner needs egress there, which
       # it has. See the note in requirements.txt.
