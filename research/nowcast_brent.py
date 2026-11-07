@@ -120,6 +120,12 @@ def brent_nzd_cpl() -> pd.Series:
     USD/bbl divided by USD-per-NZD gives NZD/bbl; the rest is unit conversion.
     Both legs come from the same source so that a day missing from one is
     missing from the other rather than silently mismatched.
+
+    Measured 7 Nov 2026: a NZDUSD=X daily bar is one price, at 00:00 London
+    (close = open). Dated by UTC as here, it lands on the right day in UK
+    summer (about 2 h after the NZ-winter run on Wednesdays) and one day
+    stale in UK winter. Not a leak; see docs/research.md, "Yahoo's Brent
+    rolls twice".
     """
     brent = yahoo_daily("BZ=F", ROOT / "data" / "brent_daily_yahoo.csv")
     fx = yahoo_daily("NZDUSD=X", ROOT / "data" / "nzdusd_daily_yahoo.csv")
