@@ -163,6 +163,29 @@ Inside part 2, descriptive only:
   production for 12 weeks, per fuel, with a guard that falls back to
   production when the Yahoo bar is missing or diverges from a second source.
 
+## 7. Later the same day — the shadow run dropped, and futures rolls
+
+- **A shadow run cannot test what it was proposed for.** Scaled from try 1's
+  CIs, 12 weeks give about ±25–28 points at h=1–2 against a 7–13% effect. A
+  shadow run alone would need about 40 weeks at h=2 and about four years at
+  h=1. The 12 came from a reviewer and was not derived.
+- **Most of what it would check is in history.** Yahoo's daily `BZ=F` is the
+  settlement of the calendar front contract, so the "Wednesday not closed
+  yet" risk mostly goes. The live view switches contract 4–9 trading days
+  before expiry, and the 18 Sep "wrong point" was that switch. In roll weeks
+  the nowcast does better, and the roll is a real move in MBIE's cost: 0.73
+  of a spot move. Two of the owner's questions led here: "how do you know
+  the hourly history was corrected too?" (it was not), and "what does 'the
+  day is still going' mean after settlement?". `docs/research.md`, 7 Nov
+  2026.
+- **Left for live:** what Yahoo returns at the run for a contract symbol, and
+  whether it answers a GitHub runner. That is a probe of a week or two.
+- **Proposed next step (owner's decision):**
+  - research: done;
+  - production: the front contract by symbol, a guard, the band recomputed
+    from the nowcast's misses (test B), the probe, then the switch;
+  - `adl_ecm` stays computed beside it.
+
 ---
 
 # Appendix — raw reviews (compressed, wording kept)

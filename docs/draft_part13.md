@@ -80,8 +80,11 @@ public link.
   diesel result and removed one petrol result (29 Aug); the 23 Sep
   adjustment rewrote March–September margins. Posts stay as published;
   corrections are listed in `docs/linkedin_series.md`.
-- **The nowcast's Brent is futures**, the wrong price in this market
-  (`docs/research.md`, 19 Sep).
+- **The nowcast is not in Report 1.** Its live source is Yahoo's
+  undocumented endpoint. The 19 Sep worry that futures were the wrong price
+  was answered 5–7 Nov: spot does no better, and the futures' monthly roll
+  is a real move in MBIE's cost (`docs/research.md`, 7 Nov). *Revised 7 Nov
+  from "The nowcast's Brent is futures, the wrong price in this market".*
 - **National weekly averages.** No station-level or regional prices.
 
 ## What keeps running

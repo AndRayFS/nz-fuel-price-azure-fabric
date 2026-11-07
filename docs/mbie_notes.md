@@ -156,8 +156,11 @@ r = 0.856; **weekly Mon–Fri mean changes r = 0.934 over 609 weeks**, and the
 weekly change is what the nowcast consumes.
 
 Three caveats that travel with it. `BZ=F` is the **front-month future**, not
-Dated Brent spot, and it rolls monthly — on levels the basis is worth a couple
-of dollars, on changes it mostly cancels. That endpoint returns history from
+Dated Brent spot, and it rolls monthly. On levels the basis is worth a couple
+of dollars. On weekly changes it cancels except in a roll week: the daily
+series jumps by the gap between two contracts on expiry day (up to 7 USD in
+2026), and the live view moves to the next contract 4–9 trading days earlier
+(`docs/research.md`, "Yahoo's Brent rolls twice", 7 Nov 2026). That endpoint returns history from
 2007 rather than FRED's 1987. And it is **undocumented**: it is what Yahoo's
 own site calls, with no terms and no stability promise, which is acceptable
 for a measurement and is an open question for anything that would run every
