@@ -1,0 +1,57 @@
+name: Probe Yahoo
+
+# W23, step 1 (docs/workstreams.md) — temporary. The nowcast would put Yahoo's
+# undocumented chart endpoint inside the weekly chain, and nothing about it has
+# been measured from a runner. `pipeline/probe_yahoo.py` records Yahoo's raw
+# answers and interprets none of them; its docstring lists what it asks for and
+# the three questions the artifacts answer: is a runner answered, is a live
+# daily bar the settlement, and when does Yahoo rewrite past `BZ=F` days around
+# `BZF27`'s expiry on 30 Nov 2026.
+#
+# **Why 19:45 UTC on weekdays.** GitHub's cron carries no SLA and has run 110 to
+# 144 minutes late here (10 and 16 Sep 2026; see weekly.yml). On time, 19:45 is
+# a quarter of an hour after ICE settles Brent at 19:30; late by what was
+# measured, it lands at 21:35-22:09, around CME's close at 22:00. Both hours
+# are as they stand in UK and US winter, which is all this probe will see. The
+# lateness is part of the measurement — `fetched_at_utc` in the manifest is the
+# real time — so a cron is acceptable here, unlike for the load. The one other
+# snapshot a week comes from the first step of weekly.yml, at the real run.
+#
+# It holds no secrets, touches nothing in Azure, and is not in the
+# `fabric-capacity` concurrency group: it never waits on a load or holds one up.
+#
+# Artifacts are kept 30 days, which covers the expiry and the weeks either side
+# of it. Delete this file when W23's step 2 has what it needs from it.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '45 19 * * 1-5'     # Monday to Friday, 19:45 UTC — see the header
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # No pip install: the probe is standard library only.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Probe
+        run: python pipeline/probe_yahoo.py --out "$RUNNER_TEMP/probe"
+
+      # Also when the probe exits 1 (nothing answered 200): the manifest of
+      # what failed, and how, is the answer to the first question.
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: yahoo-probe
+          path: ${{ runner.temp }}/probe/
+          retention-days: 30
+          if-no-files-found: warn

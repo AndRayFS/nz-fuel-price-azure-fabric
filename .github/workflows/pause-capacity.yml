@@ -26,10 +26,11 @@ name: Pause capacity (watchdog)
 # finished or died, and either way the capacity should be asleep. It is still
 # eleven hours ahead of the 23:00 NZT auto-pause, which is the line behind it.
 #
-# This is the only cron left in the repository — `weekly.yml` has none, on
-# purpose (19 Sep 2026). A monitor being late costs nothing; a load being late
-# costs the week, which is why only one of the two is allowed to run on a
-# schedule GitHub does not promise to keep.
+# `weekly.yml` has no cron, on purpose (19 Sep 2026). A monitor being late costs
+# nothing; a load being late costs the week, which is why only one of the two is
+# allowed to run on a schedule GitHub does not promise to keep. The one other
+# cron in the repository, the temporary `probe-yahoo.yml` (W23, 7 Nov 2026), is
+# a measurement, and its lateness is part of what it records.
 #
 # **It also says when there was no load at all — 24 Sep 2026.** The Logic App
 # that starts the load is the same thing that mails when the load fails, so the

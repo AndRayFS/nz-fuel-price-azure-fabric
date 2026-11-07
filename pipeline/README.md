@@ -25,6 +25,7 @@ of the weekly chain.
 | `phone_page.py` | builds the phone page from an archive's three CSVs — called by `publish_data.py`, or alone, offline |
 | `fabric_io.py` | the warehouse connection and the Fabric REST calls both need |
 | `test_gate.py` | replays the gate's decision against the runs that happened |
+| `probe_yahoo.py` | records Yahoo's raw answers for W23's probe — temporary, standard library only, run by `probe-yahoo.yml` and as weekly.yml's first step |
 | `vintage.py` | puts the whole system on a past date, and brings it back |
 
 `aip_check.py` moved here on 7 Sep 2026, reversing a decision made earlier
