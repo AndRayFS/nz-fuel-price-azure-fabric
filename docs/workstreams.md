@@ -1,6 +1,6 @@
-# Workstreams — plan of record, 23 Aug 2026, last updated 6 Nov 2026
+# Workstreams — plan of record, 23 Aug 2026, last updated 7 Nov 2026
 
-Twenty pieces of work, grouped by what they are about rather than by when
+Twenty-two pieces of work, grouped by what they are about rather than by when
 they happen. Each is meant to be one branch. Every entry states what
 exists today, what the branch delivers, what it risks, and which files it
 touches — the last so that parallel branches can be sequenced without
@@ -1572,8 +1572,7 @@ needs four things:
 - the band recomputed from the nowcast's misses;
 - a one-to-two-week probe of Yahoo from the runner.
 
-Not a shadow run. The owner's decision is pending (`docs/research.md`,
-7 Nov 2026).
+Not a shadow run. The plan is W23 (`docs/research.md`, 7 Nov 2026).
 
 ## W11 — Apply the Report 1 redesign — **closed 16 Oct 2026**
 
@@ -1887,6 +1886,139 @@ template, the QR code, and IBM Plex Sans under the OFL);
 `phone` task); `docs/architecture.md`. Outside git: static website on
 `nzfueldata`, and Storage Blob Data Contributor on `$web` for `nz-fuel-ci`
 and the owner.
+
+## W23 — The nowcast in production — **proposed 7 Nov 2026**
+
+**Why now.** An outside review of the model plateau, with three tests whose
+rules were written before they ran, cleared the nowcast
+(`research/model_plateau_review.md`, sections 6–7; `docs/research.md`,
+7 Nov 2026):
+
+- 5 Nov's veto is not detectable (n = 9);
+- the nowcast is better in 598 calm and 119 crisis weeks per fuel, for all
+  three fuels: −7 to −14%;
+- futures rolls do not hurt it, and the roll is a real move in MBIE's cost;
+- Yahoo's FX dating leaks nothing of a day.
+
+What remains is engineering. No shadow run: twelve weeks could not confirm
+the gain (CI about ±25 points), and the rest was checked on history.
+
+**What exists.**
+
+- `research/nowcast_in_adl.py`: `forecast_with_nowcast`, the feature
+  `m3(t+1) − m5(t)`.
+- `research/nowcast_brent.py`: `week_means`, `brent_nzd_cpl`.
+- `research/roll_weeks.py`: the expiry calendar.
+- `pipeline/backtest.py`: writes `pred_adl_ecm`. Report 1's measures read
+  that column in `pbip/build/model_v2.py`, as does the phone page.
+
+**What the branch delivers, in order.**
+
+1. **A probe, before anything else.**
+   - `.github/workflows/probe-yahoo.yml` on `workflow_dispatch`, plus cron
+     at 19:45 UTC on weekdays. GitHub's cron has run 110–144 min late, and
+     19:45 lands the delay in the window between settlement (19:30 UTC) and
+     CME's close (22:00 UTC).
+   - A non-blocking first step in `weekly.yml`, so there is one snapshot a
+     week at the real run.
+   - It records:
+     - `BZ=F` daily (10 days) and hourly (2 days);
+     - the calendar front and next contracts by symbol (`BZF27.NYM`,
+       `BZG27.NYM`), daily and 15-minute;
+     - `NZDUSD=X` hourly;
+     - HTTP code, latency, the time of the fetch.
+   - Artifact kept 30 days.
+   - Questions:
+     - does Yahoo answer a runner (first dispatch);
+     - is a live daily bar the settlement;
+     - when does Yahoo rewrite past `BZ=F` days around `BZF27`'s expiry on
+       30 Nov?
+2. **`pipeline/nowcast.py`.** The feature exactly as backtested, from three
+   sources:
+   - history from `BZ=F` daily;
+   - the newest days from the calendar front contract by symbol, not
+     `BZ=F`, whose live view moves to the next contract 4–9 trading days
+     early;
+   - FX from the latest hourly price at the run.
+
+   Plumbing: reproduce `adl_ecm_nc` from `nowcast_in_adl.py` on the
+   2026-11-05 archive to 0.0001 c/L.
+3. **Guard, falling back to `adl_ecm` with the reason logged.** It trips on:
+   - a missing day;
+   - a daily move beyond a threshold set from history;
+   - a day whose calendar-front price cannot be had (the expired symbol
+     answers 404 and `BZ=F` still shows the next contract).
+4. **A new forecast column, walk-forward over the whole history.** It flows
+   into `forecast_accuracy`, Report 1's measures, the phone page and the
+   band on Now. **Owner's decision:**
+   - (A) a new column `pred_nowcast`, with Report 1 and the phone page
+     switched to it and `pred_adl_ecm` kept beside it as the comparison
+     (recommended: names stay true);
+   - (B) `pred_adl_ecm` computed with the nowcast.
+5. **Test B, whether the band on Now covers what it claims.** Separate
+   work, not a gate.
+
+**Gates.** Probe: the runner is answered. Plumbing passes. Owner review.
+**Target: the 26 Nov run** (19 Nov if the review is quick). The first roll
+week is the 3 Dec run, and the guard covers it.
+
+**Risks.**
+
+- **Undocumented endpoint.** Covered by the fallback.
+- **Live-bar semantics.** The probe answers it. At worst about 0.4% on one
+  of three days.
+- **Point-forecast language.** The rule in `CLAUDE.md` applies to the new
+  column.
+
+**Touches.** New `pipeline/nowcast.py` and
+`.github/workflows/probe-yahoo.yml`. Changed:
+
+- `pipeline/backtest.py`, `models/gold/forecast_accuracy.sql`;
+- `pbip/build/model_v2.py`, `pipeline/phone_page.py`;
+- `Taskfile.yml`, `.github/workflows/weekly.yml`;
+- `docs/architecture.md`.
+
+## W24 — `docs/research.md`: contradictions first, then a "what holds now" header — **proposed 7 Nov 2026**
+
+**Why.** The 7 Nov plateau brief was assembled from this file and inherited
+claims from it that no longer held. The file is a diary written in date
+order. Its own rule, "a block quote at the top means overtaken", is applied
+unevenly.
+
+**Found 7 Nov.** The check was partial: headings, top quotes, bold claims
+and suspect passages, about 15% of the text. Line numbers drift, so the
+places are given by phrase.
+
+1. **Diesel's creep: four places, four claims.**
+   - "What the creep is: the 2026 crisis, and nothing else" (15 Aug, no
+     marker);
+   - "What this retracts" (16 Aug);
+   - that section's own top quote, "Superseded 29 Aug";
+   - "Scoped correctly: it is the volatile weeks…".
+
+   Knowing what holds takes all four.
+2. **"n = 1. Every crisis claim in this project rests on one episode".** The
+   heading contradicts its own in-body correction ("Corrected 15 Aug 2026 —
+   'n = 1' was too strong": 109 high weeks across six episodes). The 7 Nov
+   sections use seven episodes and 119 weeks.
+3. **"The nowcast survives the walk-forward test" (8 Sep).** Its "What has
+   to be true before this ships" is overtaken by W23. No top quote.
+4. **"Wednesday run" / "Wednesday chain".** It appears four times; the run
+   is Thursday at 09:07 NZ. The 7 Nov veto section then says "not on
+   Wednesday as several notes say" instead of fixing them.
+5. **In-body corrections.** "Corrected 15 Aug", "Scoped correctly" and
+   "What this retracts" break the top-quote rule.
+6. **Duplicate.** "Defect in the backtest record" appears twice and is
+   obsolete: `pipeline/backtest.py` writes signed `err_*`.
+
+**Delivers.**
+
+- Fixes 1–6.
+- Then a "what holds now" header by topic, one line each with a link. It
+  becomes the source for future briefs.
+- Optional later: overtaken sections and the withdrawn appendix to an
+  archive file. About 620 of 2,600 lines; 16 references by section title
+  elsewhere would need checking.
 
 ## Research backlog — where the analysis goes next, in priority order
 
