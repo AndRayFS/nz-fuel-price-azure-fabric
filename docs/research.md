@@ -2064,6 +2064,24 @@ series were scratch checks the same day; their numbers are given here.
   answers 401. Live contracts can be requested by symbol (`BZF27.NYM`).
   Expired ones answer 404, so there is no per-contract history.
 
+**`NZDUSD=X`: a daily bar is one price, at midnight London.** Its close
+equals its open (median difference 0.012% over two years). Its open matches
+the first hourly price of the London day (median 0.029%), and so does its
+close. `nowcast_brent.yahoo_daily` dates bars by their UTC date, and the
+timestamp is 00:00 London, so the dating depends on the season:
+
+- **UK summer:** the bar is stamped 23:00 UTC the day before. Its price,
+  the end of that London day, lands on the right date. Monday's bar falls
+  on Sunday and Friday has none, so week means in UK summer run Mon–Thu.
+  For the nowcast's Wednesday that price is set at 23:00 UTC, about two
+  hours after the NZ-winter run (21:07 UTC). That is the only look-ahead,
+  and it is small.
+- **UK winter:** the bar is stamped 00:00 UTC on its own day and carries
+  the previous day's closing price, so FX is one day stale.
+
+No leak of a day, and nothing to re-run. A live run should take the latest
+hourly FX price at the run, not reproduce the daily bars.
+
 **The 18 Sep "wrong point" was the next contract.** On 19 Sep the daily bar
 for 18 Sep read 98.77, December's price. Today it reads 103.87, November's
 settlement. The hourly history still shows 98.4–99.7 through 18 Sep. It was

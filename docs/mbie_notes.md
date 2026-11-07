@@ -164,7 +164,10 @@ series jumps by the gap between two contracts on expiry day (up to 7 USD in
 2007 rather than FRED's 1987. And it is **undocumented**: it is what Yahoo's
 own site calls, with no terms and no stability promise, which is acceptable
 for a measurement and is an open question for anything that would run every
-Wednesday (`docs/research.md`, "The week in progress is partly visible").
+week (`docs/research.md`, "The week in progress is partly visible").
+`NZDUSD=X` adds a fourth caveat: each daily bar is a single price, taken at
+00:00 London (close = open). By UTC date it is right in UK summer and one
+day stale in UK winter (`docs/research.md`, 7 Nov 2026).
 
 **stooq was tried and refused** — it answers with a JavaScript proof-of-work
 challenge, the same shape of wall as mbie.govt.nz. investing.com was not
