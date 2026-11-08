@@ -20,6 +20,11 @@ METHODS
   adl          fits d_net on d_cost lags 0..K on all data up to the cutoff.
   adl_ecm      the same, plus the margin's distance from its trailing
                104-week mean.
+  nowcast      adl_ecm with the week in progress supplied by Brent over its
+               Monday to Wednesday (W23, pipeline/nowcast.py). Past weeks on
+               three days from settled history; the latest week as the guard
+               decides — three days, two, or none, when it is adl_ecm and the
+               reason is written beside it. Report 1 reads this one.
 
 THE h-STEP STRUCTURE IS THE WHOLE POINT. To predict week t+j we may only
 use cost changes already observed at t, i.e. lag k >= j. So the h-week
@@ -49,6 +54,7 @@ and will be written up as such.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import numpy as np
@@ -78,7 +84,11 @@ create table {SCHEMA}.{TABLE} (
     pred_adl_ecm  float            null,
     err_naive     float            null,
     err_adl       float            null,
-    err_adl_ecm   float            null
+    err_adl_ecm   float            null,
+    pred_nowcast  float            null,
+    err_nowcast   float            null,
+    nowcast_variant varchar(10)    null,
+    nowcast_reason  varchar(4000)  null
 )
 """
 
@@ -194,10 +204,37 @@ def adl_forecast(d: pd.DataFrame, t: int, beta: np.ndarray, h: int,
 PRICE_AT: dict = {}
 
 
+def nowcast_inputs(nc, frames: dict) -> tuple:
+    """Brent in NZ c/L over the whole history and the window, and the guard's
+    decision on the week in progress: (last stamp, series or None, decision).
+
+    Without BZ=F or FX history there is nothing to compute any week from, so
+    the series is None and the whole column is adl_ecm for this run (owner,
+    9 Nov 2026). Without the contract by symbol, past weeks still have their
+    history; the guard sends the week in progress to adl_ecm.
+    """
+    last = max(d.index[-1] for d in frames.values())
+    run_date = pd.Timestamp.now(tz="UTC").normalize().tz_localize(None)
+    f = nc.fetch_all(last, run_date)
+    if f.bz is None or f.fx_daily is None:
+        return last, None, nc.guard(f, last, run_date)
+    if f.by_symbol is None:
+        return last, nc.brent_nzd_cpl(f.bz, f.fx_daily), nc.guard(f, last, run_date)
+    usd, fx, prov = nc.assemble(f, last, run_date)
+    return last, nc.brent_nzd_cpl(usd, fx), nc.guard(f, last, run_date, usd, fx, prov)
+
+
 def main() -> None:
+    # Here, not at the top of the file: nowcast imports this module.
+    import nowcast as nc
+
+    frames = {fuel: load(fuel) for fuel in ("Regular Petrol", "Diesel", "Premium Petrol 95R")}
+    last, cpl, decision = nowcast_inputs(nc, frames)
+    said = "; ".join(decision.reasons)[:4000] or None
+    no_history = f"no Brent or FX history to compute from: {said}"[:4000]
+
     rows = []
-    for fuel in ("Regular Petrol", "Diesel", "Premium Petrol 95R"):
-        d = load(fuel)
+    for fuel, d in frames.items():
         n = len(d)
         retail = d.adjusted_retail_price.to_numpy()
         cost = d.importer_cost.to_numpy()
@@ -209,17 +246,42 @@ def main() -> None:
         # weeks produce a call with no outcome yet — that is the live part of
         # the report and the reason it exists.
         is_final = d.is_final.to_numpy()
+        d_cost = d.d_cost.to_numpy()
+        if cpl is not None:
+            stamps = d.index.append(pd.DatetimeIndex([d.index[-1] + pd.Timedelta(days=7)]))
+            X = nc.features(cpl, stamps)
+            x = {k: X[f"x{k}"].to_numpy() for k in nc.DAYS}
         for t in range(MIN_TRAIN, n):
             b_adl = fit_adl(d, t + 1, with_ecm=False)
             b_ecm = fit_adl(d, t + 1, with_ecm=True)
             if b_adl is None:
                 continue
+
+            # The nowcast for week t+1: which variant, and why when it is not
+            # the usual three days. Only the latest week is the guard's call;
+            # every earlier one is settled history.
+            live = t == n - 1 and d.index[t] == last
+            ncv, variant, why = np.nan, "none", None
+            if cpl is None:
+                why = no_history
+            elif live and not decision.days:
+                why = said
+            else:
+                k = decision.days if live else 3
+                ncv = nc.nowcast_at(x[k], d_cost, is_final, t)
+                if np.isfinite(ncv):
+                    variant, why = f"{k} days", said if live else None
+                else:
+                    why = "no Brent reading for the week in progress"
+
             for h in HORIZONS:
                 actual = (retail[t + h] - retail[t]) if t + h < n else np.nan
                 fp = (cost[t] - cost[t - h]) * 1.15 if t - h >= 0 else np.nan
                 a = adl_forecast(d, t, b_adl, h, False)
                 e = (adl_forecast(d, t, b_ecm, h, True)
                      if b_ecm is not None else np.nan)
+                w = (nc.forecast_with_nowcast(d, t, b_ecm, h, True, ncv)
+                     if b_ecm is not None and np.isfinite(ncv) else e)
                 rows.append(dict(
                     fuel=fuel, date=d.index[t], h=h, actual=actual, hi=hi[t],
                     input_status="final" if is_final[t] else "provisional",
@@ -227,6 +289,8 @@ def main() -> None:
                     naive=0.0, full_pass=fp,
                     adl=a * 1.15 if np.isfinite(a) else np.nan,
                     adl_ecm=e * 1.15 if np.isfinite(e) else np.nan,
+                    nowcast=w * 1.15 if np.isfinite(w) else np.nan,
+                    nowcast_variant=variant, nowcast_reason=why,
                 ))
 
     res = pd.DataFrame(rows)
@@ -239,14 +303,15 @@ def main() -> None:
     seed["price_now"] = seed.apply(
         lambda r: PRICE_AT[(r.fuel, r.week_date)], axis=1)
     seed["actual_price"] = seed.price_now + seed.actual
-    for m in ("naive", "adl", "adl_ecm", "full_pass"):
+    for m in ("naive", "adl", "adl_ecm", "full_pass", "nowcast"):
         seed[f"pred_{m}"] = seed.price_now + seed[m]
         seed[f"err_{m}"] = seed[f"pred_{m}"] - seed.actual_price
     seed["target_week"] = seed.week_date + pd.to_timedelta(seed.h * 7, unit="D")
     keep = (["week_date", "target_week", "fuel", "h", "input_status",
              "outcome_known", "price_now", "actual_price"]
             + [f"pred_{m}" for m in ("naive", "adl", "adl_ecm")]
-            + [f"err_{m}" for m in ("naive", "adl", "adl_ecm")])
+            + [f"err_{m}" for m in ("naive", "adl", "adl_ecm")]
+            + ["pred_nowcast", "err_nowcast", "nowcast_variant", "nowcast_reason"])
     history = seed[keep].copy()
     # Round the numeric columns only. `.round` on the whole frame warned about
     # the date columns and did nothing to them, which was noise standing in
@@ -255,7 +320,21 @@ def main() -> None:
     history[nums] = history[nums].round(4)
     warehouse_write.replace(history, SCHEMA, TABLE, DDL)
     print(f"{len(history)} rows -> {SCHEMA}.{TABLE}")
-    methods = ["naive", "full_pass", "adl", "adl_ecm"]
+
+    # The guard's decision, where the run's reader looks first: the log, and
+    # the step summary on GitHub. Notes are for this log only; the reasons are
+    # also in the table, beside the latest week's pred_nowcast.
+    head = (f"Nowcast for the week after {last:%d %b %Y}: "
+            f"{decision.label if cpl is not None else 'none, no history'}")
+    print(f"\n{head}")
+    for line in decision.reasons:
+        print(f"  reason  {line}")
+    for line in decision.notes:
+        print(f"  note    {line}")
+    if summary := os.environ.get("GITHUB_STEP_SUMMARY"):
+        with open(summary, "a") as fh:
+            fh.write(f"### {head}\n" + "".join(f"- {r}\n" for r in decision.reasons))
+    methods = ["naive", "full_pass", "adl", "adl_ecm", "nowcast"]
 
     # Accuracy tables only over weeks whose outcome is known. The most
     # recent rows are calls without an outcome yet - the live part of the
