@@ -136,12 +136,19 @@ weekly_prices.csv ({n_weekly_prices} rows)
 forecasts.csv ({n_forecasts} rows)
   What Report 1 plots. For each week, fuel and horizon (1 to 3 weeks ahead):
   the pump price at the time (price_now), the price that followed
-  (actual_price), the model's call (pred_adl_ecm, a distributed-lag model with
-  error correction, on importer cost), the benchmark that the price does not
-  move (pred_naive), their absolute errors, and the trailing 26-week accuracy
-  (mae_*_26w, skill_26w: above zero means the model beat the benchmark).
-  pred_adl is the same model without error correction; the report does not
-  plot it.
+  (actual_price), the model's call (pred_nowcast), the benchmark that the
+  price does not move (pred_naive), their absolute errors, and the trailing
+  26-week accuracy (mae_nowcast_26w, skill_nowcast_26w: above zero means the
+  model beat the benchmark).
+  pred_nowcast is a distributed-lag model with error correction on importer
+  cost (pred_adl_ecm), given Brent crude over Monday to Wednesday of the week
+  in progress, which MBIE has not published yet. nowcast_variant says how a
+  row was computed: '3 days'; for the newest week '2 days' when Wednesday was
+  missing, or 'none' when the week's crude could not be used and the call is
+  pred_adl_ecm's, with nowcast_reason saying why. Since 9 Nov 2026; before
+  that the report plotted pred_adl_ecm, which is still here, with
+  mae_model_26w and skill_26w. pred_adl is the same model without error
+  correction; the report does not plot it.
   This is a walk-forward backtest: every row is refitted on data available at
   that week only - but on today's revised data. It is a retrospective
   simulation, not a record of what was published at the time. The crude_*
