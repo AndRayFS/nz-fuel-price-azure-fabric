@@ -1965,9 +1965,11 @@ the gain (CI about ±25 points), and the rest was checked on history.
 5. **Test B, whether the band on Now covers what it claims.** Separate
    work, not a gate.
 
-**Gates.** Probe: the runner is answered — **passed 7 Nov 2026**, the first
-dispatch (run 42346064607): 7 of 8 requests answered 200 in 141–217 ms, the
-expired contract 404 as expected. Plumbing passes. Owner review.
+**Gates.** Probe: the runner is answered — **passed 7 Nov 2026**, by a manual
+dispatch on a Saturday (run 42346064607, 06:13 UTC): 7 of 8 requests answered
+200 in 141–217 ms, the expired contract 404 as expected. Markets were shut,
+so it answers that question only; the live bar and the roll wait for the
+weekday cron, from 9 Nov 19:45 UTC. Plumbing passes. Owner review.
 **Target: the 26 Nov run** (19 Nov if the review is quick). The first roll
 week is the 3 Dec run, and the guard covers it.
 
