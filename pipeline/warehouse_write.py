@@ -102,11 +102,31 @@ def _insert(cur, schema: str, table: str, df: pd.DataFrame) -> int:
     return len(rows)
 
 
+def _columns(cur, schema: str, table: str) -> set[str]:
+    cur.execute(
+        "select column_name from INFORMATION_SCHEMA.COLUMNS "
+        "where table_schema = ? and table_name = ?",
+        [schema, table],
+    )
+    return {r[0].lower() for r in cur.fetchall()}
+
+
 def replace(df: pd.DataFrame, schema: str, table: str, ddl: str) -> int:
-    """Truncate and reload. Only for tables that can be rebuilt from inputs."""
+    """Truncate and reload. Only for tables that can be rebuilt from inputs.
+
+    A table whose columns are not the frame's is dropped and created again
+    from `ddl` first. `ensure_table` alone creates a missing table but never
+    alters one, so a new column — `pred_nowcast` in `forecast_history`,
+    9 Nov 2026 — would fail the insert. Dropping is safe only because these
+    tables are rebuilt in full on every run; never use this for history.
+    """
     with fabric_io.connect() as conn:
         cur = conn.cursor()
         ensure_table(cur, schema, table, ddl)
+        if _columns(cur, schema, table) != {c.lower() for c in df.columns}:
+            cur.execute(f"drop table {schema}.{table}")
+            cur.execute(ddl)
+            print(f"{schema}.{table}: columns changed, created again", file=sys.stderr)
         cur.execute(f"truncate table {schema}.{table}")
         n = _insert(cur, schema, table, df)
     print(f"{schema}.{table}: replaced with {n} rows", file=sys.stderr)
