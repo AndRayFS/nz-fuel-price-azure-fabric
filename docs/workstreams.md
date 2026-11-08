@@ -1961,6 +1961,16 @@ the gain (CI about ±25 points), and the rest was checked on history.
      gain at h=2 and h=3 and all of it at h=1 (`docs/research.md`,
      8 Nov 2026), so step 2 computes the feature for both two and three days;
    - **anything else:** `adl_ecm`.
+
+   **Done 9 Nov 2026**, `guard` in `pipeline/nowcast.py`; its rules and the
+   measurements behind them are with it. Thresholds above the 2016–2026
+   record — Brent 0.30 in |log move| within one contract (record 0.280),
+   FX 0.08 (record 0.068) — so it catches bad data, not a crisis day. A day
+   neither Brent series has is a holiday, as in the backtest. A gap inside
+   FX history is skipped as the backtest skips it; only a series ending
+   before the last trading day of the run trips. Fifteen synthetic cases in
+   `pipeline/test_nowcast.py`, and a replay over 557 runs of 2016–2026: 555
+   three days, one two, one `adl_ecm`.
 4. **A new forecast column, walk-forward over the whole history.** It flows
    into `forecast_accuracy`, Report 1's measures, the phone page and the
    band on Now. **Owner's decision, 8 Nov 2026: (A).**
@@ -1970,6 +1980,15 @@ the gain (CI about ±25 points), and the rest was checked on history.
      `pred_adl_ecm` and `pred_naive` as the predictors Report 1 plots, and
      changes with it;
    - (B) `pred_adl_ecm` computed with the nowcast.
+
+   **What the run records — owner's decision, 9 Nov 2026.** Beside
+   `pred_nowcast`, two columns: the guard's variant (three days, two, or
+   none) and its reasons. Report 1 and the dated archive then show which
+   weeks ran without the nowcast, and why. For a quick look, the Actions log
+   and a line in the step summary; the log is kept 90 days, the maximum for
+   a public repository. Nothing more: no tables in `monitoring` and no window
+   CSV in the archive. Nothing in them would be read regularly, and the
+   reasons name the dates, contracts and sizes a later look needs.
 5. **Test B, whether the band on Now covers what it claims.** Separate
    work, not a gate.
 
@@ -1989,6 +2008,20 @@ week is the 3 Dec run, and the guard covers it.
   median 0.17% calm and 0.41% crisis, p95 0.84% and 2.25%; a third of that
   reaches the feature. The 0.4% "at worst" written here on 7 Nov had no
   measurement behind it.
+- **The live FX bar, in UK summer only — decide before 28 Mar 2027.**
+  Monday's and Tuesday's FX come from `NZDUSD=X` daily bars, as backtested,
+  and history shows such a bar as one price at midnight London. Whether the
+  bar of the London day in progress looks like that at the run, or tracks
+  the live price until the day ends, is not measured. It matters only under
+  BST: that bar is stamped 23:00 UTC the day before, lands on Tuesday, and
+  if live gives Tuesday Wednesday evening's rate. Under GMT it lands on
+  Wednesday, which takes the hourly price anyway, so the probe could not see
+  the effect before March. Two ways out:
+  - take Monday's and Tuesday's FX from the hourly series, the first price
+    of each London day, which matches the daily bar's open (median 0.029%,
+    `docs/research.md`, 7 Nov 2026), and the live bar stops mattering;
+  - leave it, if by then each run's inputs are compared with history a week
+    later (step 4): the first BST week shows any difference.
 - **Point-forecast language.** The rule in `CLAUDE.md` applies to the new
   column.
 

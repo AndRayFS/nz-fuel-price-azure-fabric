@@ -33,17 +33,24 @@ Three sources, because Yahoo's `BZ=F` is two series (docs/research.md,
               dated by UTC — except the run day, which takes the latest
               hourly price.
 
-Plumbing: `pipeline/test_nowcast.py` checks this file against the research it
-ports, on the 5 Nov 2026 archive, to 0.0001 c/L.
+The guard (W23 step 3) decides which of them the run may use: three days;
+two, when Wednesday alone is missing; or none, plain `adl_ecm`, when a request
+failed, another day is missing, a daily move exceeds anything in history, or a
+roll-week day on BZ=F cannot be confirmed as the expired contract. Its rules
+and the measurements behind them are with `guard`.
 
-Not here yet: the guard (W23 step 3) and the forecast column (step 4).
-Nothing in the weekly chain calls this file.
+Plumbing: `pipeline/test_nowcast.py` checks this file against the research it
+ports, on the 5 Nov 2026 archive, to 0.0001 c/L, and the guard on synthetic
+cases.
+
+Not here yet: the forecast column (step 4). Nothing in the weekly chain calls
+this file.
 
 Usage:  python pipeline/nowcast.py
 Reads data/panel_weekly.csv and data/period_flags.csv as backtest.py does,
-fetches from Yahoo, prints the window and each fuel's estimate for the week
-in progress, and writes the window to data/nowcast_window.csv. No warehouse,
-no capacity.
+fetches from Yahoo, prints the window, the guard's decision and each fuel's
+estimate for the week in progress, and writes the window to
+data/nowcast_window.csv. No warehouse, no capacity.
 """
 
 from __future__ import annotations
@@ -53,7 +60,9 @@ import datetime as dt
 import json
 import time
 import urllib.request
+from dataclasses import dataclass, field
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
@@ -299,28 +308,178 @@ def with_run_day(fx_daily: pd.Series, latest: float,
     return fx.sort_index().rename("nzdusd")
 
 
-def live_inputs(last_stamp: pd.Timestamp, run_date: pd.Timestamp,
-                fetch=get) -> tuple[pd.Series, pd.DataFrame]:
-    """Everything fetched at the run: the Brent series in NZ c/L, and the
-    window's provenance. Raises if any request fails; the guard is step 3."""
+@dataclass
+class Fetched:
+    """What the run got from Yahoo. A series is None when its request failed,
+    and `errors` says how."""
+    front: str
+    bz: pd.Series | None = None
+    fx_daily: pd.Series | None = None
+    by_symbol: pd.Series | None = None
+    hourly: pd.Series | None = None
+    errors: dict[str, str] = field(default_factory=dict)
+
+
+def fetch_all(last_stamp: pd.Timestamp, run_date: pd.Timestamp, fetch=get) -> Fetched:
+    """The four requests of a run. Never raises: a failure is recorded."""
     window_from = last_stamp - pd.Timedelta(days=4)
-    bz = daily(parse_chart(fetch(chart_url("BZ=F", "1d", HISTORY_FROM))))
-    fx_daily = daily(parse_chart(fetch(chart_url("NZDUSD=X", "1d", HISTORY_FROM))))
-    front = symbol(*contract_on(run_date.date()))
     since = int((window_from - pd.Timedelta(days=7)).tz_localize("UTC").timestamp())
-    by_symbol = daily(parse_chart(fetch(chart_url(front, "1d", since))))
-    hourly = parse_chart(fetch(chart_url("NZDUSD=X", "60m", int(time.time()) - 2 * 86400)))
+    f = Fetched(front=symbol(*contract_on(run_date.date())))
+    wanted = (("bz", chart_url("BZ=F", "1d", HISTORY_FROM), daily),
+              ("fx_daily", chart_url("NZDUSD=X", "1d", HISTORY_FROM), daily),
+              ("by_symbol", chart_url(f.front, "1d", since), daily),
+              ("hourly", chart_url("NZDUSD=X", "60m", int(time.time()) - 2 * 86400),
+               lambda s: s))
+    for name, url, convert in wanted:
+        try:
+            s = convert(parse_chart(fetch(url)))
+            if s.empty:
+                raise ValueError("no bars")
+            setattr(f, name, s)
+        except Exception as e:                  # noqa: BLE001 — the guard decides
+            f.errors[name] = f"{type(e).__name__}: {e}"
+    return f
 
-    usd, prov = window_usd(bz, by_symbol, window_from, run_date)
-    fx = with_run_day(fx_daily, float(hourly.iloc[-1]), run_date)
+
+def assemble(f: Fetched, last_stamp: pd.Timestamp,
+             run_date: pd.Timestamp) -> tuple[pd.Series, pd.Series, pd.DataFrame]:
+    """The run's Brent in USD, its FX, and the window's provenance."""
+    usd, prov = window_usd(f.bz, f.by_symbol, last_stamp - pd.Timedelta(days=4), run_date)
+    if f.hourly is not None:
+        fx = with_run_day(f.fx_daily, float(f.hourly.iloc[-1]), run_date)
+        run_fx = f"hourly, {f.hourly.index[-1]:%Y-%m-%d %H:%M} UTC"
+    else:
+        fx, run_fx = f.fx_daily.rename("nzdusd"), "daily bar (no hourly)"
     cpl = brent_nzd_cpl(usd, fx)
-
     days = pd.to_datetime(prov.date)
     prov["nzdusd"] = fx.reindex(days).to_numpy()
-    prov["fx_source"] = np.where(
-        days == run_date, f"hourly, {hourly.index[-1]:%Y-%m-%d %H:%M} UTC", "daily bar")
+    prov["fx_source"] = np.where(days == run_date, run_fx, "daily bar")
     prov["cpl"] = cpl.reindex(days).to_numpy()
-    return cpl, prov
+    return usd, fx, prov
+
+
+# --- the guard -------------------------------------------------------------------
+# It trips on a missing day, on a daily move no history has seen, and on a
+# window day whose contract cannot be confirmed. Wednesday alone missing falls
+# back to the two-day nowcast; anything else to plain `adl_ecm`. Measured on
+# Yahoo's history, 9 Nov 2026:
+#
+#   Brent, within one contract, 2016-2026: the largest daily |log move| is
+#   0.280 (21 Apr 2020), then 0.276 (9 Mar 2020); p99.9 is 0.163. Across a
+#   roll it reaches 0.157, which is why the move is measured within one.
+#   NZDUSD=X, 2005-2026: 0.068 (23 Oct 2008); p99.9 is 0.043.
+#
+# Both thresholds sit above the record. The guard is for bad data, not for a
+# volatile week, and a threshold at p99.9 would switch the nowcast off on the
+# crisis days where it is worth most.
+#
+# A missing day is told from a holiday by the two Brent series: a weekday
+# neither BZ=F nor the contract by symbol has is a day the market was shut —
+# 101 weekdays in 2016-2026, NYMEX's US holidays and a few one-offs — and the
+# backtest's mean skipped it the same way. On the run day the two cannot tell a
+# late bar from a holiday, and a Wednesday holiday can only be a fixed date.
+# FX has no bar dated Friday under BST (336 Fridays in 2016-2026); the
+# backtest drops those Fridays too, so they are not missing.
+#
+# Replayed over 557 Wednesday runs, 2016-2026, with BZ=F standing in for the
+# contract by symbol (9 Nov 2026): 555 three days; one two days, 5 Dec 2018,
+# a US day of mourning; one adl_ecm, 22 May 2019, where a gap in FX history
+# fell on the last day before the run and cannot be told from a stale series.
+# Six runs fell back before gaps were told from staleness at all.
+
+MAX_MOVE_BRENT = 0.30
+MAX_MOVE_FX = 0.08
+FIXED_US_HOLIDAYS = {(1, 1), (6, 19), (7, 4), (12, 25)}
+LONDON = ZoneInfo("Europe/London")
+CONFIRM_CENTS = 0.005               # BZ=F equal to the next contract to the cent
+
+
+@dataclass
+class Decision:
+    days: int                       # 3, 2, or 0: no nowcast, plain adl_ecm
+    reasons: list[str] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+
+    @property
+    def label(self) -> str:
+        return {3: "three days", 2: "two days, Monday-Tuesday",
+                0: "no nowcast, adl_ecm"}[self.days]
+
+
+def _bst(day: pd.Timestamp) -> bool:
+    return dt.datetime(day.year, day.month, day.day, 12, tzinfo=LONDON).utcoffset() > dt.timedelta(0)
+
+
+def _closed(day: pd.Timestamp, f: Fetched, run_date: pd.Timestamp) -> bool:
+    if day < run_date:
+        return day not in f.bz.index and day not in f.by_symbol.index
+    return (day.month, day.day) in FIXED_US_HOLIDAYS
+
+
+def _big_moves(s: pd.Series, limit: float, same=lambda a, b: True) -> list[str]:
+    out = []
+    for (d0, p0), (d1, p1) in zip(s.items(), list(s.items())[1:]):
+        m = abs(np.log(p1 / p0))
+        if same(d0, d1) and m > limit:
+            out.append(f"{d1:%a %d %b}: |log move| {m:.3f} from {d0:%d %b}, above {limit}")
+    return out
+
+
+def guard(f: Fetched, last_stamp: pd.Timestamp, run_date: pd.Timestamp,
+          usd: pd.Series | None = None, fx: pd.Series | None = None,
+          prov: pd.DataFrame | None = None) -> Decision:
+    """Which nowcast this run may use, and why."""
+    hard = {k: v for k, v in f.errors.items() if k != "hourly"}
+    if hard:
+        return Decision(0, [f"{k}: {v}" for k, v in hard.items()])
+    notes = [f"hourly: {f.errors['hourly']}"] if "hourly" in f.errors else []
+    if usd is None:
+        usd, fx, prov = assemble(f, last_stamp, run_date)
+
+    nxt = last_stamp + pd.Timedelta(days=7)
+    wednesday = nxt - pd.Timedelta(days=2)
+    required = list(pd.bdate_range(last_stamp - pd.Timedelta(days=4), last_stamp)) \
+        + list(pd.bdate_range(nxt - pd.Timedelta(days=4), wednesday))
+    open_days = [day for day in required if not _closed(day, f, run_date)]
+    missing = [(day, "no Brent price") for day in open_days if day not in usd.index]
+    reasons = []
+
+    # FX. The run day has its own price, so only it can be missing. Before it,
+    # a day without a bar in a series that runs past it is a gap in Yahoo's
+    # history — four such in 2016-2026, still there today — and the backtest's
+    # mean skipped it the same way, so it is noted, not tripped on. A series
+    # that stops short of the last trading day before the run is stale.
+    before = [day for day in open_days if day < run_date]
+    if before and f.fx_daily.index.max() < before[-1]:
+        reasons.append(f"FX daily ends {f.fx_daily.index.max():%a %d %b}, "
+                       f"before {before[-1]:%a %d %b}: the series is stale")
+    for day in open_days:
+        if day in usd.index and day not in fx.index and not (day.dayofweek == 4 and _bst(day)):
+            if day >= run_date:
+                missing.append((day, "no FX"))
+            else:
+                notes.append(f"{day:%a %d %b}: no FX bar, skipped as the backtest skips it")
+
+    lo = last_stamp - pd.Timedelta(days=11)
+    reasons += _big_moves(usd[lo:run_date], MAX_MOVE_BRENT,
+                          lambda a, b: contract_on(a.date()) == contract_on(b.date()))
+    reasons += _big_moves(fx[lo:run_date], MAX_MOVE_FX)
+
+    for r in prov[prov.usd_source == "BZ=F daily"].itertuples():
+        day = pd.Timestamp(r.date)
+        if day not in f.by_symbol.index:
+            reasons.append(f"{day:%a %d %b}: {r.contract} from BZ=F cannot be checked "
+                           f"against {f.front}, which has no bar that day")
+        elif abs(r.usd - f.by_symbol[day]) < CONFIRM_CENTS:
+            reasons.append(f"{day:%a %d %b}: BZ=F equals {f.front} ({r.usd:.2f}), so it "
+                           f"still shows the next contract, not {r.contract}")
+
+    said = [f"{d:%a %d %b}: {why}" for d, why in missing]
+    if reasons or any(d != wednesday for d, _ in missing):
+        return Decision(0, reasons + said, notes)
+    if missing:
+        return Decision(2, said, notes)
+    return Decision(3, [], notes)
 
 
 def main() -> int:
@@ -328,25 +487,37 @@ def main() -> int:
     frames = {fuel: bt.load(fuel) for fuel in FUELS}
     last = max(d.index[-1] for d in frames.values())
     nxt = last + pd.Timedelta(days=7)
-
-    cpl, prov = live_inputs(last, run_date)
     print(f"Run day {run_date:%a %d %b %Y} UTC. Panel ends {last:%d %b %Y}; "
           f"the week in progress is stamped {nxt:%d %b %Y}.\n")
-    print(prov.to_string(index=False, float_format=lambda v: f"{v:.4f}"))
 
-    print("\nEstimated d_cost for the week in progress, c/L (two days | three days):")
-    for fuel, d in frames.items():
-        X = features(cpl, d.index.append(pd.DatetimeIndex([nxt])))
-        t = len(d) - 1
-        y, fin = d.d_cost.to_numpy(), d.is_final.to_numpy()
-        x = {k: X[f"x{k}"].to_numpy() for k in DAYS}
-        nc = {k: nowcast_at(x[k], y, fin, t) for k in DAYS}
-        print(f"  {fuel:<19} feature {x[2][-1]:+7.3f} | {x[3][-1]:+7.3f}"
-              f"    estimate {nc[2]:+7.3f} | {nc[3]:+7.3f}")
+    f = fetch_all(last, run_date)
+    prov, cpl = None, None
+    if not {"bz", "fx_daily", "by_symbol"} & f.errors.keys():
+        usd, fx, prov = assemble(f, last, run_date)
+        cpl = brent_nzd_cpl(usd, fx)
+        print(prov.to_string(index=False, float_format=lambda v: f"{v:.4f}"))
+        decision = guard(f, last, run_date, usd, fx, prov)
+    else:
+        decision = guard(f, last, run_date)
 
-    WINDOW_CSV.parent.mkdir(exist_ok=True)
-    prov.to_csv(WINDOW_CSV, index=False)
-    print(f"\nwindow written to {WINDOW_CSV.relative_to(ROOT)}")
+    print(f"\nGuard: {decision.label}")
+    for line in decision.reasons:
+        print(f"  reason  {line}")
+    for line in decision.notes:
+        print(f"  note    {line}")
+
+    if decision.days:
+        k = decision.days
+        print(f"\nEstimated d_cost for the week in progress, c/L, {k} days:")
+        for fuel, d in frames.items():
+            x = features(cpl, d.index.append(pd.DatetimeIndex([nxt])))[f"x{k}"].to_numpy()
+            est = nowcast_at(x, d.d_cost.to_numpy(), d.is_final.to_numpy(), len(d) - 1)
+            print(f"  {fuel:<19} feature {x[-1]:+7.3f}    estimate {est:+7.3f}")
+
+    if prov is not None:
+        WINDOW_CSV.parent.mkdir(exist_ok=True)
+        prov.to_csv(WINDOW_CSV, index=False)
+        print(f"\nwindow written to {WINDOW_CSV.relative_to(ROOT)}")
     return 0
 
 
