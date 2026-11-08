@@ -14,7 +14,8 @@ different loads, and nothing here reads the warehouse a second time.
 
 Every figure follows Report 1's Now page, where the definitions live
 (pbip/build/model_v2.py): the 4-week change on adjusted_retail_price; the
-calls are pred_adl_ecm made in the newest week; their band is the middle half
+calls are pred_nowcast made in the newest week (W23: adl_ecm with the week in
+progress's crude; nowcast_variant says for how many days, or none); their band is the middle half
 of past misses (actual minus call) at that horizon, in weeks of the newest
 week's crude-volatility regime, the three fuels pooled, outcomes known by the
 newest week; the margin against its 104-week norm on a 0-60 c/L track, orange
@@ -92,7 +93,7 @@ def compute(csvs: dict[str, bytes]) -> dict:
     band = {}
     for h in (1, 2, 3):
         e = known[(known.crude_vol_regime == regime) & (known.horizon_weeks == h)]
-        e = (e.actual_price - e.pred_adl_ecm).dropna()
+        e = (e.actual_price - e.pred_nowcast).dropna()
         if e.empty:
             raise RuntimeError(f"no past misses at horizon {h} in the {regime!r} regime")
         band[h] = (e.quantile(0.25), e.quantile(0.75))
@@ -107,7 +108,7 @@ def compute(csvs: dict[str, bytes]) -> dict:
 
         calls = []
         for h in (1, 2, 3):
-            c = now[(now.fuel == name) & (now.horizon_weeks == h)].pred_adl_ecm
+            c = now[(now.fuel == name) & (now.horizon_weeks == h)].pred_nowcast
             if len(c) != 1 or pd.isna(c.iloc[0]):
                 raise RuntimeError(f"no single call for {name} at horizon {h} from {latest.date()}")
             c = float(c.iloc[0])
@@ -119,7 +120,7 @@ def compute(csvs: dict[str, bytes]) -> dict:
             margin, norm = _r(mg.importer_margin.iloc[0]), _r(mg.margin_norm_104w.iloc[0])
             gap = _r(mg.importer_margin.iloc[0] - mg.margin_norm_104w.iloc[0])
 
-        one = known[(known.fuel == name) & (known.horizon_weeks == 1)].set_index("target_week").abs_err_adl_ecm
+        one = known[(known.fuel == name) & (known.horizon_weeks == 1)].set_index("target_week").abs_err_nowcast
         recent = one.reindex(weeks[-RECENT:]).dropna()
         if len(recent) < RECENT:
             raise RuntimeError(f"{name}: {len(recent)} of the last {RECENT} weeks have a known 1-week miss")
@@ -146,6 +147,7 @@ def compute(csvs: dict[str, bytes]) -> dict:
         targets=[pd.Timestamp(t).date().isoformat() for t in targets],
         recent=RECENT,
         regime=regime,
+        nowcast=now.nowcast_variant.max(),
         fuels=fuels,
     )
 

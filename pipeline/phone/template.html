@@ -81,7 +81,7 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--rule);font-si
 <div class="links"><a href="https://www.linkedin.com/in/andreimor/" rel="noopener">Andrei Morozov on LinkedIn</a><span class="note">Scan to open this page</span></div>
 </div>
 </nav>
-<footer>Data: MBIE weekly fuel price monitoring, CC BY 4.0; recent weeks provisional. Model figures come from a backtest, not published forecasts.</footer>
+<footer>Data: MBIE weekly fuel price monitoring, CC BY 4.0; recent weeks provisional. Model figures come from a backtest, not published forecasts. <span id="ncnote"></span></footer>
 </main>
 </div>
 <script id="data" type="application/json">__DATA__</script>
@@ -214,6 +214,9 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--rule);font-si
       "; the last " + D.recent + " average " + f1(f.m4) + " c/L against " + f1(f.usual) + " usually.");
     $("verdict").textContent = f.verdict;
     $("verdict").style.color = f.verdict === "Larger than usual" ? "#D03B3B" : INK;
+    $("ncnote").textContent = ({ "3 days": "Calls include this week's crude, Monday to Wednesday.",
+      "2 days": "This week's calls include crude for Monday and Tuesday only.",
+      "none": "This week's calls leave this week's crude out." })[D.nowcast] || "";
     $("missnote").textContent = "1 week ahead · last " + D.recent + " weeks " + f1(f.m4) + " c/L, usual " + f1(f.usual);
   }
 
