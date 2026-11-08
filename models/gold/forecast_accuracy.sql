@@ -13,6 +13,15 @@
 --
 -- Trailing 26 weeks, not expanding: readers want "is it working lately",
 -- and an expanding window would let a good 2014 bury a bad 2026.
+--
+-- Two models sit side by side since W23 (9 Nov 2026). `adl_ecm` keeps its
+-- columns under their old names — `pred_adl_ecm`, `mae_model_26w`,
+-- `skill_26w` — so an archive of any earlier week reads the same. The
+-- nowcast is `pred_nowcast`, `mae_nowcast_26w`, `skill_nowcast_26w`, and it
+-- is what Report 1, the phone page and the load review read. Beside it,
+-- `nowcast_variant` (3 days, 2 days, none) and `nowcast_reason` say how the
+-- run computed the row: past weeks from settled history, the latest week as
+-- the guard decided (pipeline/nowcast.py).
 
 {{ config(materialized='table') }}
 
@@ -31,7 +40,11 @@ with base as (
         pred_naive,
         abs(err_adl)         as abs_err_adl,
         abs(err_adl_ecm)     as abs_err_adl_ecm,
-        abs(err_naive)       as abs_err_naive
+        abs(err_naive)       as abs_err_naive,
+        pred_nowcast,
+        abs(err_nowcast)     as abs_err_nowcast,
+        nowcast_variant,
+        nowcast_reason
     from {{ source('derived', 'forecast_history') }}
 ),
 
@@ -44,6 +57,9 @@ rolled as (
         avg(abs_err_naive) over (
             partition by fuel, horizon_weeks order by week_date
             rows between 25 preceding and current row) as mae_naive_26w,
+        avg(abs_err_nowcast) over (
+            partition by fuel, horizon_weeks order by week_date
+            rows between 25 preceding and current row) as mae_nowcast_26w,
         -- count the ERRORS, not the rows: the newest rows have no outcome
         -- yet and must not make a window look full when it is not.
         count(abs_err_naive) over (
@@ -58,6 +74,8 @@ select
     -- as if it carried the same weight.
     case when r.window_n = 26 and r.mae_naive_26w > 0
          then 1.0 - r.mae_model_26w / r.mae_naive_26w end as skill_26w,
+    case when r.window_n = 26 and r.mae_naive_26w > 0
+         then 1.0 - r.mae_nowcast_26w / r.mae_naive_26w end as skill_nowcast_26w,
     -- Regime context for background shading: it lets a reader see whether
     -- the model's accuracy falls apart in volatile stretches, which is the
     -- "when can I trust this" question answered without words.
