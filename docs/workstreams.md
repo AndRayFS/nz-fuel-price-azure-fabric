@@ -1942,10 +1942,16 @@ the gain (CI about ±25 points), and the rest was checked on history.
    - FX from the latest hourly price at the run.
 
    Plumbing: reproduce `adl_ecm_nc` from `nowcast_in_adl.py` on the
-   2026-11-05 archive to 0.0001 c/L.
+   2026-11-05 archive to 0.0001 c/L. **Passed 8 Nov 2026**
+   (`pipeline/test_nowcast.py`): 6,453 forecasts on three days and 6,426 on
+   two, max |diff| 4e-14 c/L; the panel rebuilt from the archive reproduces
+   its `pred_adl_ecm` to 5e-5, the archive's rounding.
 3. **Guard, falling back with the reason logged.** It trips on:
    - a missing day;
-   - a daily move beyond a threshold set from history;
+   - a daily move beyond a threshold set from history, measured within one
+     contract: across a roll the daily series carries the gap between two
+     (3.7% on 30 Oct 2026, up to 6% in the 2026 crisis), and a threshold on
+     it would trip in every roll week;
    - a day whose calendar-front price cannot be had (the expired symbol
      answers 404 and `BZ=F` still shows the next contract).
 
@@ -1957,10 +1963,12 @@ the gain (CI about ±25 points), and the rest was checked on history.
    - **anything else:** `adl_ecm`.
 4. **A new forecast column, walk-forward over the whole history.** It flows
    into `forecast_accuracy`, Report 1's measures, the phone page and the
-   band on Now. **Owner's decision:**
+   band on Now. **Owner's decision, 8 Nov 2026: (A).**
    - (A) a new column `pred_nowcast`, with Report 1 and the phone page
      switched to it and `pred_adl_ecm` kept beside it as the comparison
-     (recommended: names stay true);
+     (recommended: names stay true) — **chosen**. `/load-review` names
+     `pred_adl_ecm` and `pred_naive` as the predictors Report 1 plots, and
+     changes with it;
    - (B) `pred_adl_ecm` computed with the nowcast.
 5. **Test B, whether the band on Now covers what it claims.** Separate
    work, not a gate.
