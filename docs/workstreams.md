@@ -1961,6 +1961,16 @@ the gain (CI about ±25 points), and the rest was checked on history.
      gain at h=2 and h=3 and all of it at h=1 (`docs/research.md`,
      8 Nov 2026), so step 2 computes the feature for both two and three days;
    - **anything else:** `adl_ecm`.
+
+   **Done 9 Nov 2026**, `guard` in `pipeline/nowcast.py`; its rules and the
+   measurements behind them are with it. Thresholds above the 2016–2026
+   record — Brent 0.30 in |log move| within one contract (record 0.280),
+   FX 0.08 (record 0.068) — so it catches bad data, not a crisis day. A day
+   neither Brent series has is a holiday, as in the backtest. A gap inside
+   FX history is skipped as the backtest skips it; only a series ending
+   before the last trading day of the run trips. Fifteen synthetic cases in
+   `pipeline/test_nowcast.py`, and a replay over 557 runs of 2016–2026: 555
+   three days, one two, one `adl_ecm`.
 4. **A new forecast column, walk-forward over the whole history.** It flows
    into `forecast_accuracy`, Report 1's measures, the phone page and the
    band on Now. **Owner's decision, 8 Nov 2026: (A).**
