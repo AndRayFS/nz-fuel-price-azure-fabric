@@ -1980,6 +1980,15 @@ the gain (CI about ±25 points), and the rest was checked on history.
      `pred_adl_ecm` and `pred_naive` as the predictors Report 1 plots, and
      changes with it;
    - (B) `pred_adl_ecm` computed with the nowcast.
+
+   **What the run records — owner's decision, 9 Nov 2026.** Beside
+   `pred_nowcast`, two columns: the guard's variant (three days, two, or
+   none) and its reasons. Report 1 and the dated archive then show which
+   weeks ran without the nowcast, and why. For a quick look, the Actions log
+   and a line in the step summary; the log is kept 90 days, the maximum for
+   a public repository. Nothing more: no tables in `monitoring` and no window
+   CSV in the archive. Nothing in them would be read regularly, and the
+   reasons name the dates, contracts and sizes a later look needs.
 5. **Test B, whether the band on Now covers what it claims.** Separate
    work, not a gate.
 
