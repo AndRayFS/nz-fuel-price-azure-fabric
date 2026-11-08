@@ -144,7 +144,8 @@ table prices
 			    & IF(NOT ISBLANK(Sign), " (Regular 91 showed " & FORMAT(Sign, "0.0") & " on the sign)", "")
 			    & ". MBIE publishes about a week later"
 			    & IF(TODAY() > W + 7, ", so " & FORMAT(W + 7, "d mmm") & " has passed but is not yet out", "")
-			    & ". Calls come from a walk-forward backtest model and are not published forecasts."
+			    & ". Calls come from a walk-forward backtest model and are not published forecasts"
+			    & [Nowcast Note] & "."
 		displayFolder: Now
 		lineageTag: af8783ae-5f31-5a4d-a6d6-425e06d2d5b6
 

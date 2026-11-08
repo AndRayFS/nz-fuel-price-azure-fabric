@@ -10,7 +10,7 @@ table forecast_accuracy
 			    TRUE(),
 			    W = Latest, [Average Paid],
 			    W > Latest && W <= Latest + 21,
-			        CALCULATE(AVERAGE(forecast_accuracy[pred_adl_ecm]), forecast_accuracy[week_date] = Latest)
+			        CALCULATE(AVERAGE(forecast_accuracy[pred_nowcast]), forecast_accuracy[week_date] = Latest)
 			)
 		formatString: 0.0
 		displayFolder: Now
@@ -45,7 +45,7 @@ table forecast_accuracy
 			                    forecast_accuracy[outcome_known] = TRUE(),
 			                    forecast_accuracy[Target week] <= vLatest
 			                ),
-			                forecast_accuracy[actual_price] - forecast_accuracy[pred_adl_ecm],
+			                forecast_accuracy[actual_price] - forecast_accuracy[pred_nowcast],
 			                0.25
 			            )
 			    )
@@ -83,7 +83,7 @@ table forecast_accuracy
 			                    forecast_accuracy[outcome_known] = TRUE(),
 			                    forecast_accuracy[Target week] <= vLatest
 			                ),
-			                forecast_accuracy[actual_price] - forecast_accuracy[pred_adl_ecm],
+			                forecast_accuracy[actual_price] - forecast_accuracy[pred_nowcast],
 			                0.75
 			            )
 			    )
@@ -104,7 +104,7 @@ table forecast_accuracy
 			VAR vLatest = [Latest Week]
 			VAR vCall =
 			    CALCULATE(
-			        AVERAGE(forecast_accuracy[pred_adl_ecm]),
+			        AVERAGE(forecast_accuracy[pred_nowcast]),
 			        REMOVEFILTERS(Week),
 			        forecast_accuracy[week_date] = vLatest,
 			        forecast_accuracy[horizon_weeks] = 1
@@ -123,7 +123,7 @@ table forecast_accuracy
 			VAR vLatest = [Latest Week]
 			VAR vCall =
 			    CALCULATE(
-			        AVERAGE(forecast_accuracy[pred_adl_ecm]),
+			        AVERAGE(forecast_accuracy[pred_nowcast]),
 			        REMOVEFILTERS(Week),
 			        forecast_accuracy[week_date] = vLatest,
 			        forecast_accuracy[horizon_weeks] = 2
@@ -142,7 +142,7 @@ table forecast_accuracy
 			VAR vLatest = [Latest Week]
 			VAR vCall =
 			    CALCULATE(
-			        AVERAGE(forecast_accuracy[pred_adl_ecm]),
+			        AVERAGE(forecast_accuracy[pred_nowcast]),
 			        REMOVEFILTERS(Week),
 			        forecast_accuracy[week_date] = vLatest,
 			        forecast_accuracy[horizon_weeks] = 3
@@ -150,6 +150,21 @@ table forecast_accuracy
 			RETURN IF(NOT ISBLANK(vCall), FORMAT(vCall, "0"))
 		displayFolder: Now
 		lineageTag: 5c223da4-2607-5dfd-b37d-f9af7955a105
+
+	/// How the newest week's calls were computed: with this week's crude for three days, for two, or without it, and the guard's first reason when it is not three.
+	measure 'Nowcast Note' =
+			VAR vLatest = [Latest Week]
+			VAR vVar = CALCULATE(MAX(forecast_accuracy[nowcast_variant]), REMOVEFILTERS(Week), forecast_accuracy[week_date] = vLatest)
+			VAR vWhy = CALCULATE(MAX(forecast_accuracy[nowcast_reason]), REMOVEFILTERS(Week), forecast_accuracy[week_date] = vLatest)
+			VAR vFirst = LEFT(IF(CONTAINSSTRING(vWhy, "; "), LEFT(vWhy, SEARCH("; ", vWhy) - 1), vWhy), 100)
+			RETURN
+			SWITCH(vVar,
+			    "3 days", ", and include this week's crude, Monday to Wednesday",
+			    "2 days", ", and include this week's crude for Monday and Tuesday only (" & vFirst & ")",
+			    "none", ", and this week leave its crude out (" & vFirst & ")",
+			    "")
+		displayFolder: Now
+		lineageTag: b620fee5-4901-5a7d-bbf5-473479f40ba6
 
 	measure 'Selected Horizon' = SELECTEDVALUE('Horizon'[Weeks ahead], 1)
 		formatString: 0
@@ -160,7 +175,7 @@ table forecast_accuracy
 	/// Average absolute miss at the chosen horizon, over every call whose outcome is known since Feb 2013.
 	measure 'Miss Model' =
 			VAR vH = [Selected Horizon]
-			RETURN CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[abs_err_nowcast]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
 		formatString: 0.0
 		displayFolder: Track record
 		lineageTag: c43dc23d-0cc1-5522-88de-0abc371d5eb1
@@ -189,7 +204,7 @@ table forecast_accuracy
 	/// Trailing 26-week average miss at the week called; full windows only, so the line starts in Aug 2013.
 	measure 'Model 26w (chart)' =
 			VAR vH = [Selected Horizon]
-			RETURN CALCULATE(AVERAGE(forecast_accuracy[mae_model_26w]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[mae_nowcast_26w]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
 		formatString: 0.0
 		displayFolder: Track record
 		lineageTag: 3911e25a-bb7a-5469-83f4-60e14227b034
@@ -222,7 +237,7 @@ table forecast_accuracy
 	measure 'Track Axis Top' =
 			VAR vH = [Selected Horizon]
 			VAR vA = CALCULATE(MAX(forecast_accuracy[mae_naive_26w]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
-			VAR vB = CALCULATE(MAX(forecast_accuracy[mae_model_26w]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+			VAR vB = CALCULATE(MAX(forecast_accuracy[mae_nowcast_26w]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
 			RETURN 1.1 * MAX(vA, vB)
 		formatString: 0.0
 		displayFolder: Track record
@@ -241,7 +256,7 @@ table forecast_accuracy
 	measure 'Miss Model (row)' =
 			VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
 			VAR vR = SELECTEDVALUE('Track Row'[Regime])
-			RETURN IF(NOT ISBLANK(vH), CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[crude_vol_regime] = vR, forecast_accuracy[outcome_known] = TRUE()))
+			RETURN IF(NOT ISBLANK(vH), CALCULATE(AVERAGE(forecast_accuracy[abs_err_nowcast]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[crude_vol_regime] = vR, forecast_accuracy[outcome_known] = TRUE()))
 		formatString: 0.0
 		displayFolder: Track record
 		lineageTag: 382212a0-c508-53b2-80a1-433ea24a69e6
@@ -285,7 +300,7 @@ table forecast_accuracy
 			VAR vEp = ADDCOLUMNS(
 			    CALCULATETABLE(VALUES(forecast_accuracy[crude_episode_id]), forecast_accuracy[horizon_weeks] = vH,
 			        forecast_accuracy[outcome_known] = TRUE(), NOT ISBLANK(forecast_accuracy[crude_episode_id])),
-			    "lead", CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]) - AVERAGE(forecast_accuracy[abs_err_adl_ecm]),
+			    "lead", CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]) - AVERAGE(forecast_accuracy[abs_err_nowcast]),
 			        forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE()))
 			VAR vTop = MAXX(TOPN(1, vEp, [lead], DESC), forecast_accuracy[crude_episode_id])
 			VAR vLow = TOPN(1, vEp, [lead], ASC)
@@ -342,7 +357,7 @@ table forecast_accuracy
 
 	measure 'Data Model Call' =
 			VAR vH = [Selected Horizon]
-			RETURN CALCULATE(AVERAGE(forecast_accuracy[pred_adl_ecm]), forecast_accuracy[horizon_weeks] = vH)
+			RETURN CALCULATE(AVERAGE(forecast_accuracy[pred_nowcast]), forecast_accuracy[horizon_weeks] = vH)
 		formatString: 0.0
 		displayFolder: Data
 		lineageTag: 36f8a5f3-11e7-532d-992b-756030f6a391
@@ -358,7 +373,7 @@ table forecast_accuracy
 	measure 'Data Model Miss' =
 			VAR vH = [Selected Horizon]
 			VAR vCalls = CALCULATE(COUNTROWS(forecast_accuracy), forecast_accuracy[horizon_weeks] = vH)
-			VAR vMiss = CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			VAR vMiss = CALCULATE(AVERAGE(forecast_accuracy[abs_err_nowcast]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
 			RETURN IF(vCalls > 0, IF(ISBLANK(vMiss), "awaiting MBIE", FORMAT(vMiss, "0.0")))
 		displayFolder: Data
 		lineageTag: d60572d2-805b-54be-9242-10de0861efc0
@@ -366,7 +381,7 @@ table forecast_accuracy
 	/// Dark for the smaller miss of the week, grey for the larger; a tie goes to the model.
 	measure 'Data Model Miss Colour' =
 			VAR vH = [Selected Horizon]
-			VAR vMine = CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			VAR vMine = CALCULATE(AVERAGE(forecast_accuracy[abs_err_nowcast]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
 			VAR vOther = CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
 			RETURN IF(ISBLANK(vMine), "#5C5B56", IF(vMine <= vOther, "#1B1B19", "#A3A29B"))
 		displayFolder: Data
@@ -386,7 +401,7 @@ table forecast_accuracy
 	measure 'Data No Change Miss Colour' =
 			VAR vH = [Selected Horizon]
 			VAR vMine = CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
-			VAR vOther = CALCULATE(AVERAGE(forecast_accuracy[abs_err_adl_ecm]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
+			VAR vOther = CALCULATE(AVERAGE(forecast_accuracy[abs_err_nowcast]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
 			RETURN IF(ISBLANK(vMine), "#5C5B56", IF(vMine < vOther, "#1B1B19", "#A3A29B"))
 		displayFolder: Data
 		isHidden
@@ -596,6 +611,54 @@ table forecast_accuracy
 		lineageTag: 2ca90a00-f907-4122-bd40-5a8d22933050
 		summarizeBy: none
 		sourceColumn: crude_move_regime
+
+		annotation SummarizationSetBy = Automatic
+
+	column pred_nowcast
+		dataType: double
+		lineageTag: 9100d2d3-0980-5ec3-a7ae-952847736cd4
+		summarizeBy: sum
+		sourceColumn: pred_nowcast
+
+		annotation SummarizationSetBy = Automatic
+
+	column abs_err_nowcast
+		dataType: double
+		lineageTag: 01b2e0fe-2ed3-597e-be6f-83281bd8db25
+		summarizeBy: sum
+		sourceColumn: abs_err_nowcast
+
+		annotation SummarizationSetBy = Automatic
+
+	column mae_nowcast_26w
+		dataType: double
+		lineageTag: d05ab621-fa20-5d10-ada6-fa2eea34bb40
+		summarizeBy: sum
+		sourceColumn: mae_nowcast_26w
+
+		annotation SummarizationSetBy = Automatic
+
+	column skill_nowcast_26w
+		dataType: double
+		lineageTag: 78c954fa-1372-5571-80c3-aea4d6f931c2
+		summarizeBy: sum
+		sourceColumn: skill_nowcast_26w
+
+		annotation SummarizationSetBy = Automatic
+
+	column nowcast_variant
+		dataType: string
+		lineageTag: 5d6b3c14-ecfa-57ef-bf79-cc0a89276b30
+		summarizeBy: none
+		sourceColumn: nowcast_variant
+
+		annotation SummarizationSetBy = Automatic
+
+	column nowcast_reason
+		dataType: string
+		lineageTag: 145c4195-acad-5780-a9e8-e27b25b7d62d
+		summarizeBy: none
+		sourceColumn: nowcast_reason
 
 		annotation SummarizationSetBy = Automatic
 
