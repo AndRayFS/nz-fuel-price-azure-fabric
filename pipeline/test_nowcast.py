@@ -128,6 +128,108 @@ def check_window() -> None:
     check("FX: the run day is added when it has no daily bar", got["2026-11-18"] == 0.57)
 
 
+# --- offline: the guard -------------------------------------------------------
+
+def _case(run: str, last: str, sym_from: str, *, bst: bool = False,
+          hourly: bool = True) -> tuple[nc.Fetched, pd.Timestamp, pd.Timestamp]:
+    """A run with every series complete and quiet. BZ=F and the contract by
+    symbol differ by about ten dollars, so BZ=F is never mistaken for it."""
+    run_, last_ = pd.Timestamp(run), pd.Timestamp(last)
+    bdays = pd.bdate_range(last_ - pd.Timedelta(days=25), run_)
+    sdays = pd.bdate_range(sym_from, run_)
+    fdays = bdays[(bdays.dayofweek != 4) & (bdays != run_)] if bst else bdays
+    f = nc.Fetched(front=nc.symbol(*nc.contract_on(run_.date())),
+                   bz=pd.Series(100 + 0.1 * np.arange(len(bdays)), index=bdays),
+                   by_symbol=pd.Series(90 + 0.1 * np.arange(len(sdays)), index=sdays),
+                   fx_daily=pd.Series(0.6, index=fdays))
+    if hourly:
+        f.hourly = pd.Series([0.6], index=pd.DatetimeIndex([run_ + pd.Timedelta(hours=19)], tz="UTC"))
+    else:
+        f.errors["hourly"] = "URLError: test"
+    return f, last_, run_
+
+
+def check_guard() -> None:
+    plain = ("2026-11-18", "2026-11-13", "2026-11-02")       # GMT, no roll, front BZF27
+    wed, tue = pd.Timestamp("2026-11-18"), pd.Timestamp("2026-11-17")
+
+    d = nc.guard(*_case(*plain))
+    check("guard: everything there, three days", d.days == 3 and not d.reasons, d.label)
+
+    f, last, run = _case(*plain)
+    f.bz, f.by_symbol = f.bz.drop(wed), f.by_symbol.drop(wed)
+    d = nc.guard(f, last, run)
+    check("guard: Wednesday's bar late, two days", d.days == 2, "; ".join(d.reasons))
+
+    f, last, run = _case(*plain)
+    f.by_symbol = f.by_symbol.drop(tue)
+    d = nc.guard(f, last, run)
+    check("guard: Tuesday missing by symbol but traded, adl_ecm", d.days == 0, "; ".join(d.reasons))
+
+    f, last, run = _case(*plain)
+    f.bz, f.by_symbol = f.bz.drop(tue), f.by_symbol.drop(tue)
+    d = nc.guard(f, last, run)
+    check("guard: Tuesday in neither series is a holiday, three days", d.days == 3, d.label)
+
+    f, last, run = _case(*plain)
+    f.by_symbol.loc["2026-11-16"] *= 1.4
+    d = nc.guard(f, last, run)
+    check("guard: a Brent move above the record, adl_ecm",
+          d.days == 0 and any("above 0.3" in r for r in d.reasons), d.reasons[0] if d.reasons else "")
+
+    f, last, run = _case(*plain)
+    f.fx_daily.loc["2026-11-16"] *= 1.09
+    d = nc.guard(f, last, run)
+    check("guard: an FX move above the record, adl_ecm",
+          d.days == 0 and any("above 0.08" in r for r in d.reasons), d.reasons[0] if d.reasons else "")
+
+    f, last, run = _case(*plain)
+    f.fx_daily = f.fx_daily.drop(tue)
+    d = nc.guard(f, last, run)
+    check("guard: a gap in FX history is skipped as the backtest skips it, three days",
+          d.days == 3 and any("no FX bar" in n for n in d.notes), d.notes[0] if d.notes else "")
+
+    f, last, run = _case(*plain)
+    f.fx_daily = f.fx_daily[:"2026-11-12"]
+    d = nc.guard(f, last, run)
+    check("guard: FX daily stops short of the run, adl_ecm",
+          d.days == 0 and any("stale" in r for r in d.reasons), d.reasons[0] if d.reasons else "")
+
+    f, last, run = _case(*plain)
+    f.by_symbol, f.errors["by_symbol"] = None, "HTTPError: HTTP Error 404: Not Found"
+    d = nc.guard(f, last, run)
+    check("guard: the contract by symbol answers 404, adl_ecm", d.days == 0, d.reasons[0])
+
+    d = nc.guard(*_case(*plain, hourly=False))
+    check("guard: no hourly FX under GMT, the run day's daily bar serves, three days",
+          d.days == 3 and d.notes, d.notes[0])
+
+    bst = ("2027-06-16", "2027-06-11", "2027-06-01")         # BST, front BZQ27
+    d = nc.guard(*_case(*bst, bst=True))
+    check("guard: under BST, Fridays without FX are not missing, three days", d.days == 3, d.label)
+    d = nc.guard(*_case(*bst, bst=True, hourly=False))
+    check("guard: under BST without hourly FX, Wednesday has none, two days",
+          d.days == 2, "; ".join(d.reasons))
+
+    f, last, run = _case("2030-06-19", "2030-06-14", "2030-06-03", bst=True)
+    j = pd.Timestamp("2030-06-19")
+    f.bz, f.by_symbol = f.bz.drop(j), f.by_symbol.drop(j)
+    d = nc.guard(f, last, run)
+    check("guard: a Wednesday that is a fixed US holiday, three days", d.days == 3, d.label)
+
+    roll = ("2026-12-02", "2026-11-27", "2026-11-16")         # BZF27 expired 30 Nov
+    d = nc.guard(*_case(*roll))
+    check("guard: roll week, BZ=F rewritten to the expired contract, three days",
+          d.days == 3, d.label)
+    f, last, run = _case(*roll)
+    old = pd.bdate_range("2026-11-23", "2026-11-30")
+    f.bz.loc[old] = f.by_symbol.loc[old].to_numpy()
+    d = nc.guard(f, last, run)
+    check("guard: roll week, BZ=F still the next contract, adl_ecm",
+          d.days == 0 and sum("still shows the next contract" in r for r in d.reasons) == len(old),
+          f"{len(d.reasons)} days flagged")
+
+
 # --- the archive ----------------------------------------------------------------
 
 def rebuild_panel(tmp: Path) -> Path:
@@ -237,6 +339,7 @@ def check_against_research(tmp: Path) -> None:
 def main() -> int:
     check_calendar()
     check_window()
+    check_guard()
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
         src = rebuild_panel(tmp)
