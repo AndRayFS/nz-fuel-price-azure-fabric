@@ -164,11 +164,17 @@ def get(url: str) -> bytes:
 
 
 def parse_chart(body: bytes) -> pd.Series:
-    """Closes by UTC timestamp. Empty bars (null close) are dropped."""
+    """Closes by UTC timestamp. Empty bars (null close) are dropped.
+
+    A range with no trading — the hourly FX over a weekend — comes back with
+    no timestamps and an empty quote; that is an empty series, which the
+    caller reports as "no bars", not a KeyError (seen 9 Nov 2026).
+    """
     res = json.loads(body)["chart"]["result"][0]
-    s = pd.Series(res["indicators"]["quote"][0]["close"],
-                  index=pd.to_datetime(res["timestamp"], unit="s", utc=True),
-                  dtype=float)
+    ts = res.get("timestamp") or []
+    quote = ((res.get("indicators") or {}).get("quote") or [{}])[0]
+    closes = quote.get("close") or [None] * len(ts)
+    s = pd.Series(closes, index=pd.to_datetime(ts, unit="s", utc=True), dtype=float)
     return s.dropna()
 
 
