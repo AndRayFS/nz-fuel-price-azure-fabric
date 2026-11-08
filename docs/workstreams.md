@@ -1,4 +1,4 @@
-# Workstreams — plan of record, 23 Aug 2026, last updated 7 Nov 2026
+# Workstreams — plan of record, 23 Aug 2026, last updated 8 Nov 2026
 
 Twenty-two pieces of work, grouped by what they are about rather than by when
 they happen. Each is meant to be one branch. Every entry states what
@@ -1943,11 +1943,18 @@ the gain (CI about ±25 points), and the rest was checked on history.
 
    Plumbing: reproduce `adl_ecm_nc` from `nowcast_in_adl.py` on the
    2026-11-05 archive to 0.0001 c/L.
-3. **Guard, falling back to `adl_ecm` with the reason logged.** It trips on:
+3. **Guard, falling back with the reason logged.** It trips on:
    - a missing day;
    - a daily move beyond a threshold set from history;
    - a day whose calendar-front price cannot be had (the expired symbol
      answers 404 and `BZ=F` still shows the next contract).
+
+   Where it falls back to:
+   - **Wednesday alone missing:** the two-day nowcast, Monday–Tuesday, its
+     own walk-forward fit on the two-day feature. It keeps 82–89% of the
+     gain at h=2 and h=3 and all of it at h=1 (`docs/research.md`,
+     8 Nov 2026), so step 2 computes the feature for both two and three days;
+   - **anything else:** `adl_ecm`.
 4. **A new forecast column, walk-forward over the whole history.** It flows
    into `forecast_accuracy`, Report 1's measures, the phone page and the
    band on Now. **Owner's decision:**
@@ -1958,15 +1965,22 @@ the gain (CI about ±25 points), and the rest was checked on history.
 5. **Test B, whether the band on Now covers what it claims.** Separate
    work, not a gate.
 
-**Gates.** Probe: the runner is answered. Plumbing passes. Owner review.
+**Gates.** Probe: the runner is answered — **passed 7 Nov 2026**, by a manual
+dispatch on a Saturday (run 42346064607, 06:13 UTC): 7 of 8 requests answered
+200 in 141–217 ms, the expired contract 404 as expected. Markets were shut,
+so it answers that question only; the live bar and the roll wait for the
+weekday cron, from 9 Nov 19:45 UTC. Plumbing passes. Owner review.
 **Target: the 26 Nov run** (19 Nov if the review is quick). The first roll
 week is the 3 Dec run, and the guard covers it.
 
 **Risks.**
 
 - **Undocumented endpoint.** Covered by the fallback.
-- **Live-bar semantics.** The probe answers it. At worst about 0.4% on one
-  of three days.
+- **Live-bar semantics.** The probe answers it. Measured 8 Nov 2026
+  (`docs/research.md`): the last trade at the CME close against settlement,
+  median 0.17% calm and 0.41% crisis, p95 0.84% and 2.25%; a third of that
+  reaches the feature. The 0.4% "at worst" written here on 7 Nov had no
+  measurement behind it.
 - **Point-forecast language.** The rule in `CLAUDE.md` applies to the new
   column.
 

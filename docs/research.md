@@ -2153,6 +2153,74 @@ the spot move (FRED) and on futures minus spot. 90% CIs:
   ±25 points against a 7–13% effect. Everything else a shadow run would
   check has been done on history.
 
+## Wednesday is worth two points at h=2 and h=3, nothing at h=1 — 8 Nov 2026
+
+Two scratch checks the same day, both offline, for one question from W23:
+which days of the week in progress the run should use. They are not
+committed scripts; the method is stated so that they can be rerun.
+
+**Two days against three.** `research/nowcast_in_adl.py --days 2` and
+`--days 3` on the same panel (`data/panel_weekly.csv` of 15 Oct 2026),
+compared week by week on the weeks both have: 1 Feb 2013 – 2 Oct 2026, 711
+per fuel (the two-day run has three fewer). The panel is later than the one
+behind the 8 Sep figures above, so the three-day column does not match them
+to the digit. Gain against `adl_ecm` as % of its MAE, three fuels pooled;
+the last column is what Wednesday adds, in points, with a 95% paired
+bootstrap over weeks (2,000 draws, the three fuels resampled together):
+
+| weeks | h | 2 days | 3 days | Wednesday adds |
+|---|---|---|---|---|
+| calm, 594 | 1 | 7.6% | 7.4% | −0.1 [−1.2, +0.9] |
+| | 2 | 11.6% | 13.6% | +2.0 [+1.0, +3.0] |
+| | 3 | 10.6% | 12.9% | +2.3 [+1.4, +3.1] |
+| crisis, 115–117 | 1 | 9.8% | 9.6% | −0.2 [−2.6, +2.1] |
+| | 2 | 13.3% | 14.9% | +1.6 [−0.5, +3.7] |
+| | 3 | 10.1% | 11.7% | +1.5 [−0.1, +3.4] |
+
+- **h=1: two days carry the whole gain.**
+- **h=2 and h=3: Wednesday adds about two points in calm weeks.** Two days
+  deliver 82–89% of what three do.
+- **Crisis weeks: no more than calm.** About 1.5 points, not distinguishable
+  from zero on 116 weeks. The expectation that an extra day matters more when
+  prices move fast is not supported.
+- **Every fuel shows the same pattern.**
+
+**A live Wednesday bar: last trade against settlement.** If at the run
+Yahoo's daily bar for Wednesday still holds the last trade rather than the
+settlement its history later keeps, how far off is it? Yahoo's hourly
+`BZ=F`, 11 Nov 2024 – 5 Nov 2026: the hourly bar ending at the CME close
+(17:00 ET) against the daily close of the same session. The ten trading days
+before each expiry are left out: the hourly series is on the next contract
+there, so the gap is the contract spread (median 0.59%, p95 4.8%).
+
+| | days | median | p90 | p95 |
+|---|---|---|---|---|
+| to 27 Feb 2026 | 159 | 0.17% | 0.59% | 0.84% |
+| from 27 Feb 2026 | 87 | 0.41% | 1.58% | 2.25% |
+
+- **No sign bias:** mean −0.04%.
+- **Largest:** 9 Mar 2026, −10.4% in the 2.5 hours after settlement. It looks
+  like a real move; not checked.
+- **On the feature, a wrong Wednesday is a third of this:** a calm median of
+  about 0.06% and a p95 of about 0.3%, against a feature whose median absolute
+  size over the same two years is 2.6%.
+- **27 Feb 2026** is the date MBIE's fuel market adjustment starts from. As
+  the start of the crisis it is approximate.
+- **It corrects W23's "at worst about 0.4%"**, which had no measurement
+  behind it. 0.4% is about the crisis median; the tail is several percent.
+- **It matters only if Yahoo's bar at the run is the last trade.** The probe
+  answers that. A run before the CME close sees a price somewhere between the
+  two.
+
+**What follows.**
+
+- **Keep Wednesday.** Two points at h=2 and h=3, against a bar error of
+  about 0.06% of the feature.
+- **When Wednesday is missing, fall back to two days, not to `adl_ecm`.**
+  That keeps 82–89% of the gain at h=2 and h=3, and all of it at h=1. The
+  two-day nowcast is its own walk-forward fit on the two-day feature, as
+  measured here, not the three-day fit given fewer days.
+
 ## A better crude-to-cost slope made the forecast worse — 8 Sep 2026
 
 The nowcast turns a move in Brent-in-NZD into a move in `Importer cost`
