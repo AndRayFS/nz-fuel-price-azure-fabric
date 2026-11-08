@@ -1989,6 +1989,20 @@ week is the 3 Dec run, and the guard covers it.
   median 0.17% calm and 0.41% crisis, p95 0.84% and 2.25%; a third of that
   reaches the feature. The 0.4% "at worst" written here on 7 Nov had no
   measurement behind it.
+- **The live FX bar, in UK summer only — decide before 28 Mar 2027.**
+  Monday's and Tuesday's FX come from `NZDUSD=X` daily bars, as backtested,
+  and history shows such a bar as one price at midnight London. Whether the
+  bar of the London day in progress looks like that at the run, or tracks
+  the live price until the day ends, is not measured. It matters only under
+  BST: that bar is stamped 23:00 UTC the day before, lands on Tuesday, and
+  if live gives Tuesday Wednesday evening's rate. Under GMT it lands on
+  Wednesday, which takes the hourly price anyway, so the probe could not see
+  the effect before March. Two ways out:
+  - take Monday's and Tuesday's FX from the hourly series, the first price
+    of each London day, which matches the daily bar's open (median 0.029%,
+    `docs/research.md`, 7 Nov 2026), and the live bar stops mattering;
+  - leave it, if by then each run's inputs are compared with history a week
+    later (step 4): the first BST week shows any difference.
 - **Point-forecast language.** The rule in `CLAUDE.md` applies to the new
   column.
 

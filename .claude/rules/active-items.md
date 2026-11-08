@@ -33,3 +33,9 @@ delete it here.
   delete this item. Query: `select detected_on, revision_class, count(*) from
   monitoring.monitor_revisions where detected_on >= '2026-09-18' group by
   detected_on, revision_class`.
+
+- [ ] **Before 28 Mar 2027, when the UK goes onto BST** — decide where the
+  nowcast takes Monday's and Tuesday's FX. Under BST a live `NZDUSD=X` daily
+  bar lands on Tuesday, and whether it is already the midnight price at the
+  run is not measured. Options and why it cannot be seen before March:
+  `docs/workstreams.md`, W23, Risks, "The live FX bar".
