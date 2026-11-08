@@ -633,6 +633,58 @@ environment; it changes only if the address does. That is also why the
 address is the static website's root and not a path in `data`: a code that
 has been shown to someone should keep working.
 
+## The nowcast in the weekly run — W23, 9 Nov 2026
+
+**What changed.** Report 1's calls are `pred_nowcast`: the ADL+ECM with the
+week in progress, which MBIE has not published yet, supplied by Brent in NZ
+cents per litre over its Monday to Wednesday. Why, and what it is worth, is
+in `docs/research.md` from "The nowcast survives the walk-forward test" on;
+this section is how it runs. `backtest.py` asks Yahoo once per run through
+`pipeline/nowcast.py`, the research code moved out of `research/` with the
+arithmetic unchanged — `pipeline/test_nowcast.py` checks it against
+`research/nowcast_in_adl.py` on the 5 Nov 2026 archive, to 4e-14 c/L.
+
+**The one source here with no promise.** Yahoo's chart endpoint is
+undocumented. Three series come from it: `BZ=F` daily for history; the
+calendar front contract by symbol (`BZF27.NYM` until 30 Nov 2026) for the
+window from Monday of the last MBIE week to the run, because `BZ=F`'s live
+view moves to the next contract days before expiry; and `NZDUSD=X` daily,
+with the run day's rate from the latest hourly price. What the chain does
+when it misbehaves is decided in advance:
+
+- **No `BZ=F` or FX history:** no week can be computed, and the whole column
+  is `adl_ecm` for that run, with the reason. Stitching one run's history
+  onto another's was rejected; a week that reads differently is the lesser
+  evil (owner, 9 Nov 2026).
+- **The week in progress:** `nowcast.guard` decides — three days, two when
+  only Wednesday is missing, or none, `adl_ecm`, on a failed request, another
+  missing day, a daily move beyond the 2016–2026 record, a stale FX series, or
+  a roll-week day on `BZ=F` that equals the next contract. Its rules and the
+  measurements behind them are beside it in the code. Replayed over 557 runs
+  of 2016–2026: 555 three days, one two, one none.
+
+**What is written, and where the decision shows.** `forecast_history` gains
+`pred_nowcast`, `err_nowcast`, `nowcast_variant` and `nowcast_reason`; every
+row is this run's — past weeks from settled history, recomputed weekly as
+`pred_adl_ecm` is, the latest as the guard decided. `forecast_accuracy`
+carries them with `mae_nowcast_26w` and `skill_nowcast_26w`, and keeps
+`adl_ecm`'s columns under their old names, so an earlier week's archive reads
+the same. Report 1 does not show `adl_ecm`. The decision is in the run's log
+and its GitHub step summary, in the newest row's variant and reason, in
+Now's footer and the phone page's, and so in each week's dated archive.
+
+**A change of shape.** Adding columns to `forecast_accuracy` fails the
+refresh until the model is published with them ("Still manual", above), so
+the branch reaches `main` in the same session that publishes the model with
+`to_live.py`. `warehouse_write.replace` now creates a rebuildable table
+again when its columns change; before, it only created missing ones.
+
+**Still open.** Under BST the FX for Monday and Tuesday may come from a live
+daily bar whose behaviour is not measured — `.claude/rules/active-items.md`,
+before 28 Mar 2027. The probe of W23 step 1 (`probe-yahoo.yml`, and a
+non-blocking first step of `weekly.yml`) runs until the first roll week has
+been seen, the 3 Dec 2026 run, and is then removed.
+
 ## The ingest read a week-old file and reported success — 19 Aug 2026
 
 MBIE published week `2026w33` (14 Aug) at 01:01 UTC on 19 Aug. Two
