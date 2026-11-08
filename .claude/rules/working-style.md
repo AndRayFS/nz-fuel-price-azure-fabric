@@ -5,12 +5,17 @@
   **logged-in browser** (see below) and **Azure read-only queries** via the
   `az` CLI (installed, authenticated against subscription
   `e30d2fa4-fb6e-48c5-b3cd-5f9c3f270159`). And, since 16 Oct 2026,
-  **Report 1 itself**: `pbip/` is PBIR and TMDL text, written and
-  schema-checked here; the owner opens it in Desktop, looks, and publishes
-  (`docs/architecture.md`, "Report 1's definition as text").
-- **The Windows VM:** Power BI Desktop — rendering, refresh, publish. What
-  a page looks like is known only from there; ask for a screenshot rather
-  than assume.
+  **Report 1 itself**: `pbip/` is PBIR and TMDL text, written,
+  schema-checked **and published from here**. `pbip/build/to_dev.py` puts a
+  private copy in My Workspace to look at in a browser; `pbip/build/to_live.py`
+  publishes over the live report and model, since 5 Nov 2026, by the owner's
+  decision (`docs/architecture.md`, "Publishing without Desktop"). The owner
+  looks at the result on the web. **Desktop is not in the loop** — never say
+  the owner will open, check or publish anything in it (corrected 9 Nov 2026,
+  after it was said more than once).
+- **The Windows VM:** Power BI Desktop is installed there and is not needed for
+  anything above. What a page looks like is seen in the browser, on the dev
+  copy or the public link; look there or ask, rather than assume.
 - **claude.ai chat (separate):** methodology discussions, LinkedIn post
   drafting. Don't assume you can drive those directly.
 

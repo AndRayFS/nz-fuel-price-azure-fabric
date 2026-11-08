@@ -425,10 +425,11 @@ shows a week about as soon as the run ends — three Thursday runs before the
 refresh joined the chain took 9–11 minutes from the 09:07 trigger. Not yet
 observed on a weekly load; the first is 22 Oct 2026.
 
-**Still manual:** a republish from Desktop when `forecast_accuracy` or
+**Still manual:** a republish when `forecast_accuracy` or
 `margin_compression` changes shape (W9 in `workstreams.md`, answered 10 Sep).
-A refresh against a changed table fails, and with it the run. How a republish
-goes is the next section.
+A refresh against a changed table fails, and with it the run. Since 5 Nov 2026
+the republish is `pbip/build/to_live.py`, run from here, not Desktop — see
+"Publishing without Desktop" below.
 
 ### Report 1's definition as text — 16 Oct 2026
 
