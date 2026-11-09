@@ -422,13 +422,20 @@ VAR vLatest = [Latest Week]
 VAR vVar = CALCULATE(MAX(forecast_accuracy[nowcast_variant]), REMOVEFILTERS(Week), forecast_accuracy[week_date] = vLatest)
 VAR vWhy = CALCULATE(MAX(forecast_accuracy[nowcast_reason]), REMOVEFILTERS(Week), forecast_accuracy[week_date] = vLatest)
 VAR vFirst = LEFT(IF(CONTAINSSTRING(vWhy, "; "), LEFT(vWhy, SEARCH("; ", vWhy) - 1), vWhy), 100)
+// Dates, not "this week": the page is read in later weeks too (owner, 9 Nov 2026).
+// The newest week is stamped on its Friday; the next one runs Monday +3 to Wednesday +5.
+VAR vMon = vLatest + 3
+VAR vEnd = vLatest + IF(vVar = "2 days", 4, 5)
+VAR vSpan = IF(MONTH(vMon) = MONTH(vEnd),
+    DAY(vMon) & "–" & FORMAT(vEnd, "d mmm"),
+    FORMAT(vMon, "d mmm") & " – " & FORMAT(vEnd, "d mmm"))
 RETURN
 SWITCH(vVar,
-    "3 days", ", and include this week's crude, Monday to Wednesday",
-    "2 days", ", and include this week's crude for Monday and Tuesday only (" & vFirst & ")",
-    "none", ", and this week leave its crude out (" & vFirst & ")",
+    "3 days", ", and include Brent crude for " & vSpan,
+    "2 days", ", and include Brent crude for " & vSpan & " only (" & vFirst & ")",
+    "none", ", and leave out Brent crude for " & vSpan & " (" & vFirst & ")",
     "")''', folder="Now",
-    desc="How the newest week's calls were computed: with this week's crude for three days, for two, or without it, and the guard's first reason when it is not three."))
+    desc="How the newest week's calls were computed: with Brent for the Monday to Wednesday after the newest week, for Monday and Tuesday only, or without it, and the guard's first reason when it is not three days."))
 # Track record. 'Horizon' is quoted everywhere: a bare table name that is also an
 # MDX keyword breaks the parse, as VAR names did on 4 Nov 2026.
 TR = "Track record"

@@ -214,9 +214,13 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--rule);font-si
       "; the last " + D.recent + " average " + f1(f.m4) + " c/L against " + f1(f.usual) + " usually.");
     $("verdict").textContent = f.verdict;
     $("verdict").style.color = f.verdict === "Larger than usual" ? "#D03B3B" : INK;
-    $("ncnote").textContent = ({ "3 days": "Calls include this week's crude, Monday to Wednesday.",
-      "2 days": "This week's calls include crude for Monday and Tuesday only.",
-      "none": "This week's calls leave this week's crude out." })[D.nowcast] || "";
+    // Dates, not "this week", as in Report 1's Now footer: Monday is the newest week's Friday + 3.
+    var nm = L + 3 * DAY, ne = L + (D.nowcast === "2 days" ? 4 : 5) * DAY;
+    var span = new Date(nm).getUTCMonth() === new Date(ne).getUTCMonth()
+      ? new Date(nm).getUTCDate() + "–" + dm(ne) : dm(nm) + " – " + dm(ne);
+    $("ncnote").textContent = ({ "3 days": "Calls include Brent crude for " + span + ".",
+      "2 days": "Calls include Brent crude for " + span + " only.",
+      "none": "Calls leave out Brent crude for " + span + "." })[D.nowcast] || "";
     $("missnote").textContent = "1 week ahead · last " + D.recent + " weeks " + f1(f.m4) + " c/L, usual " + f1(f.usual);
   }
 
