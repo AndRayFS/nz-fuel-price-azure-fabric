@@ -49,6 +49,22 @@ sources:
               - not_null:
                   config:
                     severity: warn
+          - name: pred_nowcast
+            description: >
+              The nowcast's call (W23): adl_ecm with the week in progress
+              supplied by Brent over its Monday to Wednesday. What Report 1
+              reads. Equal to pred_adl_ecm where nowcast_variant is 'none'.
+          - name: nowcast_variant
+            description: >
+              How this run computed the row: '3 days' for every past week, from
+              settled history; for the latest week the guard's decision — '3
+              days', '2 days' (Wednesday missing) or 'none' (plain adl_ecm).
+              Not tested: the guard's code is the only writer, and a 44th test
+              would change the count Report 1 states on How it's built.
+          - name: nowcast_reason
+            description: >
+              Why the variant is not the usual three days, in the guard's words;
+              null otherwise.
 
   - name: monitoring_store
     schema: monitoring

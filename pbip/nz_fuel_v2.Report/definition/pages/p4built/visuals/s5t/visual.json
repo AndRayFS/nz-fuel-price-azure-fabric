@@ -31,7 +31,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "refits the ADL+ECM model at every week since 2013",
+                    "value": "refits ADL+ECM since 2013; Mon–Wed Brent from Yahoo",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "9pt",

@@ -33,7 +33,7 @@ STEPS = [(0, "Clock", "a Logic App starts the run every Thursday", "Thu 09:07 NZ
          (2, "Ingest", "a pipeline copies MBIE's file into the Lakehouse", "about 1 min"),
          (1, "Gate and cross-check", "no new MBIE week, no run; Australian prices only warn", "about 2 min"),
          (2, "dbt", "snapshot, silver and gold, then 43 data tests", "about 1½ min"),
-         (1, "Model", "refits the ADL+ECM model at every week since 2013", "about 1½ min"),
+         (1, "Model", "refits ADL+ECM since 2013; Mon–Wed Brent from Yahoo", "about 1½ min"),
          (2, "Report tables", "dbt rebuilds the calls and margin tables", "about 15 s"),
          (3, "This report", "the model is refreshed; the public page follows", "about 1 min"),
          (0, "Archive", "the same data as a dated zip in Blob storage", "after the refresh")]

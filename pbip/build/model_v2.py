@@ -226,7 +226,8 @@ RETURN
     & IF(NOT ISBLANK(Sign), " (Regular 91 showed " & FORMAT(Sign, "0.0") & " on the sign)", "")
     & ". MBIE publishes about a week later"
     & IF(TODAY() > W + 7, ", so " & FORMAT(W + 7, "d mmm") & " has passed but is not yet out", "")
-    & ". Calls come from a walk-forward backtest model and are not published forecasts."
+    & ". Calls come from a walk-forward backtest model and are not published forecasts"
+    & [Nowcast Note] & "."
 """, folder="Now"))
 pm.append(measure(P, "Headline", r'''
 // Two clauses, each a small decision table over the newest week's numbers.
@@ -359,7 +360,7 @@ SWITCH(
     TRUE(),
     W = Latest, [Average Paid],
     W > Latest && W <= Latest + 21,
-        CALCULATE(AVERAGE(forecast_accuracy[pred_adl_ecm]), forecast_accuracy[week_date] = Latest)
+        CALCULATE(AVERAGE(forecast_accuracy[pred_nowcast]), forecast_accuracy[week_date] = Latest)
 )''', fmt="0.0", folder="Now",
     desc="The model's calls made in the newest week for the three weeks after it, starting from the last price paid so the line leaves from it."))
 for name, q in (("Call Low (chart)", "0.25"), ("Call High (chart)", "0.75")):
@@ -391,7 +392,7 @@ IF(
                     forecast_accuracy[outcome_known] = TRUE(),
                     forecast_accuracy[Target week] <= vLatest
                 ),
-                forecast_accuracy[actual_price] - forecast_accuracy[pred_adl_ecm],
+                forecast_accuracy[actual_price] - forecast_accuracy[pred_nowcast],
                 {q}
             )
     )
@@ -406,19 +407,41 @@ RETURN IF(NOT ISBLANK(vLatest), FORMAT(vLatest + {7 * n}, "d mmm"))''', folder="
 VAR vLatest = [Latest Week]
 VAR vCall =
     CALCULATE(
-        AVERAGE(forecast_accuracy[pred_adl_ecm]),
+        AVERAGE(forecast_accuracy[pred_nowcast]),
         REMOVEFILTERS(Week),
         forecast_accuracy[week_date] = vLatest,
         forecast_accuracy[horizon_weeks] = {n}
     )
 RETURN IF(NOT ISBLANK(vCall), FORMAT(vCall, "0"))''', folder="Now",
         desc="The call made in the newest week for {n} week(s) ahead, in whole cents, as text so it can be set in a title. Three fixed slots replace the matrix, which bunched its columns to the left.".format(n=n) if n == 1 else None))
+# W23, 9 Nov 2026: the calls carry the week in progress's crude, and the footer says
+# when they could not. The variant and reason are the guard's (pipeline/nowcast.py),
+# the same for every fuel; only the first reason is shown, the archive has them all.
+fm.append(measure(F, "Nowcast Note", '''
+VAR vLatest = [Latest Week]
+VAR vVar = CALCULATE(MAX(forecast_accuracy[nowcast_variant]), REMOVEFILTERS(Week), forecast_accuracy[week_date] = vLatest)
+VAR vWhy = CALCULATE(MAX(forecast_accuracy[nowcast_reason]), REMOVEFILTERS(Week), forecast_accuracy[week_date] = vLatest)
+VAR vFirst = LEFT(IF(CONTAINSSTRING(vWhy, "; "), LEFT(vWhy, SEARCH("; ", vWhy) - 1), vWhy), 100)
+// Dates, not "this week": the page is read in later weeks too (owner, 9 Nov 2026).
+// The newest week is stamped on its Friday; the next one runs Monday +3 to Wednesday +5.
+VAR vMon = vLatest + 3
+VAR vEnd = vLatest + IF(vVar = "2 days", 4, 5)
+VAR vSpan = IF(MONTH(vMon) = MONTH(vEnd),
+    DAY(vMon) & "–" & FORMAT(vEnd, "d mmm"),
+    FORMAT(vMon, "d mmm") & " – " & FORMAT(vEnd, "d mmm"))
+RETURN
+SWITCH(vVar,
+    "3 days", ", and include Brent crude for " & vSpan,
+    "2 days", ", and include Brent crude for " & vSpan & " only (" & vFirst & ")",
+    "none", ", and leave out Brent crude for " & vSpan & " (" & vFirst & ")",
+    "")''', folder="Now",
+    desc="How the newest week's calls were computed: with Brent for the Monday to Wednesday after the newest week, for Monday and Tuesday only, or without it, and the guard's first reason when it is not three days."))
 # Track record. 'Horizon' is quoted everywhere: a bare table name that is also an
 # MDX keyword breaks the parse, as VAR names did on 4 Nov 2026.
 TR = "Track record"
 fm.append(measure(F, "Selected Horizon", '''
 SELECTEDVALUE('Horizon'[Weeks ahead], 1)''', fmt="0", folder=TR, hidden=True))
-for name, col_ in (("Miss Model", "abs_err_adl_ecm"), ("Miss No Change", "abs_err_naive")):
+for name, col_ in (("Miss Model", "abs_err_nowcast"), ("Miss No Change", "abs_err_naive")):
     fm.append(measure(F, name, f'''
 VAR vH = [Selected Horizon]
 RETURN CALCULATE(AVERAGE(forecast_accuracy[{col_}]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())''',
@@ -433,7 +456,7 @@ RETURN IF(NOT ISBLANK(vFuel) && vN > 0,
     "Since 2013 the model's " & SWITCH(vH, 1, "one", 2, "two", 3, "three") & "-week call for " & vFuel
     & " has missed by " & FORMAT(vM, "0.0") & " c/L on average — " & vPct & "% "
     & IF(vM <= vN, "less", "more") & " than assuming the price won't change.")''', folder=TR))
-for name, col_ in (("Model 26w (chart)", "mae_model_26w"), ("No Change 26w (chart)", "mae_naive_26w")):
+for name, col_ in (("Model 26w (chart)", "mae_nowcast_26w"), ("No Change 26w (chart)", "mae_naive_26w")):
     fm.append(measure(F, name, f'''
 VAR vH = [Selected Horizon]
 RETURN CALCULATE(AVERAGE(forecast_accuracy[{col_}]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)''',
@@ -448,14 +471,14 @@ IF(MAX(Week[week]) = [Track Last Week], [{base}])''', fmt="0.0", folder=TR))
 fm.append(measure(F, "Track Axis Top", '''
 VAR vH = [Selected Horizon]
 VAR vA = CALCULATE(MAX(forecast_accuracy[mae_naive_26w]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
-VAR vB = CALCULATE(MAX(forecast_accuracy[mae_model_26w]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
+VAR vB = CALCULATE(MAX(forecast_accuracy[mae_nowcast_26w]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)
 RETURN 1.1 * MAX(vA, vB)''', fmt="0.0", folder=TR, hidden=True))
 fm.append(measure(F, "Volatile (chart)", '''
 VAR vH = [Selected Horizon]
 VAR vHigh = CALCULATE(COUNTROWS(forecast_accuracy), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26, forecast_accuracy[crude_vol_regime] = "high")
 RETURN IF(vHigh > 0, [Track Axis Top])''', fmt="0.0", folder=TR,
     desc="A full-height column in weeks whose call was made in volatile crude: the shading behind the lines."))
-for name, col_ in (("Miss Model (row)", "abs_err_adl_ecm"), ("Miss No Change (row)", "abs_err_naive")):
+for name, col_ in (("Miss Model (row)", "abs_err_nowcast"), ("Miss No Change (row)", "abs_err_naive")):
     fm.append(measure(F, name, f'''
 VAR vH = SELECTEDVALUE('Track Row'[Weeks ahead])
 VAR vR = SELECTEDVALUE('Track Row'[Regime])
@@ -480,7 +503,7 @@ fm.append(measure(F, "Track Lead Title", \
 VAR vEp = ADDCOLUMNS(
     CALCULATETABLE(VALUES(forecast_accuracy[crude_episode_id]), forecast_accuracy[horizon_weeks] = vH,
         forecast_accuracy[outcome_known] = TRUE(), NOT ISBLANK(forecast_accuracy[crude_episode_id])),
-    "lead", CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]) - AVERAGE(forecast_accuracy[abs_err_adl_ecm]),
+    "lead", CALCULATE(AVERAGE(forecast_accuracy[abs_err_naive]) - AVERAGE(forecast_accuracy[abs_err_nowcast]),
         forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE()))
 VAR vTop = MAXX(TOPN(1, vEp, [lead], DESC), forecast_accuracy[crude_episode_id])
 VAR vLow = TOPN(1, vEp, [lead], ASC)
@@ -656,14 +679,14 @@ IF(NOT ISBLANK([Margin Gap Now]), FORMAT([Margin Gap Now], "+0.0;−0.0;0.0"))''
 # by the week a call was made and the week it was for, at every horizon, so each
 # measure keeps only the chosen horizon and the rows of the others come out blank.
 DT = "Data"
-for name, col_, known in (("Data Price Then", "price_now", False), ("Data Model Call", "pred_adl_ecm", False),
+for name, col_, known in (("Data Price Then", "price_now", False), ("Data Model Call", "pred_nowcast", False),
                           ("Data Actual", "actual_price", True)):
     fm.append(measure(F, name, f'''
 VAR vH = [Selected Horizon]
 RETURN CALCULATE(AVERAGE(forecast_accuracy[{col_}]), forecast_accuracy[horizon_weeks] = vH{", forecast_accuracy[outcome_known] = TRUE()" if known else ""})''',
         fmt="0.0", folder=DT))
-for name, mine, other, pending in (("Data Model Miss", "abs_err_adl_ecm", "abs_err_naive", '"awaiting MBIE"'),
-                                   ("Data No Change Miss", "abs_err_naive", "abs_err_adl_ecm", "BLANK()")):
+for name, mine, other, pending in (("Data Model Miss", "abs_err_nowcast", "abs_err_naive", '"awaiting MBIE"'),
+                                   ("Data No Change Miss", "abs_err_naive", "abs_err_nowcast", "BLANK()")):
     fm.append(measure(F, name, f'''
 VAR vH = [Selected Horizon]
 VAR vCalls = CALCULATE(COUNTROWS(forecast_accuracy), forecast_accuracy[horizon_weeks] = vH)
@@ -674,7 +697,7 @@ RETURN IF(vCalls > 0, IF(ISBLANK(vMiss), {pending}, FORMAT(vMiss, "0.0")))''', f
 VAR vH = [Selected Horizon]
 VAR vMine = CALCULATE(AVERAGE(forecast_accuracy[{mine}]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
 VAR vOther = CALCULATE(AVERAGE(forecast_accuracy[{other}]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[outcome_known] = TRUE())
-RETURN IF(ISBLANK(vMine), "#5C5B56", IF(vMine {"<=" if mine == "abs_err_adl_ecm" else "<"} vOther, "#1B1B19", "#A3A29B"))''',
+RETURN IF(ISBLANK(vMine), "#5C5B56", IF(vMine {"<=" if mine == "abs_err_nowcast" else "<"} vOther, "#1B1B19", "#A3A29B"))''',
         folder=DT, hidden=True, desc="Dark for the smaller miss of the week, grey for the larger; a tie goes to the model."))
 fm.append(measure(F, "Data Calls Caption", '''
 VAR vH = [Selected Horizon]
@@ -735,6 +758,16 @@ def append_measures(path, measures):
         return  # already there
     path.write_text(text[:i] + "\n" + start + text[i:])
 
+def append_columns(path, columns):
+    """Columns the base file (9076a1e) predates, set before its partition; skipped
+    when already there, so a rerun writes nothing twice."""
+    text = path.read_text()
+    new = [c for c in columns if c.split("\n")[0] + "\n" not in text]
+    if not new:
+        return
+    i = text.index("\n\tpartition ")
+    path.write_text(text[:i] + "\n" + "\n".join(new) + text[i:])
+
 (ROOT / "tables/Fuel.tmdl").write_text(fuel)
 (ROOT / "tables/Week.tmdl").write_text(week)
 (ROOT / "tables/Period.tmdl").write_text(period)
@@ -748,6 +781,11 @@ prices = (f"/// MBIE's weekly price and its components, by fuel, straight from s
           + f"\n\tpartition prices = m\n\t\tmode: import\n\t\tsource =\n{block(prices_m, 4)}\n\n\tannotation PBI_ResultType = Table\n")
 (ROOT / "tables/prices.tmdl").write_text(prices)
 append_measures(ROOT / "tables/forecast_accuracy.tmdl", fm)
+# W23, 9 Nov 2026: the nowcast beside adl_ecm (models/gold/forecast_accuracy.sql).
+append_columns(ROOT / "tables/forecast_accuracy.tmdl", [
+    column(F, name, "double", summarize="sum") for name in
+    ("pred_nowcast", "abs_err_nowcast", "mae_nowcast_26w", "skill_nowcast_26w")] + [
+    column(F, name, "string") for name in ("nowcast_variant", "nowcast_reason")])
 append_measures(ROOT / "tables/margin_compression.tmdl", mm)
 # Data's tables show these dates in full; "Friday, 23 October 2026" took a third of a column.
 for t_ in ("forecast_accuracy", "margin_compression"):

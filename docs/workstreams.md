@@ -1983,12 +1983,25 @@ the gain (CI about ±25 points), and the rest was checked on history.
 
    **What the run records — owner's decision, 9 Nov 2026.** Beside
    `pred_nowcast`, two columns: the guard's variant (three days, two, or
-   none) and its reasons. Report 1 and the dated archive then show which
-   weeks ran without the nowcast, and why. For a quick look, the Actions log
+   none) and its reasons. Report 1 then shows whether the current week ran
+   without the nowcast, and why; each week's dated archive keeps its own.
+   For a quick look, the Actions log
    and a line in the step summary; the log is kept 90 days, the maximum for
    a public repository. Nothing more: no tables in `monitoring` and no window
    CSV in the archive. Nothing in them would be read regularly, and the
    reasons name the dates, contracts and sizes a later look needs.
+
+   **The rest, owner's decisions, 9 Nov 2026.**
+   - **Every row is this run's.** Past weeks are computed from settled
+     history on three days, recomputed every week as `pred_adl_ecm` is; the
+     latest week by the guard's decision. Nothing carries over from an
+     earlier run.
+   - **`pred_adl_ecm` is not shown in Report 1.** The reader needs the
+     result, not the correction; it stays in the data and the archive.
+   - **No BZ=F history, no nowcast.** The whole column is `adl_ecm` for that
+     run, with the reason, and the cause is looked into. A week that reads
+     differently from the week before is the lesser evil next to stitching
+     one run's history onto another's.
 5. **Test B, whether the band on Now covers what it claims.** Separate
    work, not a gate.
 
