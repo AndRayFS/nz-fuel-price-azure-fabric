@@ -2135,6 +2135,9 @@ the spot move (FRED) and on futures minus spot. 90% CIs:
   move. Outside them, futures minus spot is noise.
 - **The mechanism is not established.** A candidate, not checked: Singapore
   product quotes move to the next month at the turn of the month too.
+  *Ruled out 10 Nov 2026:* Argus's quote has a rolling 15–30-day window and
+  no month (`docs/mbie_notes.md`). The step itself was confirmed without
+  FRED the same day; see the section of that date.
 
 **What follows.**
 
@@ -2290,6 +2293,85 @@ other two fuels are within 0.03:
 - **Not measured:** the expiring contract's own bar in its last ten days.
   Yahoo does not serve expired contracts; the probe sees `BZF27` by symbol
   daily through 30 Nov.
+
+## The roll step reaches MBIE's cost without FRED, and trading leaves the front the day Yahoo switches — 10 Nov 2026
+
+`research/roll_same_contract.py`, a scratch check whose rule and prediction
+were written before it ran, committed the same day; `research/roll_volumes.py`,
+descriptive. Both read Yahoo answers saved on 10 Nov under `data/`.
+
+**Why it was asked.** On 7 Nov the roll's jump reached `importer_cost` at 0.73
+of a spot move, and the candidate mechanism was Singapore quotes changing month
+at the turn of the month. Argus's methodology rules that out: its quote has a
+rolling window, loading 15–30 days forward, and no month (`docs/mbie_notes.md`,
+"How `Importer cost` is actually built"). That left two readings: the step is
+real in the market, or an artefact of the 7 Nov regressor, which is built on
+FRED spot.
+
+**The test needs no FRED.** It splits the calendar-front feature itself into a
+same-contract move and the step. Before an expiry the next contract's price
+comes from Yahoo's hourly `BZ=F`, which is already on it; the method is in the
+script. The data cover 26 roll weeks, Nov 2024 – Oct 2026, the span of Yahoo's
+hourly history. `importer_cost` change, c/L, three fuels pooled, 90% CIs:
+
+| | n | b_same | b_step | b_step / b_same |
+|---|---|---|---|---|
+| Roll weeks | 26 | 2.43 [1.33, 3.35] | 2.71 [1.63, 3.78] | 1.12 [0.71, 1.80] |
+| Non-roll weeks | 71 | 1.47 [0.91, 2.03] | — | — |
+
+- **Rule: "real".** The prediction ("real", about 0.7) held in direction; the
+  ratio came out higher.
+- **It does not rest on one week.** With one spread per expiry, the ratio is
+  1.00 [0.31, 1.56]. Without the two largest crisis rolls (3 Apr, 1 May 2026)
+  it is 1.04 [0.09, 2.42]. Leaving origins out one at a time gives `b_step`
+  2.21–2.99.
+- **MBIE's quarterly constants do not explain it.** At other month turns, where
+  those constants do not change, the ratio is 1.71 [1.24, 4.10] (n = 12). At
+  quarter turns it is 1.40 [0.06, 8.26] (n = 14).
+- **It cannot be seen before the crisis.** Steps there are 0.4–1 USD and the CI
+  includes zero: 2.27 [−0.59, 4.11] (n = 17).
+- **It is small in practice.** MAE is 5.21 c/L with the step and 5.29 without;
+  the step matters only where the spread is large.
+- **A bias toward "real" is not excluded.** The settlement proxy's error (median
+  0.09, p90 0.50 USD) enters both terms with opposite signs. The one-spread
+  variant, which is less noisy, gives the same ratio.
+
+**What follows.** Two decompositions now agree: with FRED over ten years, and
+without it over two. The step is in MBIE's number, not only in the input. Its
+mechanism is still unknown; Argus's definition, the quarterly constants and
+FRED are all ruled out. The nowcast's series, the calendar front by symbol,
+stands either way.
+
+**Volumes, NYMEX `BZ`, 31 Aug – 5 Nov 2026.** Live contracts are read by
+symbol. `BZX26` and `BZZ26` answer 404 and are read through `BZ=F` while each
+was front, so September is missing its second month.
+
+- **Scale:** 600–930 million bbl a week, USD 70–90 bn notional, 1,000 bbl a
+  contract. ICE, where most Brent trades, is not on Yahoo.
+- **The front carries 22–31% in an ordinary week.** Quarterly months (H, M, U,
+  Z) out-trade their neighbours: December 2027 trades 30 times as much as
+  November.
+- **By the expiry week, trading has left the front.** In the week of 26 Oct
+  `BZZ26` had 8% and the next contract 26%.
+- **`BZF27` first out-traded `BZZ26` on 22 Oct** (38.7 against 38.2 thousand
+  contracts). Yahoo's live view moved to January on 23 Oct. That is one roll:
+  consistent with a live view that follows the most traded contract, not shown.
+  The probe records both contracts and hourly `BZ=F` through the next roll,
+  around 20 Nov.
+
+**Yahoo quirks found on the way.**
+
+- **By the next morning a daily bar holds the settlement.** The 7 Nov manual
+  probe ran at 06:13 UTC. Its 6 Nov daily close was 98.32, the price at the
+  settlement window; the last trade was 97.76, and the hourly bars kept the
+  trade. `meta.regularMarketPrice` carried the settlement, with the last
+  trade's `regularMarketTime`. For the open question of moving the load, this
+  bounds when the settlement arrives (by about 19:13 NZDT on Thursday) from
+  one observation; it says nothing about 20:07 UTC.
+- **6 Nov 2026's volume is 5 Nov's, for every contract.** It was still the same
+  on 9 Nov: a copy, not a delay.
+- **On an expiry day `BZ=F` mixes two contracts.** On 30 Oct its bar carried the
+  expiring contract's prices and the next contract's volume.
 
 ## A better crude-to-cost slope made the forecast worse — 8 Sep 2026
 

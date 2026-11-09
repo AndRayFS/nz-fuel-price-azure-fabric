@@ -439,6 +439,27 @@ Importer cost = Cost to purchase fuel + Cost to ship fuel + Wharfage
 - **FX** is RBNZ's rate, converting USD/bbl to NZc/L.
 - **Wharfage** is added last.
 
+**The Singapore quote has no month in it.** Read on 10 Nov 2026 from Argus's
+*Asia-Pacific Products* methodology, October 2026 edition,
+https://www.argusmedia.com/-/media/project/argusmedia/mainsite/english/documents-and-files/methodology/argus-asia-pacific-products.pdf
+(PDF):
+
+- **Window:** both grades MBIE names, 95R gasoline and 50ppm gasoil fob
+  Singapore, are "loading 15-30 days forward from date of publication". The
+  window rolls a day at a time; there is no contract month to switch.
+- **Timestamp:** 4:30pm Singapore time.
+- **Form:** a premium or discount to Platts' MOPS for the grade. For 50ppm
+  gasoil that is MOPS 10ppm gasoil.
+- **Swaps are separate:** Argus "looks at forward swaps to inform physical
+  assessments but places primary emphasis on the physical markets". Its
+  Singapore swaps roll on the 16th, not at the turn of the month, and MBIE
+  does not use them.
+- **No Brent or Dubai** is part of these assessments.
+- **"High pour"**, which MBIE's methodology names, does not appear.
+
+This ruled out the candidate mechanism for the futures roll reaching
+`Importer cost` (`docs/research.md`, 7 and 10 Nov 2026).
+
 **There is no purchase date, no voyage time, and no averaging window
 anywhere in the calculation.** It is this week's Singapore spot at this
 week's exchange rate. That makes `Importer cost` a **replacement-cost
