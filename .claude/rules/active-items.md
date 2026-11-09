@@ -39,3 +39,10 @@ delete it here.
   bar lands on Tuesday, and whether it is already the midnight price at the
   run is not measured. Options and why it cannot be seen before March:
   `docs/workstreams.md`, W23, Risks, "The live FX bar".
+
+- [ ] **After the 12 Nov 2026 load, before its artifact expires on ~12 Dec** —
+  read the `yahoo-probe` artifact of that weekly run: is Wednesday's daily bar
+  of the front contract at the run already the settlement (the same day in a
+  later snapshot)? If yes, moving the load later is off. If not, a few manual
+  probe runs in one evening find when Yahoo writes the settlement, and the
+  move is decided from that. `docs/research.md`, 9 Nov 2026.

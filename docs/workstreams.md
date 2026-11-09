@@ -1900,6 +1900,9 @@ the guard decides on that morning's bars. Still open:
   Then it is removed, and whether Yahoo rewrites roll days decides whether
   the run keeps its own daily snapshots;
 - the FX bar under BST, before 28 Mar 2027 (Risks);
+- whether to move the load later. It waits on whether Yahoo's bar at 20:07
+  UTC is already the settlement, first seen on 12 Nov; at worst the gap moves
+  the forecast by under half a cent (`docs/research.md`, 9 Nov 2026);
 - step 5, Test B, separate work.
 
 **Why now.** An outside review of the model plateau, with three tests whose
