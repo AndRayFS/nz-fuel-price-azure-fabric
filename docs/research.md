@@ -2221,6 +2221,76 @@ there, so the gap is the contract spread (median 0.59%, p95 4.8%).
   two-day nowcast is its own walk-forward fit on the two-day feature, as
   measured here, not the three-day fit given fewer days.
 
+## Yahoo's Brent at the load's own moment: a ceiling of half a cent — 9 Nov 2026
+
+The section above measured the bar at the CME close. The load reads Yahoo at
+09:07 NZT on Thursday: 20:07 UTC in NZ summer, before the close, and 21:07 UTC
+in NZ winter, just after it. This measures that moment, how much the reading
+depends on the hour (the probe's cron is set for 19:45 UTC and GitHub has
+started it up to 144 minutes late), and what the gap does to the forecast in
+retail c/L. `research/nowcast_live_gap.py`; hourly `BZ=F`, 11 Nov 2024 –
+9 Nov 2026, the same exclusions as above, which leave 51 of 101 Wednesdays.
+The price at 20:07 is the close of the hourly bar ending 20:00.
+
+**It is a ceiling.** It assumes Yahoo's daily bar at the load still holds the
+last trade. If it holds the settlement by then, the gap is zero every week.
+The probe step in `weekly.yml` answers which, from 12 Nov.
+
+**At the load's moment**, |gap| as a share of Brent:
+
+| Wednesdays | n | median | p90 | p95 | max |
+|---|---|---|---|---|---|
+| all | 51 | 0.26% | 0.80% | 1.59% | 1.84% |
+| NZ summer, load 20:07 UTC | 26 | 0.26% | 0.66% | 0.73% | 1.41% |
+| NZ winter, load 21:07 UTC | 25 | 0.33% | 1.59% | 1.70% | 1.84% |
+| calm, before 28 Feb 2026 | 33 | 0.26% | 0.59% | 0.98% | 1.84% |
+| crisis, from 28 Feb 2026 | 18 | 0.46% | 1.58% | 1.61% | 1.73% |
+
+- **The median is over all 51**, the one exact zero included; 11 are under
+  0.1%. A last trade equals the settlement only by chance.
+- **Kept, the ten days before expiry showed a bias of −0.3 to −0.4%** against
+  about zero elsewhere: the spread to the next, cheaper contract, as above.
+  The load reads the front contract by its own symbol and is not affected.
+
+**The hour of the reading hardly matters.** Every weekday in US winter, the
+probe's season, n = 89:
+
+| read at, UTC | median | p95 |
+|---|---|---|
+| 19:45, the probe on time | 0.17% | 0.56% |
+| 20:07, the load | 0.17% | 0.58% |
+| 21:07–21:45, the probe late | 0.19% | 0.99% |
+| 22:09, the probe later still | 0.15% | 1.04% |
+
+A late probe reads a different moment, recorded in `fetched_at_utc`, not a
+different answer. **After the close is not the settlement either**: at 22:09
+the gap is no smaller than at 20:07.
+
+**On the forecast**, through the production code: the week's feature moved by
+a third of the Wednesday gap in NZ c/L, `nowcast_at` and
+`forecast_with_nowcast` on the unchanged ADL+ECM. Premium 95, retail c/L; the
+other two fuels are within 0.03:
+
+| | h=1 | h=2 | h=3 |
+|---|---|---|---|
+| median | 0.02 | 0.04 | 0.05 |
+| p95 | 0.13 | 0.28 | 0.35 |
+| max of 51 | 0.16 | 0.37 | 0.47 |
+| the nowcast's own MAE, whole backtest, 9 Nov run | 1.42 | 2.67 | 4.04 |
+
+**What follows.**
+
+- **Nothing to fix at today's load time.** The worst of the 51 Wednesdays
+  moves the forecast by under half a cent.
+- **Moving the load later is open (owner, 9 Nov 2026).** It helps only if by
+  then Yahoo has written the settlement into the bar, and when it does is not
+  measured. If the 12 Nov snapshot shows the last trade at 20:07, a few
+  manual probe runs in one evening (20:30, 22:30, 01:00, 05:00 UTC) find the
+  hour, and the move is decided from that.
+- **Not measured:** the expiring contract's own bar in its last ten days.
+  Yahoo does not serve expired contracts; the probe sees `BZF27` by symbol
+  daily through 30 Nov.
+
 ## A better crude-to-cost slope made the forecast worse — 8 Sep 2026
 
 The nowcast turns a move in Brent-in-NZD into a move in `Importer cost`
