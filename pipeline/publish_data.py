@@ -25,6 +25,8 @@ what is on it):
 
 The page goes up last. If it fails, the archive is already complete and the
 run still exits 1, so a stale page is noticed rather than left standing.
+Each upload is tried up to four times first, as the Fabric API calls are
+(`upload`, since 9 Nov 2026).
 
 Upload is one REST call per blob with an Entra token, not the storage SDK: the
 same DefaultAzureCredential the rest of `pipeline/` uses, and no new
@@ -44,6 +46,7 @@ import argparse
 import csv
 import io
 import sys
+import time
 import urllib.error
 import urllib.request
 import zipfile
@@ -54,7 +57,7 @@ from zoneinfo import ZoneInfo
 from azure.identity import DefaultAzureCredential
 
 import phone_page
-from fabric_io import connect
+from fabric_io import BACKOFF_SECONDS, RETRIES, connect
 
 ACCOUNT_URL = "https://nzfueldata.blob.core.windows.net"
 CONTAINER = "data"
@@ -224,6 +227,14 @@ def build_archive(published: str) -> tuple[bytes, dict[str, int], dict[str, byte
 
 def upload(blob: str, body: bytes, cache_control: str | None = None,
            container: str = CONTAINER, content_type: str = "application/zip") -> str:
+    """PUT one blob, retried the way fabric_io retries the Fabric API.
+
+    Repeating is safe: the same bytes to the same name overwrite the blob,
+    never add a second one. A 4xx other than 429 is not retried - a missing
+    role or a wrong name does not improve by asking again. Unlike fabric_io,
+    a timeout while waiting for the answer is retried too: urllib raises it
+    as TimeoutError, not URLError, so it is caught as OSError.
+    """
     token = DefaultAzureCredential().get_token(STORAGE_SCOPE).token
     url = f"{ACCOUNT_URL}/{container}/{blob}"
     headers = {
@@ -235,15 +246,27 @@ def upload(blob: str, body: bytes, cache_control: str | None = None,
     }
     if cache_control:
         headers["x-ms-blob-cache-control"] = cache_control
-    req = urllib.request.Request(url, method="PUT", data=body, headers=headers)
-    try:
-        with urllib.request.urlopen(req, timeout=120) as resp:
-            if resp.status != 201:
-                raise RuntimeError(f"upload of {blob} answered {resp.status}")
-    except urllib.error.HTTPError as exc:
-        detail = exc.read().decode(errors="replace")[:500]
-        raise RuntimeError(f"upload of {blob} failed, {exc.code}: {detail}") from exc
-    return url
+    last: Exception | None = None
+    for attempt in range(RETRIES):
+        req = urllib.request.Request(url, method="PUT", data=body, headers=headers)
+        wait = BACKOFF_SECONDS * (attempt + 1)
+        try:
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                if resp.status != 201:
+                    raise RuntimeError(f"upload of {blob} answered {resp.status}")
+                return url
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode(errors="replace")[:500]
+            last = RuntimeError(f"upload of {blob} failed, {exc.code}: {detail}")
+            if exc.code < 500 and exc.code != 429:
+                raise last from exc
+            wait = float(exc.headers.get("Retry-After") or wait)
+        except OSError as exc:  # URLError, and a timeout while waiting for the answer
+            last = RuntimeError(f"upload of {blob} unreachable: {exc}")
+        if attempt < RETRIES - 1:
+            print(f"  retrying {blob} in {wait:.0f}s ({last})", file=sys.stderr)
+            time.sleep(wait)
+    raise last  # type: ignore[misc]
 
 
 def main() -> int:
