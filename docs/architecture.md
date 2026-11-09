@@ -593,8 +593,11 @@ warehouse credentials, and they are made for versions of software.
 
 **Order and failure.** The dated blob is written before `latest`, so a
 failure between the two leaves the record complete and only the convenience
-link a week old. A failed upload fails the run — the week is loaded, closed
-and refreshed by then, and `task publish` alone repairs it. After a failed
+link a week old. Each upload is tried up to four times, with the same pauses
+as the Fabric API calls (since 9 Nov 2026, after a session in which
+connections to Fabric timed out four times in under an hour). One that still
+fails fails the run — the week is loaded, closed and refreshed by then, and
+`task publish` alone repairs it. After a failed
 refresh, run `task refresh` then `task publish`: the archive should not
 describe a load the report does not show.
 
