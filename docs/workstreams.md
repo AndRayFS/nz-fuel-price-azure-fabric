@@ -1887,7 +1887,20 @@ template, the QR code, and IBM Plex Sans under the OFL);
 `nzfueldata`, and Storage Blob Data Contributor on `$web` for `nz-fuel-ci`
 and the owner.
 
-## W23 — The nowcast in production — **proposed 7 Nov 2026**
+## W23 — The nowcast in production — **landed 9 Nov 2026**, steps 1–4
+
+**Status, 9 Nov 2026.** Report 1 reads `pred_nowcast` from 9 Nov, ahead of
+the 19–26 Nov target. Checked against the warehouse that day:
+`forecast_history` 6462 rows, every one `3 days` (the week in progress,
+2–4 Nov, was already settled), 43 of 43 dbt tests; the owner looked at a dev
+copy before `to_live.py` published it. The 12 Nov run is the first in which
+the guard decides on that morning's bars. Still open:
+
+- the probe, through the first roll (BZF27 expires 30 Nov; the 3 Dec run).
+  Then it is removed, and whether Yahoo rewrites roll days decides whether
+  the run keeps its own daily snapshots;
+- the FX bar under BST, before 28 Mar 2027 (Risks);
+- step 5, Test B, separate work.
 
 **Why now.** An outside review of the model plateau, with three tests whose
 rules were written before they ran, cleared the nowcast
@@ -2009,9 +2022,10 @@ the gain (CI about ±25 points), and the rest was checked on history.
 dispatch on a Saturday (run 42346064607, 06:13 UTC): 7 of 8 requests answered
 200 in 141–217 ms, the expired contract 404 as expected. Markets were shut,
 so it answers that question only; the live bar and the roll wait for the
-weekday cron, from 9 Nov 19:45 UTC. Plumbing passes. Owner review.
-**Target: the 26 Nov run** (19 Nov if the review is quick). The first roll
-week is the 3 Dec run, and the guard covers it.
+weekday cron, from 9 Nov 19:45 UTC. Plumbing — **passed 8 Nov 2026**, the
+guard 9 Nov, the owner's review 9 Nov on a dev copy.
+**Target was the 26 Nov run** (19 Nov if the review was quick); live 9 Nov.
+The first roll week is the 3 Dec run, and the guard covers it.
 
 **Risks.**
 
@@ -2034,17 +2048,22 @@ week is the 3 Dec run, and the guard covers it.
     of each London day, which matches the daily bar's open (median 0.029%,
     `docs/research.md`, 7 Nov 2026), and the live bar stops mattering;
   - leave it, if by then each run's inputs are compared with history a week
-    later (step 4): the first BST week shows any difference.
+    later: the first BST week shows any difference. Step 4 as built records
+    the variant and its reasons, not the inputs, so that comparison would
+    need a record of its own.
 - **Point-forecast language.** The rule in `CLAUDE.md` applies to the new
   column.
 
-**Touches.** New `pipeline/nowcast.py` and
-`.github/workflows/probe-yahoo.yml`. Changed:
+**Touches**, as built. New `pipeline/nowcast.py`, `pipeline/test_nowcast.py`,
+`pipeline/probe_yahoo.py` and `.github/workflows/probe-yahoo.yml`. Changed:
 
-- `pipeline/backtest.py`, `models/gold/forecast_accuracy.sql`;
-- `pbip/build/model_v2.py`, `pipeline/phone_page.py`;
-- `Taskfile.yml`, `.github/workflows/weekly.yml`;
-- `docs/architecture.md`.
+- `pipeline/backtest.py`, `pipeline/warehouse_write.py`,
+  `models/gold/forecast_accuracy.sql`, `models/sources.yml`;
+- `pbip/build/model_v2.py`, `pbip/build/page_built.py`,
+  `pipeline/phone_page.py`, `pipeline/phone/template.html`,
+  `pipeline/publish_data.py` (the README);
+- `.github/workflows/weekly.yml` (the probe step);
+- `docs/architecture.md`, `.claude/skills/load-review/SKILL.md`, `CLAUDE.md`.
 
 ## W24 — `docs/research.md`: contradictions first, then a "what holds now" header — **proposed 7 Nov 2026**
 
@@ -2318,17 +2337,17 @@ side file to a whole-chain mode makes it an ordinary branch.
 | file | wanted by |
 |---|---|
 | `pipeline/export_panel.py` | W1, W5 — both landed |
-| `pipeline/backtest.py` | W1, W5 — both landed |
+| `pipeline/backtest.py` | W1, W5, W23 — all landed |
 | `models/silver/silver_fuel.sql` | W1 |
 | `models/silver/silver_general.sql` | W1 |
 | `models/silver/_silver__models.yml` | W1 |
 | `QUICKSTART.md` | W2, W3, W5, W7, W18 |
 | `pipeline/aip_check.py` | W2, W18 (deletes it) |
 | `.claude/rules/active-items.md` | W9, W16, W18 |
-| `.github/workflows/weekly.yml` | W16, W18, W20 |
+| `.github/workflows/weekly.yml` | W16, W18, W20, W23 (the probe step, until the probe is removed) |
 | `Taskfile.yml` | W18 (the `aip` task), W20, W22 (the `phone` task) |
-| `pipeline/publish_data.py` | W22 |
-| `pbip/` | W20 (a table, page 4), W21 (throughout) |
+| `pipeline/publish_data.py` | W22, W23 (the README) |
+| `pbip/` | W20 (a table, page 4), W21 (throughout), W23 (forecast measures, page 4) |
 | `.github/workflows/pause-capacity.yml` | W16 |
 
 `QUICKSTART.md` is wanted by four branches; leave its rewrite to whichever
