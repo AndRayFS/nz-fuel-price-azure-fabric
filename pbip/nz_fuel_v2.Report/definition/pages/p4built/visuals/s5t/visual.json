@@ -31,7 +31,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "refits ADL+ECM at every week since 2013, with Mon–Wed crude from Yahoo",
+                    "value": "refits ADL+ECM since 2013; Mon–Wed Brent from Yahoo",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "9pt",
