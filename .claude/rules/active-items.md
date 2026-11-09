@@ -46,3 +46,13 @@ delete it here.
   later snapshot)? If yes, moving the load later is off. If not, a few manual
   probe runs in one evening find when Yahoo writes the settlement, and the
   move is decided from that. `docs/research.md`, 9 Nov 2026.
+
+- [ ] **The `BZF27` → `BZG27` roll, ~20 Nov – 1 Dec 2026** — second observation
+  of "Yahoo's live view follows the most traded contract" (one roll so far:
+  volumes crossed on 22 Oct, the view switched on 23 Oct; `docs/research.md`,
+  10 Nov 2026). From the probe's artifacts, which are kept 30 days: the first
+  day `BZG27`'s daily volume exceeds `BZF27`'s, against the first day hourly
+  `BZ=F` is on February. Discount a volume equal to the day before; on 6 Nov
+  Yahoo copied it. Status at 23:00 UTC on 9 Nov, the cron's first weekday:
+  it had not fired, 3 h 15 min after 19:45, beyond the 144 min measured
+  before. If it still does not fire, this needs manual dispatches.
