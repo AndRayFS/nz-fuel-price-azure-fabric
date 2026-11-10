@@ -1943,6 +1943,15 @@ reasons are recorded so that they are not looked up again.
 - **fuelclock.nz** (Taxpayers' Union). Its "matches MBIE exactly" is about
   fuel stocks in days, not prices. Crude and FX are the same Yahoo `BZ=F` and
   `NZDUSD=X`; retail prices are Gaspy's crowd-sourced ones. Nothing new.
+- **Gaspy itself.** Asked on 5 Nov 2026 for daily national 91, 95 and diesel,
+  same day or a day late, with history from 2022. Answered on 6 Nov that its
+  data "is currently managed by Datamine", with a named contact there.
+  - **Datamine is MBIE's own retail source** since 1 Jan 2022
+    (`docs/mbie_notes.md`, "Known structural changes"). A daily series from
+    it would likely be the one MBIE averages by week, without the source
+    mismatch ComCom's carries.
+  - **Not known.** Whether MBIE's Datamine series is Gaspy's crowd-sourced
+    prices; whether Datamine licenses a daily series, and on what terms.
 - **Terminal gate prices** (Fuel Industry Act 2020, s 9).
   - **Weekly, not daily.** Mobil's take effect on Saturdays (24 Oct, 31 Oct),
     six terminals, as an HTML table. Gull's take effect on Fridays (30 Oct,
@@ -2703,8 +2712,9 @@ coefficients on a two- or three-week change.
 - **The verdict on the rule stands.** The combination's −48% is a post-hoc
   diagnostic.
 - **Only one timely source exists.** It is Gaspy, crowd-sourced, with no
-  licence ("Sources checked for a timely series", above).
-  Whether to ask for one is the owner's decision. This section says only
+  licence; its data is managed by Datamine, MBIE's own retail source, and
+  the licence question now goes there ("Sources checked for a timely
+  series", above). This section says only
   that the information is worth roughly half the one-week error in a crisis.
 
 ## Checks that have repeatedly changed the answer
