@@ -65,3 +65,34 @@ delete it here.
   Yahoo copied it. GitHub's cron never fired (9 Nov 2026). From 10 Nov the
   probe is dispatched by `trigger-probe-yahoo`, twice a day, Monday to
   Saturday.
+
+- [ ] **Datamine: waiting on Andy Marsden, emailed 11 Nov 2026** — the daily
+  retail series for the nowcast (`docs/research.md`, "Sources checked for a
+  timely series"): national 91, 95 and diesel, history from 2022. Gaspy's
+  referral (6 Nov) led through three Datamine auto-replies — Janneke Krieg,
+  Sophie Wiltshire, Rosie Nash, all gone — to `andy.marsden@datamine.com`, a
+  Partner. The other three auto-replied within minutes; he had not by the
+  time of writing, so the mailbox is live.
+  - **The product, from `datamine.com/data/fuel-price-nz`:** daily, 1,500+
+    stations, history from Nov 2015, API or flat files, sold "for both
+    commercial use and research", priced on request. Aimed at companies
+    "with meaningful operational or analytical requirements", so a quote is
+    the likely answer.
+  - **No budget (owner, 11 Nov 2026).** Only free research access, or data
+    for credit, is in reach; the odds are low. A paid quote closes this item
+    as "not now", not as a negotiation.
+  - **If silent by ~18 Nov, in this order:** the enquiry form on that same
+    page (detailed; a text fetch does not show it, open it in a browser);
+    LinkedIn to Andrew Marsden, then Matt Wilkins (both Partners); the
+    Auckland office, 09 303 2300, to ask who owns the fuel data now.
+    Commercial Operations / Business Development has no names and is not
+    needed unless Marsden passes it on.
+  - **fuelwatch.nz — separate, for networking.** An independent project the
+    size of this one: Auckland, AdSense-funded, national averages taken from
+    `gaspy.nz/stats.html`, no licence, API or history download. Not a data
+    source; the owner wants to talk and see whether something can be done
+    together (it shows the price now, Report 1 the likely course). Contact
+    is its `/contact` form only; no text drafted yet.
+  - **On close:** move the product facts and the outcome into
+    `docs/research.md`, "Sources checked for a timely series", and add
+    fuelwatch.nz there beside fuelclock.nz.
