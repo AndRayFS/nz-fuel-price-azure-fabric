@@ -1061,16 +1061,36 @@ energy-generation-and-markets/liquid-fuel-market/fuel-supply-disruption-response
 fuel-stock-and-shipping-updates
 ```
 
-- HTML only — no downloadable file or API. Would need scraping (Data Factory
-  Web activity + HTML parsing), not a Copy activity.
-- **No historical archive** on the page — only a current snapshot. Updated
-  weekly (was twice-weekly until 6 Jul 2026 — frequency itself has changed,
-  worth recording as metadata if this is ever ingested).
-- Shows days' cover (in-country / on water within EEZ / on water outside EEZ)
-  for petrol, diesel, jet fuel, plus the number and names of ships in transit.
-- Only useful **prospectively** — there's nothing to backfill. Good candidate
-  for accumulation via a write-back table (e.g. Azure SQL), not a bronze
-  source in the usual sense, since MBIE itself holds no history for it.
+Rewritten 11 Nov 2026; the earlier version said HTML only and no history,
+and both had stopped being true.
+
+- **What the page shows.** Days' cover (in-country / on water within EEZ /
+  on water outside EEZ) for petrol, diesel and jet fuel, the number and names
+  of ships in transit, and the history since early March as charts. Days'
+  cover is computed against fixed pre-conflict MSO demand levels (8.1 / 10.7 /
+  4.8 million litres), so a change in it is a change in stock, not in demand.
+- **Not the price data, and not on the price day.** From 29 Oct 2026 the
+  page is published on **Thursday afternoon**, from a snapshot as at 23:59 the
+  Sunday before: the 1 Nov snapshot appeared 5 Nov, about 13:05 NZDT. Weekly
+  fuel price monitoring stays on Wednesday (last updated 4 Nov 2026). A source
+  on this schedule would arrive a week late for the 09:07 Thursday load.
+- **A machine-readable copy exists — on data.govt.nz, not on the page.**
+  *Weekly fuel stock updates* (`catalogue.data.govt.nz/dataset/weekly-fuel-stock-updates`),
+  linked from the page: three CSVs, `petrol-`, `diesel-` and
+  `jetfuel-days-of-supply.csv`, long format `DATE` (d/mm/yyyy), value,
+  `STOCK CATEGORY`, with trailing empty columns and empty rows. Ship counts,
+  ship names and totals are not in them — those remain HTML only. Served to
+  plain `curl`, unlike MBIE's own URLs.
+- **History from 8 Mar 2026.** As at 11 Nov 2026: 51 snapshots in each file,
+  Sundays throughout and Wednesdays as well from 18 Mar to 1 Jul — the
+  twice-weekly period, which matches the page going weekly on 6 Jul. So there
+  is something to backfill after all, and a write-back accumulation table is
+  no longer the only way to get a series.
+- **data.govt.nz is downstream of MBIE, so not a source to depend on without
+  need** (owner, 11 Nov 2026). For the stock data there may be no choice, since
+  the page itself has no file; for `weekly-table.csv`, which data.govt.nz also
+  mirrors (served to `curl`, 2,905,113 bytes on 11 Nov 2026, not compared with
+  MBIE's file), there is one, and ingest stays on MBIE.
 
 ## Architectural implications
 
