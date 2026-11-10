@@ -46,6 +46,15 @@ delete it here.
   later snapshot)? If yes, moving the load later is off. If not, a few manual
   probe runs in one evening find when Yahoo writes the settlement, and the
   move is decided from that. `docs/research.md`, 9 Nov 2026.
+  - **Status 10 Nov 2026, by hand, Monday 9 Nov's session.** At 23:05 UTC
+    (1 h after the close) the daily bar held the last trade, 92.17, against
+    about 92.55 at the settlement window. At 01:00 UTC it held the next
+    session's first trades and no close; Monday's own bar was gone from the
+    answer. Yahoo's day is New York's, and the session that opens at 18:00 ET
+    is written into it. So a load moved into 23:00–05:00 UTC would read a
+    broken Wednesday. Still open: is the bar back after New York midnight, and
+    with the settlement? From 10 Nov `trigger-probe-yahoo` runs the probe at
+    17:30 and 01:30 ET, which answers that without manual runs.
 
 - [ ] **The `BZF27` → `BZG27` roll, ~20 Nov – 1 Dec 2026** — second observation
   of "Yahoo's live view follows the most traded contract" (one roll so far:
@@ -53,6 +62,6 @@ delete it here.
   10 Nov 2026). From the probe's artifacts, which are kept 30 days: the first
   day `BZG27`'s daily volume exceeds `BZF27`'s, against the first day hourly
   `BZ=F` is on February. Discount a volume equal to the day before; on 6 Nov
-  Yahoo copied it. Status at 23:00 UTC on 9 Nov, the cron's first weekday:
-  it had not fired, 3 h 15 min after 19:45, beyond the 144 min measured
-  before. If it still does not fire, this needs manual dispatches.
+  Yahoo copied it. GitHub's cron never fired (9 Nov 2026). From 10 Nov the
+  probe is dispatched by `trigger-probe-yahoo`, twice a day, Monday to
+  Saturday.

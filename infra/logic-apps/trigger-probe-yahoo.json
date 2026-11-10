@@ -1,0 +1,153 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "comments": [
+      "Holds the clock for the Yahoo probe (W23, step 1; .github/workflows/probe-yahoo.yml).",
+      "It posts a workflow_dispatch and nothing else: a missed probe is a gap in a",
+      "measurement, not an outage, so there is no wait, no check and no mail.",
+      "",
+      "Why it exists: GitHub's schedule never fired the probe. Its first weekday, 9 Nov",
+      "2026, had no run by 23:00 UTC, 3 h 15 min after the cron's 19:45, and the two",
+      "runs that day were dispatched by hand from a laptop.",
+      "",
+      "Why New York time: the questions are about the market's clock, not New",
+      "Zealand's. 17:30 ET is after CME's close (17:00 ET) and before the next session",
+      "opens (18:00 ET): is the day's bar the last trade or the settlement? 01:30 ET",
+      "is after New York midnight: between 18:00 ET and midnight Yahoo writes the new",
+      "session into the old day's bar (10 Nov 2026), so is the old day back, and with",
+      "the settlement? Monday to Saturday, so that every weekday session is seen at",
+      "both hours; Saturday 17:30 and Monday 01:30 are the weekend, kept for free.",
+      "",
+      "The token is a fine-grained PAT of its own, Actions: read and write on this",
+      "repository alone (docs/ci_setup.md, 7a), separate from trigger-weekly-load's so",
+      "that revoking one does not stop the other. It is a securestring: not in the",
+      "deployment history, masked on GET, and secureData hides the run inputs.",
+      "",
+      "Temporary, like the probe: delete the workflow with probe-yahoo.yml, and revoke",
+      "its token."
+    ]
+  },
+  "parameters": {
+    "workflowName": {
+      "type": "string",
+      "defaultValue": "trigger-probe-yahoo"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "australiaeast"
+    },
+    "repository": {
+      "type": "string",
+      "defaultValue": "AndRayFS/nz-fuel-price-azure-fabric"
+    },
+    "ref": {
+      "type": "string",
+      "defaultValue": "main"
+    },
+    "githubToken": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Fine-grained PAT on this repository alone, permission Actions: read and write; not trigger-weekly-load's."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2019-05-01",
+      "name": "[parameters('workflowName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "state": "Enabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {
+            "githubToken": {
+              "type": "securestring"
+            },
+            "dispatchUri": {
+              "type": "string"
+            },
+            "ref": {
+              "type": "string"
+            }
+          },
+          "triggers": {
+            "Recurrence": {
+              "type": "Recurrence",
+              "recurrence": {
+                "frequency": "Week",
+                "interval": 1,
+                "timeZone": "Eastern Standard Time",
+                "startTime": "2026-11-10T00:00:00",
+                "schedule": {
+                  "weekDays": [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday"
+                  ],
+                  "hours": [
+                    1,
+                    17
+                  ],
+                  "minutes": [
+                    30
+                  ]
+                }
+              }
+            }
+          },
+          "actions": {
+            "Dispatch_the_probe": {
+              "type": "Http",
+              "runAfter": {},
+              "inputs": {
+                "method": "POST",
+                "uri": "@parameters('dispatchUri')",
+                "headers": {
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": "Bearer @{parameters('githubToken')}",
+                  "User-Agent": "nz-fuel-price-trigger-probe-yahoo",
+                  "X-GitHub-Api-Version": "2022-11-28"
+                },
+                "body": {
+                  "ref": "@parameters('ref')"
+                }
+              },
+              "runtimeConfiguration": {
+                "secureData": {
+                  "properties": [
+                    "inputs"
+                  ]
+                }
+              }
+            }
+          },
+          "outputs": {}
+        },
+        "parameters": {
+          "githubToken": {
+            "value": "[parameters('githubToken')]"
+          },
+          "dispatchUri": {
+            "value": "[format('https://api.github.com/repos/{0}/actions/workflows/probe-yahoo.yml/dispatches', parameters('repository'))]"
+          },
+          "ref": {
+            "value": "[parameters('ref')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "workflowName": {
+      "type": "string",
+      "value": "[parameters('workflowName')]"
+    }
+  }
+}
