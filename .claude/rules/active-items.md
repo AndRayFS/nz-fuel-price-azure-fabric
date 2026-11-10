@@ -56,6 +56,45 @@ delete it here.
     with the settlement? From 10 Nov `trigger-probe-yahoo` runs the probe at
     17:30 and 01:30 ET, which answers that without manual runs.
 
+- [ ] **12–19 Nov 2026 — a dense probe grid for three sessions, then back to
+  2–3 slots.** Owner's decision, 11 Nov 2026: look around broadly before
+  narrowing, since something not yet considered may surface — but not near the
+  12 Nov load.
+  - **Why.** Monday 9 Nov's session was seen four times: 23:05 and 01:00 UTC
+    by hand, then the Logic App's first two runs — the first unscheduled,
+    fired when it was created. `BZF27.NYM`'s daily bar:
+    last trade 92.17 at 18:05 ET; no close and the new session's volume at
+    20:00 ET; the settlement, 92.57, at 20:59 ET. `BZ=F` had it only by 01:30
+    ET — which answers the item above, for one session. The last settled day
+    carried the day before's volume until the next settlement: a delay, not
+    the copy `docs/research.md` (9 Nov) and the roll item below describe.
+    Four 15-minute bars of 9 Nov were revised by 1–3 c overnight, and a bar
+    closed 12 s earlier changed later. Each seen once; none is a rule yet.
+  - **Not before the load.** Keep `hours: [1, 17]` until the load of Thursday
+    12 Nov, 09:07 NZDT, has finished. The grid makes 192 Yahoo requests a day
+    instead of 16, Yahoo's limits are not measured, and the nowcast reads the
+    same endpoint — a failed request drops the week to plain `adl_ecm`.
+  - **Then, the same morning.** First the load's own probe snapshot (the item
+    above). Then `infra/logic-apps/trigger-probe-yahoo.json` to every hour
+    0–23 at `minutes: [30]`, Monday to Saturday, redeployed by
+    `docs/ci_setup.md` 7b: the owner pastes the probe's token with `read -rs`,
+    Claude cannot. Check `nextExecutionTime` after (7e). Deployed by 10:30 NZDT
+    it sees Wednesday's close from both sides (16:30, 17:30 ET); 13:30 NZDT
+    (19:30 ET) is the last moment that still covers Wednesday's write window,
+    20:00–21:00 ET (14:00–15:00 NZDT).
+  - **Runs through** Wednesday evening and the Thursday and Friday sessions, to
+    01:30 ET Saturday 14 Nov (19:30 NZDT).
+  - **Back to 2–3 slots before the 19 Nov load** (09:07 NZDT Thursday): read
+    the snapshots, pick the hours by the hypotheses left, redeploy (a second
+    token paste). For a moved load the one that matters is whether the
+    settlement is in the bar *by symbol* at the candidate time on every
+    session; `BZ=F`'s timing does not, the nowcast reads Wednesday by symbol
+    (`pipeline/nowcast.py`, docstring).
+  - **The probe's token expires ~8 Feb 2027** — 90 days from 10 Nov, per
+    `cb46862`; `docs/ci_setup.md` 7a's "No expiration" is the weekly load's.
+    That is before the BST item above: reissue it if the probe is still
+    needed then.
+
 - [ ] **The `BZF27` → `BZG27` roll, ~20 Nov – 1 Dec 2026** — second observation
   of "Yahoo's live view follows the most traded contract" (one roll so far:
   volumes crossed on 22 Oct, the view switched on 23 Oct; `docs/research.md`,
