@@ -19,6 +19,10 @@
       "the settlement? Monday to Saturday, so that every weekday session is seen at",
       "both hours; Saturday 17:30 and Monday 01:30 are the weekend, kept for free.",
       "",
+      "From 12 Nov 2026: every hour at :30 ET, a dense grid for three sessions (owner's",
+      "decision, 11 Nov; .claude/rules/active-items.md), to look around broadly before",
+      "narrowing. Back to two or three slots before the 19 Nov load.",
+      "",
       "The token is a fine-grained PAT of its own, Actions: read and write on this",
       "repository alone (docs/ci_setup.md, 7a), separate from trigger-weekly-load's so",
       "that revoking one does not stop the other. It is a securestring: not in the",
@@ -92,8 +96,30 @@
                     "Saturday"
                   ],
                   "hours": [
+                    0,
                     1,
-                    17
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    9,
+                    10,
+                    11,
+                    12,
+                    13,
+                    14,
+                    15,
+                    16,
+                    17,
+                    18,
+                    19,
+                    20,
+                    21,
+                    22,
+                    23
                   ],
                   "minutes": [
                     30
