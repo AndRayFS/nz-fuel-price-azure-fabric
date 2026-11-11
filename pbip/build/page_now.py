@@ -9,6 +9,10 @@ FUELS = [("Regular Petrol", "Regular 91", "#40B54A", 78),
          ("Diesel", "Diesel", "#4D4C48", 46)]
 CARD_X = [24, 440, 856]; CARD_W = 400
 TRACK = "#ECEBE6"
+# The cost pressure bars' tooltip page. The default tooltip listed the margin held to
+# the track's 60 and the norm twice, as the error bar's Lower and Upper; the figures
+# above the bar already say both, so the tooltip names the fuel and nothing else.
+TIP, TIP_SIZE = "p1tipfuel", (130, 34)
 # Type for the headline and the three prices. A was kept on 4 Nov 2026 after B, light
 # for both, was tried side by side; B is still on the hidden Fonts page.
 STYLES = {"A": dict(head=FONT_B, num=FONT_B), "B": dict(head="Segoe UI Light", num="Segoe UI Light")}
@@ -70,6 +74,7 @@ def pressure_chart(measure, bar):
             "labels": [obj({"show": b(False)})],
         },
         "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
+    v["visualContainerObjects"]["visualTooltip"] = [obj({"show": b(True), "type": s("Canvas"), "section": s(TIP)})]
     if bar:
         v["objects"]["error"] = [
             obj({"enabled": b(True), "barShow": b(True), "shadeShow": b(False), "barColor": col(INK),
@@ -177,12 +182,18 @@ def page_test():
          "Compare the headline with the Python mirror, pbip/build/headline_check.py, for the same week.", 9, MUTED, False)]])))
     return V
 
+def page_tip():
+    w, h = TIP_SIZE
+    return [container("tipfuel", 10, 7, w - 20, h - 14, 0, title_text("prices", "Tooltip Fuel", 9.75, INK, bold=True))]
+
 write_page(ROOT, "p1now", "Now", page_now(STYLES["A"]))
 write_page(ROOT, "p9test", "Headline test", page_test(), hidden=True)
+write_page(ROOT, TIP, "Fuel tooltip", page_tip(), hidden=True, size=TIP_SIZE, bg=PAPER,
+           extra={"type": "Tooltip", "pageBinding": {"name": "a5f0c3e2b1d84c6f9e7a", "type": "Tooltip"}})
 pages = json.loads((ROOT / "pages/pages.json").read_text())
-mine = ("p1now", "p1nowa", "p8fonts", "p9test")  # p1nowa and p8fonts: gone
+mine = ("p1now", "p1nowa", "p8fonts", "p9test", TIP)  # p1nowa and p8fonts: gone
 order = [p for p in pages["pageOrder"] if p not in mine]
-pages["pageOrder"] = ["p1now"] + order + ["p9test"]
+pages["pageOrder"] = ["p1now"] + order + ["p9test", TIP]
 pages["activePageName"] = "p1now"
 (ROOT / "pages/pages.json").write_text(json.dumps(pages, indent=2) + "\n")
 print(len(page_now(STYLES["A"])), "visuals on Now")

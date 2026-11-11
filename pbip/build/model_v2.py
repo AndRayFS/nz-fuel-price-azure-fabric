@@ -185,9 +185,11 @@ IF(
 pm.append(measure(P, "Change 4w Arrow", '''
 VAR vD = [Change 4w]
 RETURN IF(NOT ISBLANK(vD), IF(vD >= 0, "▲", "▼"))''', folder="Now"))
-pm.append(measure(P, "Change 4w Colour", 'IF([Change 4w] >= 0, "#D03B3B", "#4D4C48")', folder="Now",
-    desc="Rising price in red: it is the reader's cost. A fall stays neutral, not green - green is Regular 91's colour."))
-pm.append(measure(P, "Change 4w Fill", 'IF([Change 4w] >= 0, "#FBE7E5", "#EFEEEA")', folder="Now"))
+pm.append(measure(P, "Change 4w Colour", 'IF([Change 4w] >= 0, "#D03B3B", "#1F7A3A")', folder="Now",
+    desc="Rising price in red, falling in green, to be read at a glance (owner, 12 Nov 2026; until then a fall was grey). The green is darker than Regular 91's #40B54A, so the two do not read as one."))
+pm.append(measure(P, "Change 4w Fill", 'IF([Change 4w] >= 0, "#FBE7E5", "#E4F2E7")', folder="Now"))
+pm.append(measure(P, "Tooltip Fuel", "SELECTEDVALUE(Fuel[Fuel name])", folder="Now",
+    desc="The cost pressure bars' tooltip, the fuel alone. The default one repeated the figures above the bar, with the margin held to the track's 60 and the norm twice, as the error bar's Lower and Upper (12 Nov 2026)."))
 pm.append(measure(P, "Week To Label", '"Average paid, week to " & FORMAT([Latest Week], "d mmm")', folder="Now"))
 pm.append(measure(P, "Header Weeks", '''
 "Latest MBIE week: " & FORMAT([Latest Week], "d mmm yyyy")

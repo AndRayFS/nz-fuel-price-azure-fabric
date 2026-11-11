@@ -150,15 +150,17 @@ def title_shape(entity, measure, size, colour=INK, bold=True, face=None):
                 "alignment": s("left"), "heading": s("Heading1" if size >= 16 else "Normal")})
     return v
 
-def write_page(root, name, display, visuals, hidden=False):
+def write_page(root, name, display, visuals, hidden=False, size=(1280, 720), bg=BG, extra=None):
+    """extra: further page.json keys, e.g. a tooltip page's type and pageBinding."""
     pdir = pathlib.Path(root) / "pages" / name
     if pdir.exists(): shutil.rmtree(pdir)
     (pdir / "visuals").mkdir(parents=True)
     page = {"$schema": PAGE, "name": name, "displayName": display, "displayOption": "FitToPage",
-            "height": 720, "width": 1280,
-            "objects": {"background": [obj({"color": col(BG), "transparency": d(0)})],
-                        "outspace": [obj({"color": col(BG), "transparency": d(0)})]}}
+            "height": size[1], "width": size[0],
+            "objects": {"background": [obj({"color": col(bg), "transparency": d(0)})],
+                        "outspace": [obj({"color": col(bg), "transparency": d(0)})]}}
     if hidden: page["visibility"] = "HiddenInViewMode"
+    if extra: page.update(extra)
     (pdir / "page.json").write_text(json.dumps(page, indent=2, ensure_ascii=False) + "\n")
     for v in visuals:
         vd = pdir / "visuals" / v["name"]; vd.mkdir()
