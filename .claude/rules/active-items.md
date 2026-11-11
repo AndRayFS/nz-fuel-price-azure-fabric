@@ -82,6 +82,11 @@ delete it here.
     it sees Wednesday's close from both sides (16:30, 17:30 ET); 13:30 NZDT
     (19:30 ET) is the last moment that still covers Wednesday's write window,
     20:00–21:00 ET (14:00–15:00 NZDT).
+  - **Status 12 Nov 2026, 10:12 NZDT: deployed.** The load finished at 09:18
+    (run 43093459017; GitHub showed it `in_progress` until 10:00, a status
+    write, not the chain). Redeployed 21:12:37 UTC, `nextExecutionTime`
+    21:30 UTC (16:30 ET Wednesday). The load's own snapshot, 20:07 UTC, is that
+    run's `yahoo-probe` artifact; its settlement question needs a later one.
   - **Runs through** Wednesday evening and the Thursday and Friday sessions, to
     01:30 ET Saturday 14 Nov (19:30 NZDT).
   - **Back to 2–3 slots before the 19 Nov load** (09:07 NZDT Thursday): read
