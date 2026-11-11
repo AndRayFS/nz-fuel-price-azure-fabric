@@ -66,14 +66,19 @@ table prices
 		displayFolder: Now
 		lineageTag: 0dc901d7-b840-5854-8825-4edbd02b2702
 
-	/// Rising price in red: it is the reader's cost. A fall stays neutral, not green - green is Regular 91's colour.
-	measure 'Change 4w Colour' = IF([Change 4w] >= 0, "#D03B3B", "#4D4C48")
+	/// Rising price in red, falling in green, to be read at a glance (owner, 12 Nov 2026; until then a fall was grey). The green is darker than Regular 91's #40B54A, so the two do not read as one.
+	measure 'Change 4w Colour' = IF([Change 4w] >= 0, "#D03B3B", "#1F7A3A")
 		displayFolder: Now
 		lineageTag: 17c6603f-e3ba-5ab6-addf-f7c641e45f8e
 
-	measure 'Change 4w Fill' = IF([Change 4w] >= 0, "#FBE7E5", "#EFEEEA")
+	measure 'Change 4w Fill' = IF([Change 4w] >= 0, "#FBE7E5", "#E4F2E7")
 		displayFolder: Now
 		lineageTag: 95cc4711-d4f2-5751-8078-23bb2172fdf8
+
+	/// The cost pressure bars' tooltip, the fuel alone. The default one repeated the figures above the bar, with the margin held to the track's 60 and the norm twice, as the error bar's Lower and Upper (12 Nov 2026).
+	measure 'Tooltip Fuel' = SELECTEDVALUE(Fuel[Fuel name])
+		displayFolder: Now
+		lineageTag: 3532e340-a37c-59e3-a515-91f4d1d5fc7e
 
 	measure 'Week To Label' = "Average paid, week to " & FORMAT([Latest Week], "d mmm")
 		displayFolder: Now
