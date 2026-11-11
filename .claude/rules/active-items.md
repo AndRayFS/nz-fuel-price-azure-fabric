@@ -110,6 +110,26 @@ delete it here.
   probe is dispatched by `trigger-probe-yahoo`, twice a day, Monday to
   Saturday.
 
+- [ ] **At the 19 Nov 2026 load: the first Gaspy reading against MBIE.**
+  Gaspy is the one external, same-week view of the pump price: it shows the
+  direction before MBIE does, even where its level differs. On Thursday
+  12 Nov the owner read Gaspy's national average 91 at **$3.368**, once, by
+  hand.
+  - **Compare with `board_price`** for the week stamped 13 Nov (Monday 9 to
+    Sunday 15 Nov; 12 Nov is its middle). Gaspy shows pylon prices;
+    `adjusted_retail_price`, which the model forecasts, sits 3.75 c/L lower for
+    91 in every week since September.
+  - **The call for that week**, archive 2026-11-12: `pred_nowcast` 333.4,
+    i.e. 337.1 in board terms. Against MBIE's board for 6 Nov (351.9), Gaspy
+    reads −15 c/L; the call was −14.7.
+  - **One point gives one week's offset**, not a rule. The Gaspy–MBIE offset
+    has never been measured, and a few cents either way would be unremarkable.
+    A second Gaspy reading on any later day gives a change, which the offset
+    cancels out of — the trend without the level.
+  - **On close:** the offset goes into `docs/research.md`, "Sources checked
+    for a timely series", under Gaspy. If Datamine answers first (the item
+    below), its daily series supersedes this.
+
 - [ ] **Datamine: waiting on Andy Marsden, emailed 11 Nov 2026** — the daily
   retail series for the nowcast (`docs/research.md`, "Sources checked for a
   timely series"): national 91, 95 and diesel, history from 2022. Gaspy's
