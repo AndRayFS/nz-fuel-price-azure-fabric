@@ -48,9 +48,8 @@
     },
     "alertTo": {
       "type": "string",
-      "defaultValue": "morozov_77@hotmail.com",
       "metadata": {
-        "description": "The mailbox that already carries the budget alerts and is read daily."
+        "description": "The mailbox that already carries the budget alerts and is read daily. No default, so the address stays out of this public repository: docs/ci_setup.md 7b reads it off the deployed workflow."
       }
     },
     "waitMinutes": {

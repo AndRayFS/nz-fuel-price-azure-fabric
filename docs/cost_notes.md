@@ -387,8 +387,8 @@ running to 30 Jun 2028, with actual-spend alerts at 50/100/150/200%. This
 replaces the spending limit that the 3 Sep pay-as-you-go upgrade removed; the
 23:00 NZT auto-pause is the other guard.
 
-- **The alerts go only to `morozov_77@hotmail.com`**, the billing Microsoft
-  Account — not to `andrei@…onmicrosoft.com`, which is the account the
+- **The alerts go only to the owner's Outlook.com address**, the billing
+  Microsoft Account — not to `andrei@…onmicrosoft.com`, which is the account the
   project is normally driven from. That is fine: the owner reads that mailbox
   daily (stated 19 Sep 2026), so no second contact is needed, and the same
   mailbox is the destination for the weekly load's own alarm.

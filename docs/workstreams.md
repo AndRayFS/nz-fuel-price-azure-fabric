@@ -1248,7 +1248,7 @@ refresh left manual.
 Branch `w16-move-the-clock`, all three steps. The whole of it is
 `infra/logic-apps/trigger-weekly-load.json`, one Consumption Logic App that
 posts a `workflow_dispatch` at 09:07 Thursday New Zealand time, waits an hour,
-asks GitHub what became of the run, and mails `morozov_77@hotmail.com` if the
+asks GitHub what became of the run, and mails the owner's Outlook.com address if the
 answer is anything but `success`; `docs/ci_setup.md` step 7 is the procedure.
 **Deployed and proven the same day.** A hand-fired recurrence produced run
 35423341610 — `workflow_dispatch`, green in 3.5 minutes, gate `2`, capacity
@@ -1407,7 +1407,7 @@ without adding compute to sign its JWT, which W16 exists to avoid. Mail from a
 Logic App needs a connection authorised as some mailbox. This entry used to add
 that the destination was an open decision, because the budget alerts go to a
 mailbox nobody watches — **that premise was wrong and the decision is made**:
-`morozov_77@hotmail.com` is read daily by the owner (19 Sep 2026), it already
+the owner's Outlook.com address is read daily (19 Sep 2026), it already
 receives the budget alerts, and the load's alarm goes to the same place. Azure
 prices and service limits quoted above are order-of-magnitude from general
 knowledge and were not checked against current pricing.
