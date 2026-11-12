@@ -7,7 +7,8 @@ state in Azure and in Fabric, done once, by someone holding the rights.
 out and are recorded below with what they produced; step 2 was done by the
 Owner account (`andrei@…onmicrosoft.com` is Contributor and cannot grant
 roles — `AuthorizationFailed` on `Microsoft.Authorization/roleDefinitions/write`
-— so it needs `morozov_77@hotmail.com`, as with the billing upgrade on 3 Sep);
+— so it needs the owner's Microsoft Account, as with the billing upgrade on
+3 Sep);
 step 4 turned out not to exist. Step 6 has since been run many times over:
 the chain has gone through unattended on a schedule, most recently 16 Sep 2026.
 Step 7, which moves the trigger off that schedule, was added on 19 Sep 2026 and
@@ -95,7 +96,7 @@ cat > /tmp/capacity-operator.json <<JSON
 }
 JSON
 
-# as morozov_77@hotmail.com: Contributor cannot grant roles
+# as the owner's Microsoft Account: Contributor cannot grant roles
 APP_ID=3f465111-2a96-4c64-84f6-88dea76c6562
 
 az role definition create --role-definition /tmp/capacity-operator.json
@@ -290,14 +291,24 @@ pasted as a block:
 read -rs GH_DISPATCH_TOKEN && export GH_DISPATCH_TOKEN && echo "${#GH_DISPATCH_TOKEN} chars, ${GH_DISPATCH_TOKEN:0:11}"
 ```
 
+`alertTo` has no default since 13 Nov 2026, so that the owner's address is
+not in this public repository. A redeploy takes it from the workflow already
+deployed; a first deploy, with no workflow to read, sets `ALERT_TO` by hand to
+the mailbox of the budget alerts (`docs/cost_notes.md`).
+
+```bash
+ALERT_TO=$(az resource show --ids /subscriptions/$SUB/resourceGroups/nz-fuel-price-rg/providers/Microsoft.Logic/workflows/trigger-weekly-load \
+  --query properties.parameters.alertTo.value -o tsv) && echo "${#ALERT_TO} chars"
+```
+
 ```bash
 az deployment group create \
   --resource-group nz-fuel-price-rg \
   --name trigger-weekly-load \
   --template-file infra/logic-apps/trigger-weekly-load.json \
-  --parameters githubToken="$GH_DISPATCH_TOKEN"
+  --parameters githubToken="$GH_DISPATCH_TOKEN" alertTo="$ALERT_TO"
 
-unset GH_DISPATCH_TOKEN
+unset GH_DISPATCH_TOKEN ALERT_TO
 ```
 
 `githubToken` is a `securestring` in three places at once, which is what keeps
@@ -309,7 +320,7 @@ HTTP actions hides the run inputs that carry it.
 
 The deployment creates the connection but cannot consent on a mailbox's behalf.
 Portal → `nz-fuel-price-rg` → `outlook-mail` → **Edit API connection** →
-Authorize → sign in as `morozov_77@hotmail.com` → Save. The connector's
+Authorize → sign in as the owner's Microsoft Account (the `alertTo` mailbox) → Save. The connector's
 authorize endpoint is `login.microsoftonline.com/consumers/...` (*checked*
 against the managed API definition), so it is the consumer Outlook.com sign-in,
 not the work account.
