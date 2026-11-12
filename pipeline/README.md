@@ -26,7 +26,7 @@ of the weekly chain.
 | `fabric_io.py` | the warehouse connection and the Fabric REST calls both need |
 | `test_gate.py` | replays the gate's decision against the runs that happened |
 | `probe_yahoo.py` | records Yahoo's raw answers for W23's probe — temporary, standard library only, run by `probe-yahoo.yml` and as weekly.yml's first step |
-| `nowcast.py` | W23's nowcast: Brent in NZ c/L from Yahoo, the two- and three-day feature, its regression and the forecast it feeds; not yet called by the chain |
+| `nowcast.py` | W23's nowcast: Brent in NZ c/L from Yahoo, the two- and three-day feature, its regression and the forecast it feeds; called once per run by `backtest.py` since 9 Nov 2026 |
 | `test_nowcast.py` | checks `nowcast.py` against the research it ports, on the 5 Nov 2026 archive, and its window logic on synthetic cases |
 | `vintage.py` | puts the whole system on a past date, and brings it back |
 
