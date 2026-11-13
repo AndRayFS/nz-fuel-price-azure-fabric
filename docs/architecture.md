@@ -848,7 +848,7 @@ like a browser:
 | curl *after* Chrome solved the challenge from the same IP | 212 bytes |
 
 The last two rows are the finding. Both clients egress from the same address
-— `118.148.160.56`, checked on both sides — so this is not IP reputation and
+— one public IP, checked on both sides — so this is not IP reputation and
 not the sandbox: it is a per-client decision, made below the HTTP layer. A CI
 runner would fare no better, which settles the same question for W8. The
 Fabric copy activity is unaffected and still fetches the file.

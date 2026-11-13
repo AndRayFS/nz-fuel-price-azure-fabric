@@ -23,6 +23,11 @@ data/
 # `.devcontainer` points DBT_PROFILES_DIR here; see .devcontainer/README.md.
 .dbt/
 
+# The owner's working notes: open items with dates, names of people contacted,
+# what can be paid for. The repository is public; the notes are not. Claude
+# Code still loads the file from disk; it is in history up to 13 Nov 2026.
+.claude/rules/active-items.md
+
 # go-task writes a local id here; not shared state.
 .user.yml
 .task/

@@ -94,6 +94,7 @@ carry, which in this repository is most of what a script needs:
 | `dbt_packages/` | gitignored | `task deps` once |
 | `data/` | gitignored on purpose — derived data lives in the warehouse | symlink or copy from the main checkout; regenerating `panel_weekly.csv` costs a warehouse read |
 | `.dbt/` | holds the profile, not committed | copy it |
+| `.claude/rules/active-items.md` | gitignored since 13 Nov 2026: personal notes, public repository | symlink from the main checkout, so both sessions read and edit one file |
 
 Remove it with `git worktree remove ../nz-fuel-research` when the branch is
 merged, or it will quietly keep a stale checkout alive.
