@@ -62,7 +62,8 @@ loads by itself when a file under `models/gold/` is opened.
 
 More detail: `.claude/rules/working-style.md` (working conventions, tooling
 split with claude.ai chat) and `.claude/rules/active-items.md`
-(time-sensitive, check-the-date items).
+(time-sensitive, check-the-date items; local only, gitignored since 13 Nov
+2026 — it carries contacts and personal notes, and this repository is public).
 
 ## Reviewing a weekly load
 
