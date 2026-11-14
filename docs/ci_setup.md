@@ -463,3 +463,44 @@ before the load was started by hand.
   `pause` found the capacity already `Paused`, and the mail "Pause capacity
   (watchdog) / missed-load — Failed" arrived. Repeat it after any change to
   the job or to the account's notification settings.
+
+### Running the load by hand: not between 18:00 ET Wednesday and New York midnight — 15 Nov 2026
+
+**A load started by hand — `gh workflow run weekly.yml`, or a re-run of a
+failed one — must not read Yahoo between 18:00 New York time on Wednesday and
+New York midnight.** Before that window, or after it, it is safe; Friday and
+later are safe.
+
+| season | the window, New Zealand time |
+|---|---|
+| NZDT and EST (early November to mid-March) | Thursday 12:00–18:00 NZDT |
+| NZDT and EDT (late September to early November, mid-March to early April) | Thursday 11:00–17:00 NZDT |
+| NZST and EDT (early April to late September) | Thursday 10:00–16:00 NZST |
+
+**Why.** The nowcast takes Wednesday from the front contract's daily bar by
+symbol. At 18:00 ET the exchange opens the next session, and Yahoo writes that
+session into Wednesday's bar: first its trades, then an empty close, which
+`guard` counts as a market holiday. The settlement replaces both later in the
+evening — by 20:59, 20:30 and 21:30 ET on the three weekday sessions the probe
+saw closely, 9, 11 and 12 Nov 2026 — and the window ends at midnight rather
+than there, so that its end is not a guess about when Yahoo gets round to it.
+*Checked* 15 Nov 2026 by replaying `daily()` and `guard()` on the grid's
+snapshots of 11 Nov: 18:30 ET read Wednesday as 92.40 against a settlement of
+92.76, 19:30 ET dropped Wednesday as a holiday, and 00:30 ET read 92.76.
+
+**The scheduled load is never in the window**: 09:07 NZ is 15:07, 16:07 or
+17:07 ET, and the whole load takes minutes (12 Nov 2026: 09:07 to 09:18).
+There is no check for the window in the code, by decision
+(owner, 15 Nov 2026): what a run started by hand needs is decided by the person
+starting it, here.
+
+**The alarms can arrive inside it.** The Logic App's mail comes at ~10:07 NZ,
+already in the window in NZ winter; `missed-load` is scheduled for 23:52 UTC,
+12:52 NZDT or 11:52 NZST, inside it in every season, and GitHub often starts it
+hours late. A failed load found that way is re-run after the window closes.
+
+**The runner's own time zone plays no part.** Every date the weekly chain takes
+is in UTC explicitly — `run_date`, `daily()`, the bars' timestamps — so the
+result is the same on a GitHub runner and on a laptop in New Zealand. The one
+local date in `pipeline/`, `vintage.py`'s check that `--as-of` is not in the
+future, belongs to a tool run by hand.
