@@ -2299,6 +2299,12 @@ other two fuels are within 0.03:
   measured. If the 12 Nov snapshot shows the last trade at 20:07, a few
   manual probe runs in one evening (20:30, 22:30, 01:00, 05:00 UTC) find the
   hour, and the move is decided from that.
+  *Closed 15 Nov 2026 (owner): not moved.* At 15:07 ET on 11 Nov the bar held
+  the last trade, 92.40 against a settlement of 92.76, inside the ceiling
+  above. A later read gains at most that, and from 18:00 ET until the
+  settlement is written Yahoo puts the next session into Wednesday's bar — the
+  window a load started by hand must avoid (`docs/ci_setup.md`, "Running the
+  load by hand").
 - **Not measured:** the expiring contract's own bar in its last ten days.
   Yahoo does not serve expired contracts; the probe sees `BZF27` by symbol
   daily through 30 Nov.

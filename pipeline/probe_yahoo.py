@@ -31,8 +31,10 @@ User-Agent, only `period1` and `interval` differ — so "the runner is answered"
 means the research request is answered. No retries: a retry would hide exactly
 what this measures.
 
-Run by .github/workflows/probe-yahoo.yml, and as a non-blocking first step of
-weekly.yml. Standard library only, so it runs before anything is installed.
+Run as a non-blocking first step of weekly.yml, until the 3 Dec 2026 load, or
+by hand. Its own workflow, probe-yahoo.yml, and the Logic App that dispatched
+it were removed on 15 Nov 2026. Standard library only, so it runs before
+anything is installed.
 
 Exits 1 only if no request came back 200, which is question 1 answered "no".
 The expired contract's 404 is expected and is not a failure.

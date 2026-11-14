@@ -684,9 +684,11 @@ again when its columns change; before, it only created missing ones.
 
 **Still open.** Under BST the FX for Monday and Tuesday may come from a live
 daily bar whose behaviour is not measured — `.claude/rules/active-items.md`,
-before 28 Mar 2027. The probe of W23 step 1 (`probe-yahoo.yml`, and a
-non-blocking first step of `weekly.yml`) runs until the first roll week has
-been seen, the 3 Dec 2026 run, and is then removed.
+before 28 Mar 2027. The probe of W23 step 1 runs as a non-blocking first step
+of `weekly.yml` until the first roll week has been seen, the 3 Dec 2026 run,
+and is then removed. Its own clock — `probe-yahoo.yml` and the Logic App
+`trigger-probe-yahoo` — was removed on 15 Nov 2026, after an hourly grid over
+11–14 Nov; to bring it back, restore both from commit `f6501ba`.
 
 ## The ingest read a week-old file and reported success — 19 Aug 2026
 

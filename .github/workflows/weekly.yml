@@ -60,11 +60,12 @@ jobs:
           python-version: '3.12'
           cache: pip
 
-      # W23, step 1 — temporary; see probe-yahoo.yml. One snapshot of Yahoo a
+      # W23, step 1 — temporary, until the 3 Dec 2026 run, the first roll week
+      # (docs/architecture.md); remove after it. One snapshot of Yahoo a
       # week at the real run's time, so it comes before anything slow. It can
       # neither stop the load nor delay it much: `continue-on-error`, standard
       # library only, and a timeout above its worst case (eight requests at 15
-      # seconds each, a second apart). Remove with probe-yahoo.yml.
+      # seconds each, a second apart).
       - name: Probe Yahoo (non-blocking)
         continue-on-error: true
         timeout-minutes: 3
