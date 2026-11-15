@@ -484,6 +484,26 @@ chart rows (`Period`, `Horizon`, `Track Row`, `Share Row`); `As Of` serves the
 hidden page `p9test`, where a week can be picked and the headline compared
 with `pbip/build/headline_check.py`.
 
+**What Now's title says.** `Headline` is two clauses: the price over four
+weeks, then each margin against its two-year norm. The price clause compared
+only the two ends of the window until 15 Nov 2026, when it called petrol "held
+steady" over a rise of 7.5 c/L to 16 Oct and a fall of 9.4 since. It now looks
+at the five weekly points first: when a fuel group's high (or low) clears both
+ends by `FLAT`, 3 c/L, the clause names the turn and its week — "Over four
+weeks, petrol rose 8 c/L to 16 Oct, then fell 9; diesel fell 5 c/L." — and only
+otherwise compares the ends. Since Feb 2013 that is 80 weeks of 719; a high and
+a low both clearing the ends, a swing, happened once. The rule agrees with a
+3 c/L zigzag filter in 1,436 of 1,438 fuel-weeks.
+
+*How a change to it is checked.* `pbip/build/headline_dax_check.py
+ARCHIVE_DIR` — the mirror over an unpacked archive, against the DAX for every
+`As Of` week: the model's own `Headline`, and the worktree's, declared inside
+the query (`DEFINE MEASURE` in `POST /datasets/{id}/executeQueries`,
+read-only, no capacity). Before a publish the model's text differs from the
+mirror wherever the change bites; after it, both match. On 15 Nov: 719 of 719
+for the worktree before publishing, 639 for the old live measure — the 80 turn
+weeks. Note that `Path` is a DAX function and cannot be a variable name.
+
 **How it states uncertainty.** As a band, not as tiers. On Now each fuel's
 three calls (`pred_adl_ecm`, one to three weeks ahead) sit inside `Call Low`
 and `Call High`: the call plus the 25th and 75th percentiles of past misses
