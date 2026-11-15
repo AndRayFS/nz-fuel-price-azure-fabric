@@ -1,6 +1,9 @@
 """Page 1 headline: a decision table over two clauses, mirrored later in DAX.
 
 Clause A - the price over four weeks, per fuel: rose / fell / held (|d| < FLAT).
+A turn inside the window comes first: when a group's weekly high (or low) clears
+both ends of the window by FLAT or more, the clause names the turn and its week
+instead of comparing the ends (15 Nov 2026: "held steady" over +7.5 then -9.4).
 Clause B - the importer margin against its 104-week norm, per fuel group:
 below / close to / above (|gap| < NEAR). Petrol = mean of 91 and 95.
 "still" when the group was in the same state four weeks earlier.
@@ -27,6 +30,35 @@ def back(w, n):
 def r(x):
     return f"{abs(x):.0f}"
 
+def verb(x):
+    return f"rose {r(x)} c/L" if x >= FLAT else f"fell {r(x)} c/L" if x <= -FLAT else "held steady"
+
+def path(price, w, group):
+    """The group's price in each week from w-4 to w that has all three fuels, oldest first."""
+    out = []
+    for n in range(4, -1, -1):
+        wk = back(w, n); v = price.get(wk)
+        if v and len(v) == 3:
+            out.append((wk, (v['91'] + v['95']) / 2 if group == 'pet' else v['D']))
+    return out
+
+def turn(pts):
+    """A turn inside the window: the path's high (low) clears both ends by FLAT or more.
+    Returns (kind, first leg, second leg, week of the turn) or None. Both at once is
+    a swing, reported as the width of the range."""
+    xs = [v for _, v in pts]; s, e, hi, lo = xs[0], xs[-1], max(xs), min(xs)
+    peak, trough = hi - max(s, e) >= FLAT, min(s, e) - lo >= FLAT
+    if peak and trough:
+        return 'swing', hi - lo, None, None
+    if peak:
+        return 'peak', hi - s, hi - e, pts[xs.index(hi)][0]
+    if trough:
+        return 'trough', s - lo, e - lo, pts[xs.index(lo)][0]
+    return None
+
+def day(wk):
+    d = dt.date.fromisoformat(wk); return f"{d.day} {d:%b}"
+
 def clause_a(price, w):
     now, then = price.get(w), price.get(back(w, 4))
     if not now or not then or len(now) < 3 or len(then) < 3:
@@ -37,6 +69,23 @@ def clause_a(price, w):
     def amount(xs):
         xs = sorted(abs(x) for x in xs)
         return r(sum(xs) / len(xs)) if xs[-1] - xs[0] <= SPREAD else f"{xs[0]:.0f}–{xs[-1]:.0f}"
+    # A turn in either group overrides the endpoint comparison below: "held steady"
+    # over a rise and fall, or "rose" over a rise already falling back, misreads the path.
+    tp, td = turn(path(price, w, 'pet')), turn(path(price, w, 'dsl'))
+    if tp or td:
+        def phrase(t, net):
+            if t is None:
+                return verb(net)
+            kind, a, b, wk = t
+            if kind == 'swing':
+                return f"swung within a {r(a)} c/L range"
+            return (f"rose {r(a)} c/L to {day(wk)}, then fell {r(b)}" if kind == 'peak'
+                    else f"fell {r(a)} c/L to {day(wk)}, then rose {r(b)}")
+        if tp and td and tp[0] == td[0] and tp[0] != 'swing' and tp[3] == td[3]:
+            v1, v2 = ('rose', 'fell') if tp[0] == 'peak' else ('fell', 'rose')
+            return 'turn-same', (f"Over four weeks, pump prices {v1} {amount([tp[1], td[1]])} c/L"
+                                 f" to {day(tp[3])}, then {v2} {amount([tp[2], td[2]])}.")
+        return 'turn-split', f"Over four weeks, petrol {phrase(tp, (d['91'] + d['95']) / 2)}; diesel {phrase(td, d['D'])}."
     if len(up) == 3:
         return 'all-up', f"Pump prices rose {amount(vals)} c/L in four weeks."
     if len(down) == 3:
@@ -44,8 +93,6 @@ def clause_a(price, w):
     if not up and not down:
         return 'all-flat', "Pump prices barely moved in four weeks."
     pet = (d['91'] + d['95']) / 2
-    def verb(x):
-        return f"rose {r(x)} c/L" if x >= FLAT else f"fell {r(x)} c/L" if x <= -FLAT else "held steady"
     pv, dv = verb(pet), verb(d['D'])
     if pv == dv:
         return 'mixed-same', "Pump prices barely moved in four weeks." if pv == "held steady" else f"Pump prices {pv} in four weeks."

@@ -233,8 +233,9 @@ RETURN
 """, folder="Now"))
 pm.append(measure(P, "Headline", r'''
 // Two clauses, each a small decision table over the newest week's numbers.
-// Mirrored in Python and run over every week since Feb 2013 before it was
-// written here (W21). Change a threshold here and rerun that check.
+// Mirrored in Python (pbip/build/headline_check.py) and run over every week
+// since Feb 2013 before it was written here (W21; the turns, 15 Nov 2026).
+// Change a threshold here and rerun that check.
 VAR FLAT = 3      // c/L: a smaller four-week move counts as no move
 VAR NEAR = 5      // c/L: a margin this close to its norm is "close to" it
 VAR SPREAD = 5    // c/L: fuels further apart than this get a range, not one number
@@ -259,10 +260,63 @@ VAR AmtDown = IF(DMax - DMin <= SPREAD, FORMAT(-(D91 + D95 + DD) / 3, "0"), FORM
 VAR DPet = (D91 + D95) / 2
 VAR VerbPet = IF(DPet >= FLAT, "rose " & FORMAT(ABS(DPet), "0") & " c/L", IF(DPet <= -FLAT, "fell " & FORMAT(ABS(DPet), "0") & " c/L", "held steady"))
 VAR VerbDsl = IF(DD >= FLAT, "rose " & FORMAT(ABS(DD), "0") & " c/L", IF(DD <= -FLAT, "fell " & FORMAT(ABS(DD), "0") & " c/L", "held steady"))
+// A turn inside the window comes before the ends (15 Nov 2026: "held steady" over
+// +7.5 then -9.4). A group turns when its weekly high (low) clears both ends by
+// FLAT; both at once is a swing. Only weeks with all three fuels count.
+VAR Pts =
+    FILTER(
+        ADDCOLUMNS(
+            CALCULATETABLE(VALUES(prices[week_date]), REMOVEFILTERS(), prices[week_date] >= W4, prices[week_date] <= W),
+            "@Pet", VAR D0 = prices[week_date] RETURN CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(), prices[week_date] = D0, prices[fuel] IN {"Regular Petrol", "Premium Petrol 95R"}),
+            "@Dsl", VAR D0 = prices[week_date] RETURN CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(), prices[week_date] = D0, prices[fuel] = "Diesel"),
+            "@N", VAR D0 = prices[week_date] RETURN CALCULATE(DISTINCTCOUNT(prices[fuel]), REMOVEFILTERS(), prices[week_date] = D0, NOT ISBLANK(prices[adjusted_retail_price]))
+        ),
+        [@N] = 3
+    )
+VAR PetS = MAXX(FILTER(Pts, prices[week_date] = W4), [@Pet])
+VAR PetE = MAXX(FILTER(Pts, prices[week_date] = W), [@Pet])
+VAR PetHi = MAXX(Pts, [@Pet])
+VAR PetLo = MINX(Pts, [@Pet])
+VAR PetPeak = PetHi - MAX(PetS, PetE) >= FLAT
+VAR PetTrough = MIN(PetS, PetE) - PetLo >= FLAT
+VAR PetTurn = IF(PetPeak && PetTrough, "swing", IF(PetPeak, "peak", IF(PetTrough, "trough", "")))
+VAR PetA = SWITCH(PetTurn, "peak", PetHi - PetS, "trough", PetS - PetLo, PetHi - PetLo)
+VAR PetB = IF(PetTurn = "peak", PetHi - PetE, PetE - PetLo)
+VAR PetWk = IF(PetTurn = "peak", MINX(FILTER(Pts, [@Pet] = PetHi), prices[week_date]), MINX(FILTER(Pts, [@Pet] = PetLo), prices[week_date]))
+VAR DslS = MAXX(FILTER(Pts, prices[week_date] = W4), [@Dsl])
+VAR DslE = MAXX(FILTER(Pts, prices[week_date] = W), [@Dsl])
+VAR DslHi = MAXX(Pts, [@Dsl])
+VAR DslLo = MINX(Pts, [@Dsl])
+VAR DslPeak = DslHi - MAX(DslS, DslE) >= FLAT
+VAR DslTrough = MIN(DslS, DslE) - DslLo >= FLAT
+VAR DslTurn = IF(DslPeak && DslTrough, "swing", IF(DslPeak, "peak", IF(DslTrough, "trough", "")))
+VAR DslA = SWITCH(DslTurn, "peak", DslHi - DslS, "trough", DslS - DslLo, DslHi - DslLo)
+VAR DslB = IF(DslTurn = "peak", DslHi - DslE, DslE - DslLo)
+VAR DslWk = IF(DslTurn = "peak", MINX(FILTER(Pts, [@Dsl] = DslHi), prices[week_date]), MINX(FILTER(Pts, [@Dsl] = DslLo), prices[week_date]))
+VAR PhrasePet =
+    SWITCH(PetTurn,
+        "swing", "swung within a " & FORMAT(PetA, "0") & " c/L range",
+        "peak", "rose " & FORMAT(PetA, "0") & " c/L to " & FORMAT(PetWk, "d mmm") & ", then fell " & FORMAT(PetB, "0"),
+        "trough", "fell " & FORMAT(PetA, "0") & " c/L to " & FORMAT(PetWk, "d mmm") & ", then rose " & FORMAT(PetB, "0"),
+        VerbPet)
+VAR PhraseDsl =
+    SWITCH(DslTurn,
+        "swing", "swung within a " & FORMAT(DslA, "0") & " c/L range",
+        "peak", "rose " & FORMAT(DslA, "0") & " c/L to " & FORMAT(DslWk, "d mmm") & ", then fell " & FORMAT(DslB, "0"),
+        "trough", "fell " & FORMAT(DslA, "0") & " c/L to " & FORMAT(DslWk, "d mmm") & ", then rose " & FORMAT(DslB, "0"),
+        VerbDsl)
+// Both groups turned the same way in the same week: one phrase for both.
+VAR SameTurn = (PetTurn = DslTurn) && (PetTurn IN {"peak", "trough"}) && (PetWk = DslWk)
+VAR AmtA = IF(ABS(PetA - DslA) <= SPREAD, FORMAT((PetA + DslA) / 2, "0"), FORMAT(MIN(PetA, DslA), "0") & "–" & FORMAT(MAX(PetA, DslA), "0"))
+VAR AmtB = IF(ABS(PetB - DslB) <= SPREAD, FORMAT((PetB + DslB) / 2, "0"), FORMAT(MIN(PetB, DslB), "0") & "–" & FORMAT(MAX(PetB, DslB), "0"))
 VAR ClauseA =
     SWITCH(
         TRUE(),
         NOT HavePrices, "",
+        SameTurn,
+            "Over four weeks, pump prices " & IF(PetTurn = "peak", "rose ", "fell ") & AmtA & " c/L to " & FORMAT(PetWk, "d mmm")
+                & ", then " & IF(PetTurn = "peak", "fell ", "rose ") & AmtB & ".",
+        PetTurn <> "" || DslTurn <> "", "Over four weeks, petrol " & PhrasePet & "; diesel " & PhraseDsl & ".",
         NUp = 3, "Pump prices rose " & AmtUp & " c/L in four weeks.",
         NDown = 3, "Pump prices fell " & AmtDown & " c/L in four weeks.",
         NUp + NDown = 0, "Pump prices barely moved in four weeks.",
