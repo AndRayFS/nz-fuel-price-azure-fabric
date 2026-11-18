@@ -109,8 +109,8 @@ TABLES = {
 }
 
 README = """\
-NZ fuel prices: the weekly data behind Report 1
-================================================
+The weekly data behind NZ fuel prices · oil to pump
+===================================================
 
 Published {published} (New Zealand time). MBIE data through the week of
 {through}.
@@ -137,7 +137,7 @@ weekly_prices.csv ({n_weekly_prices} rows)
   change, Final ones normally do not.
 
 forecasts.csv ({n_forecasts} rows)
-  What Report 1 plots. For each week, fuel and horizon (1 to 3 weeks ahead):
+  What the report plots. For each week, fuel and horizon (1 to 3 weeks ahead):
   the pump price at the time (price_now), the price that followed
   (actual_price), the model's call (pred_nowcast), the benchmark that the
   price does not move (pred_naive), their absolute errors, and the trailing

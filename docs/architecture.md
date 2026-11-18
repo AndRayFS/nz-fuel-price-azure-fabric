@@ -475,6 +475,12 @@ The three pages of W11 and W19 gave way to five, in the order a first-time
 reader asks: Now, Track record, Margin, How it's built, Data. Why, and what
 each page answers: `docs/workstreams.md`, W21.
 
+**Its name.** "Report 1" is the name inside this repository only. Readers see
+the header every page carries, "NZ fuel prices · oil to pump" (`hdrbrand` in
+`pbip/build/pbir.py`), and that is the name README and the archive's README use.
+The item's `displayName`, `nz_fuel_v2`, appears nowhere on the public page —
+the tab and the footer read "Microsoft Power BI" (checked 19 Nov 2026).
+
 **What it reads.** Three tables. `forecast_accuracy` — Now's calls, Track
 record, Data's calls. `margin_compression` — Now's cost pressure, Margin,
 Data's margin. `prices` — `silver_fuel` imported as it is, the rows the
