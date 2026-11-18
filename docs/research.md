@@ -1952,6 +1952,13 @@ reasons are recorded so that they are not looked up again.
     mismatch ComCom's carries.
   - **Not known.** Whether MBIE's Datamine series is Gaspy's crowd-sourced
     prices; whether Datamine licenses a daily series, and on what terms.
+  - **No terms of use on the site** (checked 19 Nov 2026: home, `stats.html`,
+    `help.html`, `business_opportunities.html`; the app-store terms not
+    read). Only "Copyright © 2026 Gaspy". `www.gaspy.nz/stats.html` shows
+    today's national averages for 91, 95, 98 and diesel with a "Database
+    last updated" stamp, and sends "Commercial Enquiries" to Datamine, which
+    sells the series. Nothing forbids reading the page; nothing licenses a
+    series collected from it. Without `www` a plain fetch gets 404.
 - **Terminal gate prices** (Fuel Industry Act 2020, s 9).
   - **Weekly, not daily.** Mobil's take effect on Saturdays (24 Oct, 31 Oct),
     six terminals, as an HTML table. Gull's take effect on Fridays (30 Oct,
