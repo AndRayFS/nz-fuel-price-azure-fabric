@@ -2730,6 +2730,47 @@ coefficients on a two- or three-week change.
   series", above). This section says only
   that the information is worth roughly half the one-week error in a crisis.
 
+## Knowing this week's cost exactly buys nothing at one week — the ceiling for any cost reading, 19 Nov 2026
+
+`research/nowcast_in_adl.py --oracle`. Asked because a daily Argus quote is
+the obvious upgrade on Brent: it is the product MBIE prices, not a crude one
+step away. The flag feeds the week in progress's *actual* `d_cost` through
+the same extra term the nowcast uses, scored on the same weeks. It is not
+observable. It is the most that any reading of the week's cost could deliver,
+whether Brent, Argus or anything else.
+
+**MAE change against `adl_ecm`, all weeks since 2013, n ≈ 717,
+`data/panel_weekly.csv` of 9 Nov 2026:**
+
+| fuel | h | Brent, 3 days | ceiling |
+|---|---|---|---|
+| Diesel | 1 | 7.3% | 7.4% |
+| Diesel | 2 | 13.3% | 22.2% |
+| Diesel | 3 | 12.0% | 21.9% |
+| Regular Petrol | 1 | 8.1% | 9.9% |
+| Regular Petrol | 2 | 13.9% | 24.8% |
+| Regular Petrol | 3 | 12.5% | 22.7% |
+
+- **At one week the ceiling is Brent.** MAE goes from 1.616 to 1.614 c/L for
+  diesel and from 1.474 to 1.444 for petrol. The term reaches h=1 only
+  through `b0`. What is left of the one-week error is the pump's reaction,
+  not the cost.
+- **At two and three weeks the ceiling roughly doubles the gain:** about 9 to
+  11 points over Brent. In crisis weeks at h=2 it is 28.8% against 14.6% for
+  petrol and 24.0% against 13.0% for diesel.
+- **A daily Argus would sit below it.** The ceiling is the whole week, and
+  three days of Brent deliver 85–90% of a whole week (8 Sep, above).
+- **AIP's weekly Argus reaches none of it.** It is published the Sunday after
+  the week ends, and by the run MBIE has published the same week.
+- **One cell is below Brent.** Non-crisis diesel at h=1 shows 5.0% against
+  5.8%, a difference of 0.01 c/L: noise, or a `b0` slightly too high. Not
+  pursued.
+- **The Brent column reproduces 8 Sep.** Non-crisis diesel at h=2 is 13.4% in
+  both runs, so the flag changes nothing else.
+- **Read with the section above.** At one week the prize is in seeing the
+  pump price, roughly half the error in 2026. On the cost side, nothing is
+  left at one week.
+
 ## Checks that have repeatedly changed the answer
 
 Six questions, each of which has overturned at least one finding in this

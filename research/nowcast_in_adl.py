@@ -29,7 +29,7 @@ WHAT WOULD MAKE THIS SHIP. Beating `adl_ecm` on MAE at h=1 and h=2 in
 non-crisis weeks, without losing in crisis weeks. `report1_ish` is the
 cautionary case: it looked sound until it was scored this way.
 
-Usage:  python research/nowcast_in_adl.py [--days 3]
+Usage:  python research/nowcast_in_adl.py [--days 3] [--oracle]
 Offline apart from the Yahoo fetch. No warehouse, no capacity.
 """
 
@@ -98,6 +98,13 @@ def main() -> int:
                          "expanding fit is still carrying 2014 in 2026.")
     ap.add_argument("--save", action="store_true",
                     help="write the per-week results to data/ for the chart")
+    ap.add_argument("--oracle", action="store_true",
+                    help="also score the forecast given the week in "
+                         "progress's ACTUAL d_cost, through the same extra "
+                         "term. Not observable: it is the ceiling for any "
+                         "reading of the week's cost — Brent, a daily Argus "
+                         "quote, anything — scored on the same weeks as the "
+                         "nowcast. Added 19 Nov 2026.")
     args = ap.parse_args()
 
     rows = []
@@ -141,11 +148,15 @@ def main() -> int:
                     g = np.linalg.lstsq(A, ys[ok], rcond=None)[0]
                     nc = g[0] + g[1] * x[src]
 
+            orc = y[t + 1] if (args.oracle and t + 1 < n) else np.nan
+
             for h in bt.HORIZONS:
                 actual = (retail[t + h] - retail[t]) if t + h < n else np.nan
                 e = bt.adl_forecast(d, t, b_ecm, h, True)
                 e_nc = (forecast_with_nowcast(d, t, b_ecm, h, True, nc)
                         if np.isfinite(nc) else np.nan)
+                e_or = (forecast_with_nowcast(d, t, b_ecm, h, True, orc)
+                        if np.isfinite(orc) else np.nan)
                 rows.append(dict(
                     fuel=fuel, date=d.index[t], h=h, actual=actual, hi=hi[t],
                     # The level the forecast is about, and the week it lands
@@ -159,6 +170,7 @@ def main() -> int:
                     naive=0.0,
                     adl_ecm=e * 1.15 if np.isfinite(e) else np.nan,
                     adl_ecm_nc=e_nc * 1.15 if np.isfinite(e_nc) else np.nan,
+                    adl_ecm_oracle=e_or * 1.15 if np.isfinite(e_or) else np.nan,
                 ))
 
     res = pd.DataFrame(rows)
@@ -168,6 +180,8 @@ def main() -> int:
         print(f"{len(res)} rows -> {out}", file=sys.stderr)
     ev = res[res.outcome_known]
     methods = ["naive", "adl_ecm", "adl_ecm_nc"]
+    if args.oracle:
+        methods.append("adl_ecm_oracle")
 
     tag = "PLACEBO: last week's reading" if args.placebo else \
         f"{args.days} trading day(s) of the week in progress"
@@ -182,8 +196,9 @@ def main() -> int:
             if s_all.empty:
                 continue
             print(f"{fuel} — {label}")
-            print(f"  {'h':>2} {'n':>5} " + "".join(f"{m:>13}" for m in methods)
-                  + f"{'nc vs ecm':>12}")
+            print(f"  {'h':>2} {'n':>5} " + "".join(f"{m:>15}" for m in methods)
+                  + f"{'nc vs ecm':>12}"
+                  + (f"{'orc vs ecm':>12}" if args.oracle else ""))
             for h in bt.HORIZONS:
                 s = s_all[s_all.h == h]
                 if s.empty:
@@ -191,8 +206,10 @@ def main() -> int:
                 maes = [np.abs(s[m] - s.actual).mean() for m in methods]
                 delta = (1 - maes[2] / maes[1]) * 100
                 print(f"  {h:>2} {len(s):>5} "
-                      + "".join(f"{v:>13.3f}" for v in maes)
-                      + f"{delta:>11.1f}%")
+                      + "".join(f"{v:>15.3f}" for v in maes)
+                      + f"{delta:>11.1f}%"
+                      + (f"{(1 - maes[3] / maes[1]) * 100:>11.1f}%"
+                         if args.oracle else ""))
             print()
 
     # The onset breakdown: the model's worst weeks are the ones where a
