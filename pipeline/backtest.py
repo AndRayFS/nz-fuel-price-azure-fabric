@@ -19,12 +19,16 @@ METHODS
                to beat before its machinery earns its keep.
   adl          fits d_net on d_cost lags 0..K on all data up to the cutoff.
   adl_ecm      the same, plus the margin's distance from its trailing
-               104-week mean.
+               104-week mean: last week's for petrol, last week's and the
+               week before's for diesel (ECM_LAGS, W25).
   nowcast      adl_ecm with the week in progress supplied by Brent over its
                Monday to Wednesday (W23, pipeline/nowcast.py). Past weeks on
                three days from settled history; the latest week as the guard
                decides — three days, two, or none, when it is adl_ecm and the
                reason is written beside it. Report 1 reads this one.
+  nowcast_1lag the nowcast on one margin lag for every fuel: what Report 1
+               plotted for diesel before W25, kept beside it as the shadow.
+               Equal to `nowcast` for petrol.
 
 THE h-STEP STRUCTURE IS THE WHOLE POINT. To predict week t+j we may only
 use cost changes already observed at t, i.e. lag k >= j. So the h-week
@@ -98,6 +102,13 @@ K = 6
 ECM_WINDOW = 104
 HORIZONS = (1, 2, 3)
 
+# Margin lags in the ECM term, by fuel; every fuel not named takes one.
+# Diesel takes two from W25, 23 Nov 2026: the owner's decision on
+# research/review_two_lag_ecm.py, which passed on diesel and failed on petrol
+# (docs/research.md). Reverting is this line; `nowcast_1lag` shows meanwhile
+# what one lag would have called.
+ECM_LAGS = {"Diesel": 2}
+
 # The training filter, stated as the list of variables the fit reads. MBIE
 # publishes status per value, not per week, so "is this week final" is not
 # a question the data answers — this is: are the six series the ADL
@@ -154,9 +165,12 @@ def load(fuel: str) -> pd.DataFrame:
     d["is_final"] = np.logical_and.reduce(
         [d[c].eq("Final").to_numpy() for c in TRAIN_STATUS_COLS]
     )
-    d["dev"] = (d.importer_margin
-                - d.importer_margin.rolling(ECM_WINDOW, min_periods=ECM_WINDOW).mean()
-                ).shift(1)
+    # `dev_now[w]` is week w's own margin against the trailing mean that
+    # includes it; `dev[w]`, the regressor the fit pairs with d_net[w], is the
+    # week before's. Both on the full history, before the trim.
+    d["dev_now"] = (d.importer_margin
+                    - d.importer_margin.rolling(ECM_WINDOW, min_periods=ECM_WINDOW).mean())
+    d["dev"] = d.dev_now.shift(1)
     return d[d.index >= START]
 
 
@@ -164,11 +178,18 @@ def ols(y: np.ndarray, X: np.ndarray) -> np.ndarray:
     return np.linalg.lstsq(X, y, rcond=None)[0]
 
 
-def fit_adl(d: pd.DataFrame, upto: int, with_ecm: bool) -> np.ndarray | None:
-    """Coefficients from rows strictly before `upto`. Returns [const, b0..bK(, g)]."""
+def fit_adl(d: pd.DataFrame, upto: int, with_ecm: bool,
+            ecm_lags: int = 1) -> np.ndarray | None:
+    """Coefficients from rows strictly before `upto`.
+
+    Returns [const, b0..bK], then g with one ECM lag, or g1, g2 with two:
+    the margins of weeks s-1 and s-2 against d_net[s].
+    """
     cols = [d.d_cost.shift(i).to_numpy() for i in range(K + 1)]
     if with_ecm:
         cols.append(d.dev.to_numpy())
+        if ecm_lags == 2:
+            cols.append(d.dev.shift(1).to_numpy())
     X = np.column_stack([np.ones(len(d))] + cols)[:upto]
     y = d.d_net.to_numpy()[:upto]
     # Fit on FINAL rows only — this is the filter that belongs here, rather
@@ -180,8 +201,31 @@ def fit_adl(d: pd.DataFrame, upto: int, with_ecm: bool) -> np.ndarray | None:
     return ols(y[ok], X[ok])
 
 
+def ecm_step(d: pd.DataFrame, t: int, j: int, beta: np.ndarray,
+             ecm_lags: int = 1) -> float:
+    """The ECM term in step j of a call made at t; nan if a margin is missing.
+
+    One lag: `dev[t]`, the margin of week t-1, on every step. The fit pairs
+    d_net[s] with the margin of s-1, so for step 1 that is a week older than
+    the newest margin known at the run. It stays: on one lag the newest margin
+    does better at h=2-3 and worse at h=1, and its pre-registered test did not
+    pass (research/review_fresh_margin.py, 23 Nov 2026). Do not "fix" it.
+
+    Two lags (W25): step j needs the margins of weeks t+j-1 and t+j-2; any
+    not yet published is held at week t's, the newest known.
+    """
+    if ecm_lags == 1:
+        dev = d.dev.to_numpy()[t]
+        return beta[-1] * dev if np.isfinite(dev) else np.nan
+    x = d.dev_now.to_numpy()
+    x1, x2 = x[min(t + j - 1, t)], x[min(t + j - 2, t)]
+    if not (np.isfinite(x1) and np.isfinite(x2)):
+        return np.nan
+    return beta[-2] * x1 + beta[-1] * x2
+
+
 def adl_forecast(d: pd.DataFrame, t: int, beta: np.ndarray, h: int,
-                 with_ecm: bool) -> float:
+                 with_ecm: bool, ecm_lags: int = 1) -> float:
     """Cumulative d_net over t+1..t+h using only cost changes known at t."""
     dc = d.d_cost.to_numpy()
     total = 0.0
@@ -193,10 +237,10 @@ def adl_forecast(d: pd.DataFrame, t: int, beta: np.ndarray, h: int,
                 return np.nan
             step += beta[1 + k] * dc[idx]
         if with_ecm:
-            dev = d.dev.to_numpy()[t]        # known at t
-            if not np.isfinite(dev):
+            e = ecm_step(d, t, j, beta, ecm_lags)
+            if not np.isfinite(e):
                 return np.nan
-            step += beta[-1] * dev
+            step += e
         total += step
     return total
 
@@ -251,9 +295,12 @@ def main() -> None:
             stamps = d.index.append(pd.DatetimeIndex([d.index[-1] + pd.Timedelta(days=7)]))
             X = nc.features(cpl, stamps)
             x = {k: X[f"x{k}"].to_numpy() for k in nc.DAYS}
+        lags = ECM_LAGS.get(fuel, 1)
         for t in range(MIN_TRAIN, n):
             b_adl = fit_adl(d, t + 1, with_ecm=False)
-            b_ecm = fit_adl(d, t + 1, with_ecm=True)
+            b_ecm = fit_adl(d, t + 1, with_ecm=True, ecm_lags=lags)
+            # the shadow's fit: one lag, as every fuel had before W25
+            b_ecm1 = b_ecm if lags == 1 else fit_adl(d, t + 1, with_ecm=True)
             if b_adl is None:
                 continue
 
@@ -278,10 +325,17 @@ def main() -> None:
                 actual = (retail[t + h] - retail[t]) if t + h < n else np.nan
                 fp = (cost[t] - cost[t - h]) * 1.15 if t - h >= 0 else np.nan
                 a = adl_forecast(d, t, b_adl, h, False)
-                e = (adl_forecast(d, t, b_ecm, h, True)
+                e = (adl_forecast(d, t, b_ecm, h, True, lags)
                      if b_ecm is not None else np.nan)
-                w = (nc.forecast_with_nowcast(d, t, b_ecm, h, True, ncv)
+                w = (nc.forecast_with_nowcast(d, t, b_ecm, h, True, ncv, lags)
                      if b_ecm is not None and np.isfinite(ncv) else e)
+                if lags == 1:
+                    w1 = w
+                else:
+                    e1 = (adl_forecast(d, t, b_ecm1, h, True)
+                          if b_ecm1 is not None else np.nan)
+                    w1 = (nc.forecast_with_nowcast(d, t, b_ecm1, h, True, ncv)
+                          if b_ecm1 is not None and np.isfinite(ncv) else e1)
                 rows.append(dict(
                     fuel=fuel, date=d.index[t], h=h, actual=actual, hi=hi[t],
                     input_status="final" if is_final[t] else "provisional",
@@ -291,6 +345,7 @@ def main() -> None:
                     adl_ecm=e * 1.15 if np.isfinite(e) else np.nan,
                     nowcast=w * 1.15 if np.isfinite(w) else np.nan,
                     nowcast_variant=variant, nowcast_reason=why,
+                    nowcast_1lag=w1 * 1.15 if np.isfinite(w1) else np.nan,
                 ))
 
     res = pd.DataFrame(rows)
@@ -334,7 +389,7 @@ def main() -> None:
     if summary := os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(summary, "a") as fh:
             fh.write(f"### {head}\n" + "".join(f"- {r}\n" for r in decision.reasons))
-    methods = ["naive", "full_pass", "adl", "adl_ecm", "nowcast"]
+    methods = ["naive", "full_pass", "adl", "adl_ecm", "nowcast", "nowcast_1lag"]
 
     # Accuracy tables only over weeks whose outcome is known. The most
     # recent rows are calls without an outcome yet - the live part of the
