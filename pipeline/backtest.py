@@ -48,8 +48,11 @@ never enter a forecast. It is used only to split the results afterwards.
 
 WHAT THIS CANNOT FIX: MBIE revises published weeks, and the panel is the
 current vintage, so "data available at t" already contains later
-corrections. Every method gets that advantage equally, so the ranking
-should hold; the absolute errors are flattered.
+corrections. They do not flatter every method equally. Naive sees only
+retail; the model also sees cost, which revises more. The largest revision
+measured, MBIE's 23 Sep 2026 cost adjustment, lifts the model's skill at
+h=1 by 0.06 on the 29 weeks it touches and leaves naive alone
+(docs/research.md, 23 Nov 2026).
 
 PRE-REGISTERED THRESHOLD, fixed before running: the ADL must beat naive on
 MAE at h=2 in non-crisis weeks. If it does not, the model is descriptive

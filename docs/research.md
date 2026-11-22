@@ -1576,6 +1576,11 @@ that is evidence of absence at that magnitude, and silence below it.
 
 ## Walk-forward test — the first number in this project that is a forecast
 
+> **23 Nov 2026 — one caveat below is measured false.** "Revisions flatter
+> every method equally" does not hold for the largest revision: MBIE's 23 Sep
+> cost adjustment flatters the model and leaves "no change" untouched. See
+> "What an outside review of Report 1 asked, measured".
+
 `pipeline/backtest.py`, 15 Aug 2026. Every method refit at every cutoff on
 data up to that week only, 2010+, 703 forecast weeks per fuel. Target is
 the **pump price**, so the model carries its own conversion
@@ -2792,6 +2797,147 @@ whether Brent, Argus or anything else.
 - **Read with the section above.** At one week the prize is in seeing the
   pump price, roughly half the error in 2026. On the cost side, nothing is
   left at one week.
+
+## What an outside review of Report 1 asked, measured — 23 Nov 2026
+
+**Diesel's error correction moves to two margin lags from the 26 Nov 2026
+load (W25); petrol stays on one.** The rest of what an outside review asked
+either held as published or was answered before.
+
+An outside review of Report 1, made on 19 Nov 2026 from the public link alone,
+raised about twenty hypotheses. Most were answered already:
+- **Brent is not the regressor.** The model fits on MBIE's importer cost,
+  and Brent only estimates the week in progress.
+- **The proposed pass-through baseline is `full_pass`.** It loses to "no
+  change" at h=1 and h=3.
+- **The margin norm is robust.** Moving it to a median, deflating it by
+  2–3% a year, or adding a trend shifts the gap by under 5 c/L.
+
+Five could be measured offline. All use `research/wf_harness.py`, the
+production walk-forward with the panel and the model made pluggable. It
+reproduces `data/backtest_results.csv` to 1e-14. Calls since Feb 2013, the
+nowcast path, MAE on the pump price, `data/panel_weekly.csv` of 9 Nov 2026.
+
+### The largest revision flatters the model, not "no change"
+
+`research/review_m5_unadjusted_cost.py` takes MBIE's 23 Sep fuel market
+adjustment out again, for 27 Feb – 11 Sep 2026: cost minus `adjustment_cpl`,
+margin plus it. Only the 29 weeks of calls made in that stretch differ, the
+weeks the live chain saw unadjusted.
+
+| h | skill, today | skill, as the chain saw it | flattery |
+|---|---|---|---|
+| 1 | +0.535 | +0.473 | +0.062 |
+| 2 | +0.478 | +0.453 | +0.025 |
+| 3 | +0.361 | +0.354 | +0.007 |
+
+- **"No change" cannot see a cost revision.** Retail was not touched.
+- **Most at diesel h=1.** On the whole record that is +2.9% MAE (1.616 →
+  1.663); petrol +0.8%.
+- **The model still beats "no change" either way.**
+- **This removes one revision, not every one.** It is not a real-time
+  backtest; for 18 Mar – 1 Jul the live chain had no cost at all.
+
+### Announced tax changes: −4% for petrol, all of it from two events
+
+`research/review_m4_tax_calendar.py`. The backtest predicts `d_taxes = 0`,
+calling the alternative hindsight. It is hindsight only without the date each
+change was announced. Ten changes of 0.5 c/L or more since 2013 were taken
+from MBIE's `taxes`; their announcement dates, from primary sources, are in
+the script.
+
+| | h=1 | h=2 | h=3 |
+|---|---|---|---|
+| Regular 91, nowcast → with calendar | 1.474 → 1.413 | 2.747 → 2.636 | 4.156 → 4.001 |
+| Premium 95 | −3.9% | −4.0% | −3.7% |
+| Diesel | 0.0% | 0.0% | −0.1% |
+
+- **All of the gain is the two 25c events**, the 2022 cut and the 2023
+  restoration. On the 3–3.5c steps the calendar is neutral: the pump does not
+  move by the whole amount in the week it takes effect.
+- **No false alarms.** Each of the four extensions of the 2022–23 cut was
+  announced more than three weeks plus a run before the lapse it cancelled.
+- **"No change" with the calendar improves too** (2.279 → 2.220). The edge
+  between the two barely moves.
+
+Not adopted; no decision taken.
+
+### The ECM term: no asymmetry, and a week-old margin that is right by accident
+
+- **Asymmetric correction** (`research/review_m2_asym_ecm.py`, pre-registered):
+  separate speeds above and below the norm. In-sample `g_hi − g_lo` has
+  intervals spanning zero for every fuel. Walk-forward it is worse in 23 of 27
+  cells. The fifth asymmetry test here, and the first on the ECM term rather
+  than on cost.
+- **The one-lag term uses a week-old margin.** `adl_forecast` takes `dev[t]`,
+  the margin of week t−1, where week t's is known at the run. It began as an
+  index slip on 15 Aug 2026.
+- **The newest margin did not pass** (`research/review_fresh_margin.py`,
+  threshold approved by the owner before the run):
+
+  | criterion | result |
+  |---|---|
+  | C1: gain at h=2 and h=3 | passed |
+  | C2: no era worse than +1% | failed — petrol h=2 in 2017–20, +2.5% |
+  | C3: no proven loss at h=1 | passed |
+
+  `ecm_step` now says why the week-old margin stays.
+- **Why the old margin works.** In-sample, with the margins of s−1 and s−2
+  side by side, s−1 enters positive and s−2 negative (petrol +0.12 / −0.26,
+  diesel +0.20 / −0.39). Since x[s−1] − x[s−2] = Δnet(s−1) − Δcost(s−1),
+  that is an ECM on s−2 plus a one-week own-price lag. Adjacent weeks are
+  collinear: the sum is reliable, the split less so.
+
+### Two margin lags: adopted for diesel, not for petrol
+
+`research/review_two_lag_ecm.py`, threshold approved by the owner before the
+run. The fit takes both margins; an unknown future margin is held at the
+newest. MAE against production:
+
+| | h=1 | h=2 | h=3 |
+|---|---|---|---|
+| Diesel | **−6.4%** | −5.6% | **−7.3%** |
+| Regular 91 | −1.0% | −0.5% | −2.7% |
+| Premium 95 | −0.3% | +0.6% | −1.8% |
+
+Bold: the interval is entirely below zero.
+
+**The pre-registered rule failed.** It needed both fuels to pass, and petrol
+did not: its intervals span zero, and h=2 is +2.3% in two eras.
+
+**Diesel passed every measure:**
+- no era worse than +0.9%;
+- the gain is largest in 2021–26 (−8% to −11%) and in weeks of large margin
+  moves;
+- its plain `adl_ecm` fallback improves too (1.636 against 1.744 at h=1).
+
+**Adopted for diesel by the owner, 23 Nov 2026, overriding that rule on the
+record.** The reasons:
+- **It survives multiple testing.** Six candidates were tried (three
+  specifications, two fuels). Diesel's h=1 and h=3 intervals stay below zero
+  at Bonferroni 99.17%: [−0.280, −0.005] and [−0.837, −0.026].
+- **It agrees with "The pump price's own lags add nothing" (5 Nov).** That
+  test saw the same one-week own lag help diesel at h=1. Its recursive
+  forecast compounded the error at h=2–3; holding the margin does not.
+- **A forward test would take years.** Scaled from these intervals, about
+  690 weeks at h=1 and 470 at h=3 — 9 to 13 years — and only if the true
+  effect is as large as the estimate.
+
+Caveats that travel with it:
+- **The idea came from the same data.** The full-sample D2 diagnostic
+  suggested the specification, as K=6 was chosen on the full sample.
+- **The −6.4% is probably flattered by the selection.**
+- **There is no gain in years of calm crude.** In 2017–20 diesel's pump moved
+  as much as in 2013–16 (mean weekly |Δ| 1.83 against 1.76 c/L), but
+  high-volatility crude weeks were 9% against 26%, and its moves came from
+  the margin.
+- **It is a different pass-through profile, not an ECM tweak.** Diesel's b1
+  goes 0.19 → 0.48 with b2–b6 negative, sum unchanged. Calls are sharper in
+  weeks of large cost moves: from 30 Oct, h=2 was −15.1 c/L against −8.3
+  (actual −13.1, one week).
+
+The one-lag diesel call stays beside it as `pred_nowcast_1lag`
+(`docs/architecture.md`, W25).
 
 ## Checks that have repeatedly changed the answer
 

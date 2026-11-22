@@ -74,4 +74,5 @@ numbers too: what the load already wrote, never a local recompute or a
 script — the published zip for most of it, the warehouse only for what
 arrived (since 22 Oct 2026). It also records which predictors belong in such a review:
 only the two Report 1 actually plots, `pred_nowcast` (since 9 Nov 2026, W23;
-`pred_adl_ecm` before) and `pred_naive`.
+`pred_adl_ecm` before) and `pred_naive`. For diesel, since 26 Nov 2026 (W25),
+one line also names `pred_nowcast_1lag`, the one-lag call it replaced.

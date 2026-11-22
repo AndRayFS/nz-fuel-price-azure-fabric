@@ -2168,15 +2168,32 @@ unchanged. Its calls are sharper in weeks of large cost moves.
    `forecast_accuracy` and the semantic model are left as they are.
    `forecasts.csv` in the archive takes the shadow by a join in
    `publish_data.py`, so the dated archives keep the live record of both
-   calls. This keeps Power BI out of it: what an import refresh does with a
-   source column the model does not declare has not been checked.
+   calls. This keeps Power BI out of it: a column the semantic model does
+   not declare fails the refresh (`architecture.md`, W23, "A change of
+   shape").
+
+   **Done on the branch, 23 Nov 2026.** The gate:
+   - `main()`'s warehouse frame has exactly the DDL's 20 columns;
+   - petrol's shadow equals `pred_nowcast`;
+   - the archive query, run in SQLite against that frame and the 19 Nov
+     archive's `forecasts.csv`, keeps all 6,480 rows, repeats none, and adds
+     the two columns.
+
+   The query itself first runs against Fabric at the 26 Nov load. It is the
+   last step, after the refresh, so a failure there costs that week's archive
+   and phone page, not Report 1.
 3. Docs:
    - `architecture.md`: the specification per fuel, the shadow column;
    - `research.md`: M5, M4, M2, the fresh-margin and two-lag tests;
    - this entry and the conflict map;
    - the archive README.
-4. Live: the first weekly load after merge. The load review of that week
-   names both diesel calls.
+
+   Also changed: `backtest.py`'s revision caveat, measured false; the
+   load-review skill and `CLAUDE.md`, which now name the shadow for diesel.
+
+   **Done on the branch, 23 Nov 2026.**
+4. Live: the 26 Nov 2026 load, the first after merge. The load review of
+   that week names both diesel calls.
 
 **Risks.**
 - **Diesel's Track record moves when it lands.** The whole history is
