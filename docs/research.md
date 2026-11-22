@@ -1943,6 +1943,9 @@ reasons are recorded so that they are not looked up again.
 - **fuelclock.nz** (Taxpayers' Union). Its "matches MBIE exactly" is about
   fuel stocks in days, not prices. Crude and FX are the same Yahoo `BZ=F` and
   `NZDUSD=X`; retail prices are Gaspy's crowd-sourced ones. Nothing new.
+- **fuelwatch.nz.** An independent project the size of this one, Auckland,
+  AdSense-funded. Its national averages are taken from `gaspy.nz/stats.html`;
+  no licence, API or history download. Gaspy again, not a source.
 - **Gaspy itself.** Asked on 5 Nov 2026 for daily national 91, 95 and diesel,
   same day or a day late, with history from 2022. Answered on 6 Nov that its
   data "is currently managed by Datamine", with a named contact there.
@@ -1951,7 +1954,26 @@ reasons are recorded so that they are not looked up again.
     it would likely be the one MBIE averages by week, without the source
     mismatch ComCom's carries.
   - **Not known.** Whether MBIE's Datamine series is Gaspy's crowd-sourced
-    prices; whether Datamine licenses a daily series, and on what terms.
+    prices.
+  - **Datamine sells the series, commercially** (`datamine.com/data/fuel-price-nz`):
+    daily, 1,500+ stations, history from Nov 2015, API or flat files, priced
+    on request, offered "for both commercial use and research" but aimed at
+    companies "with meaningful operational or analytical requirements".
+  - **Asked for free research access; declined on 20 Nov 2026.** The ask:
+    daily national 91, 95 and diesel from 2022, in exchange for credit, raw
+    data not republished. The answer, from Datamine's commercial operations:
+    no feed for information published freely, because clients pay for the
+    same product. There was no budget for a licence, so the source is closed,
+    not pending.
+  - **Reaching anyone took two weeks.** The contact Gaspy named and the two
+    colleagues an auto-reply pointed to next had all left; the Partner the
+    chain ended at did not answer in eight days. The general form at
+    `datamine.com/contact-us` was answered the next morning. The fuel-price
+    page's own form refuses gmail.com addresses.
+  - **In the weekly routine: one reading, no daily collection** (owner,
+    23 Nov 2026). `stats.html` is read at the load review, when there is
+    one. This is about the routine only; reading Gaspy for research or any
+    other purpose is outside it.
   - **No terms of use on the site** (checked 19 Nov 2026: home, `stats.html`,
     `help.html`, `business_opportunities.html`; the app-store terms not
     read). Only "Copyright © 2026 Gaspy". `www.gaspy.nz/stats.html` shows
@@ -2725,9 +2747,9 @@ coefficients on a two- or three-week change.
 - **The verdict on the rule stands.** The combination's −48% is a post-hoc
   diagnostic.
 - **Only one timely source exists.** It is Gaspy, crowd-sourced, with no
-  licence; its data is managed by Datamine, MBIE's own retail source, and
-  the licence question now goes there ("Sources checked for a timely
-  series", above). This section says only
+  licence; its data is managed by Datamine, MBIE's own retail source, which
+  sells it commercially and declined free access on 20 Nov 2026 ("Sources
+  checked for a timely series", above). This section says only
   that the information is worth roughly half the one-week error in a crisis.
 
 ## Knowing this week's cost exactly buys nothing at one week — the ceiling for any cost reading, 19 Nov 2026
