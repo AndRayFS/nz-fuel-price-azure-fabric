@@ -92,7 +92,9 @@ create table {SCHEMA}.{TABLE} (
     pred_nowcast  float            null,
     err_nowcast   float            null,
     nowcast_variant varchar(10)    null,
-    nowcast_reason  varchar(4000)  null
+    nowcast_reason  varchar(4000)  null,
+    pred_nowcast_1lag float        null,
+    err_nowcast_1lag  float        null
 )
 """
 
@@ -358,15 +360,19 @@ def main() -> None:
     seed["price_now"] = seed.apply(
         lambda r: PRICE_AT[(r.fuel, r.week_date)], axis=1)
     seed["actual_price"] = seed.price_now + seed.actual
-    for m in ("naive", "adl", "adl_ecm", "full_pass", "nowcast"):
+    for m in ("naive", "adl", "adl_ecm", "full_pass", "nowcast", "nowcast_1lag"):
         seed[f"pred_{m}"] = seed.price_now + seed[m]
         seed[f"err_{m}"] = seed[f"pred_{m}"] - seed.actual_price
     seed["target_week"] = seed.week_date + pd.to_timedelta(seed.h * 7, unit="D")
+    # The shadow (W25) goes to the warehouse and, through publish_data.py, to
+    # the dated archive — not to forecast_accuracy, so Report 1's semantic
+    # model never sees a column it does not declare.
     keep = (["week_date", "target_week", "fuel", "h", "input_status",
              "outcome_known", "price_now", "actual_price"]
             + [f"pred_{m}" for m in ("naive", "adl", "adl_ecm")]
             + [f"err_{m}" for m in ("naive", "adl", "adl_ecm")]
-            + ["pred_nowcast", "err_nowcast", "nowcast_variant", "nowcast_reason"])
+            + ["pred_nowcast", "err_nowcast", "nowcast_variant", "nowcast_reason",
+               "pred_nowcast_1lag", "err_nowcast_1lag"])
     history = seed[keep].copy()
     # Round the numeric columns only. `.round` on the whole frame warned about
     # the date columns and did nothing to them, which was noise standing in

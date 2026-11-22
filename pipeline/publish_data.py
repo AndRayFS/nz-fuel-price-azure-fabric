@@ -103,8 +103,17 @@ order by f.Fuel, cast(f.Date as date)
 
 TABLES = {
     "weekly_prices.csv": WEEKLY_PRICES,
-    "forecasts.csv": "select * from dbo.forecast_accuracy "
-                     "order by fuel, horizon_weeks, week_date",
+    # The one-lag shadow (W25) is in forecast_history only, so that Report 1's
+    # semantic model never meets a column it does not declare. Joined here so
+    # that the dated archives keep both diesel calls. Both sides are one row
+    # per (week, fuel, horizon): the join neither drops nor repeats a row.
+    "forecasts.csv": "select a.*, fh.pred_nowcast_1lag, "
+                     "abs(fh.err_nowcast_1lag) as abs_err_nowcast_1lag "
+                     "from dbo.forecast_accuracy a "
+                     "left join dbo.forecast_history fh "
+                     "on fh.week_date = a.week_date and fh.fuel = a.fuel "
+                     "and fh.h = a.horizon_weeks "
+                     "order by a.fuel, a.horizon_weeks, a.week_date",
     "margin.csv": "select * from dbo.margin_compression order by fuel, week_date",
 }
 
@@ -152,6 +161,11 @@ forecasts.csv ({n_forecasts} rows)
   that the report plotted pred_adl_ecm, which is still here, with
   mae_model_26w and skill_26w. pred_adl is the same model without error
   correction; the report does not plot it.
+  From 26 Nov 2026 diesel's error correction reads the margins of the two
+  weeks before, petrol's of the one week before. pred_nowcast_1lag is the call
+  on one margin lag for every fuel - for diesel, the call as it was made
+  before that date - kept beside it for comparison; for petrol it equals
+  pred_nowcast. abs_err_nowcast_1lag is its absolute error.
   This is a walk-forward backtest: every row is refitted on data available at
   that week only - but on today's revised data. It is a retrospective
   simulation, not a record of what was published at the time. The crude_*
