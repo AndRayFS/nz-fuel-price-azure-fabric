@@ -1764,8 +1764,10 @@ reader asks:
 3. **Margin** — the gap to the norm in c/L, three panels on one scale, the
    part MBIE's fuel market adjustment accounts for (27 Feb – 11 Sep 2026) in a
    lighter tone. Beside it a litre's price split into cost, margin, ETS, taxes
-   and GST: the latest week filled, the average since 29 Mar 2024 outlined,
-   both on one c/L scale.
+   and GST: the latest week filled, the average outlined, both on one c/L
+   scale. The average is of the 104 weeks before the latest, the norm's
+   window, since 23 Nov 2026; before, it ran from 29 Mar 2024 through the
+   latest, its margin up to 0.8 c/L off the norm beside it.
 4. **How it's built** — the chain in four lanes: Azure, GitHub Actions,
    Fabric, Power BI. Static here; W20 gives it each step's last run and the
    monthly bill.
