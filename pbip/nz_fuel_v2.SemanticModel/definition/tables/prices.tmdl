@@ -322,7 +322,7 @@ table prices
 
 	measure 'Cost Average (c/L)' =
 			VAR vW = [Latest Week]
-			RETURN CALCULATE(AVERAGE(prices[importer_cost]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+			RETURN CALCULATE(AVERAGE(prices[importer_cost]), REMOVEFILTERS(Week), prices[week_date] >= vW - 728, prices[week_date] < vW)
 		formatString: 0.0
 		displayFolder: Margin
 		isHidden
@@ -338,7 +338,7 @@ table prices
 
 	measure 'Taxes Average (c/L)' =
 			VAR vW = [Latest Week]
-			RETURN CALCULATE(AVERAGE(prices[taxes]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+			RETURN CALCULATE(AVERAGE(prices[taxes]), REMOVEFILTERS(Week), prices[week_date] >= vW - 728, prices[week_date] < vW)
 		formatString: 0.0
 		displayFolder: Margin
 		isHidden
@@ -354,7 +354,7 @@ table prices
 
 	measure 'ETS Average (c/L)' =
 			VAR vW = [Latest Week]
-			RETURN CALCULATE(AVERAGE(prices[ets]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+			RETURN CALCULATE(AVERAGE(prices[ets]), REMOVEFILTERS(Week), prices[week_date] >= vW - 728, prices[week_date] < vW)
 		formatString: 0.0
 		displayFolder: Margin
 		isHidden
@@ -370,7 +370,7 @@ table prices
 
 	measure 'GST Average (c/L)' =
 			VAR vW = [Latest Week]
-			RETURN CALCULATE(AVERAGE(prices[gst]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+			RETURN CALCULATE(AVERAGE(prices[gst]), REMOVEFILTERS(Week), prices[week_date] >= vW - 728, prices[week_date] < vW)
 		formatString: 0.0
 		displayFolder: Margin
 		isHidden
@@ -386,7 +386,7 @@ table prices
 
 	measure 'Margin Average (c/L)' =
 			VAR vW = [Latest Week]
-			RETURN CALCULATE(AVERAGE(prices[importer_margin]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+			RETURN CALCULATE(AVERAGE(prices[importer_margin]), REMOVEFILTERS(Week), prices[week_date] >= vW - 728, prices[week_date] < vW)
 		formatString: 0.0
 		displayFolder: Margin
 		isHidden
@@ -402,7 +402,7 @@ table prices
 
 	measure 'Price Average (c/L)' =
 			VAR vW = [Latest Week]
-			RETURN CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)
+			RETURN CALCULATE(AVERAGE(prices[adjusted_retail_price]), REMOVEFILTERS(Week), prices[week_date] >= vW - 728, prices[week_date] < vW)
 		formatString: 0.0
 		displayFolder: Margin
 		isHidden
@@ -487,7 +487,7 @@ table prices
 		displayFolder: Margin
 		lineageTag: e4baa197-24ea-50ec-8f70-edcaeaef7bbc
 
-	measure 'Share Subtitle' = "Week of " & FORMAT([Latest Week], "d mmm") & ", dark, against the average since 29 Mar 2024, pale · one c/L scale · labels are shares of the price"
+	measure 'Share Subtitle' = "Week of " & FORMAT([Latest Week], "d mmm") & ", dark, against the two-year average before it, pale · one c/L scale · labels are shares of the price"
 		displayFolder: Margin
 		lineageTag: 682f9567-6060-5520-a2db-2f6127214131
 

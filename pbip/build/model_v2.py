@@ -138,7 +138,7 @@ DATATABLE(
     }
 )''')
 
-# Rows of Margin's right-hand chart: the newest week and the average since 29 Mar 2024.
+# Rows of Margin's right-hand chart: the newest week and the average of the 104 before it.
 share_row = calc_table("Share Row", [
     column("Share Row", "Kind", "string", calc=True, sort_by="Kind order"),
     column("Share Row", "Kind order", "int64", fmt="0", calc=True, hidden=True),
@@ -586,9 +586,13 @@ for n in (1, 2, 3):
     fm.append(measure(F, f"Row Fill {n}", f'''
 IF([Selected Horizon] = {n}, "#F4F8FD", "#FFFFFF")''', folder=TR, hidden=True))
 
-# Margin: where each litre goes, the newest week against the average since the
-# margin window opened on 29 Mar 2024. The five parts add up to the pump price
-# exactly (checked on the archive of 29 Oct 2026), so shares are honest.
+# Margin: where each litre goes, the newest week against the 104 weeks before
+# it - the window of the margin norm on the left (margin_compression), so one
+# page has one two-year average. Until 23 Nov 2026 the average ran from
+# 29 Mar 2024, the left chart's first week, through the newest, its margin up
+# to 0.8 c/L off the norm beside it (an outside review, R3). The five parts
+# add up to the pump price exactly (checked on the archive of 29 Oct 2026),
+# so shares are honest.
 MG = "Margin"
 PARTS = [("Cost", "importer_cost"), ("Taxes", "taxes"), ("ETS", "ets"), ("GST", "gst"), ("Margin", "importer_margin")]
 for name, col_ in PARTS + [("Price", "adjusted_retail_price")]:
@@ -597,7 +601,7 @@ VAR vW = [Latest Week]
 RETURN CALCULATE(AVERAGE(prices[{col_}]), REMOVEFILTERS(Week), prices[week_date] = vW)''', fmt="0.0", folder=MG, hidden=True))
     pm.append(measure(P, f"{name} Average (c/L)", f'''
 VAR vW = [Latest Week]
-RETURN CALCULATE(AVERAGE(prices[{col_}]), REMOVEFILTERS(Week), prices[week_date] >= DATE(2024, 3, 29), prices[week_date] <= vW)''',
+RETURN CALCULATE(AVERAGE(prices[{col_}]), REMOVEFILTERS(Week), prices[week_date] >= vW - 728, prices[week_date] < vW)''',
         fmt="0.0", folder=MG, hidden=True))
 QQ = '""""'    # DAX for a string holding one double quote: a format string's literal text
 for name, _ in PARTS:
@@ -620,7 +624,7 @@ FORMAT([Price Now (c/L)], "0.0") & " c/L"''', folder=MG))
 pm.append(measure(P, "Share Price Average", '''
 FORMAT([Price Average (c/L)], "0.0") & " c/L"''', folder=MG))
 pm.append(measure(P, "Share Subtitle", '''
-"Week of " & FORMAT([Latest Week], "d mmm") & ", dark, against the average since 29 Mar 2024, pale · one c/L scale · labels are shares of the price"''',
+"Week of " & FORMAT([Latest Week], "d mmm") & ", dark, against the two-year average before it, pale · one c/L scale · labels are shares of the price"''',
     folder=MG))
 pm.append(measure(P, "Share Title", '''
 // A claim, as the mock-up's title is, but only the part all three fuels agree on:
