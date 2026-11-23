@@ -31,7 +31,8 @@ VIEWS = [
         ("m", F, "Data Actual", "Actual", 90, True, None),
         ("m", F, "Data Model Miss", "Model missed by", 136, True, "Data Model Miss Colour"),
         ("m", F, "Data No Change Miss", "“No change” missed by", 160, True, "Data No Change Miss Colour")], [
-        ("Call made", "the week the model made its call, using only the data of that week."),
+        ("Call made", "the MBIE week the call was made from: that week's data, plus Brent crude for Monday "
+                      "to Wednesday of the week after."),
         ("Model's call", "the price it indicated for the week the call was for."),
         ("“No change”", "the benchmark: the price stays where it was, so its call is the price then."),
         ("Missed by", "how far a call sat from the price that followed, in cents per litre.")]),
@@ -48,7 +49,9 @@ VIEWS = [
         ("Gap", "the margin less its two-year average."),
         ("Before MBIE's adjustment", "from 27 Feb 2026 MBIE adds to the cost what the Commerce Commission found importers "
                                      "paid above the benchmarks; these columns leave it out. Split published to 11 Sep."),
-        ("Filled in later", "weeks MBIE suspended and published afterwards.")]),
+        ("Filled in later", "weeks MBIE suspended and published afterwards."),
+        ("Provisional", "MBIE's first figures for a week, still open to revision; Final once MBIE closes "
+                        "the quarter, about two months after it ends.")]),
     ("prices", "Weekly prices since 2004", 257, 176, "bmPrices", (P, "Data Prices Caption"), [
         ("c", P, "week_date", "Week", 120, False, None),
         ("m", P, "Data Pump Price", "Pump price", 114, True, None),

@@ -225,7 +225,7 @@ VAR W = [Latest Week]
 VAR Sign = [Regular On Sign]
 RETURN
 "Average paid: MBIE's national average for the week, a few cents below the pump sign"
-    & IF(NOT ISBLANK(Sign), " (Regular 91 showed " & FORMAT(Sign, "0.0") & " on the sign)", "")
+    & IF(NOT ISBLANK(Sign), " (MBIE's sign price for Regular 91 that week: " & FORMAT(Sign, "0.0") & ")", "")
     & ". MBIE publishes about a week later"
     & IF(TODAY() > W + 7, ", so " & FORMAT(W + 7, "d mmm") & " has passed but is not yet out", "")
     & ". Calls come from a walk-forward backtest model and are not published forecasts"
@@ -666,7 +666,9 @@ RETURN IF(NOT ISBLANK(M) && NOT ISBLANK(N), M - N)''', fmt="+0.0;-0.0;0.0", fold
 # 0-60 c/L track with the norm as a tick, and 60 came from the mock-up: on 13 Nov
 # 68.1 and 76.8 c/L filled it, and 95's +29.6 drew shorter than diesel's +14.4 (an
 # outside review, R1). The scale is the largest of the six values and is applied
-# here, on a fixed 0..100 axis: an axis end cannot be a measure.
+# here, on a fixed 0..100 axis. (An axis end can be a measure - Margin's charts use
+# one - and the comment that said otherwise on 23 Nov 2026 was wrong; a share is
+# simply one scale for six bars in six charts.)
 mm.append(measure(M, "Margin Scale", '''
 MAXX(ALL(Fuel), MAX([Margin Now], [Margin Norm Now]))''', fmt="0.0", folder="Now", hidden=True,
     desc="The end of the cost pressure bars' scale, c/L: the largest margin of the three fuels, this week or on average."))

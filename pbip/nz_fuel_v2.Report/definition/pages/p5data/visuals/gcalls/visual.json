@@ -27,7 +27,7 @@
                     }
                   },
                   {
-                    "value": " — the week the model made its call, using only the data of that week.",
+                    "value": " — the MBIE week the call was made from: that week's data, plus Brent crude for Monday to Wednesday of the week after.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "9pt",

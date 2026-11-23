@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "fl0t",
   "position": {
-    "x": 1014,
+    "x": 1010,
     "y": 662,
     "z": 410,
     "height": 18,
-    "width": 78,
+    "width": 82,
     "tabOrder": 410
   },
   "visual": {
