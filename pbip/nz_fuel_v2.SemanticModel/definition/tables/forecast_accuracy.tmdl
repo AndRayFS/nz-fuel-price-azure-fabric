@@ -669,6 +669,33 @@ table forecast_accuracy
 
 		annotation SummarizationSetBy = Automatic
 
+	column pred_nowcast_1lag
+		dataType: double
+		isHidden
+		lineageTag: 77856ec9-aa85-56ce-9899-6327ae5a3c78
+		summarizeBy: sum
+		sourceColumn: pred_nowcast_1lag
+
+		annotation SummarizationSetBy = Automatic
+
+	column abs_err_nowcast_1lag
+		dataType: double
+		isHidden
+		lineageTag: bef27875-bbbc-527e-acf4-7caa8a22834a
+		summarizeBy: sum
+		sourceColumn: abs_err_nowcast_1lag
+
+		annotation SummarizationSetBy = Automatic
+
+	column mae_nowcast_1lag_26w
+		dataType: double
+		isHidden
+		lineageTag: fb66e0e5-b0b3-5e95-aad9-aead53ed353d
+		summarizeBy: sum
+		sourceColumn: mae_nowcast_1lag_26w
+
+		annotation SummarizationSetBy = Automatic
+
 	partition forecast_accuracy = m
 		mode: import
 		source =

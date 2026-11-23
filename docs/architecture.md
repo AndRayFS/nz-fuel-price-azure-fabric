@@ -728,13 +728,24 @@ guard's fallback stays on the same specification. Why, and the evidence:
 **The shadow.** `pred_nowcast_1lag` is the one-lag call for every fuel —
 diesel's call as it was before W25, equal to `pred_nowcast` for petrol.
 
-- **Where it lives.** It is written to `dbo.forecast_history` and joined
-  into the archive's `forecasts.csv` by `publish_data.py`.
-- **Where it does not.** It is not in `forecast_accuracy`: a column the
-  semantic model does not declare fails the refresh (above, "A change of
-  shape"). Report 1 does not change shape.
-- **What it is for.** Every dated archive carries both diesel calls as
-  made, for comparison.
+- **Where it lives.** `backtest.py` writes `pred_nowcast_1lag` and
+  `err_nowcast_1lag` to `dbo.forecast_history`. `forecast_accuracy` carries
+  it beside the nowcast as `pred_nowcast_1lag`, `abs_err_nowcast_1lag` and
+  `mae_nowcast_1lag_26w`, and the archive's `forecasts.csv` with it.
+- **In the model, hidden.** The semantic model declares the three columns
+  with `isHidden`, from `pbip/build/model_v2.py`. No page plots them, but a
+  column the model does not declare fails the refresh (above, "A change of
+  shape").
+- **What it is for.** The load review compares the two diesel calls by the
+  week and over 26 weeks, from the archive, without a recompute.
+- **How it went in, 23 Nov 2026.** `task build` rebuilds every model before
+  `task backtest` writes `forecast_history`, so the first load after a new
+  column in `forecast_accuracy`'s source fails unless the column is already
+  in the warehouse. The two columns were added to `forecast_history` by
+  hand (`alter table … add`, null until the 26 Nov load), then `task report`,
+  `to_live.py` and `task refresh`, in one capacity window, before the merge.
+  `warehouse_write.replace` compares columns as a set and inserts by name,
+  so the load writes into that table as it stands.
 
 **Reverting** is one line: remove Diesel from `ECM_LAGS`. Nothing else
 depends on it.

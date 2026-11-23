@@ -842,6 +842,11 @@ append_columns(ROOT / "tables/forecast_accuracy.tmdl", [
     column(F, name, "double", summarize="sum") for name in
     ("pred_nowcast", "abs_err_nowcast", "mae_nowcast_26w", "skill_nowcast_26w")] + [
     column(F, name, "string") for name in ("nowcast_variant", "nowcast_reason")])
+# W25, 26 Nov 2026: the one-lag shadow of diesel's two-lag call. Hidden: no page
+# plots it, and the model must still declare every column the table has.
+append_columns(ROOT / "tables/forecast_accuracy.tmdl", [
+    column(F, name, "double", summarize="sum", hidden=True) for name in
+    ("pred_nowcast_1lag", "abs_err_nowcast_1lag", "mae_nowcast_1lag_26w")])
 append_measures(ROOT / "tables/margin_compression.tmdl", mm)
 # Data's tables show these dates in full; "Friday, 23 October 2026" took a third of a column.
 for t_ in ("forecast_accuracy", "margin_compression"):

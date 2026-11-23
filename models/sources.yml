@@ -60,9 +60,9 @@ sources:
             description: >
               The shadow (W25): the nowcast on one margin lag for every fuel,
               i.e. diesel's call as it was before W25; equal to pred_nowcast
-              for petrol. Not in forecast_accuracy; publish_data.py joins it
-              into the archive's forecasts.csv. Not tested, for the same
-              reason as nowcast_variant.
+              for petrol. forecast_accuracy carries it, with its error and
+              26-week MAE; the semantic model declares them hidden. Not
+              tested, for the same reason as nowcast_variant.
           - name: nowcast_variant
             description: >
               How this run computed the row: '3 days' for every past week, from
