@@ -15,14 +15,17 @@ different loads, and nothing here reads the warehouse a second time.
 Every figure follows Report 1's Now page, where the definitions live
 (pbip/build/model_v2.py): the 4-week change on adjusted_retail_price; the
 calls are pred_nowcast made in the newest week (W23: adl_ecm with the week in
-progress's crude; nowcast_variant says for how many days, or none); their band is the middle half
-of past misses (actual minus call) at that horizon, in weeks of the newest
-week's crude-volatility regime, the three fuels pooled, outcomes known by the
-newest week; the margin against its 104-week norm on a 0-60 c/L track, orange
-whenever it is below. One block is the page's own: the misses, which set the
-mean 1-week-ahead miss of the last four weeks against the fuel's mean over
-the whole backtest (from 2013) - LARGER times it or more reads "Larger than
-usual", SMALLER times it or less "Smaller than usual".
+progress's crude; nowcast_variant says for how many days, or none); their band
+is the middle half of past misses (actual minus call) at that horizon, in
+weeks of the newest week's crude-volatility regime, the three fuels pooled,
+outcomes known by the newest week; the importer margin as two bars, this week
+in orange over its 104-week norm in pale, on one scale for the three fuels -
+the largest of the six values - so the switch does not move it (Now, since 23
+Nov 2026; before, a 0-60 c/L track that a margin above 60 filled). One block
+is the page's own: the misses, which set the mean 1-week-ahead miss of the
+last four weeks against the fuel's mean over the whole backtest (from 2013) -
+LARGER times it or more reads "Larger than usual", SMALLER times it or less
+"Smaller than usual".
 
 The page is pipeline/phone/template.html with the data dropped in as JSON.
 Its QR code, pipeline/phone/qr.svg, encodes the address above; it was made
@@ -141,8 +144,11 @@ def compute(csvs: dict[str, bytes]) -> dict:
             m4=_r(m4, 2), usual=_r(usual, 2), verdict=verdict,
         ))
 
+    # One scale for the three fuels' margin bars, as on Now: the largest of the six.
+    levels = [v for fu in fuels for v in (fu["margin"], fu["norm"]) if v is not None]
     return dict(
         latest=latest.date().isoformat(),
+        margin_scale=max(levels) if levels else None,
         weeks=[w.date().isoformat() for w in weeks],
         targets=[pd.Timestamp(t).date().isoformat() for t in targets],
         recent=RECENT,

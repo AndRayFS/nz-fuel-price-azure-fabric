@@ -1855,6 +1855,9 @@ website, `https://nzfueldata.z8.web.core.windows.net/`, rebuilt by every load:
    three calls in whole cents, in blue — they are approximate.
 4. Cost pressure: the importer margin on a 0–60 c/L track against its
    two-year average, orange below it — Now's bar, one fuel at a time.
+   Since 23 Nov 2026, as on Now: "Importer margin", two bars, this week in
+   orange over the two-year average in pale, on one scale for the three
+   fuels, so the switch does not move it.
 5. The model's recent misses: the 1-week-ahead miss of each of the 13 weeks,
    the last four dark, against the fuel's usual miss, with one word for how
    the last four compare — the reader's question being whether to lean on

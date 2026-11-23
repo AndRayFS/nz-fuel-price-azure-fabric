@@ -64,9 +64,9 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--rule);font-si
 <div class="change" id="change"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path id="arrow"></path></svg><div><span class="big" id="chg"></span><span class="unit"> c/L</span></div><span class="pct" id="pct"></span></div>
 <svg class="chart" id="price" viewBox="0 0 358 250" role="img" style="margin-top:8px"></svg>
 <div class="numbers" id="numbers"></div>
-<section id="cost" aria-label="Cost pressure">
-<div class="head"><h2>Cost pressure</h2><span id="gap"></span></div>
-<svg class="chart" id="track" viewBox="0 0 358 20" role="img"></svg>
+<section id="cost" aria-label="Importer margin">
+<div class="head"><h2>Importer margin</h2><span id="gap"></span></div>
+<svg class="chart" id="track" viewBox="0 0 358 21" role="img"></svg>
 <div class="note" id="margin"></div>
 </section>
 <section aria-label="Model's recent misses">
@@ -177,19 +177,22 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--rule);font-si
     a.setAttribute("fill", f.chg > 0 ? "#D03B3B" : "#1F7A3A");
   }
 
-  // The margin on a 0-60 c/L track, the tick its two-year average; orange below it.
+  // Two bars, as on Now: this week's margin in orange over its two-year average in pale,
+  // on one scale for the three fuels (D.margin_scale, the largest of the six values), so
+  // the switch does not move it. Until 23 Nov 2026: a 0-60 c/L track with the average as
+  // a tick, which a margin above 60 filled.
   function cost(f, name) {
-    var ok = num(f.margin) && num(f.norm) && num(f.gap);
+    var ok = num(f.margin) && num(f.norm) && num(f.gap) && num(D.margin_scale) && D.margin_scale > 0;
     $("cost").hidden = !ok;
     if (!ok) return;
-    var t = function (v) { return (Math.max(0, Math.min(60, v)) / 60 * 358).toFixed(1); };
+    var w = function (v) { return (Math.max(0, v) / D.margin_scale * 358).toFixed(1); };
     $("gap").textContent = sgn(f.gap) + " c/L";
-    $("track").innerHTML = '<rect x="0" y="6" width="358" height="8" rx="4" fill="#ECEBE6"/>' +
-      '<rect x="0" y="6" width="' + t(f.margin) + '" height="8" rx="4" fill="' + (f.gap < 0 ? "#EB6834" : "#8A8983") + '"/>' +
-      '<line x1="' + t(f.norm) + '" y1="1" x2="' + t(f.norm) + '" y2="19" stroke="' + INK + '" stroke-width="2"/>';
-    $("track").setAttribute("aria-label", name + ": importer margin " + f1(f.margin) + " c/L against a two-year average of " +
+    $("track").innerHTML = '<rect x="0" y="0" width="' + w(f.margin) + '" height="8" rx="4" fill="#EB6834"/>' +
+      '<rect x="0" y="13" width="' + w(f.norm) + '" height="8" rx="4" fill="#F8D2C2"/>';
+    $("track").setAttribute("aria-label", name + ": importer margin " + f1(f.margin) + " c/L this week against a two-year average of " +
       f1(f.norm) + ", " + f1(Math.abs(f.gap)) + " c/L " + (f.gap < 0 ? "below" : "above") + " it.");
-    $("margin").textContent = "Importer margin " + f1(f.margin) + " c/L · 2-year average " + f1(f.norm);
+    $("margin").textContent = "This week " + f1(f.margin) + " c/L, orange · 2-year average " + f1(f.norm) +
+      ", pale. Below its average, costs have run ahead of the pump.";
   }
 
   // One bar per paid week, the last four dark, against the fuel's usual miss.
