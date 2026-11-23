@@ -248,12 +248,13 @@ def nowcast_at(x: np.ndarray, y: np.ndarray, is_final: np.ndarray, t: int) -> fl
 
 
 def forecast_with_nowcast(d: pd.DataFrame, t: int, beta: np.ndarray, h: int,
-                          with_ecm: bool, nc: float) -> float:
+                          with_ecm: bool, nc: float, ecm_lags: int = 1) -> float:
     """`backtest.adl_forecast`, with index t+1 supplied by the nowcast.
 
     The one change is the lag range, k >= j - 1 rather than k >= j: k = j - 1
     lands on t+1, the week in progress, which is what the nowcast supplies. It
-    reaches every horizon — `b0` at h=1, `b1` at h=2, `b2` at h=3.
+    reaches every horizon — `b0` at h=1, `b1` at h=2, `b2` at h=3. The ECM
+    term is `backtest.ecm_step`'s, on one margin lag or two (W25).
     """
     dc = d.d_cost.to_numpy()
     total = 0.0
@@ -266,10 +267,10 @@ def forecast_with_nowcast(d: pd.DataFrame, t: int, beta: np.ndarray, h: int,
                 return np.nan
             step += beta[1 + k] * val
         if with_ecm:
-            dev = d.dev.to_numpy()[t]
-            if not np.isfinite(dev):
+            e = bt.ecm_step(d, t, j, beta, ecm_lags)
+            if not np.isfinite(e):
                 return np.nan
-            step += beta[-1] * dev
+            step += e
         total += step
     return total
 

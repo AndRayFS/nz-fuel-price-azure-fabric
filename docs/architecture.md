@@ -716,6 +716,34 @@ and is then removed. Its own clock — `probe-yahoo.yml` and the Logic App
 `trigger-probe-yahoo` — was removed on 15 Nov 2026, after an hourly grid over
 11–14 Nov; to bring it back, restore both from commit `f6501ba`.
 
+## Diesel's ECM on two margin lags — W25, from the 26 Nov 2026 load
+
+**What changed.** `ECM_LAGS` in `pipeline/backtest.py` gives diesel's error
+correction the margins of the two weeks before (`g1·x[s−1] + g2·x[s−2]`).
+Petrol keeps one. Unknown future margins are held at the newest, as the
+one-lag term already is. Both `adl_ecm` and the nowcast take it, so the
+guard's fallback stays on the same specification. Why, and the evidence:
+`docs/research.md`, "What an outside review of Report 1 asked, measured".
+
+**The shadow.** `pred_nowcast_1lag` is the one-lag call for every fuel —
+diesel's call as it was before W25, equal to `pred_nowcast` for petrol.
+
+- **Where it lives.** It is written to `dbo.forecast_history` and joined
+  into the archive's `forecasts.csv` by `publish_data.py`.
+- **Where it does not.** It is not in `forecast_accuracy`: a column the
+  semantic model does not declare fails the refresh (above, "A change of
+  shape"). Report 1 does not change shape.
+- **What it is for.** Every dated archive carries both diesel calls as
+  made, for comparison.
+
+**Reverting** is one line: remove Diesel from `ECM_LAGS`. Nothing else
+depends on it.
+
+**The one-lag term's week-old margin is deliberate.** It takes `dev[t]`, the
+margin of week t−1, where the newest known is week t's. That began as an
+index slip on 15 Aug 2026. The newest margin then failed its pre-registered
+test on 23 Nov, and `ecm_step` says so. Do not "fix" it.
+
 ## The ingest read a week-old file and reported success — 19 Aug 2026
 
 MBIE published week `2026w33` (14 Aug) at 01:01 UTC on 19 Aug. Two

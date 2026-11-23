@@ -54,6 +54,15 @@ sources:
               The nowcast's call (W23): adl_ecm with the week in progress
               supplied by Brent over its Monday to Wednesday. What Report 1
               reads. Equal to pred_adl_ecm where nowcast_variant is 'none'.
+              Diesel's error correction reads two margin lags from W25
+              (26 Nov 2026), petrol's one.
+          - name: pred_nowcast_1lag
+            description: >
+              The shadow (W25): the nowcast on one margin lag for every fuel,
+              i.e. diesel's call as it was before W25; equal to pred_nowcast
+              for petrol. Not in forecast_accuracy; publish_data.py joins it
+              into the archive's forecasts.csv. Not tested, for the same
+              reason as nowcast_variant.
           - name: nowcast_variant
             description: >
               How this run computed the row: '3 days' for every past week, from

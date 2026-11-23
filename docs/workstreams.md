@@ -2110,6 +2110,106 @@ places are given by phrase.
   archive file. About 620 of 2,600 lines; 16 references by section title
   elsewhere would need checking.
 
+## W25 — Diesel's ECM on two margin lags, the one-lag call kept beside it — **started 23 Nov 2026**
+
+**Why.** The 19 Nov 2026 dashboard review led to three ECM tests, measured
+23 Nov in `research/review_two_lag_ecm.py` and its neighbours.
+
+- The pre-registered two-lag test failed on petrol.
+- On diesel it passed by every measure: MAE against production −6.4% / −5.6% /
+  −7.3% at h=1/2/3, no era worse than +0.9%.
+- The intervals at h=1 and h=3 stay below zero after a Bonferroni correction
+  for the six candidates tried.
+
+The owner adopted it for diesel the same day, overriding the both-fuels rule
+on the record. Why, and the caveats: `docs/research.md`, "What an outside
+review of Report 1 asked, measured", 23 Nov 2026, added by this branch.
+
+**What it is.** The ECM term becomes `g1·x[s−1] + g2·x[s−2]`, `x[w]` being
+week w's margin against its trailing 104-week mean. In the forecast an
+unknown future deviation is held at the newest one, as the one-lag term
+already is.
+
+It is not a tweak to the ECM alone. The two margins reshape the cost
+weights: diesel's b1 goes 0.19 → 0.48 with b2–b6 negative, and the sum is
+unchanged. Its calls are sharper in weeks of large cost moves.
+
+**Delivers.**
+
+1. `ecm_lags` on `bt.fit_adl`, `bt.adl_forecast` and
+   `nowcast.forecast_with_nowcast`, default 1, so every existing caller —
+   `pipeline/test_nowcast.py` among them — is unchanged by construction.
+   `main()` sets 2 for Diesel, for `adl_ecm` and the nowcast alike, so the
+   guard's fallback stays on the same specification.
+
+   Gate, offline:
+   - petrol columns bit-identical to the current `data/backtest_results.csv`;
+   - diesel's nowcast equal to `review_two_lag_ecm.py`'s;
+   - the shadow equal to today's diesel call;
+   - `test_nowcast.py` passing.
+
+   **Done on the branch, 23 Nov 2026.** The gate ran `main()` itself, with
+   Yahoo served from the cache and the warehouse write stubbed:
+   - petrol `adl`, `adl_ecm`, `nowcast` and `full_pass` match the 9 Nov
+     results to 4e-14;
+   - diesel's shadow matches the old diesel call to 4e-14;
+   - diesel matches the research script to 8e-15 over 2,154 rows;
+   - `test_nowcast.py` passes.
+
+   Diesel's fallback path, plain `adl_ecm`, also improves on two lags: MAE
+   1.636 / 3.344 / 4.966 against 1.744 / 3.505 / 5.287.
+
+   The one-lag term keeps its week-old margin on purpose. `ecm_step` says
+   why, so that it is not "fixed".
+2. The shadow: `pred_nowcast_1lag`, `err_nowcast_1lag` in
+   `dbo.forecast_history`, the one-lag call for every fuel (equal to
+   `pred_nowcast` for petrol).
+
+   `forecast_accuracy` and the semantic model are left as they are.
+   `forecasts.csv` in the archive takes the shadow by a join in
+   `publish_data.py`, so the dated archives keep the live record of both
+   calls. This keeps Power BI out of it: a column the semantic model does
+   not declare fails the refresh (`architecture.md`, W23, "A change of
+   shape").
+
+   **Done on the branch, 23 Nov 2026.** The gate:
+   - `main()`'s warehouse frame has exactly the DDL's 20 columns;
+   - petrol's shadow equals `pred_nowcast`;
+   - the archive query, run in SQLite against that frame and the 19 Nov
+     archive's `forecasts.csv`, keeps all 6,480 rows, repeats none, and adds
+     the two columns.
+
+   The query itself first runs against Fabric at the 26 Nov load. It is the
+   last step, after the refresh, so a failure there costs that week's archive
+   and phone page, not Report 1.
+3. Docs:
+   - `architecture.md`: the specification per fuel, the shadow column;
+   - `research.md`: M5, M4, M2, the fresh-margin and two-lag tests;
+   - this entry and the conflict map;
+   - the archive README.
+
+   Also changed: `backtest.py`'s revision caveat, measured false; the
+   load-review skill and `CLAUDE.md`, which now name the shadow for diesel.
+
+   **Done on the branch, 23 Nov 2026.**
+4. Live: the 26 Nov 2026 load, the first after merge. The load review of
+   that week names both diesel calls.
+
+**Risks.**
+- **Diesel's Track record moves when it lands.** The whole history is
+  recomputed on the new specification; MAE improves about 6%. Dated archives
+  keep what was shown before.
+- **The point estimate is probably flattered by selection,** and there is no
+  gain in calm-crude years (2017–20).
+- **Petrol and diesel now differ in specification.** Every description of
+  "the model" has to say so once.
+- **Revert** is one constant: Diesel back to one lag. The shadow column
+  shows at any time what that would have called.
+
+**Files.** `pipeline/backtest.py`, `pipeline/nowcast.py`,
+`pipeline/publish_data.py`, `models/sources.yml`, `docs/architecture.md`,
+`docs/research.md`, `docs/workstreams.md`, `research/` (the six scripts).
+
 ## Research backlog — where the analysis goes next, in priority order
 
 Moved out of `docs/architecture.md` on 3 Sep 2026, unchanged apart from this
@@ -2340,7 +2440,9 @@ side file to a whole-chain mode makes it an ordinary branch.
 | file | wanted by |
 |---|---|
 | `pipeline/export_panel.py` | W1, W5 — both landed |
-| `pipeline/backtest.py` | W1, W5, W23 — all landed |
+| `pipeline/backtest.py` | W1, W5, W23 — all landed; W25 |
+| `pipeline/nowcast.py` | W23 — landed; W25 |
+| `docs/research.md` | W24 (throughout), W25 (one new section) — land W24 first, or append W25 after it |
 | `models/silver/silver_fuel.sql` | W1 |
 | `models/silver/silver_general.sql` | W1 |
 | `models/silver/_silver__models.yml` | W1 |
