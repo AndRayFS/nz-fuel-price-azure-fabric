@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "The record starts in Feb 2013: MBIE's price components add up only from 2010, and the model needs three years of data before its first call. Scored on today's revised data, which flatters both methods alike.",
+                    "value": "The record starts in Feb 2013: MBIE's price components add up only from 2010, and the model needs three years of data before its first call. Scored on today's revised data, which flatters the model more than \"no change\": only the model reads cost, which MBIE revises. The largest revision, Sep 2026, makes diesel's 1-week miss look about 3% smaller.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "8.25pt",

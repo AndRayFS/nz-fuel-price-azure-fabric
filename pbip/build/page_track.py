@@ -147,9 +147,14 @@ def page_track():
 
     V += footer_links(1256, 652, [("How it's built", "p4built", 62), (" · ", None, 12),
                                   ("Every call and outcome", "p5data", 116)], 410)
+    # "Flatters both methods alike" until 24 Nov 2026, measured false on 23 Nov: a cost
+    # revision moves only the model (docs/research.md, "The largest revision flatters
+    # the model, not \"no change\""; 1.616 against 1.663 for diesel at h=1).
     V.append(container("footer", 24, 652, 1022, 40, 400, textbox([[(
         "The record starts in Feb 2013: MBIE's price components add up only from 2010, and the model needs three years "
-        "of data before its first call. Scored on today's revised data, which flatters both methods alike.",
+        "of data before its first call. Scored on today's revised data, which flatters the model more than \"no\u00a0change\": "
+        "only the model reads cost, which MBIE revises. The largest revision, Sep 2026, makes diesel's 1-week miss "
+        "look about 3% smaller.",
         8.25, FAINT, False)]])))
     return V
 
