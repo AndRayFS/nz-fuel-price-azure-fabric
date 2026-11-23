@@ -1,3 +1,10 @@
+-- HISTORICAL — research of 13 Aug 2026 for the first report, kept for the
+-- record and not maintained. Some of its findings were later withdrawn
+-- (docs/research.md). It never runs in the weekly chain. Its six crisis/calm
+-- periods are the hand-drawn seeds/periods.csv as it stood when that seed was
+-- removed on 24 Nov 2026, written inline below. The regime axes in use today
+-- come from pipeline/build_period_flags.py, by rule, not from these dates.
+--
 -- Does crude land on the modelled landed cost or on the pump price first?
 --
 -- Same lag search as lag_correlation, run twice per period/fuel: once
