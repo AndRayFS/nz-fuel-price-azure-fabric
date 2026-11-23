@@ -2179,9 +2179,21 @@ unchanged. Its calls are sharper in weeks of large cost moves.
      archive's `forecasts.csv`, keeps all 6,480 rows, repeats none, and adds
      the two columns.
 
-   The query itself first runs against Fabric at the 26 Nov load. It is the
-   last step, after the refresh, so a failure there costs that week's archive
-   and phone page, not Report 1.
+   **Superseded the same day, by the owner's decision:** the shadow belongs
+   where forecasts meet outcomes, and only there does it get a 26-week MAE
+   by the same SQL as the others. Step 2b below.
+2b. The shadow in `forecast_accuracy` (branch `w25-shadow-in-gold`):
+   `pred_nowcast_1lag`, `abs_err_nowcast_1lag`, `mae_nowcast_1lag_26w`;
+   declared hidden in the semantic model by `model_v2.py`; the archive back
+   to `select * from forecast_accuracy`.
+
+   Order, in one capacity window, before the merge: the two columns added to
+   `dbo.forecast_history` by hand (the load's `task build` reads them before
+   `task backtest` writes them), `task report`, `to_live.py`, `task refresh`.
+   Report 1's numbers do not move: the new columns are null until 26 Nov.
+
+   Gate: `model_v2.py` rerun changes nothing but the three columns; `dbt
+   compile`; PBIR validates; the refresh completes on the live model.
 3. Docs:
    - `architecture.md`: the specification per fuel, the shadow column;
    - `research.md`: M5, M4, M2, the fresh-margin and two-lag tests;
@@ -2207,8 +2219,10 @@ unchanged. Its calls are sharper in weeks of large cost moves.
   shows at any time what that would have called.
 
 **Files.** `pipeline/backtest.py`, `pipeline/nowcast.py`,
-`pipeline/publish_data.py`, `models/sources.yml`, `docs/architecture.md`,
-`docs/research.md`, `docs/workstreams.md`, `research/` (the six scripts).
+`pipeline/publish_data.py`, `models/sources.yml`,
+`models/gold/forecast_accuracy.sql`, `pbip/build/model_v2.py` and the
+`forecast_accuracy` table's TMDL, `docs/architecture.md`, `docs/research.md`,
+`docs/workstreams.md`, `research/` (the six scripts).
 
 ## Research backlog — where the analysis goes next, in priority order
 
@@ -2451,8 +2465,9 @@ side file to a whole-chain mode makes it an ordinary branch.
 | `.claude/rules/active-items.md` | W9, W16, W18 |
 | `.github/workflows/weekly.yml` | W16, W18, W20, W23 (the probe step, until the probe is removed) |
 | `Taskfile.yml` | W18 (the `aip` task), W20, W22 (the `phone` task) |
-| `pipeline/publish_data.py` | W22, W23 (the README) |
-| `pbip/` | W20 (a table, page 4), W21 (throughout), W23 (forecast measures, page 4) |
+| `pipeline/publish_data.py` | W22, W23 (the README), W25 |
+| `pbip/` | W20 (a table, page 4), W21 (throughout), W23 (forecast measures, page 4), W25 (three hidden columns) |
+| `models/gold/forecast_accuracy.sql` | W23 — landed; W25 |
 | `.github/workflows/pause-capacity.yml` | W16 |
 
 `QUICKSTART.md` is wanted by four branches; leave its rewrite to whichever

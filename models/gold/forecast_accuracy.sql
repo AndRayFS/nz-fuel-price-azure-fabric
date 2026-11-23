@@ -22,6 +22,12 @@
 -- `nowcast_variant` (3 days, 2 days, none) and `nowcast_reason` say how the
 -- run computed the row: past weeks from settled history, the latest week as
 -- the guard decided (pipeline/nowcast.py).
+--
+-- Since W25 (26 Nov 2026) diesel's error correction reads two margin lags.
+-- `pred_nowcast_1lag`, `abs_err_nowcast_1lag` and `mae_nowcast_1lag_26w` are
+-- the call on one lag, diesel's call as it was before; for petrol they equal
+-- the nowcast's. Nothing on Report 1 plots them — the model declares them
+-- hidden — and the load review reads them to judge the change.
 
 {{ config(materialized='table') }}
 
@@ -44,7 +50,9 @@ with base as (
         pred_nowcast,
         abs(err_nowcast)     as abs_err_nowcast,
         nowcast_variant,
-        nowcast_reason
+        nowcast_reason,
+        pred_nowcast_1lag,
+        abs(err_nowcast_1lag) as abs_err_nowcast_1lag
     from {{ source('derived', 'forecast_history') }}
 ),
 
@@ -60,6 +68,9 @@ rolled as (
         avg(abs_err_nowcast) over (
             partition by fuel, horizon_weeks order by week_date
             rows between 25 preceding and current row) as mae_nowcast_26w,
+        avg(abs_err_nowcast_1lag) over (
+            partition by fuel, horizon_weeks order by week_date
+            rows between 25 preceding and current row) as mae_nowcast_1lag_26w,
         -- count the ERRORS, not the rows: the newest rows have no outcome
         -- yet and must not make a window look full when it is not.
         count(abs_err_naive) over (
