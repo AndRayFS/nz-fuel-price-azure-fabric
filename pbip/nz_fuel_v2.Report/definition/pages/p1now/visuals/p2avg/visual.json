@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
-  "name": "p0bar",
+  "name": "p2avg",
   "position": {
-    "x": 38,
-    "y": 562,
-    "z": 322,
+    "x": 870,
+    "y": 567,
+    "z": 343,
     "height": 54,
     "width": 372,
-    "tabOrder": 322
+    "tabOrder": 343
   },
   "visual": {
     "visualType": "barChart",
@@ -20,15 +20,15 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Share Row"
+                      "Entity": "Fuel"
                     }
                   },
-                  "Property": "Kind"
+                  "Property": "Fuel name"
                 }
               },
-              "queryRef": "Share Row.Kind",
-              "nativeQueryRef": "Kind",
-              "displayName": "Kind",
+              "queryRef": "Fuel.Fuel name",
+              "nativeQueryRef": "Fuel",
+              "displayName": "Fuel",
               "active": true
             }
           ]
@@ -43,33 +43,15 @@
                       "Entity": "margin_compression"
                     }
                   },
-                  "Property": "Margin Level Bar"
+                  "Property": "Margin Norm Level"
                 }
               },
-              "queryRef": "margin_compression.Margin Level Bar",
+              "queryRef": "margin_compression.Margin Norm Level",
               "nativeQueryRef": "Margin",
               "displayName": "Margin"
             }
           ]
         }
-      },
-      "sortDefinition": {
-        "sort": [
-          {
-            "field": {
-              "Column": {
-                "Expression": {
-                  "SourceRef": {
-                    "Entity": "Share Row"
-                  }
-                },
-                "Property": "Kind"
-              }
-            },
-            "direction": "Ascending"
-          }
-        ],
-        "isDefaultSort": true
       }
     },
     "objects": {
@@ -80,27 +62,13 @@
               "solid": {
                 "color": {
                   "expr": {
-                    "Measure": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "margin_compression"
-                        }
-                      },
-                      "Property": "Margin Level Colour"
+                    "Literal": {
+                      "Value": "'#F8D2C2'"
                     }
                   }
                 }
               }
             }
-          },
-          "selector": {
-            "data": [
-              {
-                "dataViewWildcard": {
-                  "matchingOption": 1
-                }
-              }
-            ]
           }
         }
       ],
@@ -158,7 +126,7 @@
             "innerPadding": {
               "expr": {
                 "Literal": {
-                  "Value": "62L"
+                  "Value": "66L"
                 }
               }
             }
@@ -366,7 +334,7 @@
                     [
                       {
                         "Literal": {
-                          "Value": "'Regular Petrol'"
+                          "Value": "'Diesel'"
                         }
                       }
                     ]

@@ -1,9 +1,9 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
-  "name": "p1bar",
+  "name": "p1now",
   "position": {
     "x": 454,
-    "y": 562,
+    "y": 554,
     "z": 332,
     "height": 54,
     "width": 372,
@@ -20,15 +20,15 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "Share Row"
+                      "Entity": "Fuel"
                     }
                   },
-                  "Property": "Kind"
+                  "Property": "Fuel name"
                 }
               },
-              "queryRef": "Share Row.Kind",
-              "nativeQueryRef": "Kind",
-              "displayName": "Kind",
+              "queryRef": "Fuel.Fuel name",
+              "nativeQueryRef": "Fuel",
+              "displayName": "Fuel",
               "active": true
             }
           ]
@@ -43,33 +43,15 @@
                       "Entity": "margin_compression"
                     }
                   },
-                  "Property": "Margin Level Bar"
+                  "Property": "Margin Now Level"
                 }
               },
-              "queryRef": "margin_compression.Margin Level Bar",
+              "queryRef": "margin_compression.Margin Now Level",
               "nativeQueryRef": "Margin",
               "displayName": "Margin"
             }
           ]
         }
-      },
-      "sortDefinition": {
-        "sort": [
-          {
-            "field": {
-              "Column": {
-                "Expression": {
-                  "SourceRef": {
-                    "Entity": "Share Row"
-                  }
-                },
-                "Property": "Kind"
-              }
-            },
-            "direction": "Ascending"
-          }
-        ],
-        "isDefaultSort": true
       }
     },
     "objects": {
@@ -80,27 +62,13 @@
               "solid": {
                 "color": {
                   "expr": {
-                    "Measure": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "margin_compression"
-                        }
-                      },
-                      "Property": "Margin Level Colour"
+                    "Literal": {
+                      "Value": "'#EB6834'"
                     }
                   }
                 }
               }
             }
-          },
-          "selector": {
-            "data": [
-              {
-                "dataViewWildcard": {
-                  "matchingOption": 1
-                }
-              }
-            ]
           }
         }
       ],
@@ -158,7 +126,7 @@
             "innerPadding": {
               "expr": {
                 "Literal": {
-                  "Value": "62L"
+                  "Value": "66L"
                 }
               }
             }

@@ -55,20 +55,20 @@ def price_chart(key):
         },
         "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
 
-PRESSURE_PAD = 62    # innerPadding of the two-bar chart; tuned on the dev copy
+PRESSURE_PAD = 66    # innerPadding of each bar's chart: ~6 px bars; tuned on the dev copy
+PRESSURE_H = 54      # a bar chart under ~50 px high draws a placeholder icon instead (44 did)
 
-def pressure_chart():
-    """Two bars, this week's margin over its two-year average, on a fixed 0..100 axis:
-    Margin Level Bar is scaled by Margin Scale, one scale for the three fuels. One
-    series, coloured per row by a measure, as on Margin: orange, then pale."""
+def pressure_chart(measure, colour):
+    """One bar on a fixed 0..100 axis: this week's margin or its two-year average,
+    scaled by Margin Scale, one scale for the three fuels, in Margin's colours. One
+    chart per bar, not two rows in one: the gap between the bars is then where the
+    charts sit, not a padding that also sets their thickness."""
     return {"visualType": "barChart",
         "query": {"queryState": {
-            "Category": {"projections": [proj("c", "Share Row", "Kind", "Kind", active=True)]},
-            "Y": {"projections": [proj("m", "margin_compression", "Margin Level Bar", "Margin")]}},
-            "sortDefinition": {"sort": [{"field": cref("Share Row", "Kind"), "direction": "Ascending"}], "isDefaultSort": True}},
+            "Category": {"projections": [proj("c", "Fuel", "Fuel name", "Fuel", active=True)]},
+            "Y": {"projections": [proj("m", "margin_compression", measure, "Margin")]}}},
         "objects": {
-            "dataPoint": [obj({"fill": mcol("margin_compression", "Margin Level Colour")},
-                              {"data": [{"dataViewWildcard": {"matchingOption": 1}}]})],
+            "dataPoint": [obj({"fill": col(colour)})],
             "valueAxis": [obj({"show": b(False), "start": d(0), "end": d(100), "gridlineShow": b(False)})],
             "categoryAxis": [obj({"show": b(False), "showAxisTitle": b(False), "innerPadding": L(PRESSURE_PAD)})],
             "legend": [obj({"show": b(False)})],
@@ -137,15 +137,16 @@ def page_now(style):
     # The note starts ~10 px after the name and sits 1 px higher than it did, on the
     # name's baseline (measured on the dev copy, 23 Nov 2026).
     V.append(container("cphead", 24, 522, 130, 22, z, textbox([[("Importer margin", 10.5, INK, True)]])))
-    V.append(container("cpnote", 138, 524, 1118, 18, z + 1, title_text("margin_compression", "Cost Pressure Heading", 8.25, MUTED)))
+    V.append(container("cpnote", 138, 525, 1118, 18, z + 1, title_text("margin_compression", "Cost Pressure Heading", 8.25, MUTED)))
     for i, (key, label, colour, uw) in enumerate(FUELS):
         x = CARD_X[i]; y = 546; z = 320 + i * 10; f = [fuel_filter(key)]
         # As in the mock-up: the figures quiet, the gap in black on the right; under them
         # two bars, this week and the average (R1, 23 Nov 2026). The label sits 3 px lower
         # to share the gap's baseline.
         V += [
-            container(f"p{i}bg", x, y, CARD_W, 70, z, blank(PAPER, border=LINE, radius=8)),
-            container(f"p{i}bar", x + 14, y + 16, 372, 54, z + 2, pressure_chart(), f),
+            container(f"p{i}bg", x, y, CARD_W, 66, z, blank(PAPER, border=LINE, radius=8)),
+            container(f"p{i}now", x + 14, y + 8, 372, PRESSURE_H, z + 2, pressure_chart("Margin Now Level", ORANGE), f),
+            container(f"p{i}avg", x + 14, y + 21, 372, PRESSURE_H, z + 3, pressure_chart("Margin Norm Level", "#F8D2C2"), f),
             container(f"p{i}lbl", x + 16, y + 11, 260, 18, z + 5, title_text("margin_compression", "Cost Pressure Label", 9, MUTED), f),
             container(f"p{i}gap", x + 276, y + 8, 108, 22, z + 6,
                       title_text("margin_compression", "Cost Pressure Gap Label", 11.25, INK, bold=True, align="right"), f),

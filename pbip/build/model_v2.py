@@ -670,13 +670,12 @@ RETURN IF(NOT ISBLANK(M) && NOT ISBLANK(N), M - N)''', fmt="+0.0;-0.0;0.0", fold
 mm.append(measure(M, "Margin Scale", '''
 MAXX(ALL(Fuel), MAX([Margin Now], [Margin Norm Now]))''', fmt="0.0", folder="Now", hidden=True,
     desc="The end of the cost pressure bars' scale, c/L: the largest margin of the three fuels, this week or on average."))
-mm.append(measure(M, "Margin Level Bar", '''
-VAR vV = SWITCH(SELECTEDVALUE('Share Row'[Kind]), "Newest week", [Margin Now], "Average", [Margin Norm Now])
+for name, src, what in (("Margin Now Level", "Margin Now", "this week's margin"),
+                        ("Margin Norm Level", "Margin Norm Now", "its two-year average")):
+    mm.append(measure(M, name, f'''
+VAR vV = [{src}]
 RETURN IF(NOT ISBLANK(vV), 100 * DIVIDE(vV, [Margin Scale]))''', fmt="0.0", folder="Now", hidden=True,
-    desc="The cost pressure bars: this week's margin in the Newest week row, its two-year average in the Average row, as a share of Margin Scale."))
-mm.append(measure(M, "Margin Level Colour", '''
-IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", "#F8D2C2", "#EB6834")''', folder="Now", hidden=True,
-    desc="Margin's colours for the importer margin: orange this week, pale on average."))
+        desc=f"A cost pressure bar: {what} as a share of Margin Scale. One chart per bar, so the gap between the two is set by where they sit: a chart under ~50 px high does not draw."))
 mm.append(measure(M, "Cost Pressure Label", '''
 IF(NOT ISBLANK([Margin Gap Now]),
     FORMAT([Margin Now], "0.0") & " c/L now · average " & FORMAT([Margin Norm Now], "0.0"))''', folder="Now"))
