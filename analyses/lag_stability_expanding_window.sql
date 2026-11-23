@@ -28,7 +28,17 @@ with p as (
         period_type,
         start_date,
         coalesce(end_date, cast(getdate() as date)) as end_date
-    from {{ ref('periods') }}
+    from (
+    -- The six hand-drawn periods of seeds/periods.csv, inlined when that seed was
+    -- removed on 24 Nov 2026: nothing in the weekly chain read it any more.
+    values
+        ('01_covid_2020', '2020 COVID crash', cast('2020-03-06' as date), cast('2020-06-05' as date), 'crisis'),
+        ('02_calm_own_refinery', 'Calm period (own-refinery era)', cast('2020-06-05' as date), cast('2022-02-18' as date), 'calm'),
+        ('03_ukraine_2022', '2022 Russia/Ukraine war', cast('2022-02-24' as date), cast('2022-08-31' as date), 'crisis'),
+        ('04_tariff_2025', '2025 US-China tariff shock', cast('2025-04-02' as date), cast('2025-06-30' as date), 'crisis'),
+        ('05_calm_import_era', 'Calm period (import era)', cast('2025-07-10' as date), cast('2026-02-27' as date), 'calm'),
+        ('06_iranus_2026', '2026 Iran/US conflict', cast('2026-02-28' as date), cast(null as date), 'crisis')
+) as periods (period_id, period_name, start_date, end_date, period_type)
 ),
 
 l as (

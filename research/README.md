@@ -34,7 +34,8 @@ python pipeline/export_panel.py    # needs the capacity; only when new weeks lan
   per fuel, one retail source, no domestic refinery.
 - **Fit on changes, not levels** — both series trend, and the level of
   `importer_margin` has tripled since 2004.
-- **`period_id` is null for 964 of 1,164 weeks.** `periods.csv` marks named
+- **`period_id` was null for 964 of 1,164 weeks** (until 24 Nov 2026, when it
+  left the panel with `periods.csv`). `periods.csv` marked named
   episodes only; unlabelled weeks are not "unknown", they are ordinary
   weeks. Decide explicitly how they are treated before any crisis/calm
   comparison. **Superseded by `seeds/period_flags.csv`** — proposed, not yet

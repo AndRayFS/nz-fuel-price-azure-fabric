@@ -4,7 +4,7 @@ Three files used to reach the warehouse by being written to disk, committed,
 and loaded by `dbt seed`: the forecast history, the regime flags and the AIP
 store. That route made git the transport for data nobody writes by hand, and
 under CI it made every weekly run a bot commit. Configuration still belongs in
-git — `periods.csv` and `variable_mapping.csv` are hand-drawn and their history
+git — `variable_mapping.csv` is hand-drawn and its history
 is the point (architecture.md, "Observations belong in the warehouse,
 configuration belongs in git").
 

@@ -1091,6 +1091,7 @@ objections that ruled out a Fabric notebook apply here.
   why a period boundary moved is the point of them. Full reasoning in
   `architecture.md`, "Observations belong in the warehouse, configuration
   belongs in git".
+  *(24 Nov 2026: `periods.csv` has since been removed — nothing read it.)*
 
   - **The AIP store is the one that cannot be re-fetched, so it retires
     differently from the other two.** Bronze can be reloaded from MBIE and the

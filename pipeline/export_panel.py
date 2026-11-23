@@ -46,9 +46,9 @@ OUT = Path(__file__).parents[1] / "data" / "panel_weekly.csv"
 # One row per (week, fuel). Brent columns ride along because they are free
 # here and save a second round trip; they are diagnostics, not factors.
 #
-# Period assignment uses the first matching row of `periods` ordered by id:
-# 01 ends and 02 starts on the same day (2020-06-05), so a plain join would
-# duplicate that week.
+# Until 24 Nov 2026 each row also carried `period_id` and `period_type` from
+# the hand-drawn seed `periods`. Nothing read them: the regime axes are
+# derived by rule in build_period_flags.py. The seed and the join are gone.
 #
 # Status comes from silver, one column per variable, and only for the six
 # variables the estimation actually consumes. Two reasons not to carry all
@@ -77,19 +77,10 @@ select
     f.gst_status,
     f.ets_status,
     f.importer_cost_status,
-    f.importer_margin_status,
-    p.period_id,
-    p.period_type
+    f.importer_margin_status
 from dbo.silver_fuel f
 join dbo.silver_general g
     on g.Date = f.Date
-outer apply (
-    select top 1 pp.period_id, pp.period_type
-    from dbo.periods pp
-    where cast(f.Date as date) >= pp.start_date
-      and (pp.end_date is null or cast(f.Date as date) <= pp.end_date)
-    order by pp.period_id
-) p
 where f.Fuel in ('Regular Petrol', 'Diesel', 'Premium Petrol 95R')
 order by f.Fuel, f.Date
 """

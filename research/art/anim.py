@@ -48,8 +48,13 @@ p["Fuel excise"] = p.taxes
 p["Emissions (ETS)"] = p.ets
 p["GST"] = p.gst
 
-per = pd.read_csv(ROOT / "seeds/periods.csv", parse_dates=["start_date", "end_date"])
-per = per[per.period_type == "crisis"]
+# The crisis rows of the hand-drawn seeds/periods.csv, removed on 24 Nov 2026.
+per = pd.DataFrame([("2020 COVID crash", "2020-03-06", "2020-06-05"),
+                    ("2022 Russia/Ukraine war", "2022-02-24", "2022-08-31"),
+                    ("2025 US-China tariff shock", "2025-04-02", "2025-06-30"),
+                    ("2026 Iran/US conflict", "2026-02-28", None)],
+                   columns=["period_name", "start_date", "end_date"])
+per["start_date"], per["end_date"] = pd.to_datetime(per.start_date), pd.to_datetime(per.end_date)
 
 months = pd.date_range("2020-01-31", "2026-08-31", freq="ME")
 comp = p[ORDER].resample("ME").mean()

@@ -1326,7 +1326,7 @@ type — it is *who produced it*:
   — it is fetched when a question needs it and kept nowhere.
 - **Configuration and hypotheses are written by a person.** They belong in
   git, and their value is mostly the history: who moved a boundary, when, and
-  what the commit message said. `periods.csv` is six hand-drawn period
+  what the commit message said. `periods.csv` was six hand-drawn period
   boundaries that this project calls a hypothesis in half a dozen places;
   `variable_mapping.csv` is eleven rows of mapping. Neither accumulates.
   Moving them into the warehouse would trade reviewable history for nothing —
@@ -1691,7 +1691,8 @@ rather than deliberately retired.
 
 **Decided 8 Sep 2026: deleted**, along with `macros/lag_correlation_series.sql`,
 whose only caller was `lag_correlation`, and the `volatility_window_weeks` var.
-`periods.csv` survives — `export_panel.py` reads it.
+`periods.csv` survives — `export_panel.py` reads it. *(Removed 24 Nov 2026: the
+columns it put on the panel were read by nothing.)*
 
 The argument was not cost. All four rebuild in about 14 seconds, roughly a
 third of a cent of F2 per week; that is not worth a decision. It was that they
