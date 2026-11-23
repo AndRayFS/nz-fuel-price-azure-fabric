@@ -55,7 +55,7 @@ def price_chart(key):
         },
         "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
 
-PRESSURE_PAD = 45    # innerPadding of the two-bar chart; tuned on the dev copy
+PRESSURE_PAD = 62    # innerPadding of the two-bar chart; tuned on the dev copy
 
 def pressure_chart():
     """Two bars, this week's margin over its two-year average, on a fixed 0..100 axis:
@@ -110,7 +110,8 @@ def page_now(style):
     for i, (key, label, colour, uw) in enumerate(FUELS):
         x = CARD_X[i]; z = 200 + i * 20; f = [fuel_filter(key)]
         V += [
-            container(f"c{i}bg", x, 172, CARD_W, 352, z, blank(PAPER, border=LINE, radius=8)),
+            # 342 high, 352 until 23 Nov 2026: the 10 px went to air under the margin bars.
+            container(f"c{i}bg", x, 172, CARD_W, 342, z, blank(PAPER, border=LINE, radius=8)),
             container(f"c{i}name", x + 14, 178, 220, 24, z + 1, textbox([[(label, 11, INK, True)]])),
             container(f"c{i}uline", x + 16, 203, uw, 3, z + 2, blank(colour)),
             container(f"c{i}weekto", x + 16, 212, 368, 18, z + 3, title_text("prices", "Week To Label", 8.25, MUTED)),
@@ -133,15 +134,17 @@ def page_now(style):
     z = 300
     # "Importer margin", not "Cost pressure" (until 23 Nov 2026): the old name was true only
     # below the average, and the heading says in words what that means.
-    V.append(container("cphead", 24, 532, 130, 22, z, textbox([[("Importer margin", 10.5, INK, True)]])))
-    V.append(container("cpnote", 152, 535, 1104, 18, z + 1, title_text("margin_compression", "Cost Pressure Heading", 8.25, MUTED)))
+    # The note starts ~10 px after the name and sits 1 px higher than it did, on the
+    # name's baseline (measured on the dev copy, 23 Nov 2026).
+    V.append(container("cphead", 24, 522, 130, 22, z, textbox([[("Importer margin", 10.5, INK, True)]])))
+    V.append(container("cpnote", 138, 524, 1118, 18, z + 1, title_text("margin_compression", "Cost Pressure Heading", 8.25, MUTED)))
     for i, (key, label, colour, uw) in enumerate(FUELS):
-        x = CARD_X[i]; y = 556; z = 320 + i * 10; f = [fuel_filter(key)]
+        x = CARD_X[i]; y = 546; z = 320 + i * 10; f = [fuel_filter(key)]
         # As in the mock-up: the figures quiet, the gap in black on the right; under them
         # two bars, this week and the average (R1, 23 Nov 2026). The label sits 3 px lower
         # to share the gap's baseline.
         V += [
-            container(f"p{i}bg", x, y, CARD_W, 64, z, blank(PAPER, border=LINE, radius=8)),
+            container(f"p{i}bg", x, y, CARD_W, 70, z, blank(PAPER, border=LINE, radius=8)),
             container(f"p{i}bar", x + 14, y + 16, 372, 54, z + 2, pressure_chart(), f),
             container(f"p{i}lbl", x + 16, y + 11, 260, 18, z + 5, title_text("margin_compression", "Cost Pressure Label", 9, MUTED), f),
             container(f"p{i}gap", x + 276, y + 8, 108, 22, z + 6,
