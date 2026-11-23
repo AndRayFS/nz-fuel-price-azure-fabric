@@ -56,7 +56,7 @@ table margin_compression
 		lineageTag: 40d6b7fe-53e8-5fbd-a468-4fc5679333f8
 
 	measure 'Cost Pressure Heading' =
-			"Importer margin, week to " & FORMAT([Latest Week], "d mmm") & ", orange, against its two-year average, pale"
+			"Week to " & FORMAT([Latest Week], "d mmm") & ", orange, against its two-year average, pale"
 			    & " · one scale for the three fuels · a margin below its average: costs have run ahead of the pump"
 		displayFolder: Now
 		lineageTag: a105f357-c026-5569-9233-77985b6dd7e0

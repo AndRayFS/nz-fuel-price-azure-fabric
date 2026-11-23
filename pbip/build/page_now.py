@@ -131,7 +131,9 @@ def page_now(style):
             container(f"c{i}v{n}", x + 16 + (n - 1) * 123, 482, 120, 28, z + 8,
                       title_text("forecast_accuracy", f"Call {n}", 11.25, CALL, bold=True), f))]
     z = 300
-    V.append(container("cphead", 24, 532, 130, 22, z, textbox([[("Cost pressure", 10.5, INK, True)]])))
+    # "Importer margin", not "Cost pressure" (until 23 Nov 2026): the old name was true only
+    # below the average, and the heading says in words what that means.
+    V.append(container("cphead", 24, 532, 130, 22, z, textbox([[("Importer margin", 10.5, INK, True)]])))
     V.append(container("cpnote", 152, 535, 1104, 18, z + 1, title_text("margin_compression", "Cost Pressure Heading", 8.25, MUTED)))
     for i, (key, label, colour, uw) in enumerate(FUELS):
         x = CARD_X[i]; y = 556; z = 320 + i * 10; f = [fuel_filter(key)]

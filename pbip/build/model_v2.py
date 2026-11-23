@@ -683,7 +683,7 @@ IF(NOT ISBLANK([Margin Gap Now]),
 mm.append(measure(M, "Cost Pressure Gap Label", '''
 IF(NOT ISBLANK([Margin Gap Now]), FORMAT([Margin Gap Now], "+0.0;-0.0;0.0") & " c/L")''', folder="Now"))
 mm.append(measure(M, "Cost Pressure Heading", '''
-"Importer margin, week to " & FORMAT([Latest Week], "d mmm") & ", orange, against its two-year average, pale"
+"Week to " & FORMAT([Latest Week], "d mmm") & ", orange, against its two-year average, pale"
     & " · one scale for the three fuels · a margin below its average: costs have run ahead of the pump"''', folder="Now"))
 
 mm.append(measure(M, "Gap (chart)", '''
