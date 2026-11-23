@@ -9,9 +9,9 @@ FUELS = [("Regular Petrol", "Regular 91", "#40B54A", 78),
          ("Diesel", "Diesel", "#4D4C48", 46)]
 CARD_X = [24, 440, 856]; CARD_W = 400
 TRACK = "#ECEBE6"
-# The cost pressure bars' tooltip page. The default tooltip listed the margin held to
-# the track's 60 and the norm twice, as the error bar's Lower and Upper; the figures
-# above the bar already say both, so the tooltip names the fuel and nothing else.
+# The cost pressure bars' tooltip page. The default tooltip listed the bar's own value
+# and the tick twice, as the error bar's Lower and Upper; the figures above the bar
+# already say what matters, so the tooltip names the fuel and nothing else.
 TIP, TIP_SIZE = "p1tipfuel", (130, 34)
 # Type for the headline and the three prices. A was kept on 4 Nov 2026 after B, light
 # for both, was tried side by side; B is still on the hidden Fonts page.
@@ -56,19 +56,21 @@ def price_chart(key):
         },
         "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
 
-def pressure_chart(measure, bar):
-    """One bar on a 0-60 c/L axis. The track and the margin are two of these, one over
-    the other: in a single stacked chart Power BI dropped both the colour measure and
-    the norm's error-bar tick (4 Nov 2026), and both work on a single series."""
-    ref = "margin_compression." + measure
+def pressure_chart(measures, bar):
+    """Bars on a fixed -100..100 axis, the gap scaled to it by Gap Scale. The track
+    (both halves, one series each, stacked) and the gap are two of these, one over the
+    other: in a single stacked chart Power BI dropped both the colour measure and the
+    error-bar tick (4 Nov 2026), and both work on a single series."""
+    ref = "margin_compression." + measures[0]
     v = {"visualType": "barChart",
         "query": {"queryState": {
             "Category": {"projections": [proj("c", "Fuel", "Fuel name", "Fuel", active=True)]},
-            "Y": {"projections": [proj("m", "margin_compression", measure, measure)]}}},
+            "Y": {"projections": [proj("m", "margin_compression", m, m) for m in measures]}}},
         "objects": {
             "dataPoint": [obj({"fill": mcol("margin_compression", "Cost Pressure Colour")},
-                              {"data": [{"dataViewWildcard": {"matchingOption": 1}}]}) if bar else obj({"fill": col(TRACK)})],
-            "valueAxis": [obj({"show": b(False), "start": d(0), "end": d(60), "gridlineShow": b(False)})],
+                              {"data": [{"dataViewWildcard": {"matchingOption": 1}}]})] if bar else
+                         [obj({"fill": col(TRACK)}, {"metadata": "margin_compression." + m}) for m in measures],
+            "valueAxis": [obj({"show": b(False), "start": d(-100), "end": d(100), "gridlineShow": b(False)})],
             "categoryAxis": [obj({"show": b(False), "showAxisTitle": b(False), "innerPadding": L(55)})],
             "legend": [obj({"show": b(False)})],
             "labels": [obj({"show": b(False)})],
@@ -81,8 +83,8 @@ def pressure_chart(measure, bar):
                  "barWidth": d(14), "barBorderSize": L(0)}, {"metadata": ref}),
             obj({"errorRange": {"kind": "ErrorRange", "explicit": {
                     "isRelative": b(False),
-                    "upperBound": mexpr("margin_compression", "Margin Norm Bar"),
-                    "lowerBound": mexpr("margin_compression", "Margin Norm Bar")}}},
+                    "upperBound": mexpr("margin_compression", "Gap Zero"),
+                    "lowerBound": mexpr("margin_compression", "Gap Zero")}}},
                 {"data": [{"dataViewWildcard": {"matchingOption": 0}}], "metadata": ref, "highlightMatching": 1})]
     return v
 
@@ -144,11 +146,12 @@ def page_now(style):
     for i, (key, label, colour, uw) in enumerate(FUELS):
         x = CARD_X[i]; y = 556; z = 320 + i * 10; f = [fuel_filter(key)]
         # As in the mock-up: the figures quiet, the gap in black on the right, then an
-        # 8 px track with the norm's tick. The label sits 3 px lower to share the gap's baseline.
+        # 8 px track, the gap drawn from the average's tick in its middle (R1, 23 Nov 2026).
+        # The label sits 3 px lower to share the gap's baseline.
         V += [
             container(f"p{i}bg", x, y, CARD_W, 54, z, blank(PAPER, border=LINE, radius=8)),
-            container(f"p{i}track", x + 14, y + 10, 372, 56, z + 1, pressure_chart("Track Full", bar=False), f),
-            container(f"p{i}bar", x + 14, y + 10, 372, 56, z + 2, pressure_chart("Margin Bar", bar=True), f),
+            container(f"p{i}track", x + 14, y + 10, 372, 56, z + 1, pressure_chart(["Track Left", "Track Right"], bar=False), f),
+            container(f"p{i}bar", x + 14, y + 10, 372, 56, z + 2, pressure_chart(["Gap Bar"], bar=True), f),
             container(f"p{i}lbl", x + 16, y + 11, 260, 18, z + 5, title_text("margin_compression", "Cost Pressure Label", 9, MUTED), f),
             container(f"p{i}gap", x + 276, y + 8, 108, 22, z + 6,
                       title_text("margin_compression", "Cost Pressure Gap Label", 11.25, INK, bold=True, align="right"), f),

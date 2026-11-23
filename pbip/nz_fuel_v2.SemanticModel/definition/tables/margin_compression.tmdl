@@ -15,28 +15,6 @@ table margin_compression
 		displayFolder: Now
 		lineageTag: 511e3d47-7e94-5b63-b3d1-978626571771
 
-	/// The grey track behind the cost pressure bar, 0-60 c/L as in the mock-up. Its own chart under the bar's: a stacked bar dropped both the colour measure and the norm's tick (4 Nov 2026).
-	measure 'Track Full' = IF(NOT ISBLANK([Margin Now]), 60)
-		formatString: 0
-		displayFolder: Now
-		lineageTag: 412662c2-2740-5ae6-a8a5-5b8e9555e2d7
-
-	/// Margin Now held to the 0-60 c/L track: a margin above 60 fills the bar, and the figures above it say by how much.
-	measure 'Margin Bar' =
-			VAR vM = [Margin Now]
-			RETURN IF(NOT ISBLANK(vM), MAX(0, MIN(60, vM)))
-		formatString: 0.0
-		displayFolder: Now
-		lineageTag: 47a15ff0-5cf2-5402-8f6d-6e69953a9fcd
-
-	/// Where the norm's tick sits on the same 0-60 c/L track.
-	measure 'Margin Norm Bar' =
-			VAR vN = [Margin Norm Now]
-			RETURN IF(NOT ISBLANK(vN), MAX(0, MIN(60, vN)))
-		formatString: 0.0
-		displayFolder: Now
-		lineageTag: 5a4666d7-eec4-5a27-8bc5-905b9986cc36
-
 	measure 'Margin Gap Now' =
 			VAR M = [Margin Now]
 			VAR N = [Margin Norm Now]
@@ -44,6 +22,45 @@ table margin_compression
 		formatString: +0.0;-0.0;0.0
 		displayFolder: Now
 		lineageTag: f7f4831d-1651-5f76-9725-0dc8f0db7942
+
+	/// Where the cost pressure track ends either side of the average, c/L: the largest gap of the three fuels this week, 20 at least.
+	measure 'Gap Scale' =
+			VAR vMax = MAXX(ALL(Fuel), ABS([Margin Gap Now]))
+			RETURN IF(NOT ISBLANK(vMax), MAX(20, vMax))
+		formatString: 0
+		displayFolder: Now
+		isHidden
+		lineageTag: 2e5bf3f4-f645-5e3b-b110-8fb4cc32a43f
+
+	/// The gap as a share of Gap Scale, -100..100: the cost pressure bar.
+	measure 'Gap Bar' =
+			VAR vG = [Margin Gap Now]
+			RETURN IF(NOT ISBLANK(vG), 100 * DIVIDE(vG, [Gap Scale]))
+		formatString: 0.0
+		displayFolder: Now
+		isHidden
+		lineageTag: 44661d6b-da1f-5e87-8257-2e92e9997796
+
+	/// The grey track behind the cost pressure bar, one half of it. Its own chart under the bar's: a stacked bar dropped both the colour measure and the tick (4 Nov 2026).
+	measure 'Track Left' = IF(NOT ISBLANK([Margin Gap Now]), -100)
+		formatString: 0
+		displayFolder: Now
+		isHidden
+		lineageTag: e06aa632-6ff6-59c3-9eff-0c31652bd4bc
+
+	/// The grey track behind the cost pressure bar, one half of it. Its own chart under the bar's: a stacked bar dropped both the colour measure and the tick (4 Nov 2026).
+	measure 'Track Right' = IF(NOT ISBLANK([Margin Gap Now]), 100)
+		formatString: 0
+		displayFolder: Now
+		isHidden
+		lineageTag: 43963ccb-08b2-5c8a-8327-f577161b4ff0
+
+	/// The average's tick in the middle of the cost pressure track.
+	measure 'Gap Zero' = IF(NOT ISBLANK([Margin Gap Now]), 0)
+		formatString: 0
+		displayFolder: Now
+		isHidden
+		lineageTag: a4ebe5b5-ac30-568f-b9cd-101db072ef03
 
 	measure 'Cost Pressure Label' =
 			IF(NOT ISBLANK([Margin Gap Now]),
@@ -62,6 +79,7 @@ table margin_compression
 
 	measure 'Cost Pressure Heading' =
 			"Importer margin against its two-year average, week to " & FORMAT([Latest Week], "d mmm")
+			    & " · bars from the average, one scale, ±" & FORMAT([Gap Scale], "0.0") & " c/L at the ends"
 			    & " · orange: below average, costs have run ahead of the pump"
 		displayFolder: Now
 		lineageTag: a105f357-c026-5569-9233-77985b6dd7e0

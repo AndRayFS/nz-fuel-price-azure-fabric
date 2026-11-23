@@ -75,7 +75,7 @@ table prices
 		displayFolder: Now
 		lineageTag: 95cc4711-d4f2-5751-8078-23bb2172fdf8
 
-	/// The cost pressure bars' tooltip, the fuel alone. The default one repeated the figures above the bar, with the margin held to the track's 60 and the norm twice, as the error bar's Lower and Upper (12 Nov 2026).
+	/// The cost pressure bars' tooltip, the fuel alone. The default one repeated the figures above the bar, as the bar's own value and the tick twice, as the error bar's Lower and Upper (12 Nov 2026).
 	measure 'Tooltip Fuel' = SELECTEDVALUE(Fuel[Fuel name])
 		displayFolder: Now
 		lineageTag: 3532e340-a37c-59e3-a515-91f4d1d5fc7e

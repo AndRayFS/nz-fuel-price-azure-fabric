@@ -43,12 +43,12 @@
                       "Entity": "margin_compression"
                     }
                   },
-                  "Property": "Margin Bar"
+                  "Property": "Gap Bar"
                 }
               },
-              "queryRef": "margin_compression.Margin Bar",
-              "nativeQueryRef": "Margin Bar",
-              "displayName": "Margin Bar"
+              "queryRef": "margin_compression.Gap Bar",
+              "nativeQueryRef": "Gap Bar",
+              "displayName": "Gap Bar"
             }
           ]
         }
@@ -99,14 +99,14 @@
             "start": {
               "expr": {
                 "Literal": {
-                  "Value": "0D"
+                  "Value": "-100D"
                 }
               }
             },
             "end": {
               "expr": {
                 "Literal": {
-                  "Value": "60D"
+                  "Value": "100D"
                 }
               }
             },
@@ -224,7 +224,7 @@
             }
           },
           "selector": {
-            "metadata": "margin_compression.Margin Bar"
+            "metadata": "margin_compression.Gap Bar"
           }
         },
         {
@@ -247,7 +247,7 @@
                           "Entity": "margin_compression"
                         }
                       },
-                      "Property": "Margin Norm Bar"
+                      "Property": "Gap Zero"
                     }
                   }
                 },
@@ -259,7 +259,7 @@
                           "Entity": "margin_compression"
                         }
                       },
-                      "Property": "Margin Norm Bar"
+                      "Property": "Gap Zero"
                     }
                   }
                 }
@@ -274,7 +274,7 @@
                 }
               }
             ],
-            "metadata": "margin_compression.Margin Bar",
+            "metadata": "margin_compression.Gap Bar",
             "highlightMatching": 1
           }
         }

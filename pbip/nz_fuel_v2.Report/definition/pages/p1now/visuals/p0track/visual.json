@@ -43,12 +43,27 @@
                       "Entity": "margin_compression"
                     }
                   },
-                  "Property": "Track Full"
+                  "Property": "Track Left"
                 }
               },
-              "queryRef": "margin_compression.Track Full",
-              "nativeQueryRef": "Track Full",
-              "displayName": "Track Full"
+              "queryRef": "margin_compression.Track Left",
+              "nativeQueryRef": "Track Left",
+              "displayName": "Track Left"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "margin_compression"
+                    }
+                  },
+                  "Property": "Track Right"
+                }
+              },
+              "queryRef": "margin_compression.Track Right",
+              "nativeQueryRef": "Track Right",
+              "displayName": "Track Right"
             }
           ]
         }
@@ -69,6 +84,27 @@
                 }
               }
             }
+          },
+          "selector": {
+            "metadata": "margin_compression.Track Left"
+          }
+        },
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#ECEBE6'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "margin_compression.Track Right"
           }
         }
       ],
@@ -85,14 +121,14 @@
             "start": {
               "expr": {
                 "Literal": {
-                  "Value": "0D"
+                  "Value": "-100D"
                 }
               }
             },
             "end": {
               "expr": {
                 "Literal": {
-                  "Value": "60D"
+                  "Value": "100D"
                 }
               }
             },
