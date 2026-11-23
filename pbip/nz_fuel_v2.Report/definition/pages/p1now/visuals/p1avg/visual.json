@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
-  "name": "p2track",
+  "name": "p1avg",
   "position": {
-    "x": 870,
-    "y": 566,
-    "z": 341,
-    "height": 56,
+    "x": 454,
+    "y": 567,
+    "z": 333,
+    "height": 54,
     "width": 372,
-    "tabOrder": 341
+    "tabOrder": 333
   },
   "visual": {
     "visualType": "barChart",
@@ -43,12 +43,12 @@
                       "Entity": "margin_compression"
                     }
                   },
-                  "Property": "Track Full"
+                  "Property": "Margin Norm Level"
                 }
               },
-              "queryRef": "margin_compression.Track Full",
-              "nativeQueryRef": "Track Full",
-              "displayName": "Track Full"
+              "queryRef": "margin_compression.Margin Norm Level",
+              "nativeQueryRef": "Margin",
+              "displayName": "Margin"
             }
           ]
         }
@@ -63,7 +63,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#ECEBE6'"
+                      "Value": "'#F8D2C2'"
                     }
                   }
                 }
@@ -92,7 +92,7 @@
             "end": {
               "expr": {
                 "Literal": {
-                  "Value": "60D"
+                  "Value": "100D"
                 }
               }
             },
@@ -126,7 +126,7 @@
             "innerPadding": {
               "expr": {
                 "Literal": {
-                  "Value": "55L"
+                  "Value": "66L"
                 }
               }
             }
@@ -334,7 +334,7 @@
                     [
                       {
                         "Literal": {
-                          "Value": "'Diesel'"
+                          "Value": "'Premium Petrol 95R'"
                         }
                       }
                     ]

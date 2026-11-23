@@ -3,7 +3,7 @@
   "name": "cphead",
   "position": {
     "x": 24,
-    "y": 532,
+    "y": 522,
     "z": 300,
     "height": 22,
     "width": 130,
@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Cost pressure",
+                    "value": "Importer margin",
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
                       "fontSize": "10.5pt",

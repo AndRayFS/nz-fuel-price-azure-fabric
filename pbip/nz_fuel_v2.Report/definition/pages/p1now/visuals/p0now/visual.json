@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
-  "name": "p0track",
+  "name": "p0now",
   "position": {
     "x": 38,
-    "y": 566,
-    "z": 321,
-    "height": 56,
+    "y": 554,
+    "z": 322,
+    "height": 54,
     "width": 372,
-    "tabOrder": 321
+    "tabOrder": 322
   },
   "visual": {
     "visualType": "barChart",
@@ -43,12 +43,12 @@
                       "Entity": "margin_compression"
                     }
                   },
-                  "Property": "Track Full"
+                  "Property": "Margin Now Level"
                 }
               },
-              "queryRef": "margin_compression.Track Full",
-              "nativeQueryRef": "Track Full",
-              "displayName": "Track Full"
+              "queryRef": "margin_compression.Margin Now Level",
+              "nativeQueryRef": "Margin",
+              "displayName": "Margin"
             }
           ]
         }
@@ -63,7 +63,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#ECEBE6'"
+                      "Value": "'#EB6834'"
                     }
                   }
                 }
@@ -92,7 +92,7 @@
             "end": {
               "expr": {
                 "Literal": {
-                  "Value": "60D"
+                  "Value": "100D"
                 }
               }
             },
@@ -126,7 +126,7 @@
             "innerPadding": {
               "expr": {
                 "Literal": {
-                  "Value": "55L"
+                  "Value": "66L"
                 }
               }
             }

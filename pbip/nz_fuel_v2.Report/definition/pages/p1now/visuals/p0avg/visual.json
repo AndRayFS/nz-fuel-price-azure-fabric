@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
-  "name": "p0bar",
+  "name": "p0avg",
   "position": {
     "x": 38,
-    "y": 566,
-    "z": 322,
-    "height": 56,
+    "y": 567,
+    "z": 323,
+    "height": 54,
     "width": 372,
-    "tabOrder": 322
+    "tabOrder": 323
   },
   "visual": {
     "visualType": "barChart",
@@ -43,12 +43,12 @@
                       "Entity": "margin_compression"
                     }
                   },
-                  "Property": "Margin Bar"
+                  "Property": "Margin Norm Level"
                 }
               },
-              "queryRef": "margin_compression.Margin Bar",
-              "nativeQueryRef": "Margin Bar",
-              "displayName": "Margin Bar"
+              "queryRef": "margin_compression.Margin Norm Level",
+              "nativeQueryRef": "Margin",
+              "displayName": "Margin"
             }
           ]
         }
@@ -62,27 +62,13 @@
               "solid": {
                 "color": {
                   "expr": {
-                    "Measure": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "margin_compression"
-                        }
-                      },
-                      "Property": "Cost Pressure Colour"
+                    "Literal": {
+                      "Value": "'#F8D2C2'"
                     }
                   }
                 }
               }
             }
-          },
-          "selector": {
-            "data": [
-              {
-                "dataViewWildcard": {
-                  "matchingOption": 1
-                }
-              }
-            ]
           }
         }
       ],
@@ -106,7 +92,7 @@
             "end": {
               "expr": {
                 "Literal": {
-                  "Value": "60D"
+                  "Value": "100D"
                 }
               }
             },
@@ -140,7 +126,7 @@
             "innerPadding": {
               "expr": {
                 "Literal": {
-                  "Value": "55L"
+                  "Value": "66L"
                 }
               }
             }
@@ -170,112 +156,6 @@
                 }
               }
             }
-          }
-        }
-      ],
-      "error": [
-        {
-          "properties": {
-            "enabled": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "barShow": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "shadeShow": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "barColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#1B1B19'"
-                    }
-                  }
-                }
-              }
-            },
-            "barWidth": {
-              "expr": {
-                "Literal": {
-                  "Value": "14D"
-                }
-              }
-            },
-            "barBorderSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "0L"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "margin_compression.Margin Bar"
-          }
-        },
-        {
-          "properties": {
-            "errorRange": {
-              "kind": "ErrorRange",
-              "explicit": {
-                "isRelative": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "false"
-                    }
-                  }
-                },
-                "upperBound": {
-                  "expr": {
-                    "Measure": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "margin_compression"
-                        }
-                      },
-                      "Property": "Margin Norm Bar"
-                    }
-                  }
-                },
-                "lowerBound": {
-                  "expr": {
-                    "Measure": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "margin_compression"
-                        }
-                      },
-                      "Property": "Margin Norm Bar"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "data": [
-              {
-                "dataViewWildcard": {
-                  "matchingOption": 0
-                }
-              }
-            ],
-            "metadata": "margin_compression.Margin Bar",
-            "highlightMatching": 1
           }
         }
       ]

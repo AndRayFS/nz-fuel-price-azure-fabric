@@ -15,28 +15,6 @@ table margin_compression
 		displayFolder: Now
 		lineageTag: 511e3d47-7e94-5b63-b3d1-978626571771
 
-	/// The grey track behind the cost pressure bar, 0-60 c/L as in the mock-up. Its own chart under the bar's: a stacked bar dropped both the colour measure and the norm's tick (4 Nov 2026).
-	measure 'Track Full' = IF(NOT ISBLANK([Margin Now]), 60)
-		formatString: 0
-		displayFolder: Now
-		lineageTag: 412662c2-2740-5ae6-a8a5-5b8e9555e2d7
-
-	/// Margin Now held to the 0-60 c/L track: a margin above 60 fills the bar, and the figures above it say by how much.
-	measure 'Margin Bar' =
-			VAR vM = [Margin Now]
-			RETURN IF(NOT ISBLANK(vM), MAX(0, MIN(60, vM)))
-		formatString: 0.0
-		displayFolder: Now
-		lineageTag: 47a15ff0-5cf2-5402-8f6d-6e69953a9fcd
-
-	/// Where the norm's tick sits on the same 0-60 c/L track.
-	measure 'Margin Norm Bar' =
-			VAR vN = [Margin Norm Now]
-			RETURN IF(NOT ISBLANK(vN), MAX(0, MIN(60, vN)))
-		formatString: 0.0
-		displayFolder: Now
-		lineageTag: 5a4666d7-eec4-5a27-8bc5-905b9986cc36
-
 	measure 'Margin Gap Now' =
 			VAR M = [Margin Now]
 			VAR N = [Margin Norm Now]
@@ -44,6 +22,31 @@ table margin_compression
 		formatString: +0.0;-0.0;0.0
 		displayFolder: Now
 		lineageTag: f7f4831d-1651-5f76-9725-0dc8f0db7942
+
+	/// The end of the cost pressure bars' scale, c/L: the largest margin of the three fuels, this week or on average.
+	measure 'Margin Scale' = MAXX(ALL(Fuel), MAX([Margin Now], [Margin Norm Now]))
+		formatString: 0.0
+		displayFolder: Now
+		isHidden
+		lineageTag: f793815c-737d-5457-949d-4ab93486541a
+
+	/// A cost pressure bar: this week's margin as a share of Margin Scale. One chart per bar, so the gap between the two is set by where they sit: a chart under ~50 px high does not draw.
+	measure 'Margin Now Level' =
+			VAR vV = [Margin Now]
+			RETURN IF(NOT ISBLANK(vV), 100 * DIVIDE(vV, [Margin Scale]))
+		formatString: 0.0
+		displayFolder: Now
+		isHidden
+		lineageTag: 0aa0309f-f657-5877-9b30-943067be908a
+
+	/// A cost pressure bar: its two-year average as a share of Margin Scale. One chart per bar, so the gap between the two is set by where they sit: a chart under ~50 px high does not draw.
+	measure 'Margin Norm Level' =
+			VAR vV = [Margin Norm Now]
+			RETURN IF(NOT ISBLANK(vV), 100 * DIVIDE(vV, [Margin Scale]))
+		formatString: 0.0
+		displayFolder: Now
+		isHidden
+		lineageTag: 50d1552a-2ff6-5e44-a2b0-83f1795b7130
 
 	measure 'Cost Pressure Label' =
 			IF(NOT ISBLANK([Margin Gap Now]),
@@ -55,14 +58,9 @@ table margin_compression
 		displayFolder: Now
 		lineageTag: 40d6b7fe-53e8-5fbd-a468-4fc5679333f8
 
-	/// Orange whenever the margin is below its norm, as the legend says: costs have run ahead of the pump. It had a 5 c/L threshold, the headline's "close to", until 5 Nov 2026, when -0.5 and -1.7 stayed grey under a legend that said orange.
-	measure 'Cost Pressure Colour' = IF([Margin Gap Now] < 0, "#EB6834", "#8A8983")
-		displayFolder: Now
-		lineageTag: 89748666-bb76-58a3-8462-19d58e7c9ee1
-
 	measure 'Cost Pressure Heading' =
-			"Importer margin against its two-year average, week to " & FORMAT([Latest Week], "d mmm")
-			    & " · orange: below average, costs have run ahead of the pump"
+			"Week to " & FORMAT([Latest Week], "d mmm") & ", orange, against its two-year average, pale"
+			    & " · one scale for the three fuels · a margin below its average: costs have run ahead of the pump"
 		displayFolder: Now
 		lineageTag: a105f357-c026-5569-9233-77985b6dd7e0
 

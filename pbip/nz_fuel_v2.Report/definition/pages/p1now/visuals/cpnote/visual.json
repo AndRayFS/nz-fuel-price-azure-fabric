@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "cpnote",
   "position": {
-    "x": 152,
-    "y": 535,
+    "x": 138,
+    "y": 525,
     "z": 301,
     "height": 18,
-    "width": 1104,
+    "width": 1118,
     "tabOrder": 301
   },
   "visual": {
