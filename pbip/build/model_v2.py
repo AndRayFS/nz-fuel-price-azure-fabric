@@ -189,7 +189,7 @@ pm.append(measure(P, "Change 4w Colour", 'IF([Change 4w] >= 0, "#D03B3B", "#1F7A
     desc="Rising price in red, falling in green, to be read at a glance (owner, 12 Nov 2026; until then a fall was grey). The green is darker than Regular 91's #40B54A, so the two do not read as one."))
 pm.append(measure(P, "Change 4w Fill", 'IF([Change 4w] >= 0, "#FBE7E5", "#E4F2E7")', folder="Now"))
 pm.append(measure(P, "Tooltip Fuel", "SELECTEDVALUE(Fuel[Fuel name])", folder="Now",
-    desc="The cost pressure bars' tooltip, the fuel alone. The default one repeated the figures above the bar, as the bar's own value and the tick twice, as the error bar's Lower and Upper (12 Nov 2026)."))
+    desc="The cost pressure bars' tooltip, the fuel alone. The default one repeated the figures above the bars, as a scaled share no reader needs (12 Nov 2026; the bars changed on 23 Nov)."))
 pm.append(measure(P, "Week To Label", '"Average paid, week to " & FORMAT([Latest Week], "d mmm")', folder="Now"))
 pm.append(measure(P, "Header Weeks", '''
 "Latest MBIE week: " & FORMAT([Latest Week], "d mmm yyyy")
@@ -660,40 +660,31 @@ mm.append(measure(M, "Margin Gap Now", '''
 VAR M = [Margin Now]
 VAR N = [Margin Norm Now]
 RETURN IF(NOT ISBLANK(M) && NOT ISBLANK(N), M - N)''', fmt="+0.0;-0.0;0.0", folder="Now"))
-# The cost pressure bar is the gap itself, drawn from the average in the middle of
-# its track. Until 23 Nov 2026 it was the margin on a 0-60 c/L track with the norm as
-# a tick, and 60 came from the mock-up: on 13 Nov, 68.1 and 76.8 c/L filled the bar,
-# and 95's +29.6 looked smaller than diesel's +14.4 (an outside review, R1). One scale
-# for the three fuels, wide enough for the largest gap and never under 20 c/L, so a
-# calm week does not blow a cent up to half a track. The bars are drawn on a fixed
-# -100..100 axis and the scale is applied here: an axis end cannot be a measure.
-mm.append(measure(M, "Gap Scale", '''
-VAR vMax = MAXX(ALL(Fuel), ABS([Margin Gap Now]))
-RETURN IF(NOT ISBLANK(vMax), MAX(20, vMax))''', fmt="0", folder="Now", hidden=True,
-    desc="Where the cost pressure track ends either side of the average, c/L: the largest gap of the three fuels this week, 20 at least."))
-mm.append(measure(M, "Gap Bar", '''
-VAR vG = [Margin Gap Now]
-RETURN IF(NOT ISBLANK(vG), 100 * DIVIDE(vG, [Gap Scale]))''', fmt="0.0", folder="Now", hidden=True,
-    desc="The gap as a share of Gap Scale, -100..100: the cost pressure bar."))
-for name, end in (("Track Left", -100), ("Track Right", 100)):
-    mm.append(measure(M, name, f'''
-IF(NOT ISBLANK([Margin Gap Now]), {end})''', fmt="0", folder="Now", hidden=True,
-        desc="The grey track behind the cost pressure bar, one half of it. Its own chart under the bar's: a stacked bar dropped both the colour measure and the tick (4 Nov 2026)."))
-mm.append(measure(M, "Gap Zero", '''
-IF(NOT ISBLANK([Margin Gap Now]), 0)''', fmt="0", folder="Now", hidden=True,
-    desc="The average's tick in the middle of the cost pressure track."))
+# The cost pressure bars: the margin this week over its two-year average, two bars
+# per fuel on one scale for the three, in Margin's colours (orange this week, pale
+# the average), so the two pages read alike. Until 23 Nov 2026 it was the margin on a
+# 0-60 c/L track with the norm as a tick, and 60 came from the mock-up: on 13 Nov
+# 68.1 and 76.8 c/L filled it, and 95's +29.6 drew shorter than diesel's +14.4 (an
+# outside review, R1). The scale is the largest of the six values and is applied
+# here, on a fixed 0..100 axis: an axis end cannot be a measure.
+mm.append(measure(M, "Margin Scale", '''
+MAXX(ALL(Fuel), MAX([Margin Now], [Margin Norm Now]))''', fmt="0.0", folder="Now", hidden=True,
+    desc="The end of the cost pressure bars' scale, c/L: the largest margin of the three fuels, this week or on average."))
+mm.append(measure(M, "Margin Level Bar", '''
+VAR vV = SWITCH(SELECTEDVALUE('Share Row'[Kind]), "Newest week", [Margin Now], "Average", [Margin Norm Now])
+RETURN IF(NOT ISBLANK(vV), 100 * DIVIDE(vV, [Margin Scale]))''', fmt="0.0", folder="Now", hidden=True,
+    desc="The cost pressure bars: this week's margin in the Newest week row, its two-year average in the Average row, as a share of Margin Scale."))
+mm.append(measure(M, "Margin Level Colour", '''
+IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", "#F8D2C2", "#EB6834")''', folder="Now", hidden=True,
+    desc="Margin's colours for the importer margin: orange this week, pale on average."))
 mm.append(measure(M, "Cost Pressure Label", '''
 IF(NOT ISBLANK([Margin Gap Now]),
     FORMAT([Margin Now], "0.0") & " c/L now · average " & FORMAT([Margin Norm Now], "0.0"))''', folder="Now"))
 mm.append(measure(M, "Cost Pressure Gap Label", '''
 IF(NOT ISBLANK([Margin Gap Now]), FORMAT([Margin Gap Now], "+0.0;-0.0;0.0") & " c/L")''', folder="Now"))
-mm.append(measure(M, "Cost Pressure Colour", '''
-IF([Margin Gap Now] < 0, "#EB6834", "#8A8983")''', folder="Now",
-    desc="Orange whenever the margin is below its norm, as the legend says: costs have run ahead of the pump. It had a 5 c/L threshold, the headline's \"close to\", until 5 Nov 2026, when -0.5 and -1.7 stayed grey under a legend that said orange."))
 mm.append(measure(M, "Cost Pressure Heading", '''
-"Importer margin against its two-year average, week to " & FORMAT([Latest Week], "d mmm")
-    & " · bars from the average, one scale, ±" & FORMAT([Gap Scale], "0.0") & " c/L at the ends"
-    & " · orange: below average, costs have run ahead of the pump"''', folder="Now"))
+"Importer margin, week to " & FORMAT([Latest Week], "d mmm") & ", orange, against its two-year average, pale"
+    & " · one scale for the three fuels · a margin below its average: costs have run ahead of the pump"''', folder="Now"))
 
 mm.append(measure(M, "Gap (chart)", '''
 VAR vM = AVERAGE(margin_compression[importer_margin])

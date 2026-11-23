@@ -8,10 +8,9 @@ FUELS = [("Regular Petrol", "Regular 91", "#40B54A", 78),
          ("Premium Petrol 95R", "Premium 95", "#E5C700", 82),
          ("Diesel", "Diesel", "#4D4C48", 46)]
 CARD_X = [24, 440, 856]; CARD_W = 400
-TRACK = "#ECEBE6"
-# The cost pressure bars' tooltip page. The default tooltip listed the bar's own value
-# and the tick twice, as the error bar's Lower and Upper; the figures above the bar
-# already say what matters, so the tooltip names the fuel and nothing else.
+# The cost pressure bars' tooltip page. The default tooltip listed the bars' own
+# values, a scaled share; the figures above them already say what matters, so the
+# tooltip names the fuel and nothing else.
 TIP, TIP_SIZE = "p1tipfuel", (130, 34)
 # Type for the headline and the three prices. A was kept on 4 Nov 2026 after B, light
 # for both, was tried side by side; B is still on the hidden Fonts page.
@@ -56,37 +55,28 @@ def price_chart(key):
         },
         "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
 
-def pressure_chart(measures, bar):
-    """Bars on a fixed -100..100 axis, the gap scaled to it by Gap Scale. The track
-    (both halves, one series each, stacked) and the gap are two of these, one over the
-    other: in a single stacked chart Power BI dropped both the colour measure and the
-    error-bar tick (4 Nov 2026), and both work on a single series."""
-    ref = "margin_compression." + measures[0]
-    v = {"visualType": "barChart",
+PRESSURE_PAD = 45    # innerPadding of the two-bar chart; tuned on the dev copy
+
+def pressure_chart():
+    """Two bars, this week's margin over its two-year average, on a fixed 0..100 axis:
+    Margin Level Bar is scaled by Margin Scale, one scale for the three fuels. One
+    series, coloured per row by a measure, as on Margin: orange, then pale."""
+    return {"visualType": "barChart",
         "query": {"queryState": {
-            "Category": {"projections": [proj("c", "Fuel", "Fuel name", "Fuel", active=True)]},
-            "Y": {"projections": [proj("m", "margin_compression", m, m) for m in measures]}}},
+            "Category": {"projections": [proj("c", "Share Row", "Kind", "Kind", active=True)]},
+            "Y": {"projections": [proj("m", "margin_compression", "Margin Level Bar", "Margin")]}},
+            "sortDefinition": {"sort": [{"field": cref("Share Row", "Kind"), "direction": "Ascending"}], "isDefaultSort": True}},
         "objects": {
-            "dataPoint": [obj({"fill": mcol("margin_compression", "Cost Pressure Colour")},
-                              {"data": [{"dataViewWildcard": {"matchingOption": 1}}]})] if bar else
-                         [obj({"fill": col(TRACK)}, {"metadata": "margin_compression." + m}) for m in measures],
-            "valueAxis": [obj({"show": b(False), "start": d(-100), "end": d(100), "gridlineShow": b(False)})],
-            "categoryAxis": [obj({"show": b(False), "showAxisTitle": b(False), "innerPadding": L(55)})],
+            "dataPoint": [obj({"fill": mcol("margin_compression", "Margin Level Colour")},
+                              {"data": [{"dataViewWildcard": {"matchingOption": 1}}]})],
+            "valueAxis": [obj({"show": b(False), "start": d(0), "end": d(100), "gridlineShow": b(False)})],
+            "categoryAxis": [obj({"show": b(False), "showAxisTitle": b(False), "innerPadding": L(PRESSURE_PAD)})],
             "legend": [obj({"show": b(False)})],
             "labels": [obj({"show": b(False)})],
         },
-        "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
-    v["visualContainerObjects"]["visualTooltip"] = [obj({"show": b(True), "type": s("Canvas"), "section": s(TIP)})]
-    if bar:
-        v["objects"]["error"] = [
-            obj({"enabled": b(True), "barShow": b(True), "shadeShow": b(False), "barColor": col(INK),
-                 "barWidth": d(14), "barBorderSize": L(0)}, {"metadata": ref}),
-            obj({"errorRange": {"kind": "ErrorRange", "explicit": {
-                    "isRelative": b(False),
-                    "upperBound": mexpr("margin_compression", "Gap Zero"),
-                    "lowerBound": mexpr("margin_compression", "Gap Zero")}}},
-                {"data": [{"dataViewWildcard": {"matchingOption": 0}}], "metadata": ref, "highlightMatching": 1})]
-    return v
+        "visualContainerObjects": dict(chrome(padding=(0, 0, 0, 0)),
+            visualTooltip=[obj({"show": b(True), "type": s("Canvas"), "section": s(TIP)})]),
+        "drillFilterOtherVisuals": True}
 
 def legend(z):
     """Legend marks drawn as shapes, at the weights the chart uses: a 2 px line, a
@@ -145,13 +135,12 @@ def page_now(style):
     V.append(container("cpnote", 152, 535, 1104, 18, z + 1, title_text("margin_compression", "Cost Pressure Heading", 8.25, MUTED)))
     for i, (key, label, colour, uw) in enumerate(FUELS):
         x = CARD_X[i]; y = 556; z = 320 + i * 10; f = [fuel_filter(key)]
-        # As in the mock-up: the figures quiet, the gap in black on the right, then an
-        # 8 px track, the gap drawn from the average's tick in its middle (R1, 23 Nov 2026).
-        # The label sits 3 px lower to share the gap's baseline.
+        # As in the mock-up: the figures quiet, the gap in black on the right; under them
+        # two bars, this week and the average (R1, 23 Nov 2026). The label sits 3 px lower
+        # to share the gap's baseline.
         V += [
-            container(f"p{i}bg", x, y, CARD_W, 54, z, blank(PAPER, border=LINE, radius=8)),
-            container(f"p{i}track", x + 14, y + 10, 372, 56, z + 1, pressure_chart(["Track Left", "Track Right"], bar=False), f),
-            container(f"p{i}bar", x + 14, y + 10, 372, 56, z + 2, pressure_chart(["Gap Bar"], bar=True), f),
+            container(f"p{i}bg", x, y, CARD_W, 64, z, blank(PAPER, border=LINE, radius=8)),
+            container(f"p{i}bar", x + 14, y + 16, 372, 54, z + 2, pressure_chart(), f),
             container(f"p{i}lbl", x + 16, y + 11, 260, 18, z + 5, title_text("margin_compression", "Cost Pressure Label", 9, MUTED), f),
             container(f"p{i}gap", x + 276, y + 8, 108, 22, z + 6,
                       title_text("margin_compression", "Cost Pressure Gap Label", 11.25, INK, bold=True, align="right"), f),
