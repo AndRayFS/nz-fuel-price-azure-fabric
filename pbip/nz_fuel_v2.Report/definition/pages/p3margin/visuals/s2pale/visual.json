@@ -58,42 +58,12 @@
                       "Entity": "prices"
                     }
                   },
-                  "Property": "Taxes Bar (average)"
+                  "Property": "Taxes ETS GST Bar (average)"
                 }
               },
-              "queryRef": "prices.Taxes Bar (average)",
-              "nativeQueryRef": "Taxes and levies",
-              "displayName": "Taxes and levies"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "prices"
-                    }
-                  },
-                  "Property": "ETS Bar (average)"
-                }
-              },
-              "queryRef": "prices.ETS Bar (average)",
-              "nativeQueryRef": "Emissions trading",
-              "displayName": "Emissions trading"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "prices"
-                    }
-                  },
-                  "Property": "GST Bar (average)"
-                }
-              },
-              "queryRef": "prices.GST Bar (average)",
-              "nativeQueryRef": "GST",
-              "displayName": "GST"
+              "queryRef": "prices.Taxes ETS GST Bar (average)",
+              "nativeQueryRef": "Taxes, ETS and GST",
+              "displayName": "Taxes, ETS and GST"
             },
             {
               "field": {
@@ -159,7 +129,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#DFDED9'"
+                      "Value": "'#D6DCE6'"
                     }
                   }
                 }
@@ -167,43 +137,7 @@
             }
           },
           "selector": {
-            "metadata": "prices.Taxes Bar (average)"
-          }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#E8E7E2'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "prices.ETS Bar (average)"
-          }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#EFEEEA'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "prices.GST Bar (average)"
+            "metadata": "prices.Taxes ETS GST Bar (average)"
           }
         },
         {
@@ -291,57 +225,7 @@
             }
           },
           "selector": {
-            "metadata": "prices.Taxes Bar (average)"
-          }
-        },
-        {
-          "properties": {
-            "showSeries": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "color": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#5C5B56'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "prices.ETS Bar (average)"
-          }
-        },
-        {
-          "properties": {
-            "showSeries": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "color": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#5C5B56'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "prices.GST Bar (average)"
+            "metadata": "prices.Taxes ETS GST Bar (average)"
           }
         },
         {

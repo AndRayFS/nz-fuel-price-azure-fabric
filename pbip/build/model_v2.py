@@ -612,8 +612,15 @@ RETURN CALCULATE(AVERAGE(prices[{col_}]), REMOVEFILTERS(Week), prices[week_date]
 VAR vW = [Latest Week]
 RETURN CALCULATE(AVERAGE(prices[{col_}]), REMOVEFILTERS(Week), prices[week_date] >= vW - 728, prices[week_date] < vW)''',
         fmt="0.0", folder=MG, hidden=True))
+# The bars draw three parts: the cost, the charges on a litre together, the margin.
+# Excise and levies, ETS and GST were three parts in three near greys until 25 Nov 2026
+# (owner, 25 Nov); their own measures above stay for anyone who wants them apart.
+for stem in ("Now", "Average"):
+    pm.append(measure(P, f"Taxes ETS GST {stem} (c/L)", f"[Taxes {stem} (c/L)] + [ETS {stem} (c/L)] + [GST {stem} (c/L)]",
+        fmt="0.0", folder=MG, hidden=True))
+BARS = ["Cost", "Taxes ETS GST", "Margin"]
 QQ = '""""'    # DAX for a string holding one double quote: a format string's literal text
-for name, _ in PARTS:
+for name in BARS:
     # Bars in c/L on one scale, as in the mock-up, so the average litre is drawn
     # shorter than this week's; the label shows the part's share of the price through
     # a dynamic format string. 0 rather than blank on the other row, so both layers

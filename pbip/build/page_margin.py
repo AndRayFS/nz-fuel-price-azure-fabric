@@ -24,13 +24,19 @@ for key_, *_ in FUELS:
     dy = GAP_BLOCKS[-1][0] + 26 + GAP_BLOCKS[-1][1] + 6 if GAP_BLOCKS else 64
     GAP_BLOCKS.append((dy, GAP_HEIGHTS[key_]))
 # (measure stem, legend label, colour this week, colour on average, label colour this week)
-PARTS = [("Cost", "Importer cost", "#5C5B56", "#CFCECA", PAPER), ("Taxes", "Taxes and levies", "#A3A29B", "#DFDED9", INK),
-         ("ETS", "Emissions trading", "#C9C8C1", "#E8E7E2", INK), ("GST", "GST", "#DEDDD7", "#EFEEEA", INK),
+# Three parts, three colours that cannot be mistaken for one another. Until 25 Nov 2026
+# excise and levies, ETS and GST were three parts in three near greys, and a reader had
+# to work out which was which before reading anything (owner, 25 Nov). The page is about
+# the margin against the cost; the charges are its background, and the five parts are
+# on Data, Weekly prices. (GST's label had gone the day before: 15/115 of every price,
+# 13% always - outside review V9.)
+PARTS = [("Cost", "Importer cost", "#5C5B56", "#CFCECA", PAPER),
+         ("Taxes ETS GST", "Taxes, ETS and GST", "#8C99AE", "#D6DCE6", INK),
          ("Margin", "Importer margin", ORANGE, "#F8D2C2", INK)]
-# ETS and the margin are too thin to carry a label; the margin's is on the right. GST's
-# label went on 24 Nov 2026: its share is 15/115 of every price, 13% always, so it said
-# nothing (outside review V9).
-LABELLED = {"Cost", "Taxes"}
+# The charges are a cool slate, not a lighter grey: in grey, the cost's pale (average)
+# shade was the charges' own shade a row above, and read as them (dev copy, 25 Nov).
+# The margin's label is on the right, in bold, beside its bar.
+LABELLED = {"Cost", "Taxes ETS GST"}
 
 def gap_layer(layer):
     """One of three column charts drawn on one another on the same axis: 'band' for
@@ -160,9 +166,8 @@ def page_margin():
                         title_text(P, "Margin Share Average Label", 9.75, MUTED, align="right"), f)]
     V.append(container("rdiesel", x + 16, y + 104 + 2 * 118 + 112, w - 32, 18, z + 50, textbox([[(
         "Diesel's road taxes are paid as road user charges, outside the price paid.", 8.25, MUTED, False)]])))
-    swatches = [(label, lw, [(10, 10, 1, full)]) for (_, label, full, _, _), lw in zip(PARTS, (72, 88, 96, 26, 96))]
-    V += key(swatches[:3], x + 16, y + h - 44, z + 60, "sk", size=8.25)
-    V += key(swatches[3:], x + 16, y + h - 26, z + 60, "sl", size=8.25)
+    swatches = [(label, lw, [(10, 10, 1, full)]) for (_, label, full, _, _), lw in zip(PARTS, (72, 104, 96))]
+    V += key(swatches, x + 16, y + h - 36, z + 60, "sk", size=8.25)
 
     # 76, not 72: the text box trims the space before "has", so the gap is the link box's
     # spare width; at 72 the words touched (outside review V11, 24 Nov 2026).
