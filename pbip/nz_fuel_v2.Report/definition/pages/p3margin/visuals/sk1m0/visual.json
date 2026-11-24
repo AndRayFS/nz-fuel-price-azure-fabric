@@ -3,7 +3,7 @@
   "name": "sk1m0",
   "position": {
     "x": 904,
-    "y": 609,
+    "y": 617,
     "z": 360,
     "height": 10,
     "width": 10,
@@ -208,7 +208,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#A3A29B'"
+                      "Value": "'#8C99AE'"
                     }
                   }
                 }

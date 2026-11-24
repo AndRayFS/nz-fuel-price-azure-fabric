@@ -11,7 +11,7 @@ table prices
 		displayFolder: Now
 		lineageTag: 15e76f97-7afa-54df-8965-3e637c8c449c
 
-	/// MBIE's national average price paid for the week, c/L. A few cents below the pump sign.
+	/// MBIE's national average price paid for the week, c/L. A few cents below the sign price.
 	measure 'Average Paid' = AVERAGE(prices[adjusted_retail_price])
 		formatString: 0.0
 		displayFolder: Now
@@ -145,10 +145,13 @@ table prices
 			VAR W = [Latest Week]
 			VAR Sign = [Regular On Sign]
 			RETURN
-			"Average paid: MBIE's national average for the week, a few cents below the pump sign"
-			    & IF(NOT ISBLANK(Sign), " (MBIE's sign price for Regular 91 that week: " & FORMAT(Sign, "0.0") & ")", "")
+			"Average paid: MBIE's national average for the week, after discounts, a few cents below the sign price"
+			    & IF(NOT ISBLANK(Sign), " (MBIE's figure for Regular 91 that week: " & FORMAT(Sign, "0.0") & ")", "")
 			    & ". MBIE publishes about a week later"
-			    & IF(TODAY() > W + 7, ", so " & FORMAT(W + 7, "d mmm") & " has passed but is not yet out", "")
+			    // The week stamped W + 7 runs Monday W + 3 to Sunday W + 9 (a week is stamped on its
+			    // Friday), so it has passed from W + 10. Until 24 Nov 2026 this said so from W + 8,
+			    // its Saturday (outside review V5).
+			    & IF(TODAY() > W + 9, ", so " & FORMAT(W + 7, "d mmm") & " has passed but is not yet out", "")
 			    & ". Calls come from a walk-forward backtest model and are not published forecasts"
 			    & [Nowcast Note] & "."
 		displayFolder: Now
@@ -238,14 +241,14 @@ table prices
 			        TRUE(),
 			        NOT HavePrices, "",
 			        SameTurn,
-			            "Over four weeks, pump prices " & IF(PetTurn = "peak", "rose ", "fell ") & AmtA & " c/L to " & FORMAT(PetWk, "d mmm")
+			            "Over four weeks, prices paid " & IF(PetTurn = "peak", "rose ", "fell ") & AmtA & " c/L to " & FORMAT(PetWk, "d mmm")
 			                & ", then " & IF(PetTurn = "peak", "fell ", "rose ") & AmtB & ".",
 			        PetTurn <> "" || DslTurn <> "", "Over four weeks, petrol " & PhrasePet & "; diesel " & PhraseDsl & ".",
-			        NUp = 3, "Pump prices rose " & AmtUp & " c/L in four weeks.",
-			        NDown = 3, "Pump prices fell " & AmtDown & " c/L in four weeks.",
-			        NUp + NDown = 0, "Pump prices barely moved in four weeks.",
+			        NUp = 3, "Prices paid rose " & AmtUp & " c/L in four weeks.",
+			        NDown = 3, "Prices paid fell " & AmtDown & " c/L in four weeks.",
+			        NUp + NDown = 0, "Prices paid barely moved in four weeks.",
 			        VerbPet = VerbDsl,
-			            IF(VerbPet = "held steady", "Pump prices barely moved in four weeks.", "Pump prices " & VerbPet & " in four weeks."),
+			            IF(VerbPet = "held steady", "Prices paid barely moved in four weeks.", "Prices paid " & VerbPet & " in four weeks."),
 			        "Petrol " & VerbPet & " in four weeks; diesel " & VerbDsl & "."
 			    )
 			VAR ClauseB = [Headline Margin Clause]
@@ -408,6 +411,18 @@ table prices
 		isHidden
 		lineageTag: a1531fae-c3ab-5300-91c2-ee078245e6a5
 
+	measure 'Taxes ETS GST Now (c/L)' = [Taxes Now (c/L)] + [ETS Now (c/L)] + [GST Now (c/L)]
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 23dc6194-ae9c-50a6-a5c6-12b150dc0c39
+
+	measure 'Taxes ETS GST Average (c/L)' = [Taxes Average (c/L)] + [ETS Average (c/L)] + [GST Average (c/L)]
+		formatString: 0.0
+		displayFolder: Margin
+		isHidden
+		lineageTag: c4960933-0ac1-55a6-90c4-0f45e7ae5d74
+
 	measure 'Cost Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [Cost Now (c/L)], 0)
 		displayFolder: Margin
 		lineageTag: a7520f41-b268-569c-91a6-9ef20a67a440
@@ -420,41 +435,17 @@ table prices
 
 		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([Cost Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
 
-	measure 'Taxes Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [Taxes Now (c/L)], 0)
+	measure 'Taxes ETS GST Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [Taxes ETS GST Now (c/L)], 0)
 		displayFolder: Margin
-		lineageTag: b187e5c9-c059-5814-a6ec-bf1c39d5f91d
+		lineageTag: 2073067c-d58c-51bb-bb6a-112f40f78673
 
-		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", """" & FORMAT(DIVIDE([Taxes Now (c/L)], [Price Now (c/L)]), "0%") & """", "0")
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", """" & FORMAT(DIVIDE([Taxes ETS GST Now (c/L)], [Price Now (c/L)]), "0%") & """", "0")
 
-	measure 'Taxes Bar (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", [Taxes Average (c/L)], 0)
+	measure 'Taxes ETS GST Bar (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", [Taxes ETS GST Average (c/L)], 0)
 		displayFolder: Margin
-		lineageTag: 96648584-f290-545a-9944-5989260631f0
+		lineageTag: 8f332ad8-c548-5b67-aa35-7c8b145c9ea4
 
-		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([Taxes Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
-
-	measure 'ETS Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [ETS Now (c/L)], 0)
-		displayFolder: Margin
-		lineageTag: 40cd9a30-3ce8-58e5-bd2b-63b79e7da18c
-
-		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", """" & FORMAT(DIVIDE([ETS Now (c/L)], [Price Now (c/L)]), "0%") & """", "0")
-
-	measure 'ETS Bar (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", [ETS Average (c/L)], 0)
-		displayFolder: Margin
-		lineageTag: cfe2a621-7993-5fcd-aa5d-71fe459a8098
-
-		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([ETS Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
-
-	measure 'GST Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [GST Now (c/L)], 0)
-		displayFolder: Margin
-		lineageTag: 19859e9c-c3bd-5ba0-a5ac-169e8c06f665
-
-		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", """" & FORMAT(DIVIDE([GST Now (c/L)], [Price Now (c/L)]), "0%") & """", "0")
-
-	measure 'GST Bar (average)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", [GST Average (c/L)], 0)
-		displayFolder: Margin
-		lineageTag: 34504106-2a48-58d8-a1f4-61bb24431102
-
-		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([GST Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
+		formatStringDefinition = IF(SELECTEDVALUE('Share Row'[Kind]) = "Average", """" & FORMAT(DIVIDE([Taxes ETS GST Average (c/L)], [Price Average (c/L)]), "0%") & """", "0")
 
 	measure 'Margin Bar (now)' = IF(SELECTEDVALUE('Share Row'[Kind]) = "Newest week", [Margin Now (c/L)], 0)
 		displayFolder: Margin
@@ -516,10 +507,20 @@ table prices
 		displayFolder: Margin
 		lineageTag: 83985d86-46d6-53c7-8b45-16208856bbb8
 
-	/// Margin's title: what a squeeze means, then where the margins stand now, in Now's words.
+	/// Margin's title: what the margins' side of their average means, then where they stand now, in Now's words.
 	measure 'Margin Headline' =
+			VAR NEAR = 5
+			VAR G91 = CALCULATE([Margin Gap Now], Fuel[fuel] = "Regular Petrol")
+			VAR G95 = CALCULATE([Margin Gap Now], Fuel[fuel] = "Premium Petrol 95R")
+			VAR GD = CALCULATE([Margin Gap Now], Fuel[fuel] = "Diesel")
+			VAR GPet = (G91 + G95) / 2
+			VAR vAll = NOT (ISBLANK(G91) || ISBLANK(G95) || ISBLANK(GD))
+			VAR vA = SWITCH(TRUE(),
+			    vAll && GPet <= -NEAR && GD <= -NEAR, "A squeezed margin is a cost rise the pump has not passed on yet.",
+			    vAll && GPet >= NEAR && GD >= NEAR, "A margin above its average is a cost fall the pump has not passed on yet.",
+			    "A margin below its average is a cost rise the pump has not passed on yet; one above it, a cost fall.")
 			VAR vB = [Headline Margin Clause]
-			RETURN "A squeezed margin is a cost rise the pump has not passed on yet." & IF(vB <> "", " " & vB)
+			RETURN vA & IF(vB <> "", " " & vB)
 		displayFolder: Margin
 		lineageTag: e03d5d7d-9e91-506e-a1b0-2e7775cbece5
 
@@ -556,7 +557,7 @@ table prices
 	measure 'Data Prices Caption' =
 			VAR vN = COUNTROWS(prices)
 			VAR vFrom = MIN(prices[week_date])
-			RETURN FORMAT(vN, "#,0") & " weeks since " & FORMAT(vFrom, "mmm yyyy") & ", newest first, c/L. The five parts add up to the pump price."
+			RETURN FORMAT(vN, "#,0") & " weeks since " & FORMAT(vFrom, "mmm yyyy") & ", newest first, c/L. The five parts add up to the price paid."
 		displayFolder: Data
 		lineageTag: 5bacb859-e062-52bb-a025-30f960708dfe
 

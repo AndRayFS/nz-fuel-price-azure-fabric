@@ -1,6 +1,7 @@
 """Write the W21 model additions as TMDL into the worktree. Re-runnable: lineage
 tags are derived from names, so a rerun rewrites identical files."""
 import uuid, sys, pathlib, textwrap, re
+from pbir import GAP_HEIGHTS, GAP_PLOT_INSET
 
 ROOT = pathlib.Path(sys.argv[1]) / "pbip/nz_fuel_v2.SemanticModel/definition"
 NS = uuid.UUID("6f1c2d3e-0a4b-4c5d-8e9f-a1b2c3d4e5f6")
@@ -161,7 +162,7 @@ VAR AsOf = SELECTEDVALUE('As Of'[As of week])
 RETURN IF(ISBLANK(AsOf), Newest, MIN(AsOf, Newest))''', fmt="d mmm yyyy", folder="Now",
     desc="The newest MBIE week in the model, whatever the visual filters. On the hidden test page, the week picked there instead."))
 pm.append(measure(P, "Average Paid", "AVERAGE(prices[adjusted_retail_price])", fmt="0.0", folder="Now",
-    desc="MBIE's national average price paid for the week, c/L. A few cents below the pump sign."))
+    desc="MBIE's national average price paid for the week, c/L. A few cents below the sign price."))
 pm.append(measure(P, "Price Now", '''
 VAR W = [Latest Week]
 RETURN CALCULATE([Average Paid], REMOVEFILTERS(Week), REMOVEFILTERS(prices[week_date]), prices[week_date] = W)''', fmt="0.0", folder="Now"))
@@ -224,10 +225,13 @@ pm.append(measure(P, "Now Footer", """
 VAR W = [Latest Week]
 VAR Sign = [Regular On Sign]
 RETURN
-"Average paid: MBIE's national average for the week, a few cents below the pump sign"
-    & IF(NOT ISBLANK(Sign), " (MBIE's sign price for Regular 91 that week: " & FORMAT(Sign, "0.0") & ")", "")
+"Average paid: MBIE's national average for the week, after discounts, a few cents below the sign price"
+    & IF(NOT ISBLANK(Sign), " (MBIE's figure for Regular 91 that week: " & FORMAT(Sign, "0.0") & ")", "")
     & ". MBIE publishes about a week later"
-    & IF(TODAY() > W + 7, ", so " & FORMAT(W + 7, "d mmm") & " has passed but is not yet out", "")
+    // The week stamped W + 7 runs Monday W + 3 to Sunday W + 9 (a week is stamped on its
+    // Friday), so it has passed from W + 10. Until 24 Nov 2026 this said so from W + 8,
+    // its Saturday (outside review V5).
+    & IF(TODAY() > W + 9, ", so " & FORMAT(W + 7, "d mmm") & " has passed but is not yet out", "")
     & ". Calls come from a walk-forward backtest model and are not published forecasts"
     & [Nowcast Note] & "."
 """, folder="Now"))
@@ -314,14 +318,14 @@ VAR ClauseA =
         TRUE(),
         NOT HavePrices, "",
         SameTurn,
-            "Over four weeks, pump prices " & IF(PetTurn = "peak", "rose ", "fell ") & AmtA & " c/L to " & FORMAT(PetWk, "d mmm")
+            "Over four weeks, prices paid " & IF(PetTurn = "peak", "rose ", "fell ") & AmtA & " c/L to " & FORMAT(PetWk, "d mmm")
                 & ", then " & IF(PetTurn = "peak", "fell ", "rose ") & AmtB & ".",
         PetTurn <> "" || DslTurn <> "", "Over four weeks, petrol " & PhrasePet & "; diesel " & PhraseDsl & ".",
-        NUp = 3, "Pump prices rose " & AmtUp & " c/L in four weeks.",
-        NDown = 3, "Pump prices fell " & AmtDown & " c/L in four weeks.",
-        NUp + NDown = 0, "Pump prices barely moved in four weeks.",
+        NUp = 3, "Prices paid rose " & AmtUp & " c/L in four weeks.",
+        NDown = 3, "Prices paid fell " & AmtDown & " c/L in four weeks.",
+        NUp + NDown = 0, "Prices paid barely moved in four weeks.",
         VerbPet = VerbDsl,
-            IF(VerbPet = "held steady", "Pump prices barely moved in four weeks.", "Pump prices " & VerbPet & " in four weeks."),
+            IF(VerbPet = "held steady", "Prices paid barely moved in four weeks.", "Prices paid " & VerbPet & " in four weeks."),
         "Petrol " & VerbPet & " in four weeks; diesel " & VerbDsl & "."
     )
 VAR ClauseB = [Headline Margin Clause]
@@ -455,9 +459,14 @@ IF(
 )''', fmt="0.0", folder="Now",
         desc="Edge of the band around the calls: the call plus the " + ("25th" if q == "0.25" else "75th") + " percentile of past misses (actual minus call) at the same horizon, in weeks of the same crude-volatility regime as the newest, all three fuels pooled, outcomes known by the newest week. Agreed in the review of 19 Oct: the middle half of misses in weeks like this one, so the band widens when crude is volatile."))
 for n in (1, 2, 3):
+    # The first call's week, stamped vLatest + 7, runs Monday vLatest + 3 to Sunday
+    # vLatest + 9, and the load lands on its Thursday: that call is for a week under
+    # way, made with its first three days of crude (outside review V5). TODAY() is UTC
+    # in the service, so the label goes up to half a day late at either end.
+    under = (' & IF(TODAY() >= vLatest + 3 && TODAY() <= vLatest + 9, " · under way")' if n == 1 else "")
     fm.append(measure(F, f"Call Date {n}", f'''
 VAR vLatest = [Latest Week]
-RETURN IF(NOT ISBLANK(vLatest), FORMAT(vLatest + {7 * n}, "d mmm"))''', folder="Now",
+RETURN IF(NOT ISBLANK(vLatest), FORMAT(vLatest + {7 * n}, "d mmm"){under})''', folder="Now",
         desc="The week the model's call is for, set over the number below it." if n == 1 else None))
     fm.append(measure(F, f"Call {n}", f'''
 VAR vLatest = [Latest Week]
@@ -591,7 +600,7 @@ IF([Selected Horizon] = {n}, "#F4F8FD", "#FFFFFF")''', folder=TR, hidden=True))
 # page has one two-year average. Until 23 Nov 2026 the average ran from
 # 29 Mar 2024, the left chart's first week, through the newest, its margin up
 # to 0.8 c/L off the norm beside it (an outside review, R3). The five parts
-# add up to the pump price exactly (checked on the archive of 29 Oct 2026),
+# add up to the price paid exactly (checked on the archive of 29 Oct 2026),
 # so shares are honest.
 MG = "Margin"
 PARTS = [("Cost", "importer_cost"), ("Taxes", "taxes"), ("ETS", "ets"), ("GST", "gst"), ("Margin", "importer_margin")]
@@ -603,8 +612,15 @@ RETURN CALCULATE(AVERAGE(prices[{col_}]), REMOVEFILTERS(Week), prices[week_date]
 VAR vW = [Latest Week]
 RETURN CALCULATE(AVERAGE(prices[{col_}]), REMOVEFILTERS(Week), prices[week_date] >= vW - 728, prices[week_date] < vW)''',
         fmt="0.0", folder=MG, hidden=True))
+# The bars draw three parts: the cost, the charges on a litre together, the margin.
+# Excise and levies, ETS and GST were three parts in three near greys until 25 Nov 2026
+# (owner, 25 Nov); their own measures above stay for anyone who wants them apart.
+for stem in ("Now", "Average"):
+    pm.append(measure(P, f"Taxes ETS GST {stem} (c/L)", f"[Taxes {stem} (c/L)] + [ETS {stem} (c/L)] + [GST {stem} (c/L)]",
+        fmt="0.0", folder=MG, hidden=True))
+BARS = ["Cost", "Taxes ETS GST", "Margin"]
 QQ = '""""'    # DAX for a string holding one double quote: a format string's literal text
-for name, _ in PARTS:
+for name in BARS:
     # Bars in c/L on one scale, as in the mock-up, so the average litre is drawn
     # shorter than this week's; the label shows the part's share of the price through
     # a dynamic format string. 0 rather than blank on the other row, so both layers
@@ -644,10 +660,23 @@ pm.append(measure(P, "Margin Share Now Label", '''
 FORMAT(DIVIDE([Margin Now (c/L)], [Price Now (c/L)]), "0.0%")''', folder=MG))
 pm.append(measure(P, "Margin Share Average Label", '''
 FORMAT(DIVIDE([Margin Average (c/L)], [Price Average (c/L)]), "0.0%")''', folder=MG))
+# Until 24 Nov 2026 the title always opened on a squeeze, and did so while every
+# margin stood 14-30 c/L above its average (outside review V8). The sentence now
+# follows the sign, with Headline Margin Clause's NEAR and its petrol average.
 pm.append(measure(P, "Margin Headline", '''
+VAR NEAR = 5
+VAR G91 = CALCULATE([Margin Gap Now], Fuel[fuel] = "Regular Petrol")
+VAR G95 = CALCULATE([Margin Gap Now], Fuel[fuel] = "Premium Petrol 95R")
+VAR GD = CALCULATE([Margin Gap Now], Fuel[fuel] = "Diesel")
+VAR GPet = (G91 + G95) / 2
+VAR vAll = NOT (ISBLANK(G91) || ISBLANK(G95) || ISBLANK(GD))
+VAR vA = SWITCH(TRUE(),
+    vAll && GPet <= -NEAR && GD <= -NEAR, "A squeezed margin is a cost rise the pump has not passed on yet.",
+    vAll && GPet >= NEAR && GD >= NEAR, "A margin above its average is a cost fall the pump has not passed on yet.",
+    "A margin below its average is a cost rise the pump has not passed on yet; one above it, a cost fall.")
 VAR vB = [Headline Margin Clause]
-RETURN "A squeezed margin is a cost rise the pump has not passed on yet." & IF(vB <> "", " " & vB)''', folder=MG,
-    desc="Margin's title: what a squeeze means, then where the margins stand now, in Now's words."))
+RETURN vA & IF(vB <> "", " " & vB)''', folder=MG,
+    desc="Margin's title: what the margins' side of their average means, then where they stand now, in Now's words."))
 
 # ---------------------------------------------------------------- margin_compression additions
 M = "margin_compression"
@@ -721,9 +750,13 @@ RETURN IF(NOT ISBLANK([Gap (chart)]), IF(vLate, [{edge}], 0))''', fmt="0", folde
 mm.append(measure(M, "Gap Colour (chart)", '''
 IF([Gap Dark (chart)] < 0, "#EB6834", "#A3A29B")''', folder=MG, hidden=True,
     desc="Orange below the norm, grey above."))
-# Each fuel on its own axis; the page draws the charts at heights in proportion to
-# their ranges, so a c/L is about the same height in all three.
-for name, agg, k in (("Gap Axis Low", "MIN", 1.08), ("Gap Axis High", "MAX", 1.15)):
+# Each fuel on its own axis: its own range plus a margin, stretched so a c/L is
+# the same height in all three charts. Until 24 Nov 2026 the heights alone did
+# that, set to the ranges of 23 Oct, and by 13 Nov petrol drew 0.89 px per c/L
+# against diesel's 1.08 (outside review V3). The stretch is worked out on every
+# refresh: the fuel with the most c/L per pixel keeps its own axis, the others
+# widen theirs about zero, so the zero line stays where their own range puts it.
+for name, agg, k in (("Gap Own Low", "MIN", 1.08), ("Gap Own High", "MAX", 1.15)):
     mm.append(measure(M, name, f'''
 VAR vA = CALCULATE({agg}X(margin_compression, margin_compression[importer_margin] - margin_compression[margin_norm_104w]), REMOVEFILTERS(Week))
 VAR vB = CALCULATE({agg}X(FILTER(margin_compression, NOT ISBLANK(margin_compression[adjustment_cpl]) && NOT ISBLANK(margin_compression[gap_before_adjustment_pct])),
@@ -731,6 +764,16 @@ VAR vB = CALCULATE({agg}X(FILTER(margin_compression, NOT ISBLANK(margin_compress
     REMOVEFILTERS(Week))
 RETURN {k} * {agg}(vA, vB)''', fmt="0", folder=MG, hidden=True,
         desc="The fuel's own range, with and without the adjustment, plus a margin."))
+mm.append(measure(M, "Gap Chart Height", "SWITCH(SELECTEDVALUE(Fuel[fuel]), "
+    + ", ".join(f'"{k}", {v - GAP_PLOT_INSET}' for k, v in GAP_HEIGHTS.items()) + ")", fmt="0", folder=MG, hidden=True,
+    desc="The height of the plot in the fuel's chart on Margin, px: the chart's height less the inset Power BI keeps, both from pbip/build/pbir.py."))
+mm.append(measure(M, "Gap Stretch", '''
+VAR vScale = MAXX(ALL(Fuel), DIVIDE([Gap Own High] - [Gap Own Low], [Gap Chart Height]))
+RETURN DIVIDE(vScale * [Gap Chart Height], [Gap Own High] - [Gap Own Low])''', fmt="0.00", folder=MG, hidden=True,
+    desc="How far the fuel's axis widens, 1 or more: the most c/L per pixel among the three charts over its own."))
+for name, own in (("Gap Axis Low", "Gap Own Low"), ("Gap Axis High", "Gap Own High")):
+    mm.append(measure(M, name, f"[{own}] * [Gap Stretch]", fmt="0", folder=MG, hidden=True,
+        desc="The end of the fuel's axis on Margin, c/L: its own, widened to the common scale."))
 mm.append(measure(M, "Gap Last Week", '''
 FORMAT([Latest Week], "d mmm yyyy")''', folder=MG, desc="The right-hand end of Margin's charts, written under them in place of a date axis."))
 mm.append(measure(M, "Gap Header Date", '''
@@ -789,7 +832,7 @@ AVERAGE(prices[{col_}])''', fmt="0.0", folder=DT))
 pm.append(measure(P, "Data Prices Caption", '''
 VAR vN = COUNTROWS(prices)
 VAR vFrom = MIN(prices[week_date])
-RETURN FORMAT(vN, "#,0") & " weeks since " & FORMAT(vFrom, "mmm yyyy") & ", newest first, c/L. The five parts add up to the pump price."''',
+RETURN FORMAT(vN, "#,0") & " weeks since " & FORMAT(vFrom, "mmm yyyy") & ", newest first, c/L. The five parts add up to the price paid."''',
     folder=DT))
 
 # The three pages W21 replaced read these; nothing on the five that replace them does

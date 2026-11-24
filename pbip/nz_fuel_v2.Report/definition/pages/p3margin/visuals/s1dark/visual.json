@@ -58,42 +58,12 @@
                       "Entity": "prices"
                     }
                   },
-                  "Property": "Taxes Bar (now)"
+                  "Property": "Taxes ETS GST Bar (now)"
                 }
               },
-              "queryRef": "prices.Taxes Bar (now)",
-              "nativeQueryRef": "Taxes and levies",
-              "displayName": "Taxes and levies"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "prices"
-                    }
-                  },
-                  "Property": "ETS Bar (now)"
-                }
-              },
-              "queryRef": "prices.ETS Bar (now)",
-              "nativeQueryRef": "Emissions trading",
-              "displayName": "Emissions trading"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "prices"
-                    }
-                  },
-                  "Property": "GST Bar (now)"
-                }
-              },
-              "queryRef": "prices.GST Bar (now)",
-              "nativeQueryRef": "GST",
-              "displayName": "GST"
+              "queryRef": "prices.Taxes ETS GST Bar (now)",
+              "nativeQueryRef": "Taxes, ETS and GST",
+              "displayName": "Taxes, ETS and GST"
             },
             {
               "field": {
@@ -159,7 +129,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#A3A29B'"
+                      "Value": "'#8C99AE'"
                     }
                   }
                 }
@@ -167,43 +137,7 @@
             }
           },
           "selector": {
-            "metadata": "prices.Taxes Bar (now)"
-          }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#C9C8C1'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "prices.ETS Bar (now)"
-          }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#DEDDD7'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "prices.GST Bar (now)"
+            "metadata": "prices.Taxes ETS GST Bar (now)"
           }
         },
         {
@@ -291,57 +225,7 @@
             }
           },
           "selector": {
-            "metadata": "prices.Taxes Bar (now)"
-          }
-        },
-        {
-          "properties": {
-            "showSeries": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "color": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#1B1B19'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "prices.ETS Bar (now)"
-          }
-        },
-        {
-          "properties": {
-            "showSeries": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "color": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#1B1B19'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "prices.GST Bar (now)"
+            "metadata": "prices.Taxes ETS GST Bar (now)"
           }
         },
         {

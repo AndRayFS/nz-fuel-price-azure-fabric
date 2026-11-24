@@ -95,7 +95,7 @@ table forecast_accuracy
 	/// The week the model's call is for, set over the number below it.
 	measure 'Call Date 1' =
 			VAR vLatest = [Latest Week]
-			RETURN IF(NOT ISBLANK(vLatest), FORMAT(vLatest + 7, "d mmm"))
+			RETURN IF(NOT ISBLANK(vLatest), FORMAT(vLatest + 7, "d mmm") & IF(TODAY() >= vLatest + 3 && TODAY() <= vLatest + 9, " · under way"))
 		displayFolder: Now
 		lineageTag: 587d76e9-c7ba-5bdf-a239-bbe46d94593a
 

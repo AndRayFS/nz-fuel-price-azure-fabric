@@ -42,8 +42,8 @@
                 }
               },
               "queryRef": "prices.Data Pump Price",
-              "nativeQueryRef": "Pump price",
-              "displayName": "Pump price"
+              "nativeQueryRef": "Price paid",
+              "displayName": "Price paid"
             },
             {
               "field": {
