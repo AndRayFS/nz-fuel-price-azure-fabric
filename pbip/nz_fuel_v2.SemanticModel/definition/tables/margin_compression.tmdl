@@ -136,7 +136,7 @@ table margin_compression
 		lineageTag: 110f7e02-b59f-5bc0-8369-9020bf2dc099
 
 	/// The fuel's own range, with and without the adjustment, plus a margin.
-	measure 'Gap Axis Low' =
+	measure 'Gap Own Low' =
 			VAR vA = CALCULATE(MINX(margin_compression, margin_compression[importer_margin] - margin_compression[margin_norm_104w]), REMOVEFILTERS(Week))
 			VAR vB = CALCULATE(MINX(FILTER(margin_compression, NOT ISBLANK(margin_compression[adjustment_cpl]) && NOT ISBLANK(margin_compression[gap_before_adjustment_pct])),
 			    margin_compression[margin_before_adjustment] - DIVIDE(margin_compression[margin_before_adjustment], 1 + margin_compression[gap_before_adjustment_pct] / 100)),
@@ -145,15 +145,45 @@ table margin_compression
 		formatString: 0
 		displayFolder: Margin
 		isHidden
-		lineageTag: 18d88dc4-ba9f-53f7-a6ac-b9c092f87d97
+		lineageTag: 2fc2d5b4-9896-5034-8cc7-bc961542e44c
 
 	/// The fuel's own range, with and without the adjustment, plus a margin.
-	measure 'Gap Axis High' =
+	measure 'Gap Own High' =
 			VAR vA = CALCULATE(MAXX(margin_compression, margin_compression[importer_margin] - margin_compression[margin_norm_104w]), REMOVEFILTERS(Week))
 			VAR vB = CALCULATE(MAXX(FILTER(margin_compression, NOT ISBLANK(margin_compression[adjustment_cpl]) && NOT ISBLANK(margin_compression[gap_before_adjustment_pct])),
 			    margin_compression[margin_before_adjustment] - DIVIDE(margin_compression[margin_before_adjustment], 1 + margin_compression[gap_before_adjustment_pct] / 100)),
 			    REMOVEFILTERS(Week))
 			RETURN 1.15 * MAX(vA, vB)
+		formatString: 0
+		displayFolder: Margin
+		isHidden
+		lineageTag: d8618210-d6f7-581c-9f40-4ca382083c3e
+
+	/// The height of the plot in the fuel's chart on Margin, px: the chart's height less the inset Power BI keeps, both from pbip/build/pbir.py.
+	measure 'Gap Chart Height' = SWITCH(SELECTEDVALUE(Fuel[fuel]), "Regular Petrol", 76, "Premium Petrol 95R", 79, "Diesel", 144)
+		formatString: 0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 6289bf84-3501-52a9-b2a3-6ecc0d924a79
+
+	/// How far the fuel's axis widens, 1 or more: the most c/L per pixel among the three charts over its own.
+	measure 'Gap Stretch' =
+			VAR vScale = MAXX(ALL(Fuel), DIVIDE([Gap Own High] - [Gap Own Low], [Gap Chart Height]))
+			RETURN DIVIDE(vScale * [Gap Chart Height], [Gap Own High] - [Gap Own Low])
+		formatString: 0.00
+		displayFolder: Margin
+		isHidden
+		lineageTag: 9a940f29-bbda-563b-8a16-e9e88633729e
+
+	/// The end of the fuel's axis on Margin, c/L: its own, widened to the common scale.
+	measure 'Gap Axis Low' = [Gap Own Low] * [Gap Stretch]
+		formatString: 0
+		displayFolder: Margin
+		isHidden
+		lineageTag: 18d88dc4-ba9f-53f7-a6ac-b9c092f87d97
+
+	/// The end of the fuel's axis on Margin, c/L: its own, widened to the common scale.
+	measure 'Gap Axis High' = [Gap Own High] * [Gap Stretch]
 		formatString: 0
 		displayFolder: Margin
 		isHidden

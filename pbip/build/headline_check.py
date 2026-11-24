@@ -83,19 +83,19 @@ def clause_a(price, w):
                     else f"fell {r(a)} c/L to {day(wk)}, then rose {r(b)}")
         if tp and td and tp[0] == td[0] and tp[0] != 'swing' and tp[3] == td[3]:
             v1, v2 = ('rose', 'fell') if tp[0] == 'peak' else ('fell', 'rose')
-            return 'turn-same', (f"Over four weeks, pump prices {v1} {amount([tp[1], td[1]])} c/L"
+            return 'turn-same', (f"Over four weeks, prices paid {v1} {amount([tp[1], td[1]])} c/L"
                                  f" to {day(tp[3])}, then {v2} {amount([tp[2], td[2]])}.")
         return 'turn-split', f"Over four weeks, petrol {phrase(tp, (d['91'] + d['95']) / 2)}; diesel {phrase(td, d['D'])}."
     if len(up) == 3:
-        return 'all-up', f"Pump prices rose {amount(vals)} c/L in four weeks."
+        return 'all-up', f"Prices paid rose {amount(vals)} c/L in four weeks."
     if len(down) == 3:
-        return 'all-down', f"Pump prices fell {amount(vals)} c/L in four weeks."
+        return 'all-down', f"Prices paid fell {amount(vals)} c/L in four weeks."
     if not up and not down:
-        return 'all-flat', "Pump prices barely moved in four weeks."
+        return 'all-flat', "Prices paid barely moved in four weeks."
     pet = (d['91'] + d['95']) / 2
     pv, dv = verb(pet), verb(d['D'])
     if pv == dv:
-        return 'mixed-same', "Pump prices barely moved in four weeks." if pv == "held steady" else f"Pump prices {pv} in four weeks."
+        return 'mixed-same', "Prices paid barely moved in four weeks." if pv == "held steady" else f"Prices paid {pv} in four weeks."
     return 'split', f"Petrol {pv} in four weeks; diesel {dv}."
 
 def state(x):

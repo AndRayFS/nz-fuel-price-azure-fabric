@@ -44,7 +44,7 @@ VIEWS = [
         ("m", M, "Data Margin Before Adjustment", "Margin before MBIE's adjustment", 130, True, None),
         ("m", M, "Gap Before Adjustment (chart)", "Gap before adjustment", 120, True, None),
         ("m", M, "Data Margin Status", "Status", 180, False, None)], [
-        ("Margin", "what is left of the pump price after taxes, GST, ETS and MBIE's estimate of the importer's cost."),
+        ("Margin", "what is left of the price paid after taxes, GST, ETS and MBIE's estimate of the importer's cost."),
         ("Two-year average", "the margin's average over the 104 weeks before."),
         ("Gap", "the margin less its two-year average."),
         ("Before MBIE's adjustment", "from 27 Feb 2026 MBIE adds to the cost what the Commerce Commission found importers "
@@ -54,13 +54,14 @@ VIEWS = [
                         "the quarter, about two months after it ends.")]),
     ("prices", "Weekly prices since 2004", 257, 176, "bmPrices", (P, "Data Prices Caption"), [
         ("c", P, "week_date", "Week", 120, False, None),
-        ("m", P, "Data Pump Price", "Pump price", 114, True, None),
+        ("m", P, "Data Pump Price", "Price paid", 114, True, None),
         ("m", P, "Data Importer Cost", "Importer cost", 114, True, None),
         ("m", P, "Data Taxes", "Taxes and levies", 114, True, None),
         ("m", P, "Data ETS", "ETS", 114, True, None),
         ("m", P, "Data GST", "GST", 114, True, None),
         ("m", P, "Data Importer Margin", "Importer margin", 114, True, None)], [
-        ("Pump price", "MBIE's adjusted retail price for the week."),
+        ("Price paid", "MBIE's national average for the week, after discounts (its adjusted retail price), "
+                        "a few cents below the sign price."),
         ("Importer cost", "MBIE's estimate of what a litre cost to land in New Zealand."),
         ("Taxes and levies", "excise and the other levies; diesel's road taxes are paid as road user charges instead."),
         ("ETS", "the emissions trading cost."),

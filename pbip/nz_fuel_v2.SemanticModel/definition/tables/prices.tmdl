@@ -11,7 +11,7 @@ table prices
 		displayFolder: Now
 		lineageTag: 15e76f97-7afa-54df-8965-3e637c8c449c
 
-	/// MBIE's national average price paid for the week, c/L. A few cents below the pump sign.
+	/// MBIE's national average price paid for the week, c/L. A few cents below the sign price.
 	measure 'Average Paid' = AVERAGE(prices[adjusted_retail_price])
 		formatString: 0.0
 		displayFolder: Now
@@ -145,10 +145,13 @@ table prices
 			VAR W = [Latest Week]
 			VAR Sign = [Regular On Sign]
 			RETURN
-			"Average paid: MBIE's national average for the week, a few cents below the pump sign"
-			    & IF(NOT ISBLANK(Sign), " (MBIE's sign price for Regular 91 that week: " & FORMAT(Sign, "0.0") & ")", "")
+			"Average paid: MBIE's national average for the week, after discounts, a few cents below the sign price"
+			    & IF(NOT ISBLANK(Sign), " (MBIE's figure for Regular 91 that week: " & FORMAT(Sign, "0.0") & ")", "")
 			    & ". MBIE publishes about a week later"
-			    & IF(TODAY() > W + 7, ", so " & FORMAT(W + 7, "d mmm") & " has passed but is not yet out", "")
+			    // The week stamped W + 7 runs Monday W + 3 to Sunday W + 9 (a week is stamped on its
+			    // Friday), so it has passed from W + 10. Until 24 Nov 2026 this said so from W + 8,
+			    // its Saturday (outside review V5).
+			    & IF(TODAY() > W + 9, ", so " & FORMAT(W + 7, "d mmm") & " has passed but is not yet out", "")
 			    & ". Calls come from a walk-forward backtest model and are not published forecasts"
 			    & [Nowcast Note] & "."
 		displayFolder: Now
@@ -238,14 +241,14 @@ table prices
 			        TRUE(),
 			        NOT HavePrices, "",
 			        SameTurn,
-			            "Over four weeks, pump prices " & IF(PetTurn = "peak", "rose ", "fell ") & AmtA & " c/L to " & FORMAT(PetWk, "d mmm")
+			            "Over four weeks, prices paid " & IF(PetTurn = "peak", "rose ", "fell ") & AmtA & " c/L to " & FORMAT(PetWk, "d mmm")
 			                & ", then " & IF(PetTurn = "peak", "fell ", "rose ") & AmtB & ".",
 			        PetTurn <> "" || DslTurn <> "", "Over four weeks, petrol " & PhrasePet & "; diesel " & PhraseDsl & ".",
-			        NUp = 3, "Pump prices rose " & AmtUp & " c/L in four weeks.",
-			        NDown = 3, "Pump prices fell " & AmtDown & " c/L in four weeks.",
-			        NUp + NDown = 0, "Pump prices barely moved in four weeks.",
+			        NUp = 3, "Prices paid rose " & AmtUp & " c/L in four weeks.",
+			        NDown = 3, "Prices paid fell " & AmtDown & " c/L in four weeks.",
+			        NUp + NDown = 0, "Prices paid barely moved in four weeks.",
 			        VerbPet = VerbDsl,
-			            IF(VerbPet = "held steady", "Pump prices barely moved in four weeks.", "Pump prices " & VerbPet & " in four weeks."),
+			            IF(VerbPet = "held steady", "Prices paid barely moved in four weeks.", "Prices paid " & VerbPet & " in four weeks."),
 			        "Petrol " & VerbPet & " in four weeks; diesel " & VerbDsl & "."
 			    )
 			VAR ClauseB = [Headline Margin Clause]
@@ -516,10 +519,20 @@ table prices
 		displayFolder: Margin
 		lineageTag: 83985d86-46d6-53c7-8b45-16208856bbb8
 
-	/// Margin's title: what a squeeze means, then where the margins stand now, in Now's words.
+	/// Margin's title: what the margins' side of their average means, then where they stand now, in Now's words.
 	measure 'Margin Headline' =
+			VAR NEAR = 5
+			VAR G91 = CALCULATE([Margin Gap Now], Fuel[fuel] = "Regular Petrol")
+			VAR G95 = CALCULATE([Margin Gap Now], Fuel[fuel] = "Premium Petrol 95R")
+			VAR GD = CALCULATE([Margin Gap Now], Fuel[fuel] = "Diesel")
+			VAR GPet = (G91 + G95) / 2
+			VAR vAll = NOT (ISBLANK(G91) || ISBLANK(G95) || ISBLANK(GD))
+			VAR vA = SWITCH(TRUE(),
+			    vAll && GPet <= -NEAR && GD <= -NEAR, "A squeezed margin is a cost rise the pump has not passed on yet.",
+			    vAll && GPet >= NEAR && GD >= NEAR, "A margin above its average is a cost fall the pump has not passed on yet.",
+			    "A margin below its average is a cost rise the pump has not passed on yet; one above it, a cost fall.")
 			VAR vB = [Headline Margin Clause]
-			RETURN "A squeezed margin is a cost rise the pump has not passed on yet." & IF(vB <> "", " " & vB)
+			RETURN vA & IF(vB <> "", " " & vB)
 		displayFolder: Margin
 		lineageTag: e03d5d7d-9e91-506e-a1b0-2e7775cbece5
 
@@ -556,7 +569,7 @@ table prices
 	measure 'Data Prices Caption' =
 			VAR vN = COUNTROWS(prices)
 			VAR vFrom = MIN(prices[week_date])
-			RETURN FORMAT(vN, "#,0") & " weeks since " & FORMAT(vFrom, "mmm yyyy") & ", newest first, c/L. The five parts add up to the pump price."
+			RETURN FORMAT(vN, "#,0") & " weeks since " & FORMAT(vFrom, "mmm yyyy") & ", newest first, c/L. The five parts add up to the price paid."
 		displayFolder: Data
 		lineageTag: 5bacb859-e062-52bb-a025-30f960708dfe
 

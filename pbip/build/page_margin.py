@@ -10,13 +10,19 @@ FUELS = [("Regular Petrol", "Regular 91", "#40B54A", 70), ("Premium Petrol 95R",
          ("Diesel", "Diesel", "#4D4C48", 40)]
 LEFT, RIGHT = (24, 132, 748, 520), (788, 132, 468, 520)
 GREY, PALE_ORANGE, PALE_GREY, BAND, BAND_EDGE = "#A3A29B", "#F6BFA8", "#DEDDD7", "#F7F6F2", "#E2E1DB"
-# Left-hand chart heights in proportion to each fuel's range of gaps (with and without
-# MBIE's adjustment, plus the axis margins) on 23 Oct 2026: 73, 76 and 169 c/L.
+# Left-hand chart heights set so their plots (each chart less GAP_PLOT_INSET) are in
+# proportion to each fuel's range of gaps (with and without MBIE's adjustment, plus the
+# axis margins) on 13 Nov 2026: 88.8, 91.7 and 168.7 c/L (on 23 Oct: 73, 76 and 169,
+# charts 79, 82 and 183 px high). As the ranges move, the axis measures widen the
+# others' axes to the fuel with the most c/L per pixel.
 # No chart draws a date axis: Power BI drops it on a chart this short, and the one
 # chart tall enough to keep it reserved a margin for it and ended its plot ~19 px
 # short of the others (4 Nov review). The two end dates are written under diesel
 # instead - the axis always runs from the first week to the newest, so they never drift.
-GAP_BLOCKS = [(64, 79), (175, 82), (289, 183)]
+GAP_BLOCKS = []
+for key_, *_ in FUELS:
+    dy = GAP_BLOCKS[-1][0] + 26 + GAP_BLOCKS[-1][1] + 6 if GAP_BLOCKS else 64
+    GAP_BLOCKS.append((dy, GAP_HEIGHTS[key_]))
 # (measure stem, legend label, colour this week, colour on average, label colour this week)
 PARTS = [("Cost", "Importer cost", "#5C5B56", "#CFCECA", PAPER), ("Taxes", "Taxes and levies", "#A3A29B", "#DFDED9", INK),
          ("ETS", "Emissions trading", "#C9C8C1", "#E8E7E2", INK), ("GST", "GST", "#DEDDD7", "#EFEEEA", INK),
@@ -153,7 +159,7 @@ def page_margin():
               container(f"s{i}mavg", x + w - 76, by + 74, 60, 20, zz + 5,
                         title_text(P, "Margin Share Average Label", 9.75, MUTED, align="right"), f)]
     V.append(container("rdiesel", x + 16, y + 104 + 2 * 118 + 112, w - 32, 18, z + 50, textbox([[(
-        "Diesel's road taxes are paid as road user charges, outside the pump price.", 8.25, MUTED, False)]])))
+        "Diesel's road taxes are paid as road user charges, outside the price paid.", 8.25, MUTED, False)]])))
     swatches = [(label, lw, [(10, 10, 1, full)]) for (_, label, full, _, _), lw in zip(PARTS, (72, 88, 96, 26, 96))]
     V += key(swatches[:3], x + 16, y + h - 44, z + 60, "sk", size=8.25)
     V += key(swatches[3:], x + 16, y + h - 26, z + 60, "sl", size=8.25)
@@ -162,8 +168,8 @@ def page_margin():
     # spare width; at 72 the words touched (outside review V11, 24 Nov 2026).
     V += footer_links(1256, 662, [("The Data page", "p5data", 76), (" has both versions of the margin.", None, 170)], 410)
     V.append(container("footer", 24, 662, 982, 40, 400, textbox([[(
-        "The margin is what is left of the pump price after taxes and MBIE's estimate of this week's replacement cost, "
-        "so a jump in cost squeezes it at once. A squeeze does not say whether the pump price or the cost closes it.",
+        "The margin is what is left of the price paid after taxes and MBIE's estimate of this week's replacement cost, "
+        "so a jump in cost squeezes it at once. A squeeze does not say whether the price paid or the cost closes it.",
         8.25, FAINT, False)]])))
     return V
 

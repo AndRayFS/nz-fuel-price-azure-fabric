@@ -7,6 +7,16 @@ PAGE = "https://developer.microsoft.com/json-schemas/fabric/item/report/definiti
 INK, MUTED, FAINT, LINE, PAPER, BG = "#1B1B19", "#5C5B56", "#8A8983", "#E6E5E0", "#FFFFFF", "#F7F7F5"
 CALL, CALL_LINE, ORANGE = "#256ABF", "#2A78D6", "#EB6834"
 FONT, FONT_B = "Segoe UI", "Segoe UI Semibold"
+# Margin's left-hand chart heights, px. The page draws them, and the model's axis
+# measures read them to give the three charts one c/L per pixel (outside review V3).
+# The plot is the chart less GAP_PLOT_INSET. Power BI keeps ~9 px above the plot and
+# ~3 px below it, and up to ~4 px more below when the lowest axis label sits at the
+# chart's bottom edge - which the data decide, so no fixed inset is exact. 15 is the
+# usual case (read from the page's SVG on the dev copy, 24 Nov 2026). It left 0.84,
+# 0.89 and 0.85 px per c/L for 91, 95 and diesel; the live page had 0.70, 0.74 and
+# 0.99, with the heights alone doing the work.
+GAP_HEIGHTS = {"Regular Petrol": 91, "Premium Petrol 95R": 94, "Diesel": 159}
+GAP_PLOT_INSET = 15
 # How Power BI itself writes font families into visual properties: the face, then
 # the web font it ships with the service, then generic fallbacks. A bare name only
 # renders where the viewer has the font installed. Text box runs take bare names.

@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Pump price",
+                    "value": "Price paid",
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
                       "fontSize": "9pt",
@@ -27,7 +27,7 @@
                     }
                   },
                   {
-                    "value": " — MBIE's adjusted retail price for the week.",
+                    "value": " — MBIE's national average for the week, after discounts (its adjusted retail price), a few cents below the sign price.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "9pt",
