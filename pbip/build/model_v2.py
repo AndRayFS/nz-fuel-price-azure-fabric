@@ -458,6 +458,25 @@ IF(
     )
 )''', fmt="0.0", folder="Now",
         desc="Edge of the band around the calls: the call plus the " + ("25th" if q == "0.25" else "75th") + " percentile of past misses (actual minus call) at the same horizon, in weeks of the same crude-volatility regime as the newest, all three fuels pooled, outcomes known by the newest week. Agreed in the review of 19 Oct: the middle half of misses in weeks like this one, so the band widens when crude is volatile."))
+# One c/L span on Now's three price charts, each centred on its own fuel. Until 25 Nov
+# 2026 each took its own axis, and on 6M diesel's 200-300 against petrol's 300-350
+# drew the same fall half as steep (outside review V3). The span follows the chosen
+# period and covers the prices paid and the band around the calls; 5% either side.
+# MIN and MAX of two values read a blank as 0, so the calls' end is taken only when
+# there is one.
+PRICE_WEEKS = "VAR vWeeks = FILTER(ALL(Week[week]), [In Period] = 1)"
+for name, agg, band in (("Price Own Low", "MIN", "Call Low (chart)"), ("Price Own High", "MAX", "Call High (chart)")):
+    fm.append(measure(F, name, PRICE_WEEKS + f'''
+VAR vPaid = {agg}X(vWeeks, [Paid (chart)])
+VAR vBand = {agg}X(vWeeks, [{band}])
+RETURN IF(ISBLANK(vBand), vPaid, {agg}(vPaid, vBand))''', fmt="0", folder="Now", hidden=True,
+        desc="The fuel's own end of the period on Now: prices paid and the band around the calls."))
+fm.append(measure(F, "Price Span", '''
+MAXX(ALL(Fuel), [Price Own High] - [Price Own Low])''', fmt="0", folder="Now", hidden=True,
+    desc="The widest range of the three fuels in the chosen period, c/L: every price chart on Now spans it."))
+for name, sign in (("Price Axis Low", "-"), ("Price Axis High", "+")):
+    fm.append(measure(F, name, f"([Price Own Low] + [Price Own High]) / 2 {sign} 0.55 * [Price Span]",
+        fmt="0", folder="Now", hidden=True, desc="An end of the fuel's price axis on Now: its own middle, the common span, 5% to spare."))
 for n in (1, 2, 3):
     # The first call's week, stamped vLatest + 7, runs Monday vLatest + 3 to Sunday
     # vLatest + 9, and the load lands on its Thursday: that call is for a week under
@@ -526,6 +545,14 @@ for name, col_ in (("Model 26w (chart)", "mae_nowcast_26w"), ("No Change 26w (ch
 VAR vH = [Selected Horizon]
 RETURN CALCULATE(AVERAGE(forecast_accuracy[{col_}]), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)''',
         fmt="0.0", folder=TR, desc="Trailing 26-week average miss at the week called; full windows only, so the line starts in Aug 2013."))
+# The band between the two lines is drawn twice, each from its own line up to the
+# higher one, so it takes the colour of whichever method misses less: blue where the
+# model is ahead, grey where no change is. Until 25 Nov 2026 one blue band ran from
+# the model's line to no change's, and filled 2020, where the model was behind, in
+# the model's colour (outside review V7).
+fm.append(measure(F, "Edge Top (chart)", '''
+MAX([Model 26w (chart)], [No Change 26w (chart)])''', fmt="0.0", folder=TR, hidden=True,
+    desc="The higher of the two misses: the top of both bands on Track record's left chart."))
 fm.append(measure(F, "Track Last Week", '''
 VAR vH = [Selected Horizon]
 RETURN CALCULATE(MAX(forecast_accuracy[Target week]), REMOVEFILTERS(Week), forecast_accuracy[horizon_weeks] = vH, forecast_accuracy[window_n] = 26)''',
@@ -640,7 +667,7 @@ FORMAT([Price Now (c/L)], "0.0") & " c/L"''', folder=MG))
 pm.append(measure(P, "Share Price Average", '''
 FORMAT([Price Average (c/L)], "0.0") & " c/L"''', folder=MG))
 pm.append(measure(P, "Share Subtitle", '''
-"Week of " & FORMAT([Latest Week], "d mmm") & ", dark, against the two-year average before it, pale · one c/L scale · labels are shares of the price"''',
+"Week of " & FORMAT([Latest Week], "d mmm") & ", dark, against the two-year average before it, pale · one c/L scale · on the bars, shares of the price; beside them, the margin in c/L"''',
     folder=MG))
 pm.append(measure(P, "Share Title", '''
 // A claim, as the mock-up's title is, but only the part all three fuels agree on:
@@ -656,10 +683,15 @@ VAR vA = SWITCH(TRUE(), vCostUp = 3, "Cost takes a bigger share of every litre t
                         "Where each litre goes, against the usual")
 VAR vB = SWITCH(TRUE(), vMarginDown = 3, ", the margin a smaller one", vMarginUp = 3, ", the margin a bigger one", "")
 RETURN vA & vB''', folder=MG))
-pm.append(measure(P, "Margin Share Now Label", '''
-FORMAT(DIVIDE([Margin Now (c/L)], [Price Now (c/L)]), "0.0%")''', folder=MG))
-pm.append(measure(P, "Margin Share Average Label", '''
-FORMAT(DIVIDE([Margin Average (c/L)], [Price Average (c/L)]), "0.0%")''', folder=MG))
+# The margin beside its bars is in c/L, the unit of the charts on the left and of Now;
+# its share of the price is on the bar, as the other parts' are. Until 25 Nov 2026
+# the share stood here alone, and diesel's fell (18.8% against 19.1%) while its
+# margin stood 14.4 c/L above the norm, because the price had risen more (outside
+# review V9; owner, 25 Nov: share on the bar, c/L beside it).
+pm.append(measure(P, "Margin c/L Now Label", '''
+FORMAT([Margin Now (c/L)], "0.0") & " c/L"''', folder=MG))
+pm.append(measure(P, "Margin c/L Average Label", '''
+FORMAT([Margin Average (c/L)], "0.0") & " c/L"''', folder=MG))
 # Until 24 Nov 2026 the title always opened on a squeeze, and did so while every
 # margin stood 14-30 c/L above its average (outside review V8). The sentence now
 # follows the sign, with Headline Margin Clause's NEAR and its petrol average.

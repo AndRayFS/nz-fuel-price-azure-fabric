@@ -478,7 +478,7 @@ table prices
 		displayFolder: Margin
 		lineageTag: e4baa197-24ea-50ec-8f70-edcaeaef7bbc
 
-	measure 'Share Subtitle' = "Week of " & FORMAT([Latest Week], "d mmm") & ", dark, against the two-year average before it, pale · one c/L scale · labels are shares of the price"
+	measure 'Share Subtitle' = "Week of " & FORMAT([Latest Week], "d mmm") & ", dark, against the two-year average before it, pale · one c/L scale · on the bars, shares of the price; beside them, the margin in c/L"
 		displayFolder: Margin
 		lineageTag: 682f9567-6060-5520-a2db-2f6127214131
 
@@ -499,13 +499,13 @@ table prices
 		displayFolder: Margin
 		lineageTag: 4e7918d0-500e-5f8a-b8a3-89c7757f6d9b
 
-	measure 'Margin Share Now Label' = FORMAT(DIVIDE([Margin Now (c/L)], [Price Now (c/L)]), "0.0%")
+	measure 'Margin c/L Now Label' = FORMAT([Margin Now (c/L)], "0.0") & " c/L"
 		displayFolder: Margin
-		lineageTag: 6be4372a-085f-5ab0-8e02-ca4c803ced91
+		lineageTag: 0154c0c7-2a0b-5374-b60b-946b8e48a676
 
-	measure 'Margin Share Average Label' = FORMAT(DIVIDE([Margin Average (c/L)], [Price Average (c/L)]), "0.0%")
+	measure 'Margin c/L Average Label' = FORMAT([Margin Average (c/L)], "0.0") & " c/L"
 		displayFolder: Margin
-		lineageTag: 83985d86-46d6-53c7-8b45-16208856bbb8
+		lineageTag: f2405a45-4aad-5cdf-8bd0-b8b2129b060c
 
 	/// Margin's title: what the margins' side of their average means, then where they stand now, in Now's words.
 	measure 'Margin Headline' =

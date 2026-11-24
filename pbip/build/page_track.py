@@ -6,7 +6,8 @@ from pbir import *
 
 ROOT = pathlib.Path(sys.argv[1]) / "pbip/nz_fuel_v2.Report/definition"
 F = "forecast_accuracy"
-MODEL, NAIVE, VOLATILE, EDGE = "#2A78D6", "#A3A29B", "#F1ECE2", "#C9DDF5"
+# EDGE and NAIVE_EDGE are how the bands render: each line's colour at a quarter.
+MODEL, NAIVE, VOLATILE, EDGE, NAIVE_EDGE = "#2A78D6", "#A3A29B", "#F1ECE2", "#C9DDF5", "#E8E8E6"
 MODEL_SOFT, NAIVE_SOFT = "#BCD5F2", "#DCDBD6"     # the right-hand chart's other horizons: 4 Nov review, too bright
 LEFT, RIGHT = (24, 172, 774, 468), (814, 172, 442, 468)
 
@@ -49,10 +50,13 @@ def miss_chart():
                        obj({"showSeries": b(False)}, S(V)), obj({"showSeries": b(False)}, S(M)), obj({"showSeries": b(False)}, S(N)),
                        obj({"showSeries": b(True), "color": col(MODEL), "labelPosition": s("Right")}, S(ML)),
                        obj({"showSeries": b(True), "color": col(MUTED), "labelPosition": s("Right")}, S(NL))],
-            "error": [obj({"enabled": b(True), "barShow": b(False), "shadeShow": b(True)}, S(M)),
+            # Two bands, each from its own line up to the higher of the two, so the band
+            # is the colour of whichever method misses less (outside review V7).
+            "error": [obj({"enabled": b(True), "barShow": b(False), "shadeShow": b(True)}, S(m)) for m in (M, N)] + [
                       obj({"errorRange": {"kind": "ErrorRange", "explicit": {"isRelative": b(False),
-                            "upperBound": mexpr(F, N), "lowerBound": mexpr(F, M)}}},
-                          {"data": [{"dataViewWildcard": {"matchingOption": 0}}], "metadata": f"{F}.{M}", "highlightMatching": 1})],
+                            "upperBound": mexpr(F, "Edge Top (chart)"), "lowerBound": mexpr(F, m)}}},
+                          {"data": [{"dataViewWildcard": {"matchingOption": 0}}], "metadata": f"{F}.{m}", "highlightMatching": 1})
+                      for m in (M, N)],
             "categoryAxis": [obj({"show": b(True), "axisType": s("Scalar"), "showAxisTitle": b(False), "gridlineShow": b(False),
                                   "fontSize": d(8), "labelColor": col(FAINT), "innerPadding": L(0)})],
             "valueAxis": [obj({"show": b(True), "start": d(0), "showAxisTitle": b(False), "gridlineShow": b(True),
@@ -90,7 +94,8 @@ def legend_row(x, y, z):
     V = []
     for k, (text, w, h, dy, fill, border, lw) in enumerate([
             ("Model", 16, 2, 6, MODEL, None, 40), ("No change", 16, 2, 6, NAIVE, None, 62),
-            ("The model's edge", 12, 10, 2, EDGE, None, 100), ("Volatile crude", 12, 10, 2, VOLATILE, "#E2DCCF", 84)]):
+            ("The model's edge", 12, 10, 2, EDGE, None, 100), ("No change's edge", 12, 10, 2, NAIVE_EDGE, "#DCDCD8", 104),
+            ("Volatile crude", 12, 10, 2, VOLATILE, "#E2DCCF", 84)]):
         V.append(container(f"lk{k}", x, y + dy, w, h, z + k, blank(fill, border=border)))
         V.append(container(f"lk{k}t", x + w + 6, y - 3, lw, 20, z + k, textbox([[(text, 9, MUTED, False)]])))
         x += w + 6 + lw + 14

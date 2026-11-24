@@ -49,7 +49,9 @@ def price_chart(key):
                                         "lineColor": col(INK), "style": s("dashed"), "width": d(1), "dataLabelShow": b(False)}, {"id": "1"})],
             "categoryAxis": [obj({"show": b(True), "axisType": s("Scalar"), "showAxisTitle": b(False), "gridlineShow": b(False),
                                   "fontSize": d(8), "labelColor": col(FAINT)})],
-            "valueAxis": [obj({"show": b(True), "showAxisTitle": b(False), "gridlineShow": b(True),
+            # One c/L span for the three fuels, each centred on its own (outside review V3).
+            "valueAxis": [obj({"show": b(True), "start": mexpr("forecast_accuracy", "Price Axis Low"),
+                               "end": mexpr("forecast_accuracy", "Price Axis High"), "showAxisTitle": b(False), "gridlineShow": b(True),
                                "gridlineColor": col("#ECEBE6"), "fontSize": d(8), "labelColor": col(FAINT)})],
             "legend": [obj({"show": b(False)})],
         },

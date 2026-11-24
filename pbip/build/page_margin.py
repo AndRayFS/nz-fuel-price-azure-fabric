@@ -35,8 +35,8 @@ PARTS = [("Cost", "Importer cost", "#5C5B56", "#CFCECA", PAPER),
          ("Margin", "Importer margin", ORANGE, "#F8D2C2", INK)]
 # The charges are a cool slate, not a lighter grey: in grey, the cost's pale (average)
 # shade was the charges' own shade a row above, and read as them (dev copy, 25 Nov).
-# The margin's label is on the right, in bold, beside its bar.
-LABELLED = {"Cost", "Taxes ETS GST"}
+# Every part carries its share on the bar; beside the bars the margin is in c/L.
+LABELLED = {"Cost", "Taxes ETS GST", "Margin"}
 
 def gap_layer(layer):
     """One of three column charts drawn on one another on the same axis: 'band' for
@@ -161,9 +161,9 @@ def page_margin():
               container(f"s{i}pale", x + 124, by + 26, w - 200, 84, zz + 3, share_chart("average"), f),
               container(f"s{i}dark", x + 124, by + 26, w - 200, 84, zz + 4, share_chart("now"), f),
               container(f"s{i}mnow", x + w - 76, by + 45, 60, 20, zz + 5,
-                        title_text(P, "Margin Share Now Label", 9.75, INK, bold=True, align="right"), f),
+                        title_text(P, "Margin c/L Now Label", 9.75, INK, bold=True, align="right"), f),
               container(f"s{i}mavg", x + w - 76, by + 74, 60, 20, zz + 5,
-                        title_text(P, "Margin Share Average Label", 9.75, MUTED, align="right"), f)]
+                        title_text(P, "Margin c/L Average Label", 9.75, MUTED, align="right"), f)]
     V.append(container("rdiesel", x + 16, y + 104 + 2 * 118 + 112, w - 32, 18, z + 50, textbox([[(
         "Diesel's road taxes are paid as road user charges, outside the price paid.", 8.25, MUTED, False)]])))
     swatches = [(label, lw, [(10, 10, 1, full)]) for (_, label, full, _, _), lw in zip(PARTS, (72, 104, 96))]

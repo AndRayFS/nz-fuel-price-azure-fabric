@@ -537,6 +537,34 @@
         },
         {
           "properties": {
+            "enabled": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "barShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "shadeShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "forecast_accuracy.No Change 26w (chart)"
+          }
+        },
+        {
+          "properties": {
             "errorRange": {
               "kind": "ErrorRange",
               "explicit": {
@@ -555,7 +583,7 @@
                           "Entity": "forecast_accuracy"
                         }
                       },
-                      "Property": "No Change 26w (chart)"
+                      "Property": "Edge Top (chart)"
                     }
                   }
                 },
@@ -583,6 +611,57 @@
               }
             ],
             "metadata": "forecast_accuracy.Model 26w (chart)",
+            "highlightMatching": 1
+          }
+        },
+        {
+          "properties": {
+            "errorRange": {
+              "kind": "ErrorRange",
+              "explicit": {
+                "isRelative": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "false"
+                    }
+                  }
+                },
+                "upperBound": {
+                  "expr": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "forecast_accuracy"
+                        }
+                      },
+                      "Property": "Edge Top (chart)"
+                    }
+                  }
+                },
+                "lowerBound": {
+                  "expr": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "forecast_accuracy"
+                        }
+                      },
+                      "Property": "No Change 26w (chart)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "forecast_accuracy.No Change 26w (chart)",
             "highlightMatching": 1
           }
         }
