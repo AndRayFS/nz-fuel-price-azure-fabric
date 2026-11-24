@@ -115,6 +115,26 @@
                     }
                   }
                 ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Provisional",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI Semibold",
+                      "fontSize": "9pt",
+                      "color": "#1B1B19"
+                    }
+                  },
+                  {
+                    "value": " — MBIE's first figures for a week, still open to revision; Final once MBIE closes the quarter, about two months after it ends.",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9pt",
+                      "color": "#5C5B56"
+                    }
+                  }
+                ]
               }
             ]
           }

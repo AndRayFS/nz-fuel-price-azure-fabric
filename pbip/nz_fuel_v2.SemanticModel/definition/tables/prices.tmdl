@@ -146,7 +146,7 @@ table prices
 			VAR Sign = [Regular On Sign]
 			RETURN
 			"Average paid: MBIE's national average for the week, a few cents below the pump sign"
-			    & IF(NOT ISBLANK(Sign), " (Regular 91 showed " & FORMAT(Sign, "0.0") & " on the sign)", "")
+			    & IF(NOT ISBLANK(Sign), " (MBIE's sign price for Regular 91 that week: " & FORMAT(Sign, "0.0") & ")", "")
 			    & ". MBIE publishes about a week later"
 			    & IF(TODAY() > W + 7, ", so " & FORMAT(W + 7, "d mmm") & " has passed but is not yet out", "")
 			    & ". Calls come from a walk-forward backtest model and are not published forecasts"

@@ -21,7 +21,10 @@ GAP_BLOCKS = [(64, 79), (175, 82), (289, 183)]
 PARTS = [("Cost", "Importer cost", "#5C5B56", "#CFCECA", PAPER), ("Taxes", "Taxes and levies", "#A3A29B", "#DFDED9", INK),
          ("ETS", "Emissions trading", "#C9C8C1", "#E8E7E2", INK), ("GST", "GST", "#DEDDD7", "#EFEEEA", INK),
          ("Margin", "Importer margin", ORANGE, "#F8D2C2", INK)]
-LABELLED = {"Cost", "Taxes", "GST"}    # ETS and the margin are too thin to carry a label; the margin's is on the right
+# ETS and the margin are too thin to carry a label; the margin's is on the right. GST's
+# label went on 24 Nov 2026: its share is 15/115 of every price, 13% always, so it said
+# nothing (outside review V9).
+LABELLED = {"Cost", "Taxes"}
 
 def gap_layer(layer):
     """One of three column charts drawn on one another on the same axis: 'band' for
@@ -155,7 +158,9 @@ def page_margin():
     V += key(swatches[:3], x + 16, y + h - 44, z + 60, "sk", size=8.25)
     V += key(swatches[3:], x + 16, y + h - 26, z + 60, "sl", size=8.25)
 
-    V += footer_links(1256, 662, [("The Data page", "p5data", 72), (" has both versions of the margin.", None, 170)], 410)
+    # 76, not 72: the text box trims the space before "has", so the gap is the link box's
+    # spare width; at 72 the words touched (outside review V11, 24 Nov 2026).
+    V += footer_links(1256, 662, [("The Data page", "p5data", 76), (" has both versions of the margin.", None, 170)], 410)
     V.append(container("footer", 24, 662, 982, 40, 400, textbox([[(
         "The margin is what is left of the pump price after taxes and MBIE's estimate of this week's replacement cost, "
         "so a jump in cost squeezes it at once. A squeeze does not say whether the pump price or the cost closes it.",
