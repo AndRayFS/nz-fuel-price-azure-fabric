@@ -160,7 +160,9 @@ def page_margin():
               container(f"s{i}pavg", x + 16, by + 81, 104, 18, zz + 2, title_text(P, "Share Price Average", 9, MUTED), f),
               container(f"s{i}pale", x + 124, by + 26, w - 200, 84, zz + 3, share_chart("average"), f),
               container(f"s{i}dark", x + 124, by + 26, w - 200, 84, zz + 4, share_chart("now"), f),
-              container(f"s{i}mnow", x + w - 76, by + 45, 60, 20, zz + 5,
+              # by + 49, not 45: at 45 the figure sat 4.5 px above the shares on its bar
+              # (read from the live page's DOM, 25 Nov 2026); the average's is 1 px off.
+              container(f"s{i}mnow", x + w - 76, by + 49, 60, 20, zz + 5,
                         title_text(P, "Margin c/L Now Label", 9.75, INK, bold=True, align="right"), f),
               container(f"s{i}mavg", x + w - 76, by + 74, 60, 20, zz + 5,
                         title_text(P, "Margin c/L Average Label", 9.75, MUTED, align="right"), f)]
