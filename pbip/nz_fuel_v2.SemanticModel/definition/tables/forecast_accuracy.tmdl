@@ -92,6 +92,49 @@ table forecast_accuracy
 		displayFolder: Now
 		lineageTag: f5eb735d-52f5-5deb-bbf5-7a09ca3de4c2
 
+	/// The fuel's own end of the period on Now: prices paid and the band around the calls.
+	measure 'Price Own Low' =
+			VAR vWeeks = FILTER(ALL(Week[week]), [In Period] = 1)
+			VAR vPaid = MINX(vWeeks, [Paid (chart)])
+			VAR vBand = MINX(vWeeks, [Call Low (chart)])
+			RETURN IF(ISBLANK(vBand), vPaid, MIN(vPaid, vBand))
+		formatString: 0
+		displayFolder: Now
+		isHidden
+		lineageTag: 3cdb60af-fdcc-5068-859f-f69de89fef56
+
+	/// The fuel's own end of the period on Now: prices paid and the band around the calls.
+	measure 'Price Own High' =
+			VAR vWeeks = FILTER(ALL(Week[week]), [In Period] = 1)
+			VAR vPaid = MAXX(vWeeks, [Paid (chart)])
+			VAR vBand = MAXX(vWeeks, [Call High (chart)])
+			RETURN IF(ISBLANK(vBand), vPaid, MAX(vPaid, vBand))
+		formatString: 0
+		displayFolder: Now
+		isHidden
+		lineageTag: 1e4a21ba-243a-5eb8-9e52-7466ecf6e22f
+
+	/// The widest range of the three fuels in the chosen period, c/L: every price chart on Now spans it.
+	measure 'Price Span' = MAXX(ALL(Fuel), [Price Own High] - [Price Own Low])
+		formatString: 0
+		displayFolder: Now
+		isHidden
+		lineageTag: 8d9c28df-1a8a-5bee-a07c-a48429aff62b
+
+	/// An end of the fuel's price axis on Now: its own middle, the common span, 5% to spare.
+	measure 'Price Axis Low' = ([Price Own Low] + [Price Own High]) / 2 - 0.55 * [Price Span]
+		formatString: 0
+		displayFolder: Now
+		isHidden
+		lineageTag: 89ac467c-49c7-5dca-a0f5-58565f0ccf4c
+
+	/// An end of the fuel's price axis on Now: its own middle, the common span, 5% to spare.
+	measure 'Price Axis High' = ([Price Own Low] + [Price Own High]) / 2 + 0.55 * [Price Span]
+		formatString: 0
+		displayFolder: Now
+		isHidden
+		lineageTag: 77e900d1-b576-5888-9fa0-942fdd8b39a6
+
 	/// The week the model's call is for, set over the number below it.
 	measure 'Call Date 1' =
 			VAR vLatest = [Latest Week]
@@ -223,6 +266,13 @@ table forecast_accuracy
 		formatString: 0.0
 		displayFolder: Track record
 		lineageTag: 384828de-c330-56a3-80ef-47d3ba5412ce
+
+	/// The higher of the two misses: the top of both bands on Track record's left chart.
+	measure 'Edge Top (chart)' = MAX([Model 26w (chart)], [No Change 26w (chart)])
+		formatString: 0.0
+		displayFolder: Track record
+		isHidden
+		lineageTag: 74d0e37d-82ae-553e-ba8b-910bb20c5c54
 
 	measure 'Track Last Week' =
 			VAR vH = [Selected Horizon]

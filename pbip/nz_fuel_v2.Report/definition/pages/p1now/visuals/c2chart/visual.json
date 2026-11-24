@@ -663,6 +663,30 @@
                 }
               }
             },
+            "start": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "Price Axis Low"
+                }
+              }
+            },
+            "end": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "forecast_accuracy"
+                    }
+                  },
+                  "Property": "Price Axis High"
+                }
+              }
+            },
             "showAxisTitle": {
               "expr": {
                 "Literal": {
