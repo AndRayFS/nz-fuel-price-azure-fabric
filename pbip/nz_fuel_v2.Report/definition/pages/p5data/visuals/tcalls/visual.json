@@ -27,8 +27,8 @@
                 }
               },
               "queryRef": "forecast_accuracy.week_date",
-              "nativeQueryRef": "Call made",
-              "displayName": "Call made"
+              "nativeQueryRef": "Data week",
+              "displayName": "Data week"
             },
             {
               "field": {
