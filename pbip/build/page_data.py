@@ -24,15 +24,18 @@ SIDE = (900, 172, 356)                  # the right-hand column: x, y, width
 # columns: (field kind, entity, name, header, width, right-aligned, colour measure)
 VIEWS = [
     ("calls", "Calls and outcomes", 27, 146, "bmCalls", (F, "Data Calls Caption"), [
-        ("c", F, "week_date", "Call made", 108, False, None),
+        ("c", F, "week_date", "Data week", 108, False, None),
         ("c", F, "Target week", "For week", 108, False, None),
         ("m", F, "Data Price Then", "Price then", 96, True, None),
         ("m", F, "Data Model Call", "Model's call", 106, True, None),
         ("m", F, "Data Actual", "Actual", 90, True, None),
         ("m", F, "Data Model Miss", "Model missed by", 136, True, "Data Model Miss Colour"),
         ("m", F, "Data No Change Miss", "“No change” missed by", 160, True, "Data No Change Miss Colour")], [
-        ("Call made", "the MBIE week the call was made from: that week's data, plus Brent crude for Monday "
-                      "to Wednesday of the week after."),
+        # "Data week", not "Call made" (until 25 Nov 2026): the call for 20 Nov read "Call
+        # made 13 Nov", though it was worked out on 19 Nov, once MBIE had published the
+        # week of 13 Nov (outside review V12).
+        ("Data week", "the MBIE week the call was made from: its data, plus Brent crude for Monday "
+                      "to Wednesday of the week after, up to the day MBIE published it."),
         ("Model's call", "the price it indicated for the week the call was for."),
         ("“No change”", "the benchmark: the price stays where it was, so its call is the price then."),
         ("Missed by", "how far a call sat from the price that followed, in cents per litre.")]),

@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Call made",
+                    "value": "Data week",
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
                       "fontSize": "9pt",
@@ -27,7 +27,7 @@
                     }
                   },
                   {
-                    "value": " — the MBIE week the call was made from: that week's data, plus Brent crude for Monday to Wednesday of the week after.",
+                    "value": " — the MBIE week the call was made from: its data, plus Brent crude for Monday to Wednesday of the week after, up to the day MBIE published it.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "9pt",
