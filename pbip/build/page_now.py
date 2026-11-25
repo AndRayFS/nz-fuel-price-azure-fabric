@@ -8,6 +8,8 @@ FUELS = [("Regular Petrol", "Regular 91", "#40B54A", 78),
          ("Premium Petrol 95R", "Premium 95", "#E5C700", 82),
          ("Diesel", "Diesel", "#4D4C48", 46)]
 CARD_X = [24, 440, 856]; CARD_W = 400
+CALL_PALE = "#E5EFFA"            # CALL_LINE at 12% on white
+CALLS_X, CALLS_STEP = 115, 110   # the three calls' columns in a card: x+16, every 123 px, until 25 Nov 2026
 # The cost pressure bars' tooltip page. The default tooltip listed the bars' own
 # values, a scaled share; the figures above them already say what matters, so the
 # tooltip names the fuel and nothing else.
@@ -80,10 +82,20 @@ def pressure_chart(measure, colour):
             visualTooltip=[obj({"show": b(True), "type": s("Canvas"), "section": s(TIP)})]),
         "drillFilterOtherVisuals": True}
 
+def call_key(name, x, y, z):
+    """The calls' mark as the chart draws them, the dashed 2 px line through a dot: a
+    dash, a dot, a dash, 20 px wide; y is the dot's top. In the legend, and in front of
+    each card's three calls, so the numbers read as the dots on the chart (outside
+    review V4, 25 Nov 2026)."""
+    return [container(f"{name}0", x, y + 2, 5, 2, z, blank(CALL_LINE)),
+            # The radius only lands with a border, so the dot has one in its own colour.
+            container(f"{name}1", x + 7, y, 6, 6, z, blank(CALL_LINE, border=CALL_LINE, radius=3)),
+            container(f"{name}2", x + 15, y + 2, 5, 2, z, blank(CALL_LINE))]
+
 def legend(z):
     """Legend marks drawn as shapes, at the weights the chart uses: a 2 px line, a
-    dashed 2 px line, a ring, a band, a dashed hairline. Glyphs in a text box came
-    out at the font's stroke weight instead (review of 4 Nov 2026)."""
+    dashed 2 px line with a dot, a ring, a band, a dashed hairline. Glyphs in a text
+    box came out at the font's stroke weight instead (review of 4 Nov 2026)."""
     V, x, y = [], 24, 140
     def label(name, text, w):
         V.append(container(name, x, y - 3, w, 20, z + len(V), textbox([[(text, 9, MUTED, False)]])))
@@ -91,8 +103,7 @@ def legend(z):
     label("lg1t", "Average paid", 80); x += 84
     V.append(container("lg2", x, y, 10, 10, z + 1, blank(PAPER, border=INK, radius=5))); x += 16
     label("lg2t", "Four weeks ago", 92); x += 100
-    for k in range(3):
-        V.append(container(f"lg3{k}", x + k * 7, y + 6, 4, 2, z + 2, blank(CALL_LINE)))
+    V += call_key("lg3", x, y + 4, z + 2)
     x += 24
     label("lg3t", "Model's calls", 80); x += 86
     V.append(container("lg4", x, y, 14, 10, z + 3, blank("#C3D9F3"))); x += 20
@@ -127,11 +138,20 @@ def page_now(style):
             container(f"c{i}change", x + 228, 242, 110, 20, z + 6, title_text("prices", "Change 4w Main", 9, INK, bold=True), f),
             container(f"c{i}weeks", x + 330, 242, 50, 20, z + 6, title_label("4 weeks", 9, MUTED, align="right")),
             container(f"c{i}chart", x + 6, 272, 388, 178, z + 6, price_chart(key), f),
-            container(f"c{i}rule", x + 16, 456, 368, 1, z + 7, blank("#ECEBE6")),
-        ] + [c for n in (1, 2, 3) for c in (
-            container(f"c{i}d{n}", x + 16 + (n - 1) * 123, 464, 120, 18, z + 8,
+            # The calls sit on the band's blue, paler (12% where the band is 25%) so the
+            # blue numbers keep their contrast: what the model worked out, in its colour.
+            # It fills the card below the chart, its bottom corners inside the card's and
+            # its top squared off by a strip; it replaced a grey rule (25 Nov 2026).
+            container(f"c{i}calls", x + 1, 456, CARD_W - 2, 57, z + 7, blank(CALL_PALE, border=CALL_PALE, radius=7)),
+            container(f"c{i}callstop", x + 1, 456, CARD_W - 2, 12, z + 7, blank(CALL_PALE)),
+            # Over the calls' mark, its name, as in the legend; the mark on the digits'
+            # middle. The first call starts half the gap between two dates past the name's
+            # end (outside review V4, measured on the dev copy, 25 Nov 2026).
+            container(f"c{i}klabel", x + 16, 464, 90, 18, z + 8, textbox([[("Model's calls", 8.25, MUTED, False)]])),
+        ] + call_key(f"c{i}k", x + 16, 490, z + 8) + [c for n in (1, 2, 3) for c in (
+            container(f"c{i}d{n}", x + CALLS_X + (n - 1) * CALLS_STEP, 464, 100, 18, z + 8,
                       title_text("forecast_accuracy", f"Call Date {n}", 8.25, FAINT), f),
-            container(f"c{i}v{n}", x + 16 + (n - 1) * 123, 482, 120, 28, z + 8,
+            container(f"c{i}v{n}", x + CALLS_X + (n - 1) * CALLS_STEP, 482, 100, 28, z + 8,
                       title_text("forecast_accuracy", f"Call {n}", 11.25, CALL, bold=True), f))]
     z = 300
     # "Importer margin", not "Cost pressure" (until 23 Nov 2026): the old name was true only

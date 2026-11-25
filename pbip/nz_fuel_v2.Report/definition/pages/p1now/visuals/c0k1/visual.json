@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
-  "name": "c1rule",
+  "name": "c0k1",
   "position": {
-    "x": 456,
-    "y": 456,
-    "z": 227,
-    "height": 1,
-    "width": 368,
-    "tabOrder": 227
+    "x": 47,
+    "y": 490,
+    "z": 208,
+    "height": 6,
+    "width": 6,
+    "tabOrder": 208
   },
   "visual": {
     "visualType": "shape",
@@ -208,7 +208,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#ECEBE6'"
+                      "Value": "'#2A78D6'"
                     }
                   }
                 }
@@ -230,7 +230,25 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#2A78D6'"
+                    }
+                  }
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "3D"
                 }
               }
             }

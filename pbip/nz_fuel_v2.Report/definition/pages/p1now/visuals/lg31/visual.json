@@ -3,10 +3,10 @@
   "name": "lg31",
   "position": {
     "x": 255,
-    "y": 146,
+    "y": 144,
     "z": 112,
-    "height": 2,
-    "width": 4,
+    "height": 6,
+    "width": 6,
     "tabOrder": 112
   },
   "visual": {
@@ -230,7 +230,25 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#2A78D6'"
+                    }
+                  }
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "3D"
                 }
               }
             }
