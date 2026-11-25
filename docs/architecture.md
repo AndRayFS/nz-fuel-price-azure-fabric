@@ -511,7 +511,7 @@ for the worktree before publishing, 639 for the old live measure — the 80 turn
 weeks. Note that `Path` is a DAX function and cannot be a variable name.
 
 **How it states uncertainty.** As a band, not as tiers. On Now each fuel's
-three calls (`pred_adl_ecm`, one to three weeks ahead) sit inside `Call Low`
+three calls (`pred_nowcast`, one to three weeks ahead) sit inside `Call Low`
 and `Call High`: the call plus the 25th and 75th percentiles of past misses
 (actual minus call) at the same horizon, in weeks of the newest week's
 `crude_vol_regime`, all three fuels pooled, outcomes known by the newest week.
@@ -526,6 +526,15 @@ One asymmetry in the band, by construction: the newest week's regime comes
 from a centred window cut short at the edge (`crude_vol_window_full = False`),
 while the past misses it is matched against were labelled with full windows.
 The newest week's regime can change as later weeks arrive.
+
+Eight in ten instead of the middle half (10th to 90th percentiles) was built on
+the dev copy on 25 Nov 2026, after outside review V4, and turned down: it loses
+the trend. Three weeks out it was 24 c/L wide against 11, and wherever the calls
+move less than the band is wide, the band takes in a rise and a fall alike and
+no longer shows which way the price is heading, which is what the calls are
+there to show. Diesel that week, 301 / 299 / 298 inside 287–311, made it
+visible; it is one case of the rule, not the reason. The band stays the middle
+half.
 
 **Written by generators.** Each page is rewritten whole by a script in
 `pbip/build/` — `page_now.py`, `page_track.py`, `page_margin.py`,

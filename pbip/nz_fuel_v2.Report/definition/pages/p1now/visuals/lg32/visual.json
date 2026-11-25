@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
   "name": "lg32",
   "position": {
-    "x": 262,
+    "x": 263,
     "y": 146,
     "z": 112,
     "height": 2,
-    "width": 4,
+    "width": 5,
     "tabOrder": 112
   },
   "visual": {
