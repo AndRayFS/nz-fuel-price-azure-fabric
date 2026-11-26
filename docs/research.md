@@ -1570,7 +1570,9 @@ The sum runs until the gap is back at zero.
 
 > **Bounded the same day.** The regional part of such a cost is about 8–9 c/L,
 > a quarter to a third of the excess. See "Australia's wholesalers did not hold
-> diesel's margin" below.
+> diesel's margin" below. Perth's whole chain, retail included, matched about
+> half of the excess, most of it in the first four weeks: "Perth's service
+> stations held diesel for four weeks, not ten", below.
 
 **Caveats.**
 - Most of the rule's sample is the refinery era (2010 – Mar 2022). Import-era
@@ -1625,7 +1627,7 @@ Zealand's own" needed a change within ±5.
 - **The test does not cover retail.** AIP's series is wholesale, while New
   Zealand's margin includes retail, so service stations holding diesel's margin
   in Australia would not show here. Western Australia's FuelWatch publishes
-  daily retail and terminal prices for Perth; that is the next check.
+  daily retail and terminal prices for Perth; that check is the next section.
 
 **Caveats.**
 - The Asian cost is ComCom's, with freight to New Zealand. The freight
@@ -1633,6 +1635,64 @@ Zealand's own" needed a change within ±5.
 - The excise dates were not obtained, because the government pages did not
   render, and the measure does not need them. ACCC's weekly reports refuse
   automated fetches and were not read.
+- This is one episode.
+
+## Perth's service stations held diesel for four weeks, not ten — 26 Nov 2026
+
+The wholesale test above left out the retail layer, which New Zealand's margin
+includes. Western Australia's FuelWatch publishes every Perth station's daily
+price and every terminal's daily gate price. `research/au_perth_retail.py`,
+rule written before the run.
+
+**Data.**
+- FuelWatch retail: Metro (Perth) stations, ULP and Diesel (not Brand
+  Diesel), daily, AUD c/L including GST, averaged over stations each day.
+- FuelWatch TGP at the Perth terminals, Kwinana Beach and Kewdale. It includes
+  GST: its February mean is within 0.5% of AIP's Perth TGP, and over 2026 the
+  two differ by 0.8 c/L a day on average.
+- Cost and FX as in the wholesale test.
+
+**Measure.** Diesel minus petrol, as before, so that excise cancels:
+- **Retail layer**: (station price − TGP) / 1.1 for diesel, minus the same for
+  ULP.
+- **Whole Perth chain**: (diesel − ULP station price) / 1.1 minus ComCom's
+  diesel − 91 cost, in AUD. This is the one comparable with New Zealand's
+  margin.
+
+| change, 6–27 Feb to 24 Apr – 10 Jul, AUD c/L ex GST | Perth | New Zealand |
+|---|---|---|
+| wholesale: Perth TGP against the cost | +6.6 | — |
+| retail: station price − TGP | +6.5 | — |
+| **whole chain** | **+13.1** | **+25.4** (+30.9 in NZD) |
+
+The rule's verdict: **partly**. "Held at retail too" needed +10 or more; "not
+held at retail" needed a change within ±5. The verdict is fragile: on stations
+that price both fuels the same day the retail change is +5.2, and with the
+median station +8.7.
+
+- **Perth's diesel retail margin barely moved on average** (+1.0). The
+  difference grew mostly because petrol's retail margin fell (−5.5).
+- **Perth held diesel for four weeks.** Its diesel retail margin sat 5–15 c/L
+  above February from mid-April to mid-May, and from late May at February's
+  level or below. The whole chain against New Zealand:
+
+| whole chain, change from 6–27 Feb, AUD c/L | Perth | New Zealand | Perth / NZ |
+|---|---|---|---|
+| 24 Apr – 15 May (4 weeks) | +23.4 | +32.8 | 0.71 |
+| 22 May – 10 Jul (8 weeks) | +7.9 | +21.7 | 0.36 |
+
+**What it bounds.**
+- **About half of New Zealand's diesel excess has a counterpart in Perth**,
+  wholesale and retail together. In the first four weeks it is almost three
+  quarters.
+- **What is New Zealand's own is how long it lasted.** Perth let the margin go
+  in late May; New Zealand held it to the end of June.
+
+**Caveats.**
+- One city, with its own regime: stations post tomorrow's price a day ahead.
+  The east coast may differ, and ACCC's reports were not read.
+- The station average shifts with which stations report; the matched-station
+  version is the check on that.
 - This is one episode.
 
 ## The diesel instability is Provisional data, not the crisis - 16 Aug 2026
