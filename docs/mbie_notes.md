@@ -354,6 +354,69 @@ match: cost up, margin down by the same amount. Through the conflict diesel's
 margin now sits far lower than anything the next section quotes.
 Measurements: "Known structural changes", 23 Sep 2026.
 
+### The rebuilt April weeks lag ComCom's live series — 26 Nov 2026
+
+**In MBIE's rebuilt cost, April's fall arrives one to two weeks late.** The
+fall is the right size; only its timing differs.
+
+The check is against the Commerce Commission's daily refined product cost,
+which it published live through the conflict in its "Fuel price monitoring"
+reports. It is converted to MBIE's tax-exclusive basis and averaged over
+MBIE's Monday–Sunday weeks. `research/diesel_comcom_dating.py`; diesel, c/L:
+
+| week | ComCom | MBIE | MBIE − ComCom | change, ComCom | change, MBIE |
+|---|---|---|---|---|---|
+| 27 Mar | 300.9 | 297.2 | −3.7 | +30.8 | +31.1 |
+| 3 Apr | 363.1 | 345.7 | −17.4 | +62.2 | +48.5 |
+| 10 Apr | 288.6 | 323.1 | **+34.5** | −74.5 | −22.6 |
+| 17 Apr | 223.4 | 308.5 | **+85.1** | −65.2 | −14.6 |
+| 24 Apr | 203.8 | 200.0 | −3.9 | −19.5 | **−108.5** |
+| 1 May | 208.5 | 201.8 | −6.7 | +4.6 | +1.8 |
+
+- **Outside 3–17 Apr the two agree.** From February to July they differ by at
+  most 6.7 c/L. Weekly changes correlate at 0.988 outside 3 Apr – 1 May and
+  0.765 with it.
+- **The size matches.** From 3 to 24 Apr ComCom falls 159 c/L and MBIE 146.
+  ComCom puts the fall in the weeks of 10 and 17 Apr; MBIE puts most of it
+  into 24 Apr.
+- **Petrol shows the same timing, more weakly.** ComCom's changes are −15.2,
+  −11.5 and +0.1 against MBIE's −5.7, −2.1 and −19.1. Only 17 Apr (+19.9) stands
+  out from petrol's usual differences, which reach 10.9 elsewhere.
+- **ComCom's dating is the one to believe.** Its series was published week by
+  week: the 23 Apr report already showed the fall by 15 Apr. MBIE's weeks were
+  rebuilt after the pause. US diesel (FRED, ULSD at New York Harbor and the
+  Gulf Coast) also fell in the weeks of 10 and 17 Apr and rose in the week
+  of 24 Apr.
+- **What follows for these weeks.** Diesel's `Importer cost` for 10 and 17 Apr
+  is probably 35 and 85 c/L too high, and its `Importer margin` too low by the
+  same amounts: on ComCom's cost the margin is +29 and +94, not −6 and +9.
+  These weeks went Final on 26 Aug and sit in the training sample.
+- **Why it happened is unknown.** MBIE's restart analysis PDF, which may
+  describe the rebuild, sits behind bot protection and was not read.
+- **AIP cannot settle it.** Its April reports were deleted before this project
+  collected any, and the Wayback Machine holds none from March to June.
+
+About ComCom's series, from its report footnotes:
+- the cost is for fuel from South Asian refineries: an Argus benchmark plus
+  quality premium, Worldscale and Baltic Exchange freight, and insurance and
+  losses, in a model built with Envisory;
+- it is converted daily at RBNZ rates and stated including GST, ETS and
+  excise;
+- retail is Gaspy's national mean.
+
+Two cautions:
+- ComCom revised the series in June to add the traders' risk premium.
+  Today's file matches MBIE's published cost, adjustment included; the April
+  reports, made before the revision, read about 15 c/L lower, tax included.
+- The conversion is x / 1.15 − taxes − ETS, using MBIE's taxes and ETS for
+  the week.
+
+File: "Fuel price monitoring – Data to <date>", an xlsx on ComCom's
+monitoring page. The copy used is kept locally in `data/comcom/`.
+
+Consequence for the research: `research.md`, "Diesel's K-instability is the
+thirteen weeks after one crash" — corrected the same day.
+
 ### MBIE's own findings, and where they agree with this project
 
 > **24 Sep 2026 — the data no longer says this.** After MBIE's 23 Sep cost
