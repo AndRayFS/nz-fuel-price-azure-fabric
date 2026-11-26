@@ -79,6 +79,24 @@
                       "fontSize": "9.75pt",
                       "color": "#5C5B56"
                     }
+                  },
+                  {
+                    "value": "  ·  On a phone: ",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9.75pt",
+                      "color": "#5C5B56"
+                    }
+                  },
+                  {
+                    "value": "the phone version",
+                    "url": "https://nzfueldata.z8.web.core.windows.net/",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9.75pt",
+                      "color": "#1B1B19",
+                      "textDecoration": "underline"
+                    }
                   }
                 ]
               }

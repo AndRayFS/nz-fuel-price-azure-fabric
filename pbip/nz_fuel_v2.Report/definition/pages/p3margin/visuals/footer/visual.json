@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "The margin is what is left of the price paid after taxes and MBIE's estimate of this week's replacement cost, so a jump in cost squeezes it at once. A squeeze does not say whether the price paid or the cost closes it.",
+                    "value": "A jump in cost squeezes the margin at once. A squeeze does not say whether the price paid or the cost closes it.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "8.25pt",

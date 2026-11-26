@@ -14,8 +14,9 @@ FONT, FONT_B = "Segoe UI", "Segoe UI Semibold"
 # chart's bottom edge - which the data decide, so no fixed inset is exact. 15 is the
 # usual case (read from the page's SVG on the dev copy, 24 Nov 2026). It left 0.84,
 # 0.89 and 0.85 px per c/L for 91, 95 and diesel; the live page had 0.70, 0.74 and
-# 0.99, with the heights alone doing the work.
-GAP_HEIGHTS = {"Regular Petrol": 91, "Premium Petrol 95R": 94, "Diesel": 159}
+# 0.99, with the heights alone doing the work. 91, 94 and 159 until 26 Nov 2026, when
+# all three gave 4.5% to the margin's definition over the charts (outside review V10).
+GAP_HEIGHTS = {"Regular Petrol": 87, "Premium Petrol 95R": 90, "Diesel": 152}
 GAP_PLOT_INSET = 15
 # How Power BI itself writes font families into visual properties: the face, then
 # the web font it ships with the service, then generic fallbacks. A bare name only
