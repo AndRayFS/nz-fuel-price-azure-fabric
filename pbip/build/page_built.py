@@ -28,16 +28,22 @@ LANES = [("Azure", "Logic App, Blob storage"),
          ("Power BI", "PBIR and TMDL in git; publish to web")]
 LANE_Y, LANE_H, LANE_GAP = 128, 96, 8
 STEP_X, STEP_DX, STEP_W, STEP_H = 196, 108, 184, 84
-# (lane, title, what it does, how long it takes)
+# (lane, title, what it does, how long it takes). The times are medians of the eight
+# Thursday runs from 30 Sep to 25 Nov 2026, from GitHub Actions' step and task
+# timestamps: ingest 61 s, gate and cross-check 2.5 min (2.0 until 21 Oct, 2.4-2.8
+# since; it said "about 2 min" until 26 Nov), dbt 83 s, model 87 s, report tables
+# 12 s, refresh 45 s, archive and phone page 11 s, the whole job 11.3 min.
 STEPS = [(0, "Clock", "a Logic App starts the run every Thursday", "Thu 09:07 NZT"),
          (1, "Runner", "wakes the capacity, runs each step, then pauses it", "10–15 min in all"),
          (2, "Ingest", "a pipeline copies MBIE's file into the Lakehouse", "about 1 min"),
-         (1, "Gate and cross-check", "no new MBIE week, no run; Australian prices only warn", "about 2 min"),
+         (1, "Gate and cross-check", "no new MBIE week, no run; Australian prices only warn", "about 2½ min"),
          (2, "dbt", "snapshot, silver and gold, then 43 data tests", "about 1½ min"),
          (1, "Model", "refits ADL+ECM since 2013; Mon–Wed Brent from Yahoo", "about 1½ min"),
          (2, "Report tables", "dbt rebuilds the calls and margin tables", "about 15 s"),
          (3, "This report", "the model is refreshed; the public page follows", "about 1 min"),
-         (0, "Archive", "the same data as a dated zip in Blob storage", "after the refresh")]
+         # Report 1 has a second face, the phone page, built in the same step as the
+         # archive and from the same data (26 Nov 2026).
+         (0, "Archive, phone page", "a dated zip and the phone page, from the same data", "after the refresh")]
 TILES = [("43", "data tests every run; a failure outside monitoring stops it"),
          # The prices go back to 2004, the model's calls to Feb 2013, where Now's longest
          # period starts: the tile says both (outside review V13, 26 Nov 2026).
