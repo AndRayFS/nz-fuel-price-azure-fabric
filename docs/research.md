@@ -1402,8 +1402,8 @@ surplus 24 Apr – 10 Jul, c/L-weeks:
    of 2025 against the one-margin-lag ECM (`research/adl_train_cut.py
    --live-status`, origins from 1 Jul 2026): diesel −14.6% / −6.3% / −7.1% MAE
    at h=1 / 2 / 3 (n 18–20), petrol −8.2% / +9.8% / +6.5%. A hole that keeps
-   Jan–Mar and Jul–Sep 2026 is not tested. It would change production, so it
-   belongs in `docs/workstreams.md`, not here.
+   Jan–Mar and Jul–Sep 2026 is not tested. It would change production: W26
+   in `docs/workstreams.md`, proposed 27 Nov 2026.
 
 ## Diesel's K-instability is the thirteen weeks after one crash — 26 Nov 2026
 
