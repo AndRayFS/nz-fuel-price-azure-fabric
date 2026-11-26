@@ -1548,7 +1548,9 @@ The sum runs until the gap is back at zero.
   particularly in April and May, which ComCom added from its next report.
   MBIE's 23 Sep adjustment covers the same costs. In today's data both sources
   include them and agree within 7 c/L in May and June, and the excess remains
-  after them.
+  after them. On average ComCom's diesel cost sits 3.2 c/L above MBIE's in May
+  and 1.1 below in June. ComCom's rolling quality premium (from 28 May) and
+  the importers' own cost data move the cost by a few cents at most.
 - ComCom's caution applies here: the spread is not profit. It also covers
   distribution, storage, terminals, discounting, inventory and timing, and some
   of those costs rose in the conflict.
@@ -1573,6 +1575,18 @@ The sum runs until the gap is back at zero.
 > diesel's margin" below. Perth's whole chain, retail included, matched about
 > half of the excess, most of it in the first four weeks: "Perth's service
 > stations held diesel for four weeks, not ten", below.
+
+> **Qualified the same day: inventory is not ruled out.**
+> - Petrol is a weaker control than "Inventory is weakened" above says. Its
+>   cost fell about 40 c/L at the crash (191 on 20 Mar to 151 on 24 Apr);
+>   diesel's fell about 146 (346 on 3 Apr to 200 on 24 Apr).
+> - The stock already bought was long. MBIE's weekly stock data (days of
+>   cover at pre-conflict demand, 10.7 ML of diesel a day) put diesel at
+>   17.5–27.6 days in the country and 22–34 more on ships between 8 Mar and
+>   12 Apr: 45–55 days, about seven weeks.
+> - Singapore to Perth is roughly a week's sail, to New Zealand two to three,
+>   so Perth's stock at sea covers one to two weeks less. Its stock on shore
+>   was not found.
 
 **Caveats.**
 - Most of the rule's sample is the refinery era (2010 – Mar 2022). Import-era
@@ -1635,6 +1649,15 @@ Zealand's own" needed a change within ±5.
 - The excise dates were not obtained, because the government pages did not
   render, and the measure does not need them. ACCC's weekly reports refuse
   automated fetches and were not read.
+- Australia relaxed its sulphur limits in 2026 to draw on its Brisbane
+  refinery's higher-sulphur output. New Zealand, which from 23 Mar accepted
+  Australian-specification fuel for up to 12 months, did not follow (1News,
+  23 Mar 2026). Where Australian TGPs priced higher-sulphur diesel, this
+  measure reads Australia's margin low against ComCom's low-sulphur cost.
+  National TGPs include Brisbane; Perth, supplied by imports since Kwinana
+  stopped refining in 2021, is less exposed. The size was not measured;
+  closing the gap to New Zealand would take about 17 AUD c/L on all
+  Australian diesel.
 - This is one episode.
 
 ## Perth's service stations held diesel for four weeks, not ten — 26 Nov 2026
