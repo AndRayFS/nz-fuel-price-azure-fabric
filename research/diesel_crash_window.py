@@ -49,6 +49,32 @@ def load(date: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     return p, mg
 
 
+COMCOM_XLSX = ROOT / "data" / "comcom" / "Fuel-price-monitoring-Data-to-24-November-2026.xlsx"
+
+
+def comcom_weekly(p: pd.DataFrame, xlsx=COMCOM_XLSX) -> pd.DataFrame:
+    """ComCom's daily refined cost and retail price as MBIE weeks, tax-exclusive.
+
+    Mean over MBIE's Monday-Sunday week, stamped Friday; converted as
+    x / 1.15 - taxes - ets with MBIE's taxes and ETS for that week. The same
+    arithmetic as diesel_comcom_dating.py (docs/mbie_notes.md, "The rebuilt
+    April weeks lag ComCom's live series").
+    """
+    import openpyxl
+    wb = openpyxl.load_workbook(xlsx, read_only=True, data_only=True)
+    rows = list(wb.worksheets[0].iter_rows(values_only=True))
+    cc = pd.DataFrame(rows[1:], columns=rows[0])
+    cc["DATE"] = pd.to_datetime(cc.DATE, dayfirst=True)
+    cc["fuel"] = cc.FUEL_TYPE.map({"91": "Regular Petrol", "95": "Premium Petrol 95R", "Diesel": "Diesel"})
+    cc["week"] = cc.DATE - pd.to_timedelta(cc.DATE.dt.weekday, unit="D") + pd.Timedelta(days=4)
+    g = cc.groupby(["fuel", "week"]).agg(cost=("REFINED_COSTS", "mean"),
+                                         retail=("RETAIL_PRICES_AVG", "mean")).reset_index()
+    x = g.merge(p.rename(columns={"Date": "week", "Fuel": "fuel"}), on=["fuel", "week"], how="inner")
+    x["cc_cost_excl"] = x.cost / 1.15 - x.taxes - x.ets
+    x["cc_retail_excl"] = x.retail / 1.15 - x.taxes - x.ets
+    return x
+
+
 def frame(p: pd.DataFrame, adj: pd.Series | None, fuel: str) -> pd.DataFrame:
     d = p[p.Fuel == fuel].sort_values("Date").set_index("Date").copy()
     cost = d.importer_cost - (adj.reindex(d.index).fillna(0.0) if adj is not None else 0.0)
