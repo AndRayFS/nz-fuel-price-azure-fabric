@@ -39,7 +39,9 @@ STEPS = [(0, "Clock", "a Logic App starts the run every Thursday", "Thu 09:07 NZ
          (3, "This report", "the model is refreshed; the public page follows", "about 1 min"),
          (0, "Archive", "the same data as a dated zip in Blob storage", "after the refresh")]
 TILES = [("43", "data tests every run; a failure outside monitoring stops it"),
-         ("Since 2004", "weekly history, three fuels"),
+         # The prices go back to 2004, the model's calls to Feb 2013, where Now's longest
+         # period starts: the tile says both (outside review V13, 26 Nov 2026).
+         ("Since 2004", "weekly prices, three fuels; the model's calls start in 2013"),
          ("10–15 min", "of paid compute a week; the capacity sleeps otherwise"),
          # ~4.3 runs a month of ~15 min at the F2 rate measured in Aug 2026, NZ$0.729 an hour
          # (docs/cost_notes.md): NZ$0.78. The USD price is fixed; it moves with the exchange rate only.
