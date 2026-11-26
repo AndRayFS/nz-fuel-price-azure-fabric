@@ -49,9 +49,14 @@ TILES = [("43", "data tests every run; a failure outside monitoring stops it"),
          # period starts: the tile says both (outside review V13, 26 Nov 2026).
          ("Since 2004", "weekly prices, three fuels; the model's calls start in 2013"),
          ("10–15 min", "of paid compute a week; the capacity sleeps otherwise"),
-         # ~4.3 runs a month of ~15 min at the F2 rate measured in Aug 2026, NZ$0.729 an hour
-         # (docs/cost_notes.md): NZ$0.78. The USD price is fixed; it moves with the exchange rate only.
-         ("NZ$0.80", "a month of compute for about 4.3 weekly runs, plus storage")]
+         # ~4.3 runs a month of 10.7 min (the mean of the eight Thursday runs above, resume to
+         # pause) at the F2 rate measured in Aug 2026, NZ$0.729 an hour (docs/cost_notes.md):
+         # NZ$0.56; storage adds NZ$0.01 (Cost Management, 26 Oct - 24 Nov 2026: OneLake
+         # NZ$0.011, Blob inside its free allowance, Logic App NZ$0.0004). Until 26 Nov it
+         # said NZ$0.80, from ~15 min a run, compute only. Cost Management cannot give the
+         # runs' compute itself: one record per meter per day, whoever woke the capacity.
+         # The USD price is fixed; it moves with the exchange rate only.
+         ("NZ$0.57", "a month for about 4.3 weekly runs, storage included")]
 
 def lane_top(i): return LANE_Y + i * (LANE_H + LANE_GAP)
 
