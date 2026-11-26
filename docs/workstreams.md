@@ -2263,6 +2263,22 @@ model fits worst".
 | B | a standing rule: equations within 13 weeks after a weekly cost move of 50 c/L or more | covers the next crash without a decision | takes every future crisis out of training without anyone deciding it; two thresholds to choose |
 | C | all of 2026, the sample growing again from 2027 | simplest; its direction is already measured | discards January–February and the second episode (July–November) |
 
+**Decided 27 Nov 2026: A.** The edges are not moved for shipping time or
+stock: those are behaviour, and moving the edges for them would be fitting.
+One shift follows from A itself, at the end only:
+
+- An equation still uses rebuilt data if its cost lags or margin terms reach a
+  rebuilt week. With b0..b6, week t's oldest cost change is cost t−6 minus
+  cost t−7, so the last such equation is dated 21 Aug 2026.
+- **Strict hole:** equations dated 20 Mar – 21 Aug 2026, 23 weeks.
+  **Plain hole:** 20 Mar – 3 Jul, 16 weeks. The start needs no shift, since
+  no equation before 20 Mar touches a rebuilt week.
+- Which of the two is primary is confirmed before the rule is written; the
+  other is a diagnostic.
+- The 104-week norm behind the margin term cannot follow the same logic
+  without losing two years. It is the one accepted exception (about
+  −0.4 c/L).
+
 **Delivers.**
 
 1. `research/w26_train_hole.py`, its rule in the docstring before it runs.
@@ -2272,9 +2288,10 @@ model fits worst".
      (`--live-status`, as in `adl_train_cut.py`).
    - The rule names the primary fuel (diesel), the deciding horizons, the
      origins (from the first cutoff at which a hole week counts as Final, to
-     the newest), what is done with petrol, and the diagnostics: a strict hole
-     that also drops the equations whose lags reach into the window, option C,
-     h=3, and origins before against inside the second episode.
+     the newest), what is done with petrol, and the diagnostics: whichever of
+     the strict and plain holes is not primary, option C, h=3, and origins
+     before against inside the second episode.
+   - On its own branch, not this entry's.
    - The result goes into `docs/research.md`.
 2. If adopted: a training mask on `bt.fit_adl`, `bt.adl_forecast` and
    `nowcast.forecast_with_nowcast`, default none, so every existing caller is
