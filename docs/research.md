@@ -1319,9 +1319,10 @@ sample.
 
 ## Diesel 2026: where it stands — 27 Nov 2026
 
-**This is the current reading of diesel's 2026 behaviour.** The five sections
+**This is the current reading of diesel's 2026 behaviour.** The six sections
 that follow it, from "Diesel's K-instability is the thirteen weeks after one
-crash" to "Diesel volumes narrow the money gap" (all 26 Nov), hold the tests.
+crash" (26 Nov) to "W26: diesel forecasts better trained without MBIE's
+rebuilt window" (27 Nov), hold the tests.
 Where their verdicts differ from this section, this section wins, and each of
 them says at its top what changed. Figures are from the 26 Nov archive unless
 dated.
@@ -1401,9 +1402,13 @@ surplus 24 Apr – 10 Jul, c/L-weeks:
    against today's production. Evidence so far comes from training to the end
    of 2025 against the one-margin-lag ECM (`research/adl_train_cut.py
    --live-status`, origins from 1 Jul 2026): diesel −14.6% / −6.3% / −7.1% MAE
-   at h=1 / 2 / 3 (n 18–20), petrol −8.2% / +9.8% / +6.5%. A hole that keeps
-   Jan–Mar and Jul–Sep 2026 is not tested. It would change production: W26
-   in `docs/workstreams.md`, proposed 27 Nov 2026.
+   at h=1 / 2 / 3 (n 18–20), petrol −8.2% / +9.8% / +6.5%.
+   **Tested 27 Nov 2026 (W26, strict hole 20 Mar – 21 Aug, against W25's
+   production):** diesel passes its pre-registered rule (−9.8% / −7.2% MAE at
+   h=1 / 2), petrol fails (+9.2% at h=2). See "W26: diesel forecasts better
+   trained without MBIE's rebuilt window", below. Shipping it for diesel
+   waits for the December-quarter checkpoint, around late February 2027
+   (owner, 27 Nov 2026; `docs/workstreams.md`, W26).
 
 ## Diesel's K-instability is the thirteen weeks after one crash — 26 Nov 2026
 
@@ -1913,6 +1918,58 @@ of 1.5 or less; "does not change the picture" needed 2.5 or more.
   also been reallocated without changing the total, so the sector split is
   weaker evidence than the total.
 - This is one episode.
+
+## W26: diesel forecasts better trained without MBIE's rebuilt window; petrol does not — 27 Nov 2026
+
+`research/w26_train_hole.py`, rule written before the run
+(`docs/workstreams.md`, W26). Production as it runs since W25, trained with a
+hole: the equations that touch the weeks MBIE suspended and rebuilt, 18 Mar –
+1 Jul 2026. The strict hole, the primary, drops equations dated 20 Mar –
+21 Aug; the plain one, 20 Mar – 3 Jul. Each cutoff sees the status it would
+have seen: a quarter counts as Final 61 days after it ends. 26 Nov archive.
+
+**Plumbing.**
+- Production on the archive's own status reproduces `pred_adl_ecm` on all 282
+  rows of 2026 to 0.00005 c/L. `pred_nowcast` differs by up to 1.1 c/L on 12
+  rows, where the cached Brent is not what Yahoo served on the day.
+- The strict and plain holes are identical on this sample, as expected: no
+  July – September week counts as Final before 30 Nov. They first differ
+  after it.
+
+Nowcast path, the call Report 1 shows, origins 5 Jun – 13 Nov 2026, MAE c/L:
+
+| fuel | h | n | production | strict hole | change |
+|---|---|---|---|---|---|
+| Diesel | 1 | 24 | 2.441 | 2.201 | **−9.8%** |
+| Diesel | 2 | 23 | 5.281 | 4.903 | **−7.2%** |
+| Diesel | 3 | 22 | 9.024 | 8.778 | −2.7% |
+| Regular Petrol | 1 | 24 | 1.654 | 1.609 | −2.7% |
+| Regular Petrol | 2 | 23 | 3.285 | 3.587 | **+9.2%** |
+| Regular Petrol | 3 | 22 | 6.739 | 7.290 | +8.2% |
+
+The rule's verdict: **diesel passes** (lower at h=1 and h=2); **petrol fails**
+(worse at h=2).
+
+- **The gain sits where the hole is large.** From 4 Sep, when the June
+  quarter's weeks enter training: diesel −20.6% / −11.0% / −7.0% at h=1 / 2 /
+  3 (n 11 / 10 / 9). Before 4 Sep, when the hole is two March weeks: +0.7% /
+  −3.1% / +1.0%.
+- **Petrol loses at two and three weeks** from 4 Sep (+13.2%, +11.1%) and
+  gains at one (−7.6%). Its weights barely move (sum b0..b6 0.760 → 0.779):
+  the window was not distorting petrol, and dropping it costs petrol data.
+- **Diesel's weights recover most of the way:** sum b0..b6 0.458 in
+  production, 0.711 with the hole, 0.738 without all of 2026 (13 Nov, live
+  status).
+- **Dropping all of 2026 (option C)** does about as well for diesel at h=1–2
+  (−9.7%, −7.4%) and worse at h=3 (+1.0%).
+- **The adl_ecm path agrees in direction:** diesel −6.0% / −4.5% / −1.9%.
+
+**What it does not show.**
+- About 24 origins per fuel, 9–11 of them with the full hole, all inside the
+  second episode (July – November). That is a direction, not a proof.
+- The strict and plain holes are not yet told apart.
+- These are reconstructed calls with the live status, not the calls as
+  published.
 
 ## The diesel instability is Provisional data, not the crisis - 16 Aug 2026
 

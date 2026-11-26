@@ -2293,6 +2293,19 @@ One shift follows from A itself, at the end only:
      before against inside the second episode.
    - On its own branch, not this entry's.
    - The result goes into `docs/research.md`.
+
+   **Done 27 Nov 2026, branch `w26-hole-test`.** Production reproduced
+   (`pred_adl_ecm` to 0.00005 c/L; `pred_nowcast` reported, not gated). On
+   origins 5 Jun – 13 Nov 2026, nowcast path: **diesel passes** (−9.8% /
+   −7.2% MAE at h=1 / 2), **petrol fails** (+9.2% at h=2). The gain sits in
+   the 9–11 origins from 4 Sep. Strict and plain are identical until 30 Nov.
+   `docs/research.md`, "W26: diesel forecasts better trained without MBIE's
+   rebuilt window".
+
+   **Decided 27 Nov 2026 (owner): step 2 waits for the December-quarter
+   checkpoint**, around late February 2027. By then there are about 35
+   origins, the strict and plain holes differ, and W25 has run a quarter on
+   its own. Petrol stays as it is.
 2. If adopted: a training mask on `bt.fit_adl`, `bt.adl_forecast` and
    `nowcast.forecast_with_nowcast`, default none, so every existing caller is
    unchanged by construction; `main()` sets it per fuel.
