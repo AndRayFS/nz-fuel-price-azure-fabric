@@ -1454,6 +1454,10 @@ predict a fast first reaction and a slow tail:
 
 Both rest on one episode.
 
+> **Tested the same day.** The inventory explanation is weakened: diesel
+> followed its own rule on the way up, and petrol, stocked the same way, shows
+> nothing. See "Diesel held its margin after the crash; petrol did not" below.
+
 **Consequences.**
 - **The figure to quote does not change.** Final data excluding 2026 never
   contains this window.
@@ -1464,6 +1468,111 @@ Both rest on one episode.
   cost is 35 and 85 c/L too high. They are left as they are, because
   production reads MBIE as published.
 - n = 1 again: every number in this section comes from one crash.
+
+## Diesel held its margin after the crash; petrol did not — 26 Nov 2026
+
+The section above leaves two questions about the slow fall after the April
+crash. Was it unusual for diesel itself? Did petrol do the same? Two scripts,
+each with its rule written before it ran: `research/diesel_margin_episodes.py`
+and `research/diesel_margin_squeeze.py`. Offline, against the 26 Nov archive
+and ComCom's daily file.
+
+**Method.**
+- **Episodes.** Per fuel, from 2012, a run that starts when the margin is 30% or
+  more above its 104-week norm (`margin.csv`'s definition) and ends when it is
+  back below 15%. That gives 13 diesel and 20 petrol episodes, 2026 included.
+- **Own rule.** K=6 cost lags plus the margin's distance from its norm, as in
+  `headline_results.py`'s error correction, fitted per fuel on Final
+  2010–2025. Each earlier episode's own year is left out of its fit.
+- **Excess.** The pump price net of taxes, minus the path that rule predicts on
+  the actual costs from the episode's first week. Mean over 12 weeks, in c/L.
+  A positive excess means the pump stayed higher than the fuel's own history
+  says it should have. The rule already accounts for the size of the gap and
+  for costs that kept moving.
+
+**After the crash, diesel was unlike its own history and unlike petrol.**
+
+| | diesel excess, c/L | as % of the norm |
+|---|---|---|
+| **2026, 24 Apr – 10 Jul** | **+32.6** | **+78%** |
+| largest of the 12 earlier diesel episodes (May 2022) | +7.2 | +19% |
+| petrol in the same 2026 weeks | **0.0** | 0% |
+| median of diesel − petrol over the earlier windows | −0.1 | |
+
+The rule's verdict: **unusual and diesel-specific.**
+
+- **The dating does not matter.** On ComCom's dating the episode starts 17 Apr
+  and its excess is +33.7.
+- **Neither does the threshold.** At 20% the earlier maximum is +7.3, at 40% it
+  is +4.7; 2026 stays at +32.6.
+- **A large gap is not enough by itself.** In July 2022 petrol's gap reached
+  139% of its norm and its excess was +2.9; diesel's reached 84%, excess +1.9.
+- **Neither is a large fall.** Over the window diesel held about a fifth of its
+  roughly 160 c/L cost fall. Petrol behaving the same way would show about
+  10 c/L on its roughly 50 c/L fall. It shows none.
+
+**On the way up, diesel mostly followed its rule.** For the squeeze, the same
+simulation is started at the first 2026 week with the gap at −30% or below.
+The sum runs until the gap is back at zero.
+
+| diesel, relative to its own rule | MBIE as published | ComCom's dating |
+|---|---|---|
+| the rise and squeeze, sum in c/L·weeks | −135 (7 weeks) | −98 (6 weeks) |
+| after the crash, 12 weeks | +391 | +404 |
+| ratio | 0.35 | 0.24 |
+
+- **The rule's verdict: asymmetric.** The rule needed −196 or below for
+  "smoothed both ways".
+- **In March diesel ran only 5–9 c/L a week below its rule.** The shortfall
+  grew only at the April cost peak: about −33 a week in the weeks of 3 and
+  10 Apr on ComCom's dating, and −29 to −40 over 3–17 Apr on MBIE's, whose
+  17 Apr is misdated.
+- **Petrol is small on both sides:** −32 on the way up, +9 to +41 after the fall.
+- **Measured against the normal margin rather than the rule, the two sides
+  roughly cancel.** In levels, March's squeeze is mostly the ordinary lag,
+  which the rule expects. Holding the price after the fall brought the margin
+  lost to that lag back. ComCom's revised daily spread for diesel shows it:
+
+  | | before (Feb) | Mar | Apr | May | Jun | Jul |
+  |---|---|---|---|---|---|---|
+  | diesel spread, c/L incl. tax | 55 | −32 | 52 | 94 | 101 | 43 |
+
+  Averaged from 28 Feb, the spread is back to 51–55 by July. ComCom's
+  pre-revision reports give 57–62 for the same period in 2023–25.
+
+**What the regulator saw.** ComCom's fortnightly reports, 28 May – 25 Jun:
+- **Before the June revision**, diesel's average spread since 28 Feb passed its
+  2023–25 level in early June and reached 69 against 57–60 by 24 Jun. Petrol's
+  stayed below its 2025 level.
+- **On 25 Jun importers reported unusually high quality-premium costs**,
+  particularly in April and May, which ComCom added from its next report.
+  MBIE's 23 Sep adjustment covers the same costs. In today's data both sources
+  include them and agree within 7 c/L in May and June, and the excess remains
+  after them.
+- ComCom's caution applies here: the spread is not profit. It also covers
+  distribution, storage, terminals, discounting, inventory and timing, and some
+  of those costs rose in the conflict.
+
+**What it changes in "why".**
+- **Inventory is weakened as the main cause.** Selling stock bought at the peak
+  would make the pump lag in both directions. On the way up diesel kept within
+  5–9 c/L a week of its rule through March and fell behind only for the two
+  peak weeks. Petrol, imported and stocked the same way, shows nothing.
+- **Left: the margin held to recover the squeeze.** It fits the balance in
+  levels, the asymmetry, and the diesel-only pattern: diesel's squeeze was the
+  deepest on record (−51 c/L on 3 Apr in MBIE's data).
+- **Also left: diesel-specific costs that neither source measures.** In 2026
+  diesel was the world's short product (the IEA expects it to stay tight into
+  2027). Physical premiums and tanker freight above the Worldscale and Baltic
+  indices both cost models use would show up here as margin.
+- **This data cannot separate the last two.** An unmeasured cost and a held
+  margin leave the same residual.
+
+**Caveats.**
+- Most of the rule's sample is the refinery era (2010 – Mar 2022). Import-era
+  diesel episodes give +1.7 to +7.2, inside the earlier range.
+- The test compares one 2026 episode with 12 earlier ones per fuel.
+- It is weekly, and on MBIE's published data unless marked.
 
 ## The diesel instability is Provisional data, not the crisis - 16 Aug 2026
 
