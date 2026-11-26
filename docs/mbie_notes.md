@@ -804,6 +804,58 @@ change rewrote `Importer cost` on every one of those weeks, and on the
 live-published weeks either side of them, outside any finalisation — see
 "Known structural changes", 23 Sep 2026.
 
+### The second finalisation — measured 26 Nov 2026
+
+The September quarter, 3 Jul – 25 Sep 2026, finalised in the 26 Nov load
+(`detected_on` 2026-11-25): thirteen weeks, all three fuels, all status
+columns at once — 351 Provisional → Final transitions and no
+`final_rewritten`.
+
+**The standing prediction above held on both of its counts.**
+
+| | factor before (carried from Q2) | factor after | shift in `adjusted_retail_price` |
+|---|---|---|---|
+| Diesel | 2.847 | 0.391 | +2.456 c/L |
+| Regular Petrol | 3.746 | 3.412 | +0.334 c/L |
+| Premium 95R | — | — | 0.000 |
+
+- **The size is ordinary**, inside the nothing-to-±3.6 c/L of the factor's
+  history. The direction is new: the factor fell, so the adjusted price rose,
+  where on 26 Aug it fell. Diesel's new factor, 0.39, sits near the bottom of
+  its 2022+ range (0.26).
+- **The first week moved by its day-weighted fraction.** The 3 Jul week
+  (Monday 29 Jun – Sunday 5 Jul) has five of its seven days in the quarter, and
+  moved by five sevenths of the shift: diesel +1.754 = 5/7 × 2.456, Regular
+  +0.238 = 5/7 × 0.334. That is the prediction from "The retail week is seven
+  days" above, now observed.
+- **The new factor went straight into the next quarter's Provisional weeks.**
+  2 Oct – 13 Nov moved by the full shift in the same release, as the
+  methodology implies: a Provisional quarter carries the latest factor.
+
+**The timing was not.** The prediction said mid-October, the CPI release.
+Both finalisations have instead landed about two months after the quarter's
+last week: 26 Aug for a quarter ending 26 Jun, 25 Nov for one ending 25 Sep.
+On that pattern the December quarter finalises around late February 2027.
+
+**Finalisation and release, separated as far as one more release can.** On
+26 Aug the release also carried a 40-week rewrite of 2023–24 and a cost
+revision on the newest week, so the two could not be told apart. This one
+carried only the routine revision of the newest week: 13 Nov `Importer cost`
++0.88 c/L for diesel and +0.27 for petrol, Dubai 90 → 91 USD. Everything else
+in it is the factor and its arithmetic. GST, `Price excluding tax` and
+`Importer margin` moved by exactly the shift (diesel 2.456 = 2.136 + 0.320).
+`Importer cost`, `Board price`, `Taxes`, `ETS`, Dubai and the exchange rate did
+not move on any of the thirteen weeks. The snapshot classes 39 of those rows
+(board, taxes, ETS) as `finalised_revised`, but silver is identical on every one
+of them, so the difference sits below the sixth decimal.
+
+Two observations now agree that a finalisation moves the factor and nothing
+else. That is still two, not a guarantee, and 23 Sep showed that `Final` does
+not protect a week from a rewrite made outside any finalisation.
+
+What it did to the headline results: `research.md`, "The September quarter
+finalised, and no finding flipped — 26 Nov 2026".
+
 ## `Importer margin trend` — excluded from revision tracking
 
 A full diff between two snapshots (17 Jul vs 24 Jul) returned **7,010** changed

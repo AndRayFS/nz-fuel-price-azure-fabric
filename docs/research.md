@@ -1181,6 +1181,11 @@ naive's error.
 
 ## MBIE added a cost to the crisis, and diesel moved again — 24 Sep 2026
 
+> **Superseded in part on 26 Nov 2026.** The September quarter finalised and
+> thirteen weeks entered the Final sample. No finding flipped; diesel's K=12
+> and its spread moved. Read "The September quarter finalised" below before
+> quoting anything here.
+
 On 23 Sep 2026 MBIE changed its methodology: a "fuel market adjustment" of 70%
 of the fuel differential — the physical delivery price over the benchmark
 quote — added to the purchase cost of every fuel from 27 Feb 2026, the share
@@ -1250,6 +1255,58 @@ Three other sections carry figures this revision changed, and each has a
 dated note with the recomputed values: "What a litre is actually made of",
 "What actually drove pump prices through the 2026 crisis" and "What the record
 says after a margin compression".
+
+## The September quarter finalised, and no finding flipped — 26 Nov 2026
+
+MBIE finalised 3 Jul – 25 Sep 2026 in the 26 Nov load. The Final sample now
+runs through 25 Sep, with eight later weeks excluded. The finalisation itself is a
+single factor shift, diesel +2.456 c/L and petrol +0.334 (`mbie_notes.md`, "The
+second finalisation"). Inside the sample it adds only a one-off step at the
+3 Jul week. **So this time the movement is sample composition, not
+revision** — the reverse of 24 Sep, and the same kind as 29 Aug.
+
+How it was run: offline, with no capacity started. `headline_results.py` reads
+`data/panel_weekly.csv`. This time the panel was built from the 26 Nov public
+archive (`weekly_prices.csv` carries the same `silver_fuel` + `silver_general`
+columns that `export_panel.py` selects) instead of being exported. It was
+checked against the 9 Nov export first: every week through 26 Jun is identical
+to the cell, and the differences in Q3 are exactly the finalisation. The same
+script on the 9 Nov export returns the 24 Sep column below to the digit.
+
+| Final only | 24 Sep, reproduced 26 Nov | 26 Nov |
+|---|---|---|
+| diesel pass-through, K=3 / 6 / 9 / 12 | 0.711 / 0.802 / 0.988 / 0.996 | 0.713 / 0.807 / 0.992 / **1.069** |
+| diesel spread K=3..12 | 0.285 | **0.356** |
+| petrol pass-through, K=3 / 6 / 9 / 12 | 0.921 / 0.937 / 0.995 / 1.019 | 0.907 / 0.932 / 0.983 / 1.011 |
+| petrol spread K=3..12 | 0.098 | 0.104 |
+| half-life, diesel / petrol | 4.0 / 5.9 wk | 3.8 / 6.3 wk |
+| diesel, mean lag normal → high (K=4) | 1.51 → 0.31 wk, joint p <0.0001 | 1.51 → 0.35 wk, joint p 0.0003 |
+| diesel, Δβ₀ | +0.050 (p 0.25) | +0.021 (p 0.65) |
+| petrol, joint p for the regime block | 0.45 | 0.65 |
+| n, regime regression | 857 | 870 |
+
+- **No conclusion changed sign or significance.** Diesel's regime block stays
+  significant and petrol's stays absent. Diesel's Δβ₀ moves further from
+  significance. On 29 Aug the same kind of event reversed a diesel result and
+  removed a petrol one.
+- **Diesel is less stable again, and all of it is at K=12.** The spread widens
+  0.285 → 0.356 because K=12 rises 0.996 → 1.069, more than its standard error
+  (0.061). K=3 to 9 move by 0.005 or less. Petrol's K values each fall by 0.005 to
+  0.014, inside one standard error.
+- **Error correction barely moves.** g is −0.165 for diesel (t −4.35) and
+  −0.104 for petrol (t −5.79).
+- The high-volatility mean lag, 0.31 → 0.35, is still not quoted, for the
+  fragility reason given on 24 Sep.
+
+**What did not move: the figure this file recommends quoting.** Final data
+excluding 2026 stops at 31 Dec 2025, and every week before 26 Jun 2026 is
+identical to the 9 Nov export. So the 24 Sep values stand by construction:
+diesel 0.930 / 1.006 / 1.020 / 1.012, spread 0.082, half-life 6.49. **That is the
+rule's third test and its third pass.**
+
+Not recomputed: the three sections the 24 Sep note lists as carrying
+revision-sensitive figures. Their dated notes still describe the 26 Jun
+sample.
 
 ## The diesel instability is Provisional data, not the crisis - 16 Aug 2026
 
