@@ -21,7 +21,7 @@ GREY, PALE_ORANGE, PALE_GREY, BAND, BAND_EDGE = "#A3A29B", "#F6BFA8", "#DEDDD7",
 # instead - the axis always runs from the first week to the newest, so they never drift.
 GAP_BLOCKS = []
 for key_, *_ in FUELS:
-    dy = GAP_BLOCKS[-1][0] + 26 + GAP_BLOCKS[-1][1] + 6 if GAP_BLOCKS else 64
+    dy = GAP_BLOCKS[-1][0] + 26 + GAP_BLOCKS[-1][1] + 6 if GAP_BLOCKS else 78
     GAP_BLOCKS.append((dy, GAP_HEIGHTS[key_]))
 # (measure stem, legend label, colour this week, colour on average, label colour this week)
 # Three parts, three colours that cannot be mistaken for one another. Until 25 Nov 2026
@@ -120,12 +120,17 @@ def page_margin():
     x, y, w, h = LEFT; z = 200
     V += [container("lbg", x, y, w, h, z, blank(PAPER, border=LINE, radius=8)),
           container("ltitle", x + 16, y + 12, w - 32, 24, z + 1, textbox([[(
-              "Importer margin against its own two-year average, c/L, weekly since 29 Mar 2024", 12, INK, True)]]))]
+              "Importer margin against its own two-year average, c/L, weekly since 29 Mar 2024", 12, INK, True)]])),
+          # What the margin is, before the charts rather than in the footer (outside review
+          # V10, 26 Nov 2026); the key and the charts moved 14 px down for it.
+          container("ldef", x + 16, y + 36, w - 32, 18, z + 1, textbox([[(
+              "The margin is what is left of the price paid after taxes and MBIE's estimate of this week's replacement cost.",
+              9, MUTED, False)]]))]
     V += key([("Below its average", 96, [(10, 10, 1, ORANGE)]),
               ("Above", 34, [(10, 10, 1, GREY)]),
               ("Shift from MBIE's cost adjustment, 27 Feb – 11 Sep", 272, [(5, 10, 1, PALE_ORANGE), (5, 10, 1, PALE_GREY)]),
               ("Suspended by MBIE, filled in later", 184, [(14, 10, 1, BAND, BAND_EDGE)])],
-             x + 16, y + 42, z + 2, "lk")
+             x + 16, y + 56, z + 2, "lk")
     for i, ((key_, label, colour, uw), (dy, ch)) in enumerate(zip(FUELS, GAP_BLOCKS)):
         by = y + dy; f = [fuel_filter(key_)]; zz = z + 20 + i * 10
         V += [container(f"g{i}name", x + 14, by, 200, 22, zz, textbox([[(label, 10.5, INK, True)]])),
@@ -138,12 +143,8 @@ def page_margin():
     by = y + GAP_BLOCKS[2][0] + 26 + GAP_BLOCKS[2][1]
     V += [container("gfrom", x + 34, by, 120, 14, z + 60, textbox([[("29 Mar 2024", 8, FAINT, False)]])),
           container("gto", x + w - 170, by - 2, 160, 16, z + 60, title_text(M, "Gap Last Week", 8, FAINT, align="right"))]
-    by = y + GAP_BLOCKS[0][0] + 26 + GAP_BLOCKS[0][1]
-    V.append(container("g0nosplit", x + w - 236, by - 18, 220, 16, z + 60, {
-        "visualType": "textbox", "objects": {"general": [obj({"paragraphs": [{"horizontalTextAlignment": "right", "textRuns": [
-            {"value": "after 11 Sep: no split", "textStyle": {"fontFamily": FONT, "fontSize": "7.5pt", "color": FAINT,
-                                                              "fontStyle": "italic"}}]}]})]},
-        "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}))
+    # Until 26 Nov 2026 an italic "after 11 Sep: no split" sat under Regular 91; the key's
+    # "27 Feb – 11 Sep" already says where the pale part ends (outside review V10).
 
     x, y, w, h = RIGHT; z = 300
     V += [container("rbg", x, y, w, h, z, blank(PAPER, border=LINE, radius=8)),
@@ -175,8 +176,7 @@ def page_margin():
     # spare width; at 72 the words touched (outside review V11, 24 Nov 2026).
     V += footer_links(1256, 662, [("The Data page", "p5data", 76), (" has both versions of the margin.", None, 170)], 410)
     V.append(container("footer", 24, 662, 982, 40, 400, textbox([[(
-        "The margin is what is left of the price paid after taxes and MBIE's estimate of this week's replacement cost, "
-        "so a jump in cost squeezes it at once. A squeeze does not say whether the price paid or the cost closes it.",
+        "A jump in cost squeezes the margin at once. A squeeze does not say whether the price paid or the cost closes it.",
         8.25, FAINT, False)]])))
     return V
 
