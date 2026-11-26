@@ -19,6 +19,7 @@ LANE_FILL, STEP_EDGE, BODY = "#EFEEEA", "#D9D8D2", "#4D4C48"
 REPO = "https://github.com/AndRayFS/nz-fuel-price-azure-fabric"
 STORY = "https://www.linkedin.com/posts/andreimor_watching-the-news-about-the-latest-escalation-ugcPost-7485572175953920001-Uzat/"
 ZIP = "https://nzfueldata.blob.core.windows.net/data/latest/nz-fuel-latest.zip"
+PHONE = "https://nzfueldata.z8.web.core.windows.net/"   # the phone page, pipeline/phone_page.py
 
 X0, X1 = 24, 1256                      # the lanes' left and right edges
 LANES = [("Azure", "Logic App, Blob storage"),
@@ -106,7 +107,8 @@ def page_built():
     links = {"visualType": "textbox", "objects": {"general": [obj({"paragraphs": [{"textRuns": [
                  plain("Code: "), link_run("GitHub repository", REPO),
                  plain("  ·  The story, step by step: "), link_run("LinkedIn series, from Part 1", STORY),
-                 plain("  ·  Data: "), link_run("nz-fuel-latest.zip", ZIP), plain(", three CSV tables and a README")]}]})]},
+                 plain("  ·  Data: "), link_run("nz-fuel-latest.zip", ZIP), plain(", three CSV tables and a README"),
+                 plain("  ·  On a phone: "), link_run("the phone version", PHONE)]}]})]},
              "visualContainerObjects": chrome(padding=(0, 0, 0, 0)), "drillFilterOtherVisuals": True}
     V.append(container("links", X0, 664, X1 - X0, 22, 600, links))
     return V
