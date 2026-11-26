@@ -1,21 +1,6 @@
 version: 2
 
 seeds:
-  - name: periods
-    columns:
-      - name: period_id
-        tests:
-          - unique
-          - not_null
-      - name: start_date
-        tests:
-          - not_null
-      - name: period_type
-        tests:
-          - accepted_values:
-              arguments:
-                values: ['crisis', 'calm']
-
   # Daily Brent spot (FRED DCOILBRENTEU), trimmed to MBIE's start date.
   # Purpose is diagnostic, not a new fact source: MBIE publishes ONE crude
   # number per week and does not say whether it is Friday's quote or the
@@ -45,5 +30,6 @@ seeds:
   # Provisional/Final in a second place, and after W1 the source's status is
   # carried per value through silver and into the panel — read it there.
   #
-  # `periods` is deliberately still registered above: the two coexist until the
-  # merge decision lands, and nothing has been removed from it.
+  # `periods`, the hand-drawn seed this replaced, was removed on 24 Nov 2026:
+  # nothing in the weekly chain read it any more. Its six rows live on inlined
+  # in the two dbt analyses that used them.

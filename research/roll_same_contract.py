@@ -71,7 +71,7 @@ from nowcast_brent import week_means          # noqa: E402
 PANEL = ROOT / "data" / "nowcast_backwardation" / "panel_weekly.csv"   # archive 2026-11-05
 FUELS = ("Diesel", "Regular Petrol", "Premium Petrol 95R")
 FILES = ("bz_60m.json", "bz_1d.json")
-CRISIS = pd.Timestamp("2026-02-28")           # 06_iranus_2026 in seeds/periods.csv
+CRISIS = pd.Timestamp("2026-02-28")           # the 2026 Iran/US crisis began
 REPS, SEED = 2000, 20261110
 
 

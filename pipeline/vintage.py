@@ -14,7 +14,7 @@ WHAT "THE SYSTEM ON A DATE" MEANS HERE. Two dimensions, treated differently
 and deliberately:
 
   * DATA moves. MBIE numbers come from the snapshot filtered by validity, and
-    the hand-written seeds (`periods`, `variable_mapping`) are
+    the hand-written seed (`variable_mapping`; `periods` until 24 Nov 2026) is
     restored from the commit that was current on that date. Both are versioned;
     both are honoured.
 
@@ -66,7 +66,6 @@ HORIZON = date(2026, 7, 17)
 # rather than recomputed. The derived seeds are absent on purpose — they are
 # rebuilt from vintage silver further down.
 HAND_WRITTEN_SEEDS = [
-    "seeds/periods.csv",
     "seeds/variable_mapping.csv",
 ]
 

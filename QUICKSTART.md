@@ -42,7 +42,7 @@ correctly.
 | Run + tests together | `dbt build --select <model>` |
 | Preview output without leaving terminal | `dbt show --select <model> --limit 10` |
 | Run all tests | `dbt test` |
-| Reload seed data (e.g. after editing periods.csv or variable_mapping.csv) | `dbt seed --select <seed_name>` |
+| Reload seed data (e.g. after editing variable_mapping.csv) | `dbt seed --select <seed_name>` |
 | Reload seed after changing its *columns* (not just values) | `dbt seed --select <seed_name> --full-refresh` |
 | Update Provisional→Final revision history | `dbt snapshot` |
 | **Is there anything to run this week?** | `python pipeline/gate.py` — exit 0 go, 2 nothing to do, 1 stop and look |
@@ -222,7 +222,7 @@ shows them anyway if you want to look.
 - `models/gold/` — lag correlation + resolved + volatility
 - `models/monitoring/` — revision and ingest signals, in their own warehouse
   schema; feeds nothing and stops nothing
-- `seeds/periods.csv`, `seeds/variable_mapping.csv`
+- `seeds/variable_mapping.csv`
 - `monitoring.aip_singapore_weekly` — a warehouse table since 7 Sep 2026, not
   a seed; the only copy of the AIP weeks. `pipeline/aip_check.py` appends and
   never truncates

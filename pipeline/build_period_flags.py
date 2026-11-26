@@ -1,7 +1,8 @@
 """Build `data/period_flags.csv` — several independent regime axes, one row
 per (week, fuel).
 
-Replaces the single `period_type` axis of `seeds/periods.csv`, which mixes a
+Replaces the single `period_type` axis of `seeds/periods.csv` (removed on
+24 Nov 2026), which mixed a
 crude shock, a tax reform, a supply-chain change and a change of measurement
 into one label. Rationale, thresholds and every number quoted in the docs:
 `docs/period_labelling.md`.

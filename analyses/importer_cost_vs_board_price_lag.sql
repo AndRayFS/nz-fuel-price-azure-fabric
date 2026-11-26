@@ -1,3 +1,10 @@
+-- HISTORICAL — research of 13 Aug 2026 for the first report, kept for the
+-- record and not maintained. Some of its findings were later withdrawn
+-- (docs/research.md). It never runs in the weekly chain. Its six crisis/calm
+-- periods are the hand-drawn seeds/periods.csv as it stood when that seed was
+-- removed on 24 Nov 2026, written inline below. The regime axes in use today
+-- come from pipeline/build_period_flags.py, by rule, not from these dates.
+--
 -- Does crude land on the modelled landed cost or on the pump price first?
 --
 -- Same lag search as lag_correlation, run twice per period/fuel: once
@@ -29,7 +36,17 @@ with p as (
             then datediff(day, start_date, coalesce(end_date, cast(getdate() as date))) / 7 / 3
             else 10
         end as max_lag
-    from {{ ref('periods') }}
+    from (
+    -- The six hand-drawn periods of seeds/periods.csv, inlined when that seed was
+    -- removed on 24 Nov 2026: nothing in the weekly chain read it any more.
+    values
+        ('01_covid_2020', '2020 COVID crash', cast('2020-03-06' as date), cast('2020-06-05' as date), 'crisis'),
+        ('02_calm_own_refinery', 'Calm period (own-refinery era)', cast('2020-06-05' as date), cast('2022-02-18' as date), 'calm'),
+        ('03_ukraine_2022', '2022 Russia/Ukraine war', cast('2022-02-24' as date), cast('2022-08-31' as date), 'crisis'),
+        ('04_tariff_2025', '2025 US-China tariff shock', cast('2025-04-02' as date), cast('2025-06-30' as date), 'crisis'),
+        ('05_calm_import_era', 'Calm period (import era)', cast('2025-07-10' as date), cast('2026-02-27' as date), 'calm'),
+        ('06_iranus_2026', '2026 Iran/US conflict', cast('2026-02-28' as date), cast(null as date), 'crisis')
+) as periods (period_id, period_name, start_date, end_date, period_type)
 ),
 
 l as (

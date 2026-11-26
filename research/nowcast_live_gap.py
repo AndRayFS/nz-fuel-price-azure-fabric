@@ -52,7 +52,7 @@ import backtest as bt                      # noqa: E402
 import nowcast as nc                       # noqa: E402
 
 ET, NZ = "America/New_York", "Pacific/Auckland"
-CRISIS = pd.Timestamp("2026-02-28")        # 06_iranus_2026 in seeds/periods.csv
+CRISIS = pd.Timestamp("2026-02-28")        # the 2026 Iran/US crisis began
 NEAR_EXPIRY = 10                           # trading days, as on 8 Nov
 READINGS = ("19:45", "20:07", "21:07", "21:45", "22:09")   # UTC
 FILES = ("bz_60m.json", "bz_1d.json", "fx_1d.json")
