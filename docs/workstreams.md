@@ -1,6 +1,6 @@
-# Workstreams — plan of record, 23 Aug 2026, last updated 8 Nov 2026
+# Workstreams — plan of record, 23 Aug 2026, last updated 27 Nov 2026
 
-Twenty-two pieces of work, grouped by what they are about rather than by when
+Twenty-four pieces of work, grouped by what they are about rather than by when
 they happen. Each is meant to be one branch. Every entry states what
 exists today, what the branch delivers, what it risks, and which files it
 touches — the last so that parallel branches can be sequenced without
@@ -2116,7 +2116,7 @@ places are given by phrase.
   archive file. About 620 of 2,600 lines; 16 references by section title
   elsewhere would need checking.
 
-## W25 — Diesel's ECM on two margin lags, the one-lag call kept beside it — **started 23 Nov 2026**
+## W25 — Diesel's ECM on two margin lags, the one-lag call kept beside it — **landed 26 Nov 2026**
 
 **Why.** The 19 Nov 2026 dashboard review led to three ECM tests, measured
 23 Nov in `research/review_two_lag_ecm.py` and its neighbours.
@@ -2229,6 +2229,85 @@ unchanged. Its calls are sharper in weeks of large cost moves.
 `models/gold/forecast_accuracy.sql`, `pbip/build/model_v2.py` and the
 `forecast_accuracy` table's TMDL, `docs/architecture.md`, `docs/research.md`,
 `docs/workstreams.md`, `research/` (the six scripts).
+
+## W26 — Diesel trained without the post-crash window — **proposed 27 Nov 2026**
+
+**Why.** `docs/research.md`, "Diesel 2026: where it stands" (27 Nov 2026),
+open item 4.
+
+- Diesel's K-instability is the pump's slow fall after the April 2026 crash.
+  Without rows 1 May – 24 Jul 2026 the spread is 0.012, against 0.356.
+- Production trains on every Final week, 2026's included. Its diesel lag sum
+  (b0..b6) is 0.431, against 0.814 trained to the end of 2025 (26 Nov
+  archive).
+- W25's two margin lags halve the K-dependence; they do not remove it.
+- Training to the end of 2025, against the one-margin-lag ECM, on origins
+  from 1 Jul 2026 (`research/adl_train_cut.py --live-status`, 26 Nov
+  archive): diesel −14.6% / −6.3% / −7.1% MAE at h=1 / 2 / 3 (n 18–20);
+  petrol −8.2% / +9.8% / +6.5%. That drops all of 2026, and it was not run
+  against W25's two lags.
+
+**What it is.** Production's training sample with a hole: the equations dated
+inside a fixed window are dropped, and the weeks before and after it stay.
+Equations need not be contiguous. The 104-week norm behind the margin term
+keeps the window; its squeeze and surplus nearly cancel there (about
+−0.4 c/L).
+
+**Step 0, the owner's decision: what defines the hole.** It has to be an
+outside rule fixed before any forecast number is computed, not "the weeks the
+model fits worst".
+
+| option | hole | for | against |
+|---|---|---|---|
+| **A** (recommended) | MBIE's suspension and rebuild of importer cost, 18 Mar – 1 Jul 2026: weeks stamped 20 Mar – 3 Jul, both fuels | a data-quality reason MBIE documented; one-off; the rebuild misdates the crash by one to two weeks | leaves the July tail (10–24 Jul) in; drops the squeeze weeks, which diesel followed well |
+| B | a standing rule: equations within 13 weeks after a weekly cost move of 50 c/L or more | covers the next crash without a decision | takes every future crisis out of training without anyone deciding it; two thresholds to choose |
+| C | all of 2026, the sample growing again from 2027 | simplest; its direction is already measured | discards January–February and the second episode (July–November) |
+
+**Delivers.**
+
+1. `research/w26_train_hole.py`, its rule in the docstring before it runs.
+   - It first reproduces production's archived calls, `pred_nowcast` and
+     `pred_adl_ecm` per fuel, with W25's two margin lags for diesel.
+   - Then a walk-forward with the status each cutoff would have seen
+     (`--live-status`, as in `adl_train_cut.py`).
+   - The rule names the primary fuel (diesel), the deciding horizons, the
+     origins (from the first cutoff at which a hole week counts as Final, to
+     the newest), what is done with petrol, and the diagnostics: a strict hole
+     that also drops the equations whose lags reach into the window, option C,
+     h=3, and origins before against inside the second episode.
+   - The result goes into `docs/research.md`.
+2. If adopted: a training mask on `bt.fit_adl`, `bt.adl_forecast` and
+   `nowcast.forecast_with_nowcast`, default none, so every existing caller is
+   unchanged by construction; `main()` sets it per fuel.
+   - Gate, as W25's: the unmasked fuel bit-identical to today's results, the
+     masked one equal to the research script, `test_nowcast.py` passing.
+   - A shadow of today's call, as W25 kept `pred_nowcast_1lag`, is optional
+     and decided with the result.
+3. Docs: `architecture.md` (the training sample per fuel), `research.md` (the
+   test, and open item 4 of "Diesel 2026: where it stands"), this entry and
+   the conflict map, and the load-review skill if a shadow is kept.
+4. Live: the first load after merge.
+
+**Risks.**
+- **Small n.** The hole changes training only at cutoffs after its weeks
+  count as Final: about 25 origins per fuel under the 61-day rule today, one
+  more each week. A verdict is a direction. Check again at the
+  December-quarter finalisation, around late February 2027.
+- **Selection.** The window was found by looking at these weeks. An outside
+  rule limits that; it does not remove it.
+- **Memory of crises.** A model trained without the window has not seen how
+  the pump behaved after a crash. The weeks stay in Report 1's band of past
+  misses, so the uncertainty shown does not shrink.
+- **The fuels may diverge again,** on top of W25's different margin lags.
+  Every description of "the model" has to say so once.
+- **Diesel's Track record moves if it lands,** as with W25: the history is
+  recomputed. Dated archives keep what was shown.
+- **Revert** is one constant: the mask off.
+
+**Files.** `research/w26_train_hole.py` (new), `pipeline/backtest.py` and
+`pipeline/nowcast.py` (step 2 only), `docs/architecture.md`,
+`docs/research.md`, `docs/workstreams.md`, and `.claude/skills/load-review/`
+if a shadow is kept.
 
 ## Research backlog — where the analysis goes next, in priority order
 
@@ -2435,6 +2514,7 @@ W4 vintage      ─ independent
 W10 model       ─ independent
 W11 report      ─ interacts with W9
 W12 benchmark   ─ backlog
+W26 train hole  ─ after W25, against whose production it is tested
 ```
 
 Only three hard dependencies exist: W5 and W6 before W8, and W3/W5 before
@@ -2460,9 +2540,9 @@ side file to a whole-chain mode makes it an ordinary branch.
 | file | wanted by |
 |---|---|
 | `pipeline/export_panel.py` | W1, W5 — both landed |
-| `pipeline/backtest.py` | W1, W5, W23 — all landed; W25 |
-| `pipeline/nowcast.py` | W23 — landed; W25 |
-| `docs/research.md` | W24 (throughout), W25 (one new section) — land W24 first, or append W25 after it |
+| `pipeline/backtest.py` | W1, W5, W23, W25 — all landed; W26 (step 2 only) |
+| `pipeline/nowcast.py` | W23, W25 — landed; W26 (step 2 only) |
+| `docs/research.md` | W24 (throughout), W26 (one new section) — land W24 first, or append W26 after it |
 | `models/silver/silver_fuel.sql` | W1 |
 | `models/silver/silver_general.sql` | W1 |
 | `models/silver/_silver__models.yml` | W1 |
