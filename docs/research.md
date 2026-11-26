@@ -1317,7 +1317,99 @@ Not recomputed: the three sections the 24 Sep note lists as carrying
 revision-sensitive figures. Their dated notes still describe the 26 Jun
 sample.
 
+## Diesel 2026: where it stands — 27 Nov 2026
+
+**This is the current reading of diesel's 2026 behaviour.** The five sections
+that follow it, from "Diesel's K-instability is the thirteen weeks after one
+crash" to "Diesel volumes narrow the money gap" (all 26 Nov), hold the tests.
+Where their verdicts differ from this section, this section wins, and each of
+them says at its top what changed. Figures are from the 26 Nov archive unless
+dated.
+
+**Settled.**
+- **Where.** Diesel's K-instability is the pump's slow fall after the April
+  crash. Without rows 1 May – 24 Jul 2026 the spread (lag sum at K=12 minus
+  K=3) is 0.012, against 0.356.
+- **Not a dating error, not MBIE's adjustment.** MBIE's rebuilt April weeks lag
+  ComCom's live cost by one to two weeks; on ComCom's dating the spread is
+  0.311. Without the fuel market adjustment it is 0.314 (11 Sep).
+- **Two margin lags halve it; they do not remove it.** The range of the lag
+  sum over K=3..12 falls from 0.36 to 0.16; the rule that it would lie inside
+  ±0.15 failed. Production has used two lags for diesel since W25, the
+  specification this window distorts least.
+- **The figure to quote is untouched; production is not.** Final 2010–2025
+  gives diesel 0.930 / 1.006 / 1.020 / 1.012 at K=3 / 6 / 9 / 12, spread
+  0.082, half-life 6.49 weeks. Production trains on 2026's Final weeks too,
+  and its diesel lag sum (b0..b6) is 0.431, against 0.814 trained to 2025.
+
+**How big the effect is depends on the yardstick.** Squeeze 6 Mar – 17 Apr,
+surplus 24 Apr – 10 Jul, c/L-weeks:
+
+| yardstick | squeeze | surplus | reading |
+|---|---|---|---|
+| the margin's norm (104-week mean) | −458 | +413 | the surplus repays the squeeze |
+| the same, weighted by volume (×1.14 / ×0.92, from the volume test) | about −520 | about +380 | about three quarters repaid |
+| diesel's own rule (K=6 plus the margin gap, fitted 2010–2025) | −135 | +391 | 2.9 times; +32.6 c/L a week against at most +7.2 in 12 earlier episodes |
+| cost averaged over the last 4 weeks (exploratory, not pre-registered) | −136 | +150 | repaid; petrol stays within ±10 c/L a week of it |
+
+- **The margin's level did not change.** Diesel's norm read 46.5 in February,
+  42–43 in April and May, 45.4 in July and 43.7 on 20 Nov.
+- **So the open question is duration, not size.** Against its own level the
+  margin was not too high over the cycle. What is unusual is that the cycle
+  took about ten weeks to close in New Zealand against four in Perth. The
+  own-rule excess measures that slowness.
+
+**Candidates for the slowness.**
+
+| candidate | how much it accounts for | status |
+|---|---|---|
+| MBIE's dating of the crash | about 0.05 of the 0.36 spread | confirmed, small |
+| a regional cost (Australian wholesale) | +8.3 AUD against +30.9 NZD: a quarter to a third | confirmed |
+| the same, Perth's whole chain | about half; 0.71 in the first four weeks, 0.36 after | confirmed, one city |
+| volumes | money ratio 2.9 → 2.3 against the own rule | confirmed, small |
+| the cost model (quality premium, loading window) | ComCom's cost averages 3.2 c/L above MBIE's in May, 1.1 below in June | ruled out as the main cause |
+| discounts | about 2 c/L, and the wrong sign | ruled out |
+| a seasonal margin | none in any year 2012–2025 | ruled out |
+| pricing off the cost of stock already bought | about seven weeks of diesel was bought by mid-April; could carry the first six to seven weeks | open |
+| recovering the squeeze | fits the norm yardstick; New Zealand recovered it, Australian wholesale did not | open |
+| weak competition, allocation limits | fits Perth's four weeks against ten; not tested directly | open |
+| collusion | not testable with prices; ComCom's cumulative spread reads normal, no investigation named | outside this data |
+
+- **Stock pricing and recovering the squeeze look the same in prices.** Both
+  put the margin below its norm on the way up and about as far above it on the
+  way down. They differ in intent, which this data cannot see.
+
+**Open.**
+1. **Lag length.** The own rule stops at six weeks, while about seven weeks of
+   diesel had already been bought. A rule a little too short, times an
+   unprecedented swing (+242 c/L from late February to early April, −108.5 in
+   the week of 24 Apr), gives a large "excess". That is the K question again.
+2. **No direct data.** There is no New Zealand TGP history, no split of
+   contract and pump sales, and no importer accounts. ComCom's June-quarter
+   report, which carries wholesale contract prices, was not found.
+3. **A second episode.** July – November 2026 repeats the cycle. Diesel's
+   margin sat 54–96% below its norm in July – September and 15–35% above in
+   October – November. Petrol's sat 50–97% below in September – October and
+   86%, 81% and 66% above on 6, 13 and 20 Nov, still open. Here the recovery
+   is larger in petrol. It becomes n = 2 once petrol's window closes.
+4. **Training production without the window.** Possible in principle:
+   equations need not be contiguous, and the window's squeeze and surplus
+   nearly cancel in later 104-week norms (about −0.4 c/L). Three conditions:
+   the hole is set in advance by an outside rule (MBIE's suspension and
+   rebuild of importer cost, 18 Mar – 1 Jul, is one); the weeks stay in
+   Report 1's band of past misses; and it wins a pre-registered walk-forward
+   against today's production. Evidence so far comes from training to the end
+   of 2025 against the one-margin-lag ECM (`research/adl_train_cut.py
+   --live-status`, origins from 1 Jul 2026): diesel −14.6% / −6.3% / −7.1% MAE
+   at h=1 / 2 / 3 (n 18–20), petrol −8.2% / +9.8% / +6.5%. A hole that keeps
+   Jan–Mar and Jul–Sep 2026 is not tested. It would change production, so it
+   belongs in `docs/workstreams.md`, not here.
+
 ## Diesel's K-instability is the thirteen weeks after one crash — 26 Nov 2026
+
+> **Current reading: "Diesel 2026: where it stands", above (27 Nov 2026).**
+> The inventory note at the end of "What is left" is qualified there:
+> inventory is not ruled out.
 
 > **Corrected later the same day.** The crash *is* misdated in MBIE's rebuilt
 > series: the cost fell one to two weeks earlier than MBIE shows
@@ -1457,6 +1549,9 @@ Both rest on one episode.
 > **Tested the same day.** The inventory explanation is weakened: diesel
 > followed its own rule on the way up, and petrol, stocked the same way, shows
 > nothing. See "Diesel held its margin after the crash; petrol did not" below.
+> **Qualified the same evening: not ruled out.** Petrol is a weak control (its
+> cost fell about 40 c/L at the crash, diesel's about 146), and about seven
+> weeks of diesel had already been bought by mid-April.
 
 **Consequences.**
 - **The figure to quote does not change.** Final data excluding 2026 never
@@ -1470,6 +1565,12 @@ Both rest on one episode.
 - n = 1 again: every number in this section comes from one crash.
 
 ## Diesel held its margin after the crash; petrol did not — 26 Nov 2026
+
+> **Current reading: "Diesel 2026: where it stands", above (27 Nov 2026).**
+> The squeeze test's "asymmetric" holds against diesel's own rule only.
+> Against the margin's norm the squeeze and the surplus are about equal
+> (−458 / +413), and weighted by volume the surplus is the smaller.
+> "Inventory is weakened" is qualified at the end of this section.
 
 The section above leaves two questions about the slow fall after the April
 crash. Was it unusual for diesel itself? Did petrol do the same? Two scripts,
@@ -1556,7 +1657,8 @@ The sum runs until the gap is back at zero.
   of those costs rose in the conflict.
 
 **What it changes in "why".**
-- **Inventory is weakened as the main cause.** Selling stock bought at the peak
+- **Inventory is weakened as the main cause** (qualified at the end of this
+  section: not ruled out). Selling stock bought at the peak
   would make the pump lag in both directions. On the way up diesel kept within
   5–9 c/L a week of its rule through March and fell behind only for the two
   peak weeks. Petrol, imported and stocked the same way, shows nothing.
@@ -1595,6 +1697,9 @@ The sum runs until the gap is back at zero.
 - It is weekly, and on MBIE's published data unless marked.
 
 ## Australia's wholesalers did not hold diesel's margin — 26 Nov 2026
+
+> **Current reading: "Diesel 2026: where it stands", above (27 Nov 2026).**
+> The verdict stands; a sulphur caveat was added to the caveats below.
 
 The question is whether the post-crash excess was a cost the whole region paid
 — diesel premiums, tanker freight above the indices — or New Zealand's own.
@@ -1662,6 +1767,10 @@ Zealand's own" needed a change within ±5.
 
 ## Perth's service stations held diesel for four weeks, not ten — 26 Nov 2026
 
+> **Current reading: "Diesel 2026: where it stands", above (27 Nov 2026).**
+> The verdict stands. Perth's shorter sea leg is one reason its hold was
+> shorter; see the inventory note at the end of "Diesel held its margin".
+
 The wholesale test above left out the retail layer, which New Zealand's margin
 includes. Western Australia's FuelWatch publishes every Perth station's daily
 price and every terminal's daily gate price. `research/au_perth_retail.py`,
@@ -1719,6 +1828,11 @@ median station +8.7.
 - This is one episode.
 
 ## Diesel volumes narrow the money gap; they do not close it — 26 Nov 2026
+
+> **Current reading: "Diesel 2026: where it stands", above (27 Nov 2026).**
+> The money ratio here is against diesel's own rule. Against the margin's
+> norm, weighted the same way, the surplus is about three quarters of the
+> squeeze.
 
 The squeeze test ("Diesel held its margin after the crash; petrol did not",
 above) sums c/L over weeks, so it weights every week's sales equally. If more
@@ -1801,6 +1915,8 @@ of 1.5 or less; "does not change the picture" needed 2.5 or more.
 - This is one episode.
 
 ## The diesel instability is Provisional data, not the crisis - 16 Aug 2026
+
+> **Current reading: "Diesel 2026: where it stands", above (27 Nov 2026).**
 
 > **Superseded 29 Aug 2026; note added 3 Sep.** Thirteen of the nineteen
 > Provisional weeks this section rests on finalised on 26 Aug and entered
