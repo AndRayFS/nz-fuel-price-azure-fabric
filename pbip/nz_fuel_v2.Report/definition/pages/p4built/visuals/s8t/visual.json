@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "9. Archive",
+                    "value": "9. Archive, phone page",
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
                       "fontSize": "9.75pt",
@@ -31,7 +31,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "the same data as a dated zip in Blob storage",
+                    "value": "a dated zip and the phone page, from the same data",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "9pt",
