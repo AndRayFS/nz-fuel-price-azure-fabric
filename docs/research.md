@@ -1319,10 +1319,10 @@ sample.
 
 ## Diesel 2026: where it stands — 27 Nov 2026
 
-**This is the current reading of diesel's 2026 behaviour.** The six sections
+**This is the current reading of diesel's 2026 behaviour.** The seven sections
 that follow it, from "Diesel's K-instability is the thirteen weeks after one
-crash" (26 Nov) to "W26: diesel forecasts better trained without MBIE's
-rebuilt window" (27 Nov), hold the tests.
+crash" (26 Nov) to "At the border: no premium only New Zealand paid, and no
+habit of pricing off stock" (27 Nov), hold the tests.
 Where their verdicts differ from this section, this section wins, and each of
 them says at its top what changed. Figures are from the 26 Nov archive unless
 dated.
@@ -1334,6 +1334,10 @@ dated.
 - **Not a dating error, not MBIE's adjustment.** MBIE's rebuilt April weeks lag
   ComCom's live cost by one to two weeks; on ComCom's dating the spread is
   0.311. Without the fuel market adjustment it is 0.314 (11 Sep).
+- **No cost only New Zealand paid.** Stats NZ's border price (Customs CIF
+  per litre), which does not share MBIE's and ComCom's root, was no higher in
+  May – June than MBIE's cost three weeks earlier. Normally it follows MBIE's
+  cost by eight weeks.
 - **Two margin lags halve it; they do not remove it.** The range of the lag
   sum over K=3..12 falls from 0.36 to 0.16; the rule that it would lie inside
   ±0.15 failed. Production has used two lags for diesel since W25, the
@@ -1359,6 +1363,11 @@ surplus 24 Apr – 10 Jul, c/L-weeks:
   margin was not too high over the cycle. What is unusual is that the cycle
   took about ten weeks to close in New Zealand against four in Perth. The
   own-rule excess measures that slowness.
+- **Against the fuel arriving, the picture turns over** (Stats NZ, monthly
+  means, exploratory). The margin sat about 115 c/L above normal in March –
+  April and about 5 below in May – June. The pump is not priced off that
+  cost ("At the border", test 2), so this yardstick shows the importers'
+  result on stock, holding gains included, not how they priced.
 
 **Candidates for the slowness.**
 
@@ -1371,23 +1380,31 @@ surplus 24 Apr – 10 Jul, c/L-weeks:
 | the cost model (quality premium, loading window) | ComCom's cost averages 3.2 c/L above MBIE's in May, 1.1 below in June | ruled out as the main cause |
 | discounts | about 2 c/L, and the wrong sign | ruled out |
 | a seasonal margin | none in any year 2012–2025 | ruled out |
-| pricing off the cost of stock already bought | about seven weeks of diesel was bought by mid-April; could carry the first six to seven weeks | open |
+| a cost only New Zealand paid (premiums, freight) | Stats NZ's border price in May – June no higher than MBIE's cost three weeks earlier | ruled out |
+| pricing off the cost of stock already bought | matched May – June 2026 on the two-month mean (R 1.12); in 2022 – 2025 the margin took 0.07 of an arrival premium, not about 1 | not the practice for premiums up to 30 c/L; 2026's +81 lies above that, open |
 | recovering the squeeze | fits the norm yardstick; New Zealand recovered it, Australian wholesale did not | open |
 | weak competition, allocation limits | fits Perth's four weeks against ten; not tested directly | open |
 | collusion | not testable with prices; ComCom's cumulative spread reads normal, no investigation named | outside this data |
 
-- **Stock pricing and recovering the squeeze look the same in prices.** Both
-  put the margin below its norm on the way up and about as far above it on the
-  way down. They differ in intent, which this data cannot see.
+- **Stock pricing and recovering the squeeze look the same in 2026's prices.**
+  Both put the margin below its norm on the way up and about as far above it
+  on the way down. 2022 – 2025 tells them apart only as practice: there an
+  arrival premium did not reach the margin ("At the border", test 2).
 
 **Open.**
 1. **Lag length.** The own rule stops at six weeks, while about seven weeks of
    diesel had already been bought. A rule a little too short, times an
    unprecedented swing (+242 c/L from late February to early April, −108.5 in
    the week of 24 Apr), gives a large "excess". That is the K question again.
-2. **No direct data.** There is no New Zealand TGP history, no split of
-   contract and pump sales, and no importer accounts. ComCom's June-quarter
-   report, which carries wholesale contract prices, was not found.
+   Stats NZ's border price puts the stock lag at eight weeks for diesel and
+   seven for petrol (2023 – 2025).
+2. **No direct data on prices to customers.** There is no New Zealand TGP
+   history, no split of contract and pump sales, and no importer accounts.
+   Stats NZ's import values give the arrival cost, monthly, and nothing on the
+   sale side. ComCom's June-quarter report, which carries wholesale contract
+   prices, was not found. Ampol reports on a replacement-cost basis with
+   inventory gains shown apart; whether its 2026 half-year results split that
+   for Z Energy has not been checked.
 3. **A second episode.** July – November 2026 repeats the cycle. Diesel's
    margin sat 54–96% below its norm in July – September and 15–35% above in
    October – November. Petrol's sat 50–97% below in September – October and
@@ -1414,7 +1431,8 @@ surplus 24 Apr – 10 Jul, c/L-weeks:
 
 > **Current reading: "Diesel 2026: where it stands", above (27 Nov 2026).**
 > The inventory note at the end of "What is left" is qualified there:
-> inventory is not ruled out.
+> inventory is not ruled out. As a pricing practice it is ruled out for
+> arrival premiums up to 30 c/L (27 Nov, "At the border").
 
 > **Corrected later the same day.** The crash *is* misdated in MBIE's rebuilt
 > series: the cost fell one to two weeks earlier than MBIE shows
@@ -1575,7 +1593,9 @@ Both rest on one episode.
 > The squeeze test's "asymmetric" holds against diesel's own rule only.
 > Against the margin's norm the squeeze and the surplus are about equal
 > (−458 / +413), and weighted by volume the surplus is the smaller.
-> "Inventory is weakened" is qualified at the end of this section.
+> "Inventory is weakened" is qualified at the end of this section, and
+> tested as a pricing practice on 27 Nov: not found for arrival premiums up to
+> 30 c/L ("At the border").
 
 The section above leaves two questions about the slow fall after the April
 crash. Was it unusual for diesel itself? Did petrol do the same? Two scripts,
@@ -1970,6 +1990,150 @@ The rule's verdict: **diesel passes** (lower at h=1 and h=2); **petrol fails**
 - The strict and plain holes are not yet told apart.
 - These are reconstructed calls with the live status, not the calls as
   published.
+
+## At the border: no premium only New Zealand paid, and no habit of pricing off stock — 27 Nov 2026
+
+Two tests on Stats NZ's monthly import values, each with its rule written
+before the run. They answer a question the sections above could not. MBIE's
+and ComCom's costs share a root, Argus Singapore quotes and crisis
+adjustments that importers supply, so their agreement does not test MBIE's
+level. Customs entries can: they record what importers declared they paid,
+freight and insurance included (CIF).
+
+**Source.** Stats NZ, overseas merchandise trade datasets, imports by HS10
+(`stats.govt.nz/assets/Large-datasets/OMT-datasets/`): monthly files for
+Jan – Oct 2026 and yearly zips for 2022 – 2025, downloaded 27 Nov 2026. Codes
+2710193200 (automotive diesel) and 2710121910 (motor spirit below 95 RON), in
+litres. Aug – Oct 2026 are provisional. The scripts and data stay outside the
+repository, as for the volume test; the rules are quoted here.
+
+**Measure.** border = 100 × CIF / litres, c/L, per calendar month; gap =
+border − the month's mean of MBIE's weekly `importer_cost`. Diesel against
+MBIE's diesel cost, petrol against Regular Petrol. 26 Nov archive.
+
+**Cautions written before the run.** CIF is a declared value, and the large
+importers buy from related trading arms. The month is the Customs entry
+month, not the pricing date. Cargoes are large, so a month can rest on a few
+ships.
+
+### Test 1. Was the margin excess a cost New Zealand paid?
+
+*Rule, diesel.* dev = gap − its mean over 2023 – 2025 (+4.0 c/L); excess =
+the month's mean of `importer_margin` − its 104-week norm. R = mean dev /
+mean excess over May – June 2026, the two calendar months wholly inside the
+surplus. A COST NEW ZEALAND PAID if R ≥ 0.5, A HELD MARGIN if R ≤ 0.2, PARTLY
+in between.
+
+**Verdict: R = 1.12, A COST NEW ZEALAND PAID.** Mean dev +43.6, mean excess
++38.8 c/L; the dev lies outside ±2 sd of 2023 – 2025 (23.2). Petrol: R 1.71
+on a dev of +10.6, inside its ±14.3.
+
+Diesel, c/L:
+
+| 2026 | Feb | Mar | Apr | May | Jun | Jul | Aug | Sep | Oct |
+|---|---|---|---|---|---|---|---|---|---|
+| border | 95.8 | 98.1 | 111.8 | 193.2 | 236.7 | 203.8 | 166.5 | 173.3 | 197.3 |
+| MBIE cost | 103.5 | 239.8 | 294.3 | 183.4 | 151.3 | 169.6 | 184.2 | 214.1 | 218.5 |
+| margin excess | −0.1 | −70.4 | −32.1 | +37.9 | +39.7 | −12.5 | −8.8 | −23.7 | +4.3 |
+
+**What the verdict means: timing, not a premium only New Zealand paid.** The
+rule set the border against MBIE's cost of the same month. The diagnostics
+set it against MBIE's earlier cost.
+- **In 2023 – 2025 the border price follows MBIE's cost of eight weeks
+  earlier** (correlation 0.972, gap +2.6 ± 3.1 c/L; same month 0.582,
+  ±11.6). Petrol: seven weeks, 0.940. Eight weeks is about the stock in the
+  country and at sea that MBIE's weekly data showed for mid-April, 45 – 55
+  days ("Diesel held its margin after the crash", above).
+- **Against MBIE's cost three weeks earlier, May – June's dev is +1.7 c/L.**
+  From four weeks it is negative: −15.8, and −38.2 at six. The fuel arriving
+  in May – June cost what cargoes priced before the fall cost, and no more.
+- **Month by month the match is loose.** May: dev +5.8 against an excess of
+  +37.9. June: +81.4 against +39.7. Only the two-month mean matches.
+- **MBIE's fuel market adjustment changes little.** Without it, May +8.4 and
+  June +82.3.
+
+**This is the source the lag-profile work said was missing.** "Crude lands on
+`Importer cost` at lag 0" (above) concluded that splitting the pump's lag
+into procurement and pricing "needs a source MBIE does not publish". Stats
+NZ's CIF is such a source, monthly.
+
+### Test 2. Is the pump priced off the higher of the two costs?
+
+The idea came from the table above. Against replacement cost, diesel's margin
+was far below its norm on the way up and far above it on the way down.
+Against the cost of the fuel arriving it was the other way round. One reading:
+the pump is priced off whichever cost is higher, replacement on the way up
+and the stock in the tanks on the way down. If that were New Zealand's
+practice, it would show in every episode.
+
+*Rule, diesel, on Apr 2022 – Sep 2025* (the months whose border prices had
+not been seen): margin(m) = a + c·t + b_pos·max(d, 0) + b_neg·min(d, 0),
+with d = gap − its sample mean. The pump's own lag on replacement cost moves
+the margin and the gap together after any cost move, and a symmetric lag
+gives equal slopes. The idea gives b_pos near 1 and b_neg well below.
+D = b_pos − b_neg, 95% CI from a moving-block bootstrap (6-month blocks,
+4000 draws).
+- THE HIGHER OF THE TWO COSTS if D ≥ 0.3 and the CI lies above 0.
+- RULED OUT AT THE SIZE THE IDEA NEEDS if the CI's upper end is below 0.5.
+- NOT DECIDED otherwise.
+
+**Verdict: D = −0.43, CI [−0.81, +0.08], RULED OUT AT THE SIZE THE IDEA
+NEEDS.**
+
+| | n | b_pos, arrival dearer | b_neg, arrival cheaper | D |
+|---|---|---|---|---|
+| diesel, rule sample | 42 | +0.07 [−0.17, +0.50] | +0.50 [+0.38, +0.74] | −0.43 [−0.81, +0.08] |
+| petrol, rule sample | 42 | +0.06 [−0.09, +0.64] | +0.33 [−0.05, +0.47] | −0.26 [−0.55, +0.65] |
+| diesel, with 2026 | 55 | +0.35 [+0.09, +0.60] | +0.32 [+0.22, +0.64] | +0.02 [−0.50, +0.28] |
+
+- **If anything, the asymmetry runs the other way.** When the arriving fuel
+  was cheaper (costs rising), diesel's margin fell by about half the gap.
+  When it was dearer (costs falling), the margin took 0.07 of it. The largest
+  arrival premium in the sample, +29.8 c/L, was August 2022, after that
+  year's peak.
+- **The diagnostics keep the sign.** Without the trend −0.32 [−0.73, −0.06];
+  without Apr – Jun 2022 −0.56; with the border price a month later −1.09
+  [−1.62, −0.15]; a month earlier −0.04.
+- **About a third of the gap reaches the margin either way.** One slope gives
+  0.33 for diesel with or without 2026, and 0.19 for petrol (0.24 with 2026):
+  what the pump's own lag on replacement cost gives.
+
+**The limit.** The rule sample's gap ran from −41 to +30 c/L. June 2026
+(+81) and March – April (−146, −186) lie far outside it, so a practice that
+only switches on with a very large premium is not excluded. Adding 2026 makes
+the slopes equal, which does not support one either.
+
+**It agrees with "Does old crude reach the pump?" (16 Aug).** That test asked
+the same question with crude 4 – 12 weeks back as the proxy for what the
+tanks cost: petrol a clean null, diesel not shown. Here the proxy is the
+arrival cost itself, and the answer is the same. The pump follows
+replacement cost; what the stock cost moves the importers' result, not the
+price. This is the sixth asymmetry test in this file and the first on the
+cost base rather than on cost changes.
+
+### What was said at the time
+
+In conversation the same day, before test 2, the margin against arrival cost
+was summed over March – July 2026 (about +177 c/L-months above normal) and
+read as a net gain for importers over the cycle. Two things were wrong with
+that reading.
+- **Most of the sum is the level change, not pricing.** MBIE's diesel cost
+  averaged 101.1 c/L in Jan – Feb and 160.4 in Jun – Jul. The gap beyond its
+  normal +4.0 sums to −215 c/L-months over March – July. If arrival cost were
+  replacement cost two months earlier, −119 of that would come from the level
+  change alone. It is a holding gain on stock when the level rises: cost
+  accounting on a replacement basis leaves it out, and it reverses when the
+  level falls. The cycle has not closed; Sep – Oct averaged 216.3.
+- **Test 2 found no such practice in 2022 – 2025.**
+
+**Consequences.**
+- "A cost only New Zealand paid" (premiums, freight) is ruled out.
+- "Pricing off the cost of stock already bought" is not New Zealand's
+  practice for arrival premiums up to 30 c/L. For 2026 it stays open only as
+  a practice that switches on with a very large premium, which one episode
+  cannot test.
+- The diesel question stays the one "Diesel 2026: where it stands" names:
+  why the surplus lasted ten weeks.
 
 ## The diesel instability is Provisional data, not the crisis - 16 Aug 2026
 
