@@ -478,14 +478,13 @@ for name, sign in (("Price Axis Low", "-"), ("Price Axis High", "+")):
     fm.append(measure(F, name, f"([Price Own Low] + [Price Own High]) / 2 {sign} 0.55 * [Price Span]",
         fmt="0", folder="Now", hidden=True, desc="An end of the fuel's price axis on Now: its own middle, the common span, 5% to spare."))
 for n in (1, 2, 3):
-    # The first call's week, stamped vLatest + 7, runs Monday vLatest + 3 to Sunday
-    # vLatest + 9, and the load lands on its Thursday: that call is for a week under
-    # way, made with its first three days of crude (outside review V5). TODAY() is UTC
-    # in the service, so the label goes up to half a day late at either end.
-    under = (' & IF(TODAY() >= vLatest + 3 && TODAY() <= vLatest + 9, " · under way")' if n == 1 else "")
+    # From 25 to 26 Nov 2026 the first call's date carried " · under way" while its week
+    # ran (outside review V5): the load lands on that week's Thursday. Taken off by the
+    # owner: it raised more questions than it answered, and the legend's "Today" line
+    # already shows where the week stands.
     fm.append(measure(F, f"Call Date {n}", f'''
 VAR vLatest = [Latest Week]
-RETURN IF(NOT ISBLANK(vLatest), FORMAT(vLatest + {7 * n}, "d mmm"){under})''', folder="Now",
+RETURN IF(NOT ISBLANK(vLatest), FORMAT(vLatest + {7 * n}, "d mmm"))''', folder="Now",
         desc="The week the model's call is for, set over the number below it." if n == 1 else None))
     fm.append(measure(F, f"Call {n}", f'''
 VAR vLatest = [Latest Week]
