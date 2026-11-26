@@ -1568,11 +1568,72 @@ The sum runs until the gap is back at zero.
 - **This data cannot separate the last two.** An unmeasured cost and a held
   margin leave the same residual.
 
+> **Bounded the same day.** The regional part of such a cost is about 8–9 c/L,
+> a quarter to a third of the excess. See "Australia's wholesalers did not hold
+> diesel's margin" below.
+
 **Caveats.**
 - Most of the rule's sample is the refinery era (2010 – Mar 2022). Import-era
   diesel episodes give +1.7 to +7.2, inside the earlier range.
 - The test compares one 2026 episode with 12 earlier ones per fuel.
 - It is weekly, and on MBIE's published data unless marked.
+
+## Australia's wholesalers did not hold diesel's margin — 26 Nov 2026
+
+The question is whether the post-crash excess was a cost the whole region paid
+— diesel premiums, tanker freight above the indices — or New Zealand's own.
+Australia buys diesel from the same Asian market on the same ships, and its
+wholesalers set terminal gate prices at Singapore import parity, so such a
+cost would show there. `research/au_diesel_premium.py`, rule written before
+the run.
+
+**Data.**
+- AIP's daily terminal gate prices: national average, AUD c/L, including 10%
+  GST and excise.
+- For the cost: ComCom's Asian product cost (South Asian refineries, delivered
+  to New Zealand), converted at FRED's AUD and NZD rates.
+
+**Measure.** Australia halved its fuel excise from 1 Apr 2026, cut it further,
+partly restored it on 1 Jul and fully on 3 Aug. Excise is the same on petrol
+and diesel, so the test uses diesel minus petrol, in which it cancels:
+- **Australia**: (diesel TGP − ULP TGP) / 1.1 minus (ComCom diesel cost −
+  ComCom 91 cost), in AUD c/L.
+- **New Zealand**: MBIE's diesel margin minus its 91 margin, in NZD c/L.
+
+| diesel minus petrol | Australia, wholesale | New Zealand, margin |
+|---|---|---|
+| before the conflict, 6–27 Feb | −4.6 | +3.2 |
+| 24 Apr – 10 Jul | +3.7 | +34.2 |
+| **change** | **+8.3** (about +9 in NZD) | **+30.9** |
+
+The rule's verdict: **partly regional**. "Regional" needed +15 or more; "New
+Zealand's own" needed a change within ±5.
+
+- **The way up was shared.** For the weeks 6 Mar – 3 Apr Australia reads −32,
+  −28, −36, −60 and −80, and New Zealand −24, −25, −24, −52 and −82. The squeeze
+  on the rise happened at wholesale, across the region.
+- **The way down was not.** Australia was back near its baseline by mid-April
+  and stayed between −3 and +15 a week through the window. New Zealand held
+  +28 to +50 until early July.
+- **Australian wholesale shows no recovery of the squeeze.**
+
+**What it bounds.**
+- **Regional diesel costs that the cost models miss were real, but small.**
+  At about 8–9 c/L they are a quarter to a third of New Zealand's excess.
+- **The rest is New Zealand's own.** It is either a margin held to recover the
+  squeeze, or a cost that only New Zealand paid.
+- **The test does not cover retail.** AIP's series is wholesale, while New
+  Zealand's margin includes retail, so service stations holding diesel's margin
+  in Australia would not show here. Western Australia's FuelWatch publishes
+  daily retail and terminal prices for Perth; that is the next check.
+
+**Caveats.**
+- The Asian cost is ComCom's, with freight to New Zealand. The freight
+  difference between diesel and petrol mostly cancels in the measure.
+- The excise dates were not obtained, because the government pages did not
+  render, and the measure does not need them. ACCC's weekly reports refuse
+  automated fetches and were not read.
+- This is one episode.
 
 ## The diesel instability is Provisional data, not the crisis - 16 Aug 2026
 
