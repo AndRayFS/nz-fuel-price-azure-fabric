@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "weekly history, three fuels",
+                    "value": "weekly prices, three fuels; the model's calls start in 2013",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "9.75pt",
