@@ -1406,8 +1406,9 @@ surplus 24 Apr – 10 Jul, c/L-weeks:
    **Tested 27 Nov 2026 (W26, strict hole 20 Mar – 21 Aug, against W25's
    production):** diesel passes its pre-registered rule (−9.8% / −7.2% MAE at
    h=1 / 2), petrol fails (+9.2% at h=2). See "W26: diesel forecasts better
-   trained without MBIE's rebuilt window", below. Shipping it for diesel is
-   the owner's decision, in `docs/workstreams.md`, W26.
+   trained without MBIE's rebuilt window", below. Shipping it for diesel
+   waits for the December-quarter checkpoint, around late February 2027
+   (owner, 27 Nov 2026; `docs/workstreams.md`, W26).
 
 ## Diesel's K-instability is the thirteen weeks after one crash — 26 Nov 2026
 
