@@ -1695,6 +1695,88 @@ median station +8.7.
   version is the check on that.
 - This is one episode.
 
+## Diesel volumes narrow the money gap; they do not close it — 26 Nov 2026
+
+The squeeze test ("Diesel held its margin after the crash; petrol did not",
+above) sums c/L over weeks, so it weights every week's sales equally. If more
+diesel was sold in the squeeze weeks than in the surplus weeks — harvest work,
+buying ahead of rises, or both — the balance in money differs from its 2.9.
+The rule was written before the run. The scratch script was not kept, by the
+owner's decision.
+
+**Data.** MBIE's quarterly oil tables, `oil-quarterly-webtable-june-2026.xlsx`
+from the [Oil statistics](https://www.mbie.govt.nz/building-and-energy/energy-and-natural-resources/energy-statistics-and-modelling/energy-statistics/oil-statistics)
+page: diesel consumption by fuel and by sector, kt per quarter, to June 2026.
+The monthly tables on the same page are supply-side only.
+
+| diesel consumption, kt per day | Q1 | Q2 | Q2 / Q1 |
+|---|---|---|---|
+| 2024 | 8.94 | 8.45 | 0.946 |
+| 2025 | 9.03 | 8.43 | 0.933 |
+| **2026** | **9.31** (+3.1% on 2025) | **8.17** (−3.0%) | **0.878** |
+| 2010–2025 except 2020, range | | | 0.924–1.027 |
+
+**Measure.** 2026's Q2 / Q1 over its 2010–2025 median (2020's lockdown quarter
+excluded) is 0.922. No earlier year is that far from the median; their range is
+0.970–1.078. Read as volume moved from the surplus weeks into the squeeze
+weeks, that is about one week of national demand: squeeze weeks at 1.14 of
+normal, surplus weeks at 0.92. The surplus then outweighs the squeeze 2.3 times
+in money, against 2.9 at equal volumes.
+
+The rule's verdict: **volume narrows it**. "Balances it" needed a money ratio
+of 1.5 or less; "does not change the picture" needed 2.5 or more.
+
+| Q2 / Q1 per day | median 2010–2025 | 2026 | 2026 over median | earlier years over median |
+|---|---|---|---|---|
+| all diesel | 0.952 | 0.878 | 0.922 | 0.970–1.078 |
+| agriculture, forestry, fishing | 0.927 | 0.836 | 0.902 | 0.914–1.102 |
+| land transport | 0.960 | 0.870 | 0.905 | 0.978–1.092 |
+
+- **Something beyond the season happened in 2026.** Q2 / Q1 is the lowest since
+  2010 outside the 2020 lockdown.
+- **The harvest season is there every year.** Agriculture's Q2 normally runs
+  7% below its Q1, and varies widely; 2026 sits just below its earlier range
+  (0.902 against 0.914). Land transport varies less, and 2026 is far below its
+  range (0.905 against 0.978).
+- **Why Q2 was low does not matter here.** Buying ahead and demand lost to
+  price leave the same volumes, and the money balance needs only those.
+- **The July tail is small.** By week the surplus reads −7, +12, +32, +46, +49,
+  +53, +53, +46, +38, +30, +24, +16, and the part in Q3 (29 Jun – 12 Jul) is
+  about +33 of +391.
+- **There is no winter margin season either.** From March – mid-April to late
+  April – early July, diesel's margin against its norm moved between −20 and
+  +19 points in every year 2012–2025. In 2026 it moved +227.
+
+**What was said at the time** (read 26 Nov 2026):
+- RNZ, 27 Mar: a rural distributor blamed "artificial demand" from panic
+  buying and stockpiling, said importers had set allocation limits, and named
+  harvest and grass-cutting as heavy use. Allocation limits cap how much
+  diesel could be sold at the squeezed margin, which works against the volume
+  argument.
+- ODT/RNZ, 8 Apr: Waitomo put fuel demand about 10% down after a period of
+  panic buying, and expected diesel to take some time to come down.
+- The Government's Fuel Response Plan Q&A, May: food, freight and other
+  businesses use 85% of diesel and the general public about 10% (65% of
+  petrol), so stockpiling diesel means farms and fleets, not motorists.
+- MBIE's own briefings on March demand (`dmsdocument` 32378 and 32209) did not
+  render for an automated fetch and were not read.
+
+**Caveats.**
+- Quarters cannot see a shift inside Q2. The three deepest squeeze weeks, 3–17
+  Apr (−104 of the −135), fall in Q2, so buying ahead in early April against
+  less in May–June cancels within the quarter. Closing the gap that way alone
+  needs about 3.8 weeks of demand bought in those three weeks, 2.3 times normal.
+- The monthly supply side does not fill that gap. Imports less exports,
+  bunkers and stock change match quarterly consumption only to about 5%, and
+  move month to month with tanker arrivals (2024: March 6.4 kt a day, April
+  11.8).
+- 2026 will be revised. Independent resellers report once a year, and their
+  annual data has revised every recent year's petrol and diesel consumption
+  after the fact (2023–2025, the file's Revisions sheet). Sector shares have
+  also been reallocated without changing the total, so the sector split is
+  weaker evidence than the total.
+- This is one episode.
+
 ## The diesel instability is Provisional data, not the crisis - 16 Aug 2026
 
 > **Superseded 29 Aug 2026; note added 3 Sep.** Thirteen of the nineteen
