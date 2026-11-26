@@ -1319,11 +1319,20 @@ sample.
 
 ## Diesel's K-instability is the thirteen weeks after one crash — 26 Nov 2026
 
-Three scripts, all offline against the 26 Nov archive:
-`research/diesel_crash_window.py` (exploratory), `diesel_spread_boot.py` and
-`diesel_redate_crash.py` (each with its rule written before it ran). Unless
-stated, the spec is `headline_results.py` section 1: Final weeks, 2010+, no
-ECM. Spread is the lag sum at K=12 minus the sum at K=3.
+> **Corrected later the same day.** The crash *is* misdated in MBIE's rebuilt
+> series: the cost fell one to two weeks earlier than MBIE shows
+> (`mbie_notes.md`, "The rebuilt April weeks lag ComCom's live series"). The
+> first test of the dating moved the fall only later, so it could not see
+> this. On ComCom's dating the spread is 0.311, not 0.356. The conclusion
+> stands: the instability is the pump's own slow fall, which starts in
+> mid-April rather than at 24 Apr. Figures are on MBIE's dating unless marked.
+
+Four scripts, all offline against the 26 Nov archive:
+`research/diesel_crash_window.py` (exploratory), `diesel_spread_boot.py`,
+`diesel_redate_crash.py` and `diesel_comcom_dating.py` (each with its rule
+written before it ran). Unless stated, the spec is `headline_results.py`
+section 1: Final weeks, 2010+, no ECM. Spread is the lag sum at K=12 minus
+the sum at K=3.
 
 **The rise did not do it; the fall did.** With the sample ending at each week:
 
@@ -1339,7 +1348,9 @@ ECM. Spread is the lag sum at K=12 minus the sum at K=3.
 
 - **1 May and 8 May 2026 are the two most influential equations** in the 2010+
   sample. Fourteen of the top fifteen are 2026 weeks.
-- **Without rows 1 May – 24 Jul 2026 the spread is 0.012.**
+- **Without rows 1 May – 24 Jul 2026 the spread is 0.012.** On ComCom's dating
+  it is 0.138: the slow fall starts earlier, so the window that carries it is
+  wider than these weeks.
 - **The July step (+0.08)** is cost rising again (+7 and +26 c/L on 10 and
   17 Jul) while the pump was still falling (−6, −1).
 - **MBIE's fuel market adjustment is not the cause.** With it taken out of cost
@@ -1354,11 +1365,13 @@ What happened in those weeks:
   fell 1–5 c/L a week through May and 4–17 c/L a week in June.
 - The margin went from 9 to 90 c/L and stayed at 60–95 to early July, against
   a norm of 42–45.
+- On ComCom's dating the cost fell in the weeks of 10 and 17 Apr instead,
+  while the pump sat at its peak. The margin was already +94 by 17 Apr.
 
 A model without the margin can read that slow tail only as cost arriving 8–12
 weeks late, so its lag sum climbs with K. That locates what "Scoped correctly"
 left open. The high-volatility climb is not a property of volatile weeks in
-general. It is this one window.
+general. It is this one episode's slow fall.
 
 **Two margin lags halve it; the rule for "they remove it" failed.**
 `diesel_spread_boot.py`: moving block bootstrap of regression rows, 12-week
@@ -1389,28 +1402,42 @@ blocks, 2000 replicates, paired across specifications.
   its value to 2025 (0.71–0.76).
 - Petrol under two lags with 2026: 0.71–0.77, range 0.06.
 
-**The crash is not misdated.** `diesel_redate_crash.py`. The week of 24 Apr
-lies inside the window where MBIE suspended importer cost and rebuilt it
-afterwards (18 Mar – 1 Jul). If the rebuild dated the fall too early, the
-slow pump would partly be a dating error. The test moves only that step:
-delayed by 1–3 weeks, or spread over 2–8 weeks, with the cost level outside
-those weeks unchanged and the margin moved by the same amount the other way.
-**No variant brings the spread to 0.15**; the nearest is 0.188, at eight
-weeks. The rule's verdict: timing is implausible as the main cause.
+**The crash is misdated, and that is not the cause.** The week of 24 Apr lies
+inside the window where MBIE suspended importer cost and rebuilt it afterwards
+(18 Mar – 1 Jul). If the rebuild misdated the fall, the slow pump could
+partly be a dating error.
 
-- **Delaying the step makes the pump fall before the cost.** The margin goes
-  to −19 and −38 c/L, and the K=6 fit gets worse: residual sum of squares +30%
-  to +47% for a 1–3 week delay, +9% to +12% for a 2–6 week spread. Only eight
-  weeks matches the fit as published.
-- **The pump's first reaction dates the fall where MBIE does**: −28 c/L in the
-  same week. The slow part is what came after.
-- **The control works.** Spreading the +61.9 c/L rise of 6 Mar over three
-  weeks leaves the spread at 0.370. Re-dating a large step does not lower it
-  by itself.
-- **Not tested: the size of the fall.** If the rebuild overstated it, part of
-  the May–June margin is not real. Checking that needs an outside diesel price
-  for April 2026. AIP keeps only 11–15 weeks of reports, so that price is not
-  in this project's data.
+*First test, one-sided* (`diesel_redate_crash.py`). It moves only that step
+later: delayed by 1–3 weeks, or spread over 2–8 weeks, with the cost level
+outside those weeks unchanged and the margin moved the other way. No variant
+brings the spread to 0.15; the nearest is 0.188, at eight weeks. Delaying makes
+the pump fall before the cost (margin −19 and −38 c/L) and worsens the K=6 fit
+by 9–47%. A control, spreading the 6 Mar rise over three weeks, leaves the
+spread at 0.370. The rule's verdict was "timing implausible", but that verdict
+covers only one direction. The reading drawn from it, that the pump's first
+reaction dates the fall where MBIE does, was wrong.
+
+*The other direction, from outside data.* ComCom's live daily cost puts the
+fall in the weeks of 10 and 17 Apr. It is the same size as MBIE's (−159
+against −146 c/L), but one to two weeks earlier (`mbie_notes.md`). US diesel
+agrees on the timing. On that dating the pump reacted about two weeks after
+the cost — the ordinary lag — and then fell slowly into July.
+
+*Second test* (`diesel_comcom_dating.py`, rule written before it ran). It
+replaces MBIE's diesel cost for 3–17 Apr with ComCom's (A), or every week from
+6 Mar to 31 Jul (B):
+
+| diesel cost | spread | range under two margin lags | spread without 1 May – 24 Jul | margin 3 / 10 / 17 / 24 Apr |
+|---|---|---|---|---|
+| as published | 0.356 | 0.168 | 0.012 | −51 / −6 / 9 / 90 |
+| **A**: ComCom 3–17 Apr | **0.311** | 0.133 | 0.138 | −69 / 29 / 94 / 90 |
+| B: ComCom 6 Mar – 31 Jul | 0.295 | 0.128 | 0.141 | −69 / 29 / 94 / 86 |
+
+- **The rule's verdict: the instability survives ComCom's dating.** It is the
+  pump's own slow fall. The dating accounts for about 0.05 of 0.36.
+- **On ComCom's dating the spread builds up gradually.** It is 0.10 by 17 Apr,
+  0.20 by 1 May, 0.26 by late June and 0.31 by mid-July. It is not a jump at
+  1–8 May.
 
 **What is left, and why this data cannot split it.** Two explanations both
 predict a fast first reaction and a slow tail:
@@ -1419,7 +1446,8 @@ predict a fast first reaction and a slow tail:
   (27 Feb – 17 Apr) sums to −463 c/L·weeks below the norm. The surplus after it
   (24 Apr – 10 Jul) sums to +413. This is not money, because volumes are not
   in the data. Without the adjustment the two do not match (−265 against
-  +416), and 2022 shows no such pair.
+  +416), and 2022 shows no such pair. These sums are on MBIE's dating; on
+  ComCom's, 17 Apr moves from the squeeze to the surplus. Not recomputed.
 - **Stock bought at the peak was still being sold.** "Does old crude reach the
   pump" found diesel's 4–12-week block jointly significant (p 0.0007) with a
   sum near zero. A timing effect would look like that, but it is not shown.
@@ -1432,6 +1460,9 @@ Both rest on one episode.
 - **Production's two margin lags for diesel (W25) are the specification under
   which this window distorts least.** That fits the 23 Nov finding that their
   gain is largest in weeks of large margin moves.
+- **Production trains on the two misdated weeks.** On ComCom's evidence their
+  cost is 35 and 85 c/L too high. They are left as they are, because
+  production reads MBIE as published.
 - n = 1 again: every number in this section comes from one crash.
 
 ## The diesel instability is Provisional data, not the crisis - 16 Aug 2026
